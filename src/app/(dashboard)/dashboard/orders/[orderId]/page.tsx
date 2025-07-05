@@ -1,9 +1,5 @@
-import { Suspense } from 'react';
-import { notFound } from 'next/navigation';
 import { Container } from '@/shared/components/layout/container';
 import { OrderDetails } from '@/features/orders/components/order-details';
-import { OrderDetailsSkeleton } from '@/features/orders/components/order-details-skeleton';
-import { requireOrderWithDetails } from '@/features/orders/utils';
 
 interface OrderDetailPageProps {
   params: {
@@ -11,7 +7,7 @@ interface OrderDetailPageProps {
   };
 }
 
-export async function generateMetadata({ params }: OrderDetailPageProps) {
+export async function generateMetadata() {
   return {
     title: `Order Details - YardCard Elite`,
     description: `Order management for YardCard Elite`

@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateUserRoleAction, removeUserAction } from '@/features/auth/team-actions'
-import { type TeamData, type TeamMember } from '@/features/auth/team-types'
+import { type TeamData } from '@/features/auth/team-types'
 import { 
   getRoleDisplayName, 
   getRoleDescription, 
@@ -19,7 +19,7 @@ interface TeamManagementClientProps {
 
 export default function TeamManagementClient({ initialData }: TeamManagementClientProps) {
   const router = useRouter()
-  const [teamData, setTeamData] = useState<TeamData>(initialData)
+  const [teamData] = useState<TeamData>(initialData)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [showRoleModal, setShowRoleModal] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(teamData.error || null)
@@ -57,7 +57,7 @@ export default function TeamManagementClient({ initialData }: TeamManagementClie
     if (!teamData.currentUser) return
 
     if (!confirm('Are you sure you want to remove this user from the team?')) {
-      return
+      return;
     }
 
     try {

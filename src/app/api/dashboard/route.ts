@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getDashboardMetrics, getRecentOrders, getPlatformPopularSigns } from '@/features/dashboard/actions'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Check authentication
     const { userId } = await auth()

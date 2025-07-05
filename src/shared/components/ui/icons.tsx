@@ -72,7 +72,7 @@ export {
   Send,
   
   // System
-  Refresh,
+  RotateCcw as Refresh,
   Power,
   Lock,
   Unlock,
@@ -87,7 +87,7 @@ export {
   
   // Yard Signs Specific
   Square,
-  Rectangle,
+  RectangleHorizontal as Rectangle,
   Circle,
   Star,
   Heart,

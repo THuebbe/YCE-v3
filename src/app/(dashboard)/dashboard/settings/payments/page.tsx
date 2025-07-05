@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CreditCard, CheckCircle, AlertCircle } from 'lucide-react';
 import { createStripeConnectAccount, getStripeConnectStatus } from '@/features/payments/actions';
-import { useUser } from '@clerk/nextjs';
 
 interface StripeAccountStatus {
   hasAccount: boolean;
@@ -19,7 +18,6 @@ interface StripeAccountStatus {
 }
 
 export default function PaymentsPage() {
-  const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [stripeStatus, setStripeStatus] = useState<StripeAccountStatus | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -40,7 +38,7 @@ export default function PaymentsPage() {
           text: result.error || 'Failed to create Stripe Connect account'
         });
       }
-    } catch (error) {
+    } catch {
       setMessage({
         type: 'error',
         text: 'Something went wrong. Please try again.'
@@ -129,7 +127,7 @@ export default function PaymentsPage() {
                   <h3 className="text-lg font-semibold mb-2">Connect with Stripe</h3>
                   <p className="text-gray-600 mb-6">
                     Link your Stripe account to start accepting payments from your clients.
-                    You'll be redirected to Stripe's secure onboarding process.
+                    You&apos;ll be redirected to Stripe&apos;s secure onboarding process.
                   </p>
                 </div>
                 

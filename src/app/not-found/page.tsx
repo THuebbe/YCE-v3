@@ -24,7 +24,7 @@ export default function NotFoundPage() {
             Agency Not Found
           </h1>
           <p className="text-lg text-gray-600 mb-4">
-            The agency you're looking for doesn't exist or has been removed.
+            The agency you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <p className="text-sm text-gray-500">
             Please check the URL and try again, or contact the agency directly if you believe this is an error.

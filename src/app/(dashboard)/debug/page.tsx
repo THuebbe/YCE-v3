@@ -7,7 +7,7 @@ export default async function DebugPage() {
   const clerkUser = await currentUser()
   const tenantId = await getCurrentTenant()
   
-  let debugInfo: any = {
+  const debugInfo: Record<string, unknown> = {
     userId,
     clerkUserEmail: clerkUser?.emailAddresses[0]?.emailAddress,
     tenantId,
@@ -32,7 +32,7 @@ export default async function DebugPage() {
       }
     }
   } catch (error) {
-    debugInfo.error = error.message
+    debugInfo.error = error instanceof Error ? error.message : String(error);
   }
   
   return (

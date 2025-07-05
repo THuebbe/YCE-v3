@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Settings, Users, CreditCard, Bell, Shield, Building2 } from 'lucide-react';
+import { Users, CreditCard, Bell, Shield, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -41,7 +39,6 @@ const settingsNavigation = [
 ];
 
 export default function SettingsPage() {
-  const pathname = usePathname();
 
   return (
     <div className="container mx-auto px-4 py-8">

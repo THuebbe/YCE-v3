@@ -64,7 +64,7 @@ export default async function BookingHomePage() {
             <span className="text-green-600"> Services</span>
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-            Transform your outdoor space with {agencyName}'s professional lawn care services. 
+            Transform your outdoor space with {agencyName}&apos;s professional lawn care services. 
             Quality service, reliable scheduling, and beautiful results guaranteed.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -112,7 +112,7 @@ export default async function BookingHomePage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Fertilization</h3>
               <p className="text-gray-600 mb-4">
-                Professional fertilization programs tailored to your lawn's specific needs and season.
+                Professional fertilization programs tailored to your lawn&apos;s specific needs and season.
               </p>
               <Link 
                 href="/booking/schedule?service=fertilization" 

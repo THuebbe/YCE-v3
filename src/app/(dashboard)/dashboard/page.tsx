@@ -38,7 +38,7 @@ export default async function DashboardPage() {
             Dashboard
           </h1>
           <p className="mt-3 text-lg text-neutral-600">
-            Welcome back{user.firstName ? `, ${user.firstName}` : ''}! Here's an overview of your yard sign rental business.
+            Welcome back{user.firstName ? `, ${user.firstName}` : ''}! Here&apos;s an overview of your yard sign rental business.
           </p>
         </div>
 

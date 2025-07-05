@@ -172,7 +172,7 @@ export default async function SchedulePage() {
               </div>
 
               <p className="text-sm text-gray-500 text-center">
-                We'll contact you within 24 hours to confirm your appointment and provide a detailed quote.
+                We&apos;ll contact you within 24 hours to confirm your appointment and provide a detailed quote.
               </p>
             </form>
           </div>
