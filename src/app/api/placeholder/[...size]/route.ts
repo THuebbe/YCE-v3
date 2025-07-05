@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { size: string[] } }
+  { params }: { params: Promise<{ size: string[] }> }
 ) {
   const sizeParams = await params;
   const [width = '150', height = '100'] = sizeParams.size;
