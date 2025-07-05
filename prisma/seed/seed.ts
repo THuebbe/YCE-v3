@@ -486,12 +486,7 @@ async function seedOrders(agencies: any[], signs: any[]) {
           lateFee,
           total,
           paymentStatus: status === 'completed' ? 'paid' : status === 'cancelled' ? 'refunded' : 'pending',
-          eventAddress: {
-            street: `${randomBetween(100, 9999)} ${randomFromArray(['Main', 'Oak', 'Elm', 'First', 'Second'])} St`,
-            city: agency.city,
-            state: agency.address.state,
-            zip: agency.address.zip
-          },
+          eventAddress: `${randomBetween(100, 9999)} ${randomFromArray(['Main', 'Oak', 'Elm', 'First', 'Second'])} St, ${agency.city}, ${agency.address.state} ${agency.address.zip}`,
           createdAt,
           updatedAt: createdAt,
           completedAt: status === 'completed' ? eventDate : null,
