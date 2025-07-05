@@ -143,7 +143,7 @@ async function createTestUsers() {
         ...userData,
         clerkUserId: null,
         status: 'failed',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   }
