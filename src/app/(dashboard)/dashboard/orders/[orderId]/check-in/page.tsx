@@ -5,14 +5,15 @@ import { MobileCheckInSkeleton } from '@/features/orders/components/mobile-check
 import { requireOrderWithDetails } from '@/features/orders/utils';
 
 interface CheckInPageProps {
-  params: {
+  params: Promise<{
     orderId: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: CheckInPageProps) {
   try {
-    const order = await requireOrderWithDetails(params.orderId);
+    const { orderId } = await params;
+    const order = await requireOrderWithDetails(orderId);
     return {
       title: `Check In Signs - Order #${order.orderNumber}`,
       description: `Mobile check-in interface for ${order.customerName}'s order`,
