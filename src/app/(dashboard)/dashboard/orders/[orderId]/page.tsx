@@ -2,9 +2,9 @@ import { Container } from '@/shared/components/layout/container';
 import { OrderDetails } from '@/features/orders/components/order-details';
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     orderId: string;
-  };
+  }>;
 }
 
 export async function generateMetadata() {
