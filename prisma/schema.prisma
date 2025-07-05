@@ -1,0 +1,309 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
+}
+
+model Agency {
+  id                     String        @id @default(cuid())
+  name                   String
+  slug                   String        @unique
+  domain                 String?       @unique
+  isActive               Boolean       @default(true)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  description            String?
+  stripeAccountId        String?       @unique
+  stripeAccountStatus    String?
+  stripeOnboardingUrl    String?
+  stripeChargesEnabled   Boolean       @default(false)
+  stripePayoutsEnabled   Boolean       @default(false)
+  stripeDetailsSubmitted Boolean       @default(false)
+  address                Json?
+  agencyCode             String?       @unique
+  businessName           String?
+  city                   String?
+  email                  String?
+  orderCounter           Int           @default(0)
+  phone                  String?
+  pricingConfig          Json          @default("{\"lateFee\": 25, \"basePrice\": 95, \"extraDayPrice\": 10}")
+  settings               Json          @default("{}")
+  stripeConnectStatus    String        @default("pending")
+  stripeCustomerId       String?
+  subdomain              String?       @unique
+  subscriptionEndDate    DateTime?
+  subscriptionStartDate  DateTime?
+  subscriptionStatus     String        @default("trial")
+  inventory              Inventory[]
+  orders                 Order[]
+  transactions           Transaction[]
+  users                  User[]
+
+  @@map("agencies")
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  firstName      String?
+  lastName       String?
+  avatar         String?
+  role           UserRole        @default(USER)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  emailVerified  DateTime?
+  hashedPassword String?
+  agencyId       String
+  clerkUserId    String?         @unique
+  agency         Agency          @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  orderActivities OrderActivity[]
+  createdOrders  Order[]         @relation("OrderCreatedBy")
+  signCheckIns   SignCheckIn[]
+
+  @@unique([email, agencyId])
+  @@map("users")
+}
+
+model Sign {
+  id             String              @id @default(cuid())
+  name           String
+  description    String?
+  category       String
+  theme          String?
+  sizeWidth      Int?
+  sizeHeight     Int?
+  dimensions     Json?
+  themes         String[]
+  holidays       String[]
+  keywords       String[]
+  imageUrl       String
+  thumbnailUrl   String?
+  isPlatform     Boolean             @default(true)
+  createdBy      String?
+  bundleId       String?
+  bundlePosition Int?
+  rentalPrice    Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  inventory      Inventory[]
+  holdItems      InventoryHoldItem[]
+  orderItems     OrderItem[]
+  orderSigns     OrderSign[]
+  signCheckIns   SignCheckIn[]
+  bundle         Bundle?             @relation(fields: [bundleId], references: [id])
+
+  @@index([category])
+  @@index([themes])
+  @@index([isPlatform, createdBy])
+  @@index([bundleId])
+  @@map("sign_library")
+}
+
+model Bundle {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  signs       Sign[]
+
+  @@map("bundles")
+}
+
+model Inventory {
+  id                String   @id @default(cuid())
+  agencyId          String
+  signId            String
+  quantity          Int      @default(0)
+  availableQuantity Int      @default(0)
+  allocatedQuantity Int      @default(0)
+  deployedQuantity  Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  agency            Agency   @relation(fields: [agencyId], references: [id])
+  sign              Sign     @relation(fields: [signId], references: [id])
+
+  @@unique([agencyId, signId])
+  @@index([agencyId])
+  @@map("agency_inventory")
+}
+
+model Order {
+  id                   String          @id @default(cuid())
+  agencyId             String
+  orderNumber          String
+  displayNumber        String?
+  internalNumber       String?         @unique
+  customerName         String
+  customerEmail        String
+  customerPhone        String?
+  eventDate            DateTime
+  eventAddress         String?
+  eventType            String?
+  deliveryTime         String?
+  deliveryNotes        String?
+  message              String?
+  messageText          String?
+  theme                String?
+  layoutStyle          String?
+  previewUrl           String?
+  status               String          @default("pending")
+  subtotal             Decimal         @db.Decimal(10, 2)
+  extraDays            Int             @default(0)
+  extraDayFee          Decimal         @default(0) @db.Decimal(10, 2)
+  lateFee              Decimal         @default(0) @db.Decimal(10, 2)
+  total                Decimal         @db.Decimal(10, 2)
+  paymentIntentId      String?
+  stripePaymentIntentId String?
+  paymentStatus        String          @default("pending")
+  paymentMethod        String?
+  documents            Json            @default("[]")
+  specialInstructions  String?
+  refundAmount         Decimal?        @db.Decimal(10, 2)
+  cancellationReason   String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  deployedAt           DateTime?
+  completedAt          DateTime?
+  cancelledAt          DateTime?
+  createdById          String?
+  activities           OrderActivity[]
+  orderItems           OrderItem[]
+  signs                OrderSign[]
+  signCheckIns         SignCheckIn[]
+  agency               Agency          @relation(fields: [agencyId], references: [id])
+  transaction          Transaction?
+  createdBy            User?           @relation("OrderCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([agencyId, orderNumber])
+  @@index([agencyId, status])
+  @@index([agencyId, eventDate])
+  @@index([customerEmail])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  signId    String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  lineTotal Decimal @db.Decimal(10, 2)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sign      Sign    @relation(fields: [signId], references: [id])
+
+  @@index([orderId])
+  @@index([signId])
+  @@map("order_items")
+}
+
+model OrderSign {
+  id       String @id @default(cuid())
+  orderId  String
+  signId   String
+  quantity Int
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sign     Sign   @relation(fields: [signId], references: [id])
+
+  @@index([orderId])
+  @@index([signId])
+  @@map("order_signs")
+}
+
+model OrderActivity {
+  id        String   @id @default(cuid())
+  orderId   String
+  userId    String
+  action    String
+  status    String
+  notes     String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@map("order_activities")
+}
+
+model InventoryHold {
+  id        String              @id @default(cuid())
+  agencyId  String
+  orderId   String?
+  sessionId String?
+  isActive  Boolean             @default(true)
+  expiresAt DateTime
+  createdAt DateTime            @default(now())
+  items     InventoryHoldItem[]
+
+  @@index([agencyId, expiresAt])
+  @@index([orderId])
+  @@index([sessionId])
+  @@map("inventory_holds")
+}
+
+model InventoryHoldItem {
+  id        String        @id @default(cuid())
+  holdId    String
+  signId    String
+  quantity  Int
+  unitPrice Int
+  hold      InventoryHold @relation(fields: [holdId], references: [id], onDelete: Cascade)
+  sign      Sign          @relation(fields: [signId], references: [id])
+
+  @@index([holdId])
+  @@index([signId])
+  @@map("inventory_hold_items")
+}
+
+model SignCheckIn {
+  id             String   @id @default(cuid())
+  orderId        String
+  signId         String
+  condition      String
+  notes          String?
+  damagePhotos   String[] @default([])
+  checkedInById  String
+  createdAt      DateTime @default(now())
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sign           Sign     @relation(fields: [signId], references: [id])
+  checkedInBy    User     @relation(fields: [checkedInById], references: [id])
+
+  @@index([orderId])
+  @@index([signId])
+  @@map("sign_check_ins")
+}
+
+model Transaction {
+  id              String    @id @default(cuid())
+  agencyId        String
+  orderId         String    @unique
+  grossAmount     Decimal   @db.Decimal(10, 2)
+  platformFee     Decimal   @db.Decimal(10, 2)
+  stripeFee       Decimal   @db.Decimal(10, 2)
+  netAmount       Decimal   @db.Decimal(10, 2)
+  processingType  String
+  stripePaymentId String
+  status          String    @default("pending")
+  createdAt       DateTime  @default(now())
+  releasedAt      DateTime?
+  agency          Agency    @relation(fields: [agencyId], references: [id])
+  order           Order     @relation(fields: [orderId], references: [id])
+
+  @@index([agencyId, status])
+  @@index([stripePaymentId])
+  @@map("transactions")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+  SUPER_USER
+}

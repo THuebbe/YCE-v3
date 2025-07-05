@@ -1,0 +1,504 @@
+@import "tailwindcss";
+
+/* Tailwind CSS v4 Theme Configuration */
+@theme {
+  /* Color System from YardCard Elite Style Guide */
+  --color-primary: #7b3ff2;
+  --color-primary-dark: #1a1d29;
+  --color-secondary-light: #9d6fff;
+  --color-secondary-pale: #f0e9ff;
+  --color-secondary-gray: #6b7280;
+  
+  /* Accent colors */
+  --color-accent-green: #10b981;
+  --color-accent-pink: #ec4899;
+  --color-accent-yellow: #f59e0b;
+  --color-accent-blue: #3b82f6;
+  
+  /* Functional colors */
+  --color-success: #059669;
+  --color-error: #dc2626;
+  --color-warning: #ea580c;
+  --color-info: #0ea5e9;
+  
+  /* Background colors */
+  --color-background-white: #ffffff;
+  --color-background-light: #f9fafb;
+  --color-background-gray: #f3f4f6;
+  --color-background-dark: #111827;
+  --color-background-dark-surface: #1f2937;
+  
+  /* Neutral colors */
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+  
+  /* Typography */
+  --font-family-sans: Inter, ui-sans-serif, system-ui, sans-serif;
+  
+  /* Font sizes matching style guide */
+  --font-size-h1: 2rem;
+  --font-size-h2: 1.75rem;
+  --font-size-h3: 1.5rem;
+  --font-size-h4: 1.25rem;
+  --font-size-h5: 1.125rem;
+  --font-size-body-large: 1.125rem;
+  --font-size-body: 1rem;
+  --font-size-body-small: 0.875rem;
+  --font-size-caption: 0.75rem;
+  --font-size-button: 0.9375rem;
+  --font-size-label: 0.875rem;
+  
+  /* Line heights */
+  --line-height-h1: 2.5rem;
+  --line-height-h2: 2.25rem;
+  --line-height-h3: 2rem;
+  --line-height-h4: 1.75rem;
+  --line-height-h5: 1.625rem;
+  --line-height-body-large: 1.75rem;
+  --line-height-body: 1.5rem;
+  --line-height-body-small: 1.25rem;
+  --line-height-caption: 1rem;
+  --line-height-button: 1.5rem;
+  --line-height-label: 1.25rem;
+  
+  /* Spacing system */
+  --spacing-micro: 0.25rem;
+  --spacing-tight: 0.5rem;
+  --spacing-small: 0.75rem;
+  --spacing-default: 1rem;
+  --spacing-medium: 1.5rem;
+  --spacing-large: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-2xl-custom: 4rem;
+  
+  /* Border radius */
+  --radius-sm: 0.5rem;
+  --radius-default: 0.625rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  
+  /* Component heights */
+  --height-nav: 4rem;
+  --height-nav-item: 3rem;
+  --height-button: 2.75rem;
+  --height-button-desktop: 2.5rem;
+  --height-input: 3rem;
+  --height-tab: 3rem;
+  --height-touch-target: 2.75rem;
+  
+  /* Shadows */
+  --shadow-small: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-default: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-large: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-button: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #7b3ff2 0%, #9d6fff 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  --gradient-celebration: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+  
+  /* Transitions */
+  --transition-standard: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-entrance: 300ms cubic-bezier(0, 0, 0.2, 1);
+  --transition-exit: 150ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-family-sans);
+  background-color: var(--color-background-white);
+  color: var(--color-neutral-900);
+}
+
+/* Custom utility classes */
+.text-h1 {
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+/* Background colors */
+.bg-background-light {
+  background-color: var(--color-background-light);
+}
+
+.bg-background-gray {
+  background-color: var(--color-background-gray);
+}
+
+/* Accent colors */
+.text-accent-green {
+  color: var(--color-accent-green);
+}
+
+.text-accent-yellow {
+  color: var(--color-accent-yellow);
+}
+
+.text-accent-blue {
+  color: var(--color-accent-blue);
+}
+
+.text-accent-pink {
+  color: var(--color-accent-pink);
+}
+
+.bg-accent-green\/10 {
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+.bg-accent-yellow\/10 {
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.bg-accent-blue\/10 {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.bg-accent-pink\/10 {
+  background-color: rgba(236, 72, 153, 0.1);
+}
+
+/* Functional colors */
+.text-success-green {
+  color: var(--color-success);
+}
+
+.text-error-red {
+  color: var(--color-error);
+}
+
+.text-warning-orange {
+  color: var(--color-warning);
+}
+
+.bg-error-red\/10 {
+  background-color: rgba(220, 38, 38, 0.1);
+}
+
+/* Primary color variations */
+.bg-primary\/10 {
+  background-color: rgba(123, 63, 242, 0.1);
+}
+
+.text-primary-hover {
+  color: var(--color-secondary-light);
+}
+
+.bg-primary-hover {
+  background-color: var(--color-secondary-light);
+}
+
+/* Neutral colors */
+.text-neutral-600 {
+  color: var(--color-neutral-600);
+}
+
+.text-neutral-800 {
+  color: var(--color-neutral-800);
+}
+
+.bg-neutral-50 {
+  background-color: var(--color-neutral-50);
+}
+
+.bg-neutral-100 {
+  background-color: var(--color-neutral-100);
+}
+
+.border-neutral-100 {
+  border-color: var(--color-neutral-100);
+}
+
+.border-neutral-200 {
+  border-color: var(--color-neutral-200);
+}
+
+/* Shadow utilities */
+.shadow-default {
+  box-shadow: var(--shadow-default);
+}
+
+.text-h2 {
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.text-h3 {
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-h3);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.text-body {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  font-weight: 400;
+}
+
+.text-body-small {
+  font-size: var(--font-size-body-small);
+  line-height: var(--line-height-body-small);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.text-label {
+  font-size: var(--font-size-label);
+  line-height: var(--line-height-label);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.bg-primary-gradient {
+  background: var(--gradient-primary);
+}
+
+.bg-background-white {
+  background-color: var(--color-background-white);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-neutral-900 {
+  color: var(--color-neutral-900);
+}
+
+.text-neutral-700 {
+  color: var(--color-neutral-700);
+}
+
+.text-neutral-500 {
+  color: var(--color-neutral-500);
+}
+
+.border-primary {
+  border-color: var(--color-primary);
+}
+
+.border-neutral-300 {
+  border-color: var(--color-neutral-300);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-secondary-light {
+  background-color: var(--color-secondary-light);
+}
+
+.bg-secondary-pale {
+  background-color: var(--color-secondary-pale);
+}
+
+.shadow-large {
+  box-shadow: var(--shadow-large);
+}
+
+.shadow-button {
+  box-shadow: var(--shadow-button);
+}
+
+.shadow-medium {
+  box-shadow: var(--shadow-medium);
+}
+
+.rounded-default {
+  border-radius: var(--radius-default);
+}
+
+.h-input {
+  height: var(--height-input);
+}
+
+.h-button {
+  height: var(--height-button);
+}
+
+.h-button-desktop {
+  height: var(--height-button-desktop);
+}
+
+.px-medium {
+  padding-left: var(--spacing-medium);
+  padding-right: var(--spacing-medium);
+}
+
+.py-small {
+  padding-top: var(--spacing-small);
+  padding-bottom: var(--spacing-small);
+}
+
+.duration-standard {
+  transition-duration: 200ms;
+}
+
+.hover\:bg-secondary-light:hover {
+  background-color: var(--color-secondary-light);
+}
+
+.hover\:bg-secondary-pale:hover {
+  background-color: var(--color-secondary-pale);
+}
+
+.hover\:text-secondary-light:hover {
+  color: var(--color-secondary-light);
+}
+
+.hover\:border-neutral-400:hover {
+  border-color: var(--color-neutral-400);
+}
+
+.hover\:shadow-medium:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+.focus\:border-primary:focus {
+  border-color: var(--color-primary);
+}
+
+.active\:scale-98:active {
+  transform: scale(0.98);
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-neutral-100);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-neutral-300);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-neutral-400);
+}
+
+/* Animation keyframes */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoomOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+/* Animation utility classes */
+.animate-slide-down {
+  animation: slideDown 200ms ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 300ms ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 200ms ease-out;
+}
+
+.animate-fade-out {
+  animation: fadeOut 150ms ease-in;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 200ms ease-out;
+}
+
+.animate-zoom-in {
+  animation: zoomIn 200ms ease-out;
+}
+
+.animate-zoom-out {
+  animation: zoomOut 150ms ease-in;
+}
