@@ -28,7 +28,9 @@ export async function generateOrderNumber(agencyId: string): Promise<{ orderNumb
     select: { internalNumber: true }
   });
 
-  const nextNumber = lastOrder ? parseInt(lastOrder.internalNumber.split('-')[1]) + 1 : 1;
+  const nextNumber = lastOrder && lastOrder.internalNumber 
+    ? parseInt(lastOrder.internalNumber.split('-')[1]) + 1 
+    : 1;
   const paddedNumber = nextNumber.toString().padStart(4, '0');
 
   return {

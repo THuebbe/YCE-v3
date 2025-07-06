@@ -1,8 +1,20 @@
-// @ts-expect-error Prisma client types may not be available during build
-import { PrismaClient } from '@prisma/client'
+// Import safe Prisma client that handles build environment issues
+import { prisma as safePrisma } from './prisma-safe'
+
+let PrismaClient: any
+try {
+  // @ts-expect-error Prisma client types may not be available during build
+  const prismaModule = require('@prisma/client')
+  PrismaClient = prismaModule.PrismaClient
+} catch {
+  // Mock PrismaClient for build environment
+  PrismaClient = class MockPrismaClient {
+    constructor() {}
+  }
+}
 
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+  prisma: any | undefined
 }
 
 // Enhanced Prisma client with secure function-based tenant isolation
