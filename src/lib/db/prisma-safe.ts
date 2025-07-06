@@ -10,7 +10,7 @@ if (process.env.NODE_ENV === 'production') {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient } = require('@prisma/client')
     prisma = new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+      log: [],
     })
   } catch (error) {
     console.warn('Prisma client not available in build environment:', error)
@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === 'production') {
     const { PrismaClient } = require('@prisma/client')
     
     prisma = globalThis.__globalPrisma__ ?? new PrismaClient({
-      log: process.env.NODE_ENV === 'development' ? ['query'] : [],
+      log: ['query'],
     })
     
     if (process.env.NODE_ENV !== 'production') {
