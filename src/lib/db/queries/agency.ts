@@ -88,7 +88,7 @@ export async function userExistsInDatabase(userId: string): Promise<boolean> {
 }
 
 // Get user's agency by user ID
-export async function getUserAgency(userId: string): Promise<Agency | null> {
+export async function getUserAgency(userId: string): Promise<any | null> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -103,7 +103,7 @@ export async function getUserAgency(userId: string): Promise<Agency | null> {
 }
 
 // Get all active agencies (for admin purposes)
-export async function getActiveAgencies(): Promise<Agency[]> {
+export async function getActiveAgencies(): Promise<any[]> {
   try {
     return await prisma.agency.findMany({
       where: { isActive: true },

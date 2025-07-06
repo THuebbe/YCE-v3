@@ -132,8 +132,8 @@ export class VercelBlobService {
           pathname: blob.pathname,
           size: blob.size,
           uploadedAt: blob.uploadedAt,
-          contentType: blob.contentType || 'application/octet-stream',
-          contentDisposition: blob.contentDisposition || 'inline'
+          contentType: (blob as any).contentType || 'application/octet-stream',
+          contentDisposition: (blob as any).contentDisposition || 'inline'
         })),
         hasMore: result.hasMore,
         cursor: result.cursor

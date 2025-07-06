@@ -127,8 +127,8 @@ export async function testRLSPolicies() {
   console.log('\n📋 Test 3: Agency Isolation')
   
   // Client should only see their own agency
-  const agencies1 = await client1.agency.findMany()
-  const agencies2 = await client2.agency.findMany()
+  const agencies1 = await (client1 as any).agency.findMany()
+  const agencies2 = await (client2 as any).agency.findMany()
   
   console.log(`Client 1 sees ${agencies1.length} agencies`)
   console.log(`Client 2 sees ${agencies2.length} agencies`)

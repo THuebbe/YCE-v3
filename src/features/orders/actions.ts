@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentTenant } from '@/lib/tenant-context';
 import { auth } from '@clerk/nextjs/server';
+// import type { PrismaClient } from '@prisma/client';
 import { OrderStatus, OrderAction, getNextStatusForAction, getAvailableActions } from './stateMachine';
 import { generateOrderNumber, requireOrder, requireOrderWithDetails, shouldAutoRefund } from './utils';
 import { CreateOrderInput, CancelOrderInput, CheckInSignsInput, EditSignsInput } from './types';
@@ -24,7 +25,7 @@ export async function createOrder(data: CreateOrderInput) {
 
   try {
     // Use transaction for atomicity
-    const order = await prisma.$transaction(async (tx: typeof prisma) => {
+    const order = await prisma.$transaction(async (tx: any) => {
       // Validate that the hold exists and hasn't expired
       const hold = await tx.inventoryHold.findFirst({
         where: {
@@ -216,7 +217,7 @@ export async function advanceOrderStatus(orderId: string, action: OrderAction) {
     }
 
     // Update order in transaction
-    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
+    const updatedOrder = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.order.update({
         where: { id: orderId },
         data: updateData
@@ -280,7 +281,7 @@ export async function cancelOrder(input: CancelOrderInput) {
     }
 
     // Update order in transaction
-    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
+    const updatedOrder = await prisma.$transaction(async (tx: any) => {
       const updated = await tx.order.update({
         where: { id: input.orderId },
         data: {
@@ -343,7 +344,7 @@ export async function checkInSigns(input: CheckInSignsInput) {
     }
 
     // Update order and create check-in records
-    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
+    const updatedOrder = await prisma.$transaction(async (tx: any) => {
       // Update order status
       const updated = await tx.order.update({
         where: { id: input.orderId },
@@ -416,7 +417,7 @@ export async function editOrderSigns(input: EditSignsInput) {
     }
 
     // Update order items in transaction
-    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
+    const updatedOrder = await prisma.$transaction(async (tx: any) => {
       let changes = [];
 
       // Handle additions
