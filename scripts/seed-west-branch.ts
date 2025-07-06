@@ -144,12 +144,7 @@ async function createOrders() {
         lateFee,
         total,
         paymentStatus: status === 'completed' ? 'paid' : status === 'cancelled' ? 'refunded' : 'pending',
-        eventAddress: {
-          street: `${randomBetween(100, 9999)} ${randomFromArray(['Main', 'Oak', 'Elm', 'First', 'Second', 'Park', 'Maple', 'Cedar'])} ${randomFromArray(['St', 'Ave', 'Dr', 'Ln', 'Ct'])}`,
-          city: 'Your City',
-          state: 'ST',
-          zip: '12345'
-        },
+        eventAddress: `${randomBetween(100, 9999)} ${randomFromArray(['Main', 'Oak', 'Elm', 'First', 'Second', 'Park', 'Maple', 'Cedar'])} ${randomFromArray(['St', 'Ave', 'Dr', 'Ln', 'Ct'])}, Your City, ST 12345`,
         createdAt,
         updatedAt: createdAt,
         completedAt: status === 'completed' ? eventDate : null,

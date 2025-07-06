@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal } from '@/shared/components/feedback/modal';
+import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalContent, ModalFooter } from '@/shared/components/feedback/modal';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -75,22 +75,22 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
 
   return (
     <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
+      open={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
       size="lg"
       className="max-w-2xl"
     >
-      <Modal.Header>
-        <Modal.Title className="flex items-center text-red-600">
+      <ModalHeader>
+        <ModalTitle className="flex items-center text-red-600">
           <AlertTriangle className="h-5 w-5 mr-2" />
           Cancel Order #{order.orderNumber}
-        </Modal.Title>
-        <Modal.Description>
+        </ModalTitle>
+        <ModalDescription>
           This action cannot be undone. Please review the cancellation details below.
-        </Modal.Description>
-      </Modal.Header>
+        </ModalDescription>
+      </ModalHeader>
 
-      <Modal.Content className="space-y-6">
+      <ModalContent className="space-y-6">
         {/* Order Summary */}
         <div className="bg-gray-50 rounded-lg p-4">
           <h4 className="font-medium text-gray-900 mb-2">Order Summary</h4>
@@ -228,9 +228,9 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
             </div>
           </div>
         )}
-      </Modal.Content>
+      </ModalContent>
 
-      <Modal.Footer>
+      <ModalFooter>
         <Button
           variant="secondary"
           onClick={handleClose}
@@ -239,14 +239,14 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
           Keep Order
         </Button>
         <Button
-          variant="destructive"
+          variant="error"
           onClick={handleCancel}
           disabled={isProcessing}
           className="bg-red-600 hover:bg-red-700"
         >
           {isProcessing ? 'Cancelling...' : 'Cancel Order'}
         </Button>
-      </Modal.Footer>
+      </ModalFooter>
     </Modal>
   );
 }

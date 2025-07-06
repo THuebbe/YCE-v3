@@ -127,8 +127,8 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         await tenantClient.createAgencyUser({
           id: user.id,
           email: user.emailAddresses[0]?.emailAddress || '',
-          firstName: user.firstName || null,
-          lastName: user.lastName || null,
+          firstName: user.firstName || undefined,
+          lastName: user.lastName || undefined,
           role: 'ADMIN' // Agency creator becomes admin
         })
       }
@@ -139,8 +139,8 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         data: {
           id: user.id,
           email: user.emailAddresses[0]?.emailAddress || '',
-          firstName: user.firstName || null,
-          lastName: user.lastName || null,
+          firstName: user.firstName || undefined,
+          lastName: user.lastName || undefined,
           role: 'ADMIN',
           agencyId: agency.id,
         }

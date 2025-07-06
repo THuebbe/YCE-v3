@@ -3,7 +3,7 @@
 import { ErrorBoundary } from "react-error-boundary";
 import { Container } from "@/shared/components/layout/container";
 import { Button } from "@/shared/components/ui/button";
-import { AlertTriangle, RefreshCw } from "@/shared/components/ui/icons";
+import { AlertTriangle, Refresh } from "@/shared/components/ui/icons";
 import type { DashboardLayoutProps } from "../types";
 
 export function DashboardLayout({ children, className = "" }: DashboardLayoutProps) {
@@ -37,7 +37,7 @@ function DashboardErrorFallback({ error, resetErrorBoundary }: any) {
             onClick={resetErrorBoundary}
             className="w-full"
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <Refresh className="h-4 w-4 mr-2" />
             Try Again
           </Button>
           

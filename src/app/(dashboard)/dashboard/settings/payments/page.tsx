@@ -193,7 +193,7 @@ export default function PaymentsPage() {
 
                 <div className="flex justify-center pt-4">
                   <Button 
-                    variant="outline" 
+                    variant="secondary" 
                     onClick={refreshStripeStatus}
                     size="sm"
                   >

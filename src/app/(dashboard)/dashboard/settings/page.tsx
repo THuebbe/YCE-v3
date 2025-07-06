@@ -67,7 +67,7 @@ export default function SettingsPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <Button asChild variant="outline" className="w-full">
+                  <Button asChild variant="secondary" className="w-full">
                     <Link href={item.href}>
                       Configure {item.name}
                     </Link>

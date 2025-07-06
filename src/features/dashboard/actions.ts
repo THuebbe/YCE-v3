@@ -9,7 +9,8 @@ import type {
   PopularSign, 
   UpcomingDeployment,
   RevenueComparison,
-  DashboardDataParams 
+  DashboardDataParams,
+  OrderStatus 
 } from './types';
 
 // Cache the dashboard metrics for 5 minutes
@@ -230,11 +231,9 @@ async function getUpcomingDeployments(agencyId: string, endDate: Date): Promise<
     customerEmail: order.customerEmail,
     eventDate: order.eventDate,
     deliveryTime: order.deliveryTime,
-    status: order.status as any,
+    status: order.status as OrderStatus,
     signCount: order.orderItems.reduce((sum, item) => sum + item.quantity, 0),
-    address: typeof order.eventAddress === 'object' && order.eventAddress 
-      ? JSON.stringify(order.eventAddress) 
-      : 'Address not available',
+    address: order.eventAddress || 'Address not available',
     total: Number(order.total)
   }));
 }
@@ -278,7 +277,7 @@ export const getRecentOrders = cache(async (params: { limit?: number } = {}): Pr
       customerName: order.customerName,
       customerEmail: order.customerEmail,
       eventDate: order.eventDate,
-      status: order.status as any,
+      status: order.status as OrderStatus,
       total: Number(order.total),
       signCount: order.orderItems.reduce((sum, item) => sum + item.quantity, 0),
       createdAt: order.createdAt

@@ -309,14 +309,10 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
                               onChange={(e) => handlePhotoUpload(item.signId, e.target.files)}
                               className="hidden"
                             />
-                            <Button
-                              variant="secondary"
-                              className="w-full text-sm"
-                              as="span"
-                            >
+                            <label className="inline-flex items-center justify-center whitespace-nowrap text-button font-medium transition-all duration-standard h-button-desktop px-medium py-small md:h-button rounded-default bg-background-white border-[1.5px] border-primary text-primary hover:bg-secondary-pale w-full text-sm cursor-pointer">
                               <Camera className="h-4 w-4 mr-2" />
                               Add Damage Photos
-                            </Button>
+                            </label>
                           </label>
 
                           {/* Photo Preview */}

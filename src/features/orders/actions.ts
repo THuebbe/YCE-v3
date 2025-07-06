@@ -274,9 +274,9 @@ export async function cancelOrder(input: CancelOrderInput) {
 
     // Calculate refund amount
     if (input.refundType === 'full') {
-      refundAmount = order.total;
+      refundAmount = Number(order.total);
     } else if (input.refundType === 'partial' && input.refundAmount) {
-      refundAmount = Math.min(input.refundAmount, order.total);
+      refundAmount = Math.min(input.refundAmount, Number(order.total));
     }
 
     // Update order in transaction
@@ -435,7 +435,7 @@ export async function editOrderSigns(input: EditSignsInput) {
               where: { id: existingItem.id },
               data: {
                 quantity: existingItem.quantity + addition.quantity,
-                lineTotal: existingItem.unitPrice * (existingItem.quantity + addition.quantity)
+                lineTotal: Number(existingItem.unitPrice) * (existingItem.quantity + addition.quantity)
               }
             });
             changes.push(`Added ${addition.quantity} more of sign ${addition.signId}`);
@@ -486,7 +486,7 @@ export async function editOrderSigns(input: EditSignsInput) {
                 where: { id: existingItem.id },
                 data: {
                   quantity: newQuantity,
-                  lineTotal: existingItem.unitPrice * newQuantity
+                  lineTotal: Number(existingItem.unitPrice) * newQuantity
                 }
               });
               changes.push(`Removed ${removal.quantity} of sign ${removal.signId}`);
@@ -510,7 +510,7 @@ export async function editOrderSigns(input: EditSignsInput) {
               where: { id: existingItem.id },
               data: {
                 quantity: update.newQuantity,
-                lineTotal: existingItem.unitPrice * update.newQuantity
+                lineTotal: Number(existingItem.unitPrice) * update.newQuantity
               }
             });
             changes.push(`Updated sign ${update.signId} to ${update.newQuantity} quantity`);
@@ -523,7 +523,7 @@ export async function editOrderSigns(input: EditSignsInput) {
         where: { orderId: input.orderId }
       });
 
-      const newSubtotal = orderItems.reduce((total, item) => total + item.lineTotal, 0);
+      const newSubtotal = orderItems.reduce((total, item) => total + Number(item.lineTotal), 0);
       const newTotal = newSubtotal; // Add tax/fees if needed
 
       const updated = await tx.order.update({

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal } from '@/shared/components/feedback/modal';
+import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalContent, ModalFooter } from '@/shared/components/feedback/modal';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
@@ -201,22 +201,22 @@ export function EditSignsModal({ isOpen, onClose, order }: EditSignsModalProps) 
 
   return (
     <Modal
-      isOpen={isOpen}
-      onClose={onClose}
+      open={isOpen}
+      onOpenChange={(open) => !open && onClose()}
       size="xl"
       className="max-w-4xl"
     >
-      <Modal.Header>
-        <Modal.Title className="flex items-center">
+      <ModalHeader>
+        <ModalTitle className="flex items-center">
           <Package className="h-5 w-5 mr-2" />
           Edit Signs - Order #{order.orderNumber}
-        </Modal.Title>
-        <Modal.Description>
+        </ModalTitle>
+        <ModalDescription>
           Modify the signs in this order. Changes will update the order total and create an activity log.
-        </Modal.Description>
-      </Modal.Header>
+        </ModalDescription>
+      </ModalHeader>
 
-      <Modal.Content className="space-y-6 max-h-[70vh] overflow-y-auto">
+      <ModalContent className="space-y-6 max-h-[70vh] overflow-y-auto">
         {/* Current Signs */}
         <div className="space-y-4">
           <h4 className="font-medium text-gray-900">Current Signs</h4>
@@ -426,9 +426,9 @@ export function EditSignsModal({ isOpen, onClose, order }: EditSignsModalProps) 
             </div>
           </div>
         )}
-      </Modal.Content>
+      </ModalContent>
 
-      <Modal.Footer>
+      <ModalFooter>
         <Button
           variant="secondary"
           onClick={onClose}
@@ -443,7 +443,7 @@ export function EditSignsModal({ isOpen, onClose, order }: EditSignsModalProps) 
         >
           {isProcessing ? 'Saving...' : 'Save Changes'}
         </Button>
-      </Modal.Footer>
+      </ModalFooter>
     </Modal>
   );
 }

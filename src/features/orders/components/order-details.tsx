@@ -99,7 +99,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
           break;
       }
 
-      if (result.success) {
+      if (result.success && result.result) {
         // Update local documents state
         const newDocument = {
           type: result.result.type,
@@ -107,7 +107,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
           filename: result.result.filename,
           generatedAt: result.result.generatedAt.toISOString()
         };
-        setDocuments(prev => [...prev, newDocument]);
+        setDocuments((prev: any) => [...prev, newDocument]);
 
         toast({
           title: 'Document Generated',
