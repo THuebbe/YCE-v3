@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "npx prisma generate && next build",
+    "build-safe": "taskkill /f /im node.exe 2>nul || true && npx prisma generate && next build",
     "vercel-build": "npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "npx prisma generate"
+    "postinstall": "npx prisma generate",
+    "prisma-fix": "taskkill /f /im node.exe 2>nul || true && rmdir /s /q node_modules\\.prisma 2>nul || true && npx prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "^1.0.38",
