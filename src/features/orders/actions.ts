@@ -24,7 +24,7 @@ export async function createOrder(data: CreateOrderInput) {
 
   try {
     // Use transaction for atomicity
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx: typeof prisma) => {
       // Validate that the hold exists and hasn't expired
       const hold = await tx.inventoryHold.findFirst({
         where: {
@@ -57,7 +57,7 @@ export async function createOrder(data: CreateOrderInput) {
       const { orderNumber, internalNumber } = await generateOrderNumber(agencyId);
 
       // Calculate totals
-      const subtotal = hold.items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+      const subtotal = hold.items.reduce((total: number, item: typeof hold.items[0]) => total + (item.unitPrice * item.quantity), 0);
       const total = subtotal; // Add tax/fees here if needed
 
       // Create the order
@@ -84,7 +84,7 @@ export async function createOrder(data: CreateOrderInput) {
 
       // Create order items from hold items
       const orderItems = await Promise.all(
-        hold.items.map(item => 
+        hold.items.map((item: typeof hold.items[0]) => 
           tx.orderItem.create({
             data: {
               orderId: newOrder.id,
@@ -216,7 +216,7 @@ export async function advanceOrderStatus(orderId: string, action: OrderAction) {
     }
 
     // Update order in transaction
-    const updatedOrder = await prisma.$transaction(async (tx) => {
+    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
       const updated = await tx.order.update({
         where: { id: orderId },
         data: updateData
@@ -280,7 +280,7 @@ export async function cancelOrder(input: CancelOrderInput) {
     }
 
     // Update order in transaction
-    const updatedOrder = await prisma.$transaction(async (tx) => {
+    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
       const updated = await tx.order.update({
         where: { id: input.orderId },
         data: {
@@ -343,7 +343,7 @@ export async function checkInSigns(input: CheckInSignsInput) {
     }
 
     // Update order and create check-in records
-    const updatedOrder = await prisma.$transaction(async (tx) => {
+    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
       // Update order status
       const updated = await tx.order.update({
         where: { id: input.orderId },
@@ -416,7 +416,7 @@ export async function editOrderSigns(input: EditSignsInput) {
     }
 
     // Update order items in transaction
-    const updatedOrder = await prisma.$transaction(async (tx) => {
+    const updatedOrder = await prisma.$transaction(async (tx: typeof prisma) => {
       let changes = [];
 
       // Handle additions
@@ -523,7 +523,7 @@ export async function editOrderSigns(input: EditSignsInput) {
         where: { orderId: input.orderId }
       });
 
-      const newSubtotal = orderItems.reduce((total, item) => total + Number(item.lineTotal), 0);
+      const newSubtotal = orderItems.reduce((total: number, item: typeof orderItems[0]) => total + Number(item.lineTotal), 0);
       const newTotal = newSubtotal; // Add tax/fees if needed
 
       const updated = await tx.order.update({

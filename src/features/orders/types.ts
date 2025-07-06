@@ -1,4 +1,5 @@
-import { Order, OrderItem, Sign, Agency, User } from '@prisma/client';
+// Temporarily removing Prisma imports due to build issues
+// import { Order, OrderItem, Sign, Agency, User } from '@prisma/client';
 import { OrderStatus, OrderAction } from './stateMachine';
 
 export interface CreateOrderInput {
@@ -14,12 +15,14 @@ export interface CreateOrderInput {
   stripePaymentIntentId?: string;
 }
 
-export interface OrderWithDetails extends Order {
-  items: (OrderItem & {
-    sign: Sign;
-  })[];
-  agency: Agency;
+export interface OrderWithDetails {
+  id: string;
+  orderNumber: string;
+  status: string;
+  items: any[];
+  agency: any;
   activities: OrderActivity[];
+  // Add other properties as needed
 }
 
 export interface OrderActivity {
@@ -30,7 +33,7 @@ export interface OrderActivity {
   status: OrderStatus;
   notes?: string;
   createdAt: Date;
-  user: Pick<User, 'id' | 'firstName' | 'lastName' | 'email'>;
+  user: { id: string; firstName: string; lastName: string; email: string };
 }
 
 export interface OrderDocument {

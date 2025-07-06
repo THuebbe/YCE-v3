@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma';
 import { getCurrentTenant } from '@/lib/tenant-context';
-import { Order } from '@prisma/client';
+// import { Order } from '@prisma/client';
 
 export async function generateOrderNumber(agencyId: string): Promise<{ orderNumber: string; internalNumber: string }> {
   // Get the agency's abbreviation for the order number prefix
@@ -16,7 +16,7 @@ export async function generateOrderNumber(agencyId: string): Promise<{ orderNumb
   // Create a 3-letter abbreviation from the agency name
   const abbreviation = agency.name
     .split(' ')
-    .map(word => word.charAt(0).toUpperCase())
+    .map((word: string) => word.charAt(0).toUpperCase())
     .join('')
     .padEnd(3, 'A')
     .substring(0, 3);
@@ -37,7 +37,7 @@ export async function generateOrderNumber(agencyId: string): Promise<{ orderNumb
   };
 }
 
-export async function requireOrder(orderId: string): Promise<Order> {
+export async function requireOrder(orderId: string): Promise<any> {
   const agencyId = await getCurrentTenant();
   
   if (!agencyId) {
@@ -147,12 +147,12 @@ export function getOrderStatusBadgeColor(status: string): string {
   }
 }
 
-export function canCancelOrder(order: Order): boolean {
+export function canCancelOrder(order: any): boolean {
   // Can cancel if not completed or already cancelled
   return !['completed', 'cancelled'].includes(order.status);
 }
 
-export function isWithinCancellationWindow(order: Order): boolean {
+export function isWithinCancellationWindow(order: any): boolean {
   // Check if order is within 24-hour cancellation window
   const orderTime = new Date(order.createdAt);
   const now = new Date();
@@ -161,7 +161,7 @@ export function isWithinCancellationWindow(order: Order): boolean {
   return hoursSinceOrder <= 24;
 }
 
-export function shouldAutoRefund(order: Order): boolean {
+export function shouldAutoRefund(order: any): boolean {
   return canCancelOrder(order) && isWithinCancellationWindow(order);
 }
 

@@ -36,7 +36,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     deployedAt: null,
     completedAt: null,
     cancelledAt: null,
-    orderItems: [
+    items: [
       {
         id: '1',
         signId: 'sign1',
@@ -67,13 +67,21 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     agency: {
       id: 'agency1',
       name: 'West Branch Agency',
-      slug: 'west-branch'
+      city: 'West Branch',
+      state: 'MI',
+      subdomain: 'west-branch',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      stripeConnectAccountId: null,
+      isActive: true
     },
     activities: [
       {
         id: 'activity1',
+        orderId: orderId,
+        userId: 'user1',
         action: 'created',
-        status: 'pending',
+        status: 'pending' as const,
         notes: 'Order created from booking',
         createdAt: new Date('2024-01-01'),
         user: {

@@ -36,7 +36,7 @@ export async function getCurrentAuthenticatedUser(): Promise<AuthenticatedUser |
     })
     
     if (directUsers.length > 0) {
-      const dbUser = directUsers.find(user => user.email === clerkUser.emailAddresses[0]?.emailAddress)
+      const dbUser = directUsers.find((user: typeof directUsers[0]) => user.email === clerkUser.emailAddresses[0]?.emailAddress)
       
       if (dbUser) {
         return {
@@ -261,10 +261,8 @@ export async function removeUserFromTenant(userId: string): Promise<boolean> {
     }
     
     // Use the standard client for deletion since user is validated to belong to tenant
-    await withCurrentTenantContext(async (standardClient) => {
-      await standardClient.user.delete({
-        where: { id: userId }
-      })
+    await prisma.user.delete({
+      where: { id: userId }
     })
 
     return true

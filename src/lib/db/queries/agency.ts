@@ -1,11 +1,11 @@
 import { prisma } from '../prisma'
-import { Agency } from '@prisma/client'
+// import { Agency } from '@prisma/client'
 
 // Cache for agency lookups to improve performance
-const agencyCache = new Map<string, { agency: Agency | null; timestamp: number }>()
+const agencyCache = new Map<string, { agency: any | null; timestamp: number }>()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes in milliseconds
 
-export async function getAgencyBySlug(slug: string): Promise<Agency | null> {
+export async function getAgencyBySlug(slug: string): Promise<any | null> {
   // Check cache first
   const cached = agencyCache.get(slug)
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -30,7 +30,7 @@ export async function getAgencyBySlug(slug: string): Promise<Agency | null> {
   }
 }
 
-export async function getAgencyByDomain(domain: string): Promise<Agency | null> {
+export async function getAgencyByDomain(domain: string): Promise<any | null> {
   // Check cache first
   const cached = agencyCache.get(`domain:${domain}`)
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {

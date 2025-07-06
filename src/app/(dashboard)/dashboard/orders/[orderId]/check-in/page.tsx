@@ -30,7 +30,7 @@ export default async function CheckInPage({ params }: CheckInPageProps) {
   // Await params to fix Next.js 15 requirement
   const { orderId } = await params;
   
-  let order;
+  let order: Awaited<ReturnType<typeof requireOrderWithDetails>>;
   
   try {
     order = await requireOrderWithDetails(orderId);

@@ -89,7 +89,7 @@ export async function OrdersBoard() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
       {ORDER_COLUMNS.map(column => {
-        let orders;
+        let orders: typeof mockOrders;
         switch (column.status) {
           case 'pending':
             orders = pendingOrders;

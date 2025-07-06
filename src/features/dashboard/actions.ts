@@ -166,7 +166,7 @@ async function getPopularSigns(agencyId: string): Promise<PopularSign[]> {
   });
 
   // Get sign details
-  const signIds = popularSigns.map(item => item.signId);
+  const signIds = popularSigns.map((item: typeof popularSigns[0]) => item.signId);
   const signs = await prisma.sign.findMany({
     where: { id: { in: signIds } },
     select: {
@@ -177,8 +177,8 @@ async function getPopularSigns(agencyId: string): Promise<PopularSign[]> {
     }
   });
 
-  return popularSigns.map(item => {
-    const sign = signs.find(s => s.id === item.signId);
+  return popularSigns.map((item: typeof popularSigns[0]) => {
+    const sign = signs.find((s: typeof signs[0]) => s.id === item.signId);
     return {
       id: item.signId,
       name: sign?.name || 'Unknown Sign',
@@ -224,7 +224,7 @@ async function getUpcomingDeployments(agencyId: string, endDate: Date): Promise<
     take: 10
   });
 
-  return deployments.map(order => ({
+  return deployments.map((order: typeof deployments[0]) => ({
     id: order.id,
     orderNumber: order.orderNumber,
     customerName: order.customerName,
@@ -232,7 +232,7 @@ async function getUpcomingDeployments(agencyId: string, endDate: Date): Promise<
     eventDate: order.eventDate,
     deliveryTime: order.deliveryTime,
     status: order.status as OrderStatus,
-    signCount: order.orderItems.reduce((sum, item) => sum + item.quantity, 0),
+    signCount: order.orderItems.reduce((sum: number, item: typeof order.orderItems[0]) => sum + item.quantity, 0),
     address: order.eventAddress || 'Address not available',
     total: Number(order.total)
   }));
@@ -271,7 +271,7 @@ export const getRecentOrders = cache(async (params: { limit?: number } = {}): Pr
       take: limit
     });
 
-    return orders.map(order => ({
+    return orders.map((order: typeof orders[0]) => ({
       id: order.id,
       orderNumber: order.orderNumber,
       customerName: order.customerName,
@@ -279,7 +279,7 @@ export const getRecentOrders = cache(async (params: { limit?: number } = {}): Pr
       eventDate: order.eventDate,
       status: order.status as OrderStatus,
       total: Number(order.total),
-      signCount: order.orderItems.reduce((sum, item) => sum + item.quantity, 0),
+      signCount: order.orderItems.reduce((sum: number, item: typeof order.orderItems[0]) => sum + item.quantity, 0),
       createdAt: order.createdAt
     }));
 
@@ -315,7 +315,7 @@ export const getPlatformPopularSigns = cache(async (): Promise<PopularSign[]> =>
     });
 
     // Get sign details
-    const signIds = popularSigns.map(item => item.signId);
+    const signIds = popularSigns.map((item: typeof popularSigns[0]) => item.signId);
     const signs = await prisma.sign.findMany({
       where: { id: { in: signIds } },
       select: {
@@ -326,8 +326,8 @@ export const getPlatformPopularSigns = cache(async (): Promise<PopularSign[]> =>
       }
     });
 
-    return popularSigns.map(item => {
-      const sign = signs.find(s => s.id === item.signId);
+    return popularSigns.map((item: typeof popularSigns[0]) => {
+      const sign = signs.find((s: typeof signs[0]) => s.id === item.signId);
       return {
         id: item.signId,
         name: sign?.name || 'Unknown Sign',

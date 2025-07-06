@@ -27,21 +27,22 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
 import { EditSignsModal } from './edit-signs-modal';
 import { CancelOrderModal } from './cancel-order-modal';
+import { OrderWithDetails } from '../types';
 
 interface OrderDetailsProps {
-  order: any;
+  order: any; // Using any for now due to interface conflicts with mock data
 }
 
 export function OrderDetails({ order }: OrderDetailsProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingDocument, setIsGeneratingDocument] = useState<string | null>(null);
-  const [documents, setDocuments] = useState(order.documents || []);
+  const [documents, setDocuments] = useState<any[]>([]);
   const router = useRouter();
   const { toast } = useToast();
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
   const statusColor = getOrderStatusBadgeColor(order.status);
-  const signCount = order.orderItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const signCount = order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
 
   const handleAction = async (action: OrderAction) => {
     if (isProcessing) return;
@@ -86,7 +87,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
     
     setIsGeneratingDocument(type);
     try {
-      let result;
+      let result: { success: boolean; result?: any; error?: string };
       switch (type) {
         case 'pickTicket':
           result = await generatePickTicket(order.id);
