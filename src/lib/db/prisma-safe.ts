@@ -8,6 +8,7 @@ declare global {
 if (process.env.NODE_ENV === 'production') {
   try {
     // @ts-expect-error Prisma client types may not be available during build
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient } = require('@prisma/client')
     prisma = new PrismaClient({
       log: process.env.NODE_ENV === 'development' ? ['query'] : [],
@@ -25,6 +26,7 @@ if (process.env.NODE_ENV === 'production') {
 } else {
   try {
     // @ts-expect-error Prisma client types may not be available during build
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient } = require('@prisma/client')
     
     prisma = globalThis.__globalPrisma__ ?? new PrismaClient({

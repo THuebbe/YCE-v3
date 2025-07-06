@@ -4,6 +4,7 @@ import { prisma as safePrisma } from './prisma-safe'
 let PrismaClient: any
 try {
   // @ts-expect-error Prisma client types may not be available during build
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const prismaModule = require('@prisma/client')
   PrismaClient = prismaModule.PrismaClient
 } catch {
