@@ -31,9 +31,8 @@ if (process.env.NODE_ENV === 'production') {
       log: ['query'],
     })
     
-    if (process.env.NODE_ENV !== 'production') {
-      globalThis.__globalPrisma__ = prisma
-    }
+    // Cache in global for development (we're already in non-production branch)
+    globalThis.__globalPrisma__ = prisma
   } catch (error) {
     console.warn('Prisma client not available:', error)
     // Create a mock client for development
