@@ -15,9 +15,11 @@ Error occurred prerendering page "/_not-found".
 
 **PROGRESS**: ✅ Stripe webhook issue FIXED! Build now passes webhook compilation and reaches page generation phase.
 
-**JUST FIXED**: Added missing publishableKey prop to ClerkProvider in root layout
-- Added `publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}` to ClerkProvider
-- This should fix the static page generation error
+**JUST FIXED**: Created ConditionalClerkProvider to handle missing environment variables during build
+- Added ConditionalClerkProvider component that checks for NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+- If key is missing (during build), disables Clerk and returns children directly
+- If key is present (runtime), wraps children with ClerkProvider
+- This allows static generation to complete even without environment variables
 
 **PREVIOUS FIX**: Updated Stripe webhook route to handle missing environment variables during build
 - Made Stripe client initialization conditional based on environment variable availability

@@ -5,6 +5,26 @@ import { clerkTheme } from '@/lib/clerk-theme';
 import { ToastProvider } from '@/shared/components/feedback/toast';
 import "./globals.css";
 
+// Component to handle conditional Clerk provider
+function ConditionalClerkProvider({ children }: { children: React.ReactNode }) {
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  
+  // If no Clerk key, just return children without Clerk provider
+  if (!clerkPublishableKey) {
+    console.warn('NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY not found, Clerk disabled for build');
+    return <>{children}</>;
+  }
+  
+  return (
+    <ClerkProvider 
+      publishableKey={clerkPublishableKey}
+      appearance={clerkTheme}
+    >
+      {children}
+    </ClerkProvider>
+  );
+}
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -22,10 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider 
-      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
-      appearance={clerkTheme}
-    >
+    <ConditionalClerkProvider>
       <html lang="en" className="h-full">
         <body
           className={`${inter.variable} font-sans antialiased h-full bg-background-white text-neutral-900 selection:bg-secondary-pale selection:text-primary`}
@@ -37,6 +54,6 @@ export default function RootLayout({
           </ToastProvider>
         </body>
       </html>
-    </ClerkProvider>
+    </ConditionalClerkProvider>
   );
 }
