@@ -72,11 +72,33 @@ export default clerkMiddleware(async (auth, req) => {
     url: req.url
   })
   
-  // Handle authentication
-  const { userId } = await auth()
+  // Check if Clerk is properly configured
+  const clerkKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+  if (!clerkKey) {
+    console.log('🔍 Middleware: Clerk not configured, skipping auth')
+    // Pass through without auth checks if Clerk isn't configured
+    const response = NextResponse.next()
+    response.headers.set('x-hostname', hostname)
+    if (subdomain) {
+      response.headers.set('x-subdomain', subdomain)
+    }
+    response.headers.set('x-is-main-domain', isMain.toString())
+    return response
+  }
   
-  if (!isPublicRoute(req) && isProtectedRoute(req)) {
-    await auth.protect()
+  // Handle authentication
+  let userId: string | null = null
+  try {
+    const authResult = await auth()
+    userId = authResult.userId
+    
+    if (!isPublicRoute(req) && isProtectedRoute(req)) {
+      await auth.protect()
+    }
+  } catch (error) {
+    console.error('🔍 Middleware: Auth error:', error)
+    // If auth fails, treat as unauthenticated
+    userId = null
   }
   
   // If user is logged in and on a public route's root, redirect to their agency's subdomain
