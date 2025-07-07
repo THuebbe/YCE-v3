@@ -3,14 +3,22 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/db/prisma';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Initialize Stripe client only if environment variables are available
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {
   apiVersion: '2025-06-30.basil',
-});
+}) : null;
 
-const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is properly configured
+    if (!stripe || !webhookSecret) {
+      console.error('Stripe not configured: missing STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET');
+      return new NextResponse('Stripe not configured', { status: 500 });
+    }
+
     const body = await request.text();
     const headersList = await headers();
     const signature = headersList.get('stripe-signature');
@@ -75,7 +83,7 @@ export async function POST(request: NextRequest) {
         const capability = event.data.object as Stripe.Capability;
         
         // Update capabilities when they change
-        const account = await stripe.accounts.retrieve(capability.account as string);
+        const account = await stripe!.accounts.retrieve(capability.account as string);
         
         await prisma.agency.updateMany({
           where: { stripeAccountId: account.id },
@@ -96,7 +104,7 @@ export async function POST(request: NextRequest) {
         const person = event.data.object as Stripe.Person;
         
         // Update account status when person information changes
-        const account = await stripe.accounts.retrieve(person.account as string);
+        const account = await stripe!.accounts.retrieve(person.account as string);
         
         await prisma.agency.updateMany({
           where: { stripeAccountId: account.id },
