@@ -22,7 +22,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider appearance={clerkTheme}>
+    <ClerkProvider 
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!}
+      appearance={clerkTheme}
+    >
       <html lang="en" className="h-full">
         <body
           className={`${inter.variable} font-sans antialiased h-full bg-background-white text-neutral-900 selection:bg-secondary-pale selection:text-primary`}
