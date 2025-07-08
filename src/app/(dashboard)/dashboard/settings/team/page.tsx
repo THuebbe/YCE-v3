@@ -4,6 +4,9 @@ import TeamManagementClient from './team-client'
 import { Header } from '@/shared/components/layout/Header'
 import { Loader2 } from 'lucide-react'
 
+// Force this page to be dynamic (not statically generated)
+export const dynamic = 'force-dynamic'
+
 // Server Component
 export default async function TeamSettingsPage() {
   const teamData = await getTeamData()

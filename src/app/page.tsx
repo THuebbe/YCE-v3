@@ -4,6 +4,9 @@ import { headers } from 'next/headers'
 import Link from 'next/link'
 import { prisma } from '@/lib/db/prisma'
 
+// Force this page to be dynamic (not statically generated)
+export const dynamic = 'force-dynamic'
+
 // Extract subdomain from hostname
 function getSubdomain(hostname: string): string | null {
   const hostWithoutPort = hostname.split(':')[0]
