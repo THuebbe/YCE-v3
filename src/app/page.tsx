@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { prisma } from '@/lib/db/prisma'
+import { prisma } from '@/lib/db/prisma-safe'
 
 // Force this page to be dynamic (not statically generated)
 export const dynamic = 'force-dynamic'
@@ -30,41 +30,56 @@ function getSubdomain(hostname: string): string | null {
 }
 
 export default async function HomePage() {
-  const { userId } = await auth()
-  
-  if (userId) {
-    // Get current hostname to check if we're on the main domain or a subdomain
-    const headersList = await headers()
-    const hostname = headersList.get('host') || ''
-    const currentSubdomain = getSubdomain(hostname)
+  try {
+    const { userId } = await auth()
     
-    // If user is already on a subdomain, just redirect to dashboard
-    if (currentSubdomain) {
-      redirect('/dashboard')
-    }
-    
-    // If on main domain, check if user has an agency and redirect to their subdomain
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { agency: true }
-      })
+    if (userId) {
+      // Get current hostname to check if we're on the main domain or a subdomain
+      const headersList = await headers()
+      const hostname = headersList.get('host') || ''
+      const currentSubdomain = getSubdomain(hostname)
       
-      if (user?.agency?.slug) {
-        // Redirect to their agency's subdomain
-        const protocol = hostname.includes('localhost') ? 'http' : 'https'
-        const baseHost = hostname.includes('localhost') ? 'localhost:3000' : hostname
-        const agencyUrl = `${protocol}://${user.agency.slug}.${baseHost}/dashboard`
-        redirect(agencyUrl)
-      } else {
-        // No agency found, redirect to onboarding
-        redirect('/onboarding')
+      // If user is already on a subdomain, just redirect to dashboard
+      if (currentSubdomain) {
+        redirect('/dashboard')
       }
-    } catch (error) {
-      console.error('Error checking user agency:', error)
-      // Fallback to regular dashboard if there's an error
-      redirect('/dashboard')
+      
+      // If on main domain, check if user has an agency and redirect to their subdomain
+      try {
+        // Only try database connection if Prisma is properly configured
+        if (!process.env.DATABASE_URL) {
+          console.warn('DATABASE_URL not configured, redirecting to dashboard')
+          redirect('/dashboard')
+        }
+        
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          include: { agency: true }
+        })
+        
+        if (user?.agency?.slug) {
+          // Redirect to their agency's subdomain
+          const protocol = hostname.includes('localhost') ? 'http' : 'https'
+          const baseHost = hostname.includes('localhost') ? 'localhost:3000' : hostname
+          const agencyUrl = `${protocol}://${user.agency.slug}.${baseHost}/dashboard`
+          redirect(agencyUrl)
+        } else if (user) {
+          // User exists but no agency, redirect to onboarding
+          redirect('/onboarding')
+        } else {
+          // User not found in database, redirect to onboarding to create user record
+          redirect('/onboarding')
+        }
+      } catch (dbError) {
+        console.error('Database error checking user agency:', dbError)
+        // If database is not working, just redirect to dashboard
+        // The dashboard will handle auth and user creation
+        redirect('/dashboard')
+      }
     }
+  } catch (authError) {
+    console.error('Authentication error:', authError)
+    // If auth fails, fall through to show landing page
   }
 
   // Show landing page for unauthenticated users
