@@ -1,6 +1,70 @@
+import { auth } from '@clerk/nextjs/server'
+import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import Link from 'next/link'
+import { prisma } from '@/lib/db/prisma'
 
-export default function HomePage() {
+// Extract subdomain from hostname
+function getSubdomain(hostname: string): string | null {
+  const hostWithoutPort = hostname.split(':')[0]
+  
+  // Handle localhost development
+  if (hostWithoutPort.endsWith('.localhost') || hostWithoutPort === 'localhost') {
+    const parts = hostWithoutPort.split('.')
+    if (parts.length > 1 && parts[0] !== 'localhost') {
+      return parts[0]
+    }
+    return null
+  }
+  
+  // For production domains
+  const parts = hostWithoutPort.split('.')
+  if (parts.length > 2) {
+    return parts[0]
+  }
+  
+  return null
+}
+
+export default async function HomePage() {
+  const { userId } = await auth()
+  
+  if (userId) {
+    // Get current hostname to check if we're on the main domain or a subdomain
+    const headersList = await headers()
+    const hostname = headersList.get('host') || ''
+    const currentSubdomain = getSubdomain(hostname)
+    
+    // If user is already on a subdomain, just redirect to dashboard
+    if (currentSubdomain) {
+      redirect('/dashboard')
+    }
+    
+    // If on main domain, check if user has an agency and redirect to their subdomain
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: { agency: true }
+      })
+      
+      if (user?.agency?.slug) {
+        // Redirect to their agency's subdomain
+        const protocol = hostname.includes('localhost') ? 'http' : 'https'
+        const baseHost = hostname.includes('localhost') ? 'localhost:3000' : hostname
+        const agencyUrl = `${protocol}://${user.agency.slug}.${baseHost}/dashboard`
+        redirect(agencyUrl)
+      } else {
+        // No agency found, redirect to onboarding
+        redirect('/onboarding')
+      }
+    } catch (error) {
+      console.error('Error checking user agency:', error)
+      // Fallback to regular dashboard if there's an error
+      redirect('/dashboard')
+    }
+  }
+
+  // Show landing page for unauthenticated users
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
       <div className="max-w-md w-full space-y-8 text-center">
