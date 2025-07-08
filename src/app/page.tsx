@@ -33,27 +33,61 @@ export default async function HomePage() {
   console.log('🏠 Root page: Starting load')
   
   try {
-    const authResult = await auth()
-    console.log('🏠 Root page: Full auth result', authResult)
-    
-    const { userId, sessionId, orgId, orgRole, sessionClaims } = authResult
-    console.log('🏠 Root page: Auth details', { 
-      userId, 
-      sessionId, 
-      orgId, 
-      orgRole, 
-      hasSessionClaims: !!sessionClaims,
-      claimsKeys: sessionClaims ? Object.keys(sessionClaims) : null
-    })
+    const { userId } = await auth()
+    console.log('🏠 Root page: Auth result', { userId })
     
     if (userId) {
-      console.log('🏠 Root page: User is authenticated, redirecting to dashboard')
-      redirect('/dashboard')
-    } else {
-      console.log('🏠 Root page: No user ID, checking if session exists but no userId')
-      if (sessionId) {
-        console.log('🏠 Root page: Session exists but no userId - possible session issue')
+      // Get current hostname to check if we're on the main domain or a subdomain
+      const headersList = await headers()
+      const hostname = headersList.get('host') || ''
+      const currentSubdomain = getSubdomain(hostname)
+      
+      console.log('🏠 Root page: ✅ User authenticated! Hostname info:', { hostname, currentSubdomain })
+      
+      // If user is already on a subdomain, just redirect to dashboard
+      if (currentSubdomain) {
+        console.log('🏠 Root page: On subdomain, redirecting to dashboard')
+        redirect('/dashboard')
       }
+      
+      // If on main domain, check if user has an agency and redirect to their subdomain
+      try {
+        console.log('🏠 Root page: On main domain, checking user agency in database')
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          include: { agency: true }
+        })
+        
+        console.log('🏠 Root page: Database result', { 
+          userFound: !!user, 
+          hasAgency: !!user?.agency, 
+          agencySlug: user?.agency?.slug 
+        })
+        
+        if (user?.agency?.slug) {
+          // Redirect to their agency's subdomain
+          const protocol = hostname.includes('localhost') ? 'http' : 'https'
+          const baseHost = hostname.includes('localhost') ? 'localhost:3000' : hostname.replace('yce-v3.', '')
+          const agencyUrl = `${protocol}://${user.agency.slug}.${baseHost}/dashboard`
+          console.log('🏠 Root page: Redirecting to agency subdomain:', agencyUrl)
+          redirect(agencyUrl)
+        } else if (user) {
+          // User exists but no agency, redirect to onboarding
+          console.log('🏠 Root page: User exists but no agency, redirecting to onboarding')
+          redirect('/onboarding')
+        } else {
+          // User not found in database, redirect to onboarding to create user record
+          console.log('🏠 Root page: User not found in database, redirecting to onboarding')
+          redirect('/onboarding')
+        }
+      } catch (dbError) {
+        console.error('🏠 Root page: Database error checking user agency:', dbError)
+        // If database is not working, redirect to onboarding
+        console.log('🏠 Root page: Database error, redirecting to onboarding as fallback')
+        redirect('/onboarding')
+      }
+    } else {
+      console.log('🏠 Root page: No user ID, showing landing page')
     }
   } catch (authError) {
     console.error('🏠 Root page: Authentication error:', authError)
