@@ -36,12 +36,15 @@ export default async function TestDB() {
   
   if (PrismaClient && dbUrl) {
     try {
+      console.log('🔍 Creating PrismaClient with URL:', dbUrl?.substring(0, 50) + '...')
+      
       const client = new PrismaClient({
         datasources: {
           db: {
             url: dbUrl
           }
-        }
+        },
+        log: ['error']
       })
       
       console.log('🔍 Testing direct connection...')
@@ -52,6 +55,19 @@ export default async function TestDB() {
     } catch (error) {
       connectionError = error
       console.error('❌ Direct connection failed:', error)
+      
+      // Try without custom datasource
+      try {
+        console.log('🔍 Trying without custom datasource...')
+        const client2 = new PrismaClient({
+          log: ['error']
+        })
+        testResult = await client2.$queryRaw`SELECT 1 as test`
+        console.log('✅ Second attempt successful:', testResult)
+        await client2.$disconnect()
+      } catch (error2) {
+        console.error('❌ Second attempt also failed:', error2)
+      }
     }
   }
   

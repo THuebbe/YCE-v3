@@ -6,7 +6,7 @@
     "dev": "next dev --turbopack",
     "build": "npx prisma generate && next build",
     "build-safe": "taskkill /f /im node.exe 2>nul || true && npx prisma generate && next build",
-    "vercel-build": "rm -rf .next node_modules/.prisma && npx prisma generate && next build",
+    "vercel-build": "rm -rf .next node_modules/.prisma && env | grep -E '(PRISMA|DATABASE)' && npx prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "npx prisma generate",
