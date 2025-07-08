@@ -75,7 +75,7 @@ export default async function TestDB() {
           <h2 className="font-semibold mb-2">PrismaClient Import</h2>
           <pre className="text-sm">{JSON.stringify({
             success: !!PrismaClient,
-            error: prismaError?.message || null
+            error: prismaError instanceof Error ? prismaError.message : null
           }, null, 2)}</pre>
         </div>
         
@@ -84,7 +84,7 @@ export default async function TestDB() {
           <pre className="text-sm">{JSON.stringify({
             success: !!testResult,
             result: testResult,
-            error: connectionError?.message || null
+            error: connectionError instanceof Error ? connectionError.message : null
           }, null, 2)}</pre>
         </div>
       </div>
