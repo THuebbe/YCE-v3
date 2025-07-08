@@ -8,7 +8,7 @@ export default async function TestDB() {
   let prismaError: any
   
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-calls
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaClient: PC } = require('@prisma/client')
     PrismaClient = PC
     console.log('✅ PrismaClient imported successfully')
@@ -56,7 +56,7 @@ export default async function TestDB() {
   }
   
   return (
-    <div className="p-8 max-w-4xl mx-stream">
+    <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Database Connection Test</h1>
       
       <div className="space-y-4">
