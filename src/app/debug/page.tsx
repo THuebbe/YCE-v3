@@ -35,7 +35,11 @@ export default async function DebugPage() {
     console.log('🐛 Debug: Environment', {
       nodeEnv: process.env.NODE_ENV,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
-      databaseUrlStart: process.env.DATABASE_URL?.substring(0, 20)
+      databaseUrlStart: process.env.DATABASE_URL?.substring(0, 20),
+      hasDirectUrl: !!process.env.DIRECT_URL,
+      directUrlStart: process.env.DIRECT_URL?.substring(0, 20),
+      hasPrismaAccelerate: !!process.env.PRISMA_ACCELERATE_URL,
+      hasPrismaDataPlatform: !!process.env.PRISMA_DATA_PLATFORM_URL
     })
     
     // Test agency lookup directly
