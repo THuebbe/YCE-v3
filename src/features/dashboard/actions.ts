@@ -1,8 +1,8 @@
 'use server';
 
 import { cache } from 'react';
-import { prisma } from '@/lib/db/prisma';
 import { getCurrentTenant } from '@/lib/tenant-context';
+import { getDashboardMetrics as getSupabaseDashboardMetrics, getOrdersByAgency } from '@/lib/db/supabase-client';
 import type { 
   DashboardMetrics, 
   RecentOrder, 
@@ -21,117 +21,30 @@ export const getDashboardMetrics = cache(async (): Promise<DashboardMetrics> => 
     throw new Error('No tenant context available');
   }
   
-  // Get current date ranges
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfPreviousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const endOfPreviousMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-  const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  console.log('📊 Dashboard: Getting metrics for agency:', agencyId);
 
   try {
-    // Concurrent data fetching for optimal performance
-    const [
-      openOrders,
-      pendingOrders,
-      processingOrders,
-      deployedOrders,
-      currentMonthRevenue,
-      previousMonthRevenue,
-      completedOrdersThisMonth,
-      popularSigns,
-      upcomingDeployments,
-      totalOrdersThisMonth
-    ] = await Promise.all([
-      // Open orders count (pending, processing, deployed)
-      prisma.order.count({
-        where: {
-          agencyId,
-          status: { in: ['pending', 'processing', 'deployed'] }
-        }
-      }),
-
-      // Individual status counts
-      prisma.order.count({
-        where: { agencyId, status: 'pending' }
-      }),
-      
-      prisma.order.count({
-        where: { agencyId, status: 'processing' }
-      }),
-      
-      prisma.order.count({
-        where: { agencyId, status: 'deployed' }
-      }),
-
-      // Current month revenue
-      prisma.order.aggregate({
-        where: {
-          agencyId,
-          status: 'completed',
-          createdAt: { gte: startOfMonth }
-        },
-        _sum: { total: true }
-      }),
-
-      // Previous month revenue for comparison
-      prisma.order.aggregate({
-        where: {
-          agencyId,
-          status: 'completed',
-          createdAt: {
-            gte: startOfPreviousMonth,
-            lte: endOfPreviousMonth
-          }
-        },
-        _sum: { total: true }
-      }),
-
-      // Completed orders this month
-      prisma.order.count({
-        where: {
-          agencyId,
-          status: 'completed',
-          createdAt: { gte: startOfMonth }
-        }
-      }),
-
-      // Popular signs (top 5 by quantity in last 30 days)
-      getPopularSigns(agencyId),
-
-      // Upcoming deployments (next 7 days)
-      getUpcomingDeployments(agencyId, next7Days),
-
-      // Total orders this month for average calculation
-      prisma.order.count({
-        where: {
-          agencyId,
-          createdAt: { gte: startOfMonth }
-        }
-      })
-    ]);
-
-    // Calculate metrics
-    const currentRevenue = Number(currentMonthRevenue._sum.total) || 0;
-    const previousRevenue = Number(previousMonthRevenue._sum.total) || 0;
-    const monthlyRevenueChange = previousRevenue > 0 
-      ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 
+    // Use the Supabase implementation
+    const metrics = await getSupabaseDashboardMetrics(agencyId);
+    
+    // Calculate additional metrics
+    const monthlyRevenueChange = metrics.previousMonthRevenue > 0 
+      ? ((metrics.monthlyRevenue - metrics.previousMonthRevenue) / metrics.previousMonthRevenue) * 100 
       : 0;
 
-    const averageOrderValue = totalOrdersThisMonth > 0 
-      ? currentRevenue / totalOrdersThisMonth 
-      : 0;
+    console.log('📊 Dashboard: Metrics retrieved successfully');
 
     return {
-      openOrders,
-      monthlyRevenue: currentRevenue,
+      openOrders: metrics.openOrdersCount,
+      monthlyRevenue: metrics.monthlyRevenue,
       monthlyRevenueChange,
-      popularSigns,
-      upcomingDeployments,
-      completedOrdersThisMonth,
-      averageOrderValue,
-      pendingOrdersCount: pendingOrders,
-      processingOrdersCount: processingOrders,
-      deployedOrdersCount: deployedOrders,
+      popularSigns: [], // TODO: Implement popular signs with Supabase
+      upcomingDeployments: [], // TODO: Implement upcoming deployments with Supabase
+      completedOrdersThisMonth: metrics.completedOrdersCount,
+      averageOrderValue: metrics.averageOrderValue,
+      pendingOrdersCount: 0, // TODO: Implement with Supabase
+      processingOrdersCount: 0, // TODO: Implement with Supabase
+      deployedOrdersCount: 0, // TODO: Implement with Supabase
     };
 
   } catch (error) {
@@ -248,38 +161,18 @@ export const getRecentOrders = cache(async (params: { limit?: number } = {}): Pr
   const { limit = 5 } = params;
 
   try {
-    const orders = await prisma.order.findMany({
-      where: { agencyId },
-      select: {
-        id: true,
-        orderNumber: true,
-        customerName: true,
-        customerEmail: true,
-        eventDate: true,
-        status: true,
-        total: true,
-        createdAt: true,
-        orderItems: {
-          select: {
-            quantity: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: limit
-    });
+    console.log('📊 Dashboard: Getting recent orders for agency:', agencyId);
+    const orders = await getOrdersByAgency(agencyId, limit);
 
-    return orders.map((order: typeof orders[0]) => ({
+    return orders.map((order: any) => ({
       id: order.id,
-      orderNumber: order.orderNumber,
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-      eventDate: order.eventDate,
+      orderNumber: order.orderNumber || order.internalNumber || 'N/A',
+      customerName: order.customerName || 'Unknown',
+      customerEmail: order.customerEmail || 'No email',
+      eventDate: order.eventDate || order.deploymentDate,
       status: order.status as OrderStatus,
-      total: Number(order.total),
-      signCount: order.orderItems.reduce((sum: number, item: typeof order.orderItems[0]) => sum + item.quantity, 0),
+      total: Number(order.totalAmount || order.total || 0),
+      signCount: 1, // TODO: Implement proper sign count with Supabase
       createdAt: order.createdAt
     }));
 
