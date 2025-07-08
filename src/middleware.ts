@@ -1,18 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-
-// Basic route matchers
-const isProtectedRoute = (pathname: string) => {
-  return pathname.startsWith('/dashboard') || 
-         pathname.startsWith('/organization') || 
-         pathname.startsWith('/settings') || 
-         pathname.startsWith('/profile')
-}
-
-const isPublicRoute = (pathname: string) => {
-  const publicPaths = ['/', '/sign-in', '/sign-up', '/about', '/pricing', '/contact', '/maintenance', '/not-found']
-  return publicPaths.some(path => pathname === path || pathname.startsWith(path)) ||
-         pathname.startsWith('/api/webhooks')
-}
+import { clerkMiddleware } from '@clerk/nextjs/server'
+import { NextResponse } from 'next/server'
 
 // Extract subdomain from hostname
 function getSubdomain(hostname: string): string | null {
@@ -47,16 +34,14 @@ function isMainDomain(hostname: string): boolean {
   return !subdomain || subdomain === 'www'
 }
 
-export default function middleware(req: NextRequest) {
+export default clerkMiddleware(async (auth, req) => {
   try {
     const hostname = req.headers.get('host') || ''
-    const { pathname } = req.nextUrl
-    
     const subdomain = getSubdomain(hostname)
     const isMain = isMainDomain(hostname)
     
-    // For now, just pass through and let the app handle auth
-    // This prevents middleware failures while preserving functionality
+    // Just pass through and let the app pages handle auth and redirects
+    // This keeps the middleware simple while providing Clerk context
     const response = NextResponse.next()
     
     // Add hostname context to headers for server components
@@ -72,7 +57,7 @@ export default function middleware(req: NextRequest) {
     // Fallback: just pass through the request
     return NextResponse.next()
   }
-}
+})
 
 export const config = {
   matcher: [
