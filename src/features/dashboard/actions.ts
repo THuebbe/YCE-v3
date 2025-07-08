@@ -53,102 +53,18 @@ export const getDashboardMetrics = cache(async (): Promise<DashboardMetrics> => 
   }
 });
 
-// Get popular signs with order data
+// Get popular signs with order data (TODO: Implement with Supabase)
 async function getPopularSigns(agencyId: string): Promise<PopularSign[]> {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const popularSigns = await prisma.orderItem.groupBy({
-    by: ['signId'],
-    where: {
-      order: {
-        agencyId,
-        createdAt: { gte: thirtyDaysAgo }
-      }
-    },
-    _sum: {
-      quantity: true,
-      lineTotal: true
-    },
-    orderBy: {
-      _sum: {
-        quantity: 'desc'
-      }
-    },
-    take: 5
-  });
-
-  // Get sign details
-  const signIds = popularSigns.map((item: typeof popularSigns[0]) => item.signId);
-  const signs = await prisma.sign.findMany({
-    where: { id: { in: signIds } },
-    select: {
-      id: true,
-      name: true,
-      category: true,
-      imageUrl: true
-    }
-  });
-
-  return popularSigns.map((item: typeof popularSigns[0]) => {
-    const sign = signs.find((s: typeof signs[0]) => s.id === item.signId);
-    return {
-      id: item.signId,
-      name: sign?.name || 'Unknown Sign',
-      category: sign?.category || 'General',
-      imageUrl: sign?.imageUrl || '/images/sign-placeholder.png',
-      totalOrdered: item._sum.quantity || 0,
-      revenue: Number(item._sum.lineTotal) || 0,
-      isMySign: true // Since this is agency-specific data
-    };
-  });
+  // Temporarily return empty array until we implement Supabase queries
+  console.log('📊 Dashboard: Popular signs not yet implemented with Supabase for agency:', agencyId);
+  return [];
 }
 
-// Get upcoming deployments
+// Get upcoming deployments (TODO: Implement with Supabase)
 async function getUpcomingDeployments(agencyId: string, endDate: Date): Promise<UpcomingDeployment[]> {
-  const deployments = await prisma.order.findMany({
-    where: {
-      agencyId,
-      eventDate: {
-        gte: new Date(),
-        lte: endDate
-      },
-      status: { in: ['pending', 'processing', 'deployed'] }
-    },
-    select: {
-      id: true,
-      orderNumber: true,
-      customerName: true,
-      customerEmail: true,
-      eventDate: true,
-      deliveryTime: true,
-      status: true,
-      total: true,
-      eventAddress: true,
-      orderItems: {
-        select: {
-          quantity: true
-        }
-      }
-    },
-    orderBy: {
-      eventDate: 'asc'
-    },
-    take: 10
-  });
-
-  return deployments.map((order: typeof deployments[0]) => ({
-    id: order.id,
-    orderNumber: order.orderNumber,
-    customerName: order.customerName,
-    customerEmail: order.customerEmail,
-    eventDate: order.eventDate,
-    deliveryTime: order.deliveryTime,
-    status: order.status as OrderStatus,
-    signCount: order.orderItems.reduce((sum: number, item: typeof order.orderItems[0]) => sum + item.quantity, 0),
-    address: order.eventAddress || 'Address not available',
-    total: Number(order.total)
-  }));
+  // Temporarily return empty array until we implement Supabase queries
+  console.log('📊 Dashboard: Upcoming deployments not yet implemented with Supabase for agency:', agencyId);
+  return [];
 }
 
 // Get recent orders with caching
@@ -182,60 +98,10 @@ export const getRecentOrders = cache(async (params: { limit?: number } = {}): Pr
   }
 });
 
-// Get platform-wide popular signs for comparison
+// Get platform-wide popular signs for comparison (TODO: Implement with Supabase)
 export const getPlatformPopularSigns = cache(async (): Promise<PopularSign[]> => {
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  try {
-    const popularSigns = await prisma.orderItem.groupBy({
-      by: ['signId'],
-      where: {
-        order: {
-          createdAt: { gte: thirtyDaysAgo }
-        }
-      },
-      _sum: {
-        quantity: true,
-        lineTotal: true
-      },
-      orderBy: {
-        _sum: {
-          quantity: 'desc'
-        }
-      },
-      take: 10
-    });
-
-    // Get sign details
-    const signIds = popularSigns.map((item: typeof popularSigns[0]) => item.signId);
-    const signs = await prisma.sign.findMany({
-      where: { id: { in: signIds } },
-      select: {
-        id: true,
-        name: true,
-        category: true,
-        imageUrl: true
-      }
-    });
-
-    return popularSigns.map((item: typeof popularSigns[0]) => {
-      const sign = signs.find((s: typeof signs[0]) => s.id === item.signId);
-      return {
-        id: item.signId,
-        name: sign?.name || 'Unknown Sign',
-        category: sign?.category || 'General',
-        imageUrl: sign?.imageUrl || '/images/sign-placeholder.png',
-        totalOrdered: item._sum.quantity || 0,
-        revenue: Number(item._sum.lineTotal) || 0,
-        isMySign: false // Platform-wide data
-      };
-    });
-
-  } catch (error) {
-    console.error('Error fetching platform popular signs:', error);
-    return [];
-  }
+  console.log('📊 Dashboard: Platform popular signs not yet implemented with Supabase');
+  return [];
 });
 
 // Force revalidation of dashboard cache
