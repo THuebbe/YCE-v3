@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import { getCurrentTenant } from '@/lib/tenant-context'
 import { getAgencyBySlug } from '@/lib/db/queries/agency'
+import { prisma } from '@/lib/db/prisma'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,16 +31,46 @@ export default async function DebugPage() {
       agencySlug
     })
     
+    // Debug environment
+    console.log('🐛 Debug: Environment', {
+      nodeEnv: process.env.NODE_ENV,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      databaseUrlStart: process.env.DATABASE_URL?.substring(0, 20)
+    })
+    
     // Test agency lookup directly
     let agency = null
+    let agencyError = null
     if (agencySlug) {
-      agency = await getAgencyBySlug(agencySlug)
-      console.log('🐛 Debug: Agency lookup', {
-        agencySlug,
-        agencyFound: !!agency,
-        agencyId: agency?.id,
-        isActive: agency?.isActive
-      })
+      try {
+        // Test direct Prisma call
+        console.log('🐛 Debug: Testing direct Prisma call...')
+        agency = await prisma.agency.findUnique({
+          where: { slug: agencySlug }
+        })
+        console.log('🐛 Debug: Direct Prisma result', {
+          agencySlug,
+          agencyFound: !!agency,
+          agencyId: agency?.id,
+          isActive: agency?.isActive
+        })
+      } catch (error) {
+        agencyError = error
+        console.error('🐛 Debug: Direct Prisma error', error)
+        
+        // Try the helper function as fallback
+        try {
+          agency = await getAgencyBySlug(agencySlug)
+          console.log('🐛 Debug: Helper function result', {
+            agencySlug,
+            agencyFound: !!agency,
+            agencyId: agency?.id,
+            isActive: agency?.isActive
+          })
+        } catch (helperError) {
+          console.error('🐛 Debug: Helper function error', helperError)
+        }
+      }
     }
     
     // Test tenant context function
@@ -78,7 +109,9 @@ export default async function DebugPage() {
               agencyFound: !!agency,
               agencyId: agency?.id,
               agencyName: agency?.name,
-              isActive: agency?.isActive
+              isActive: agency?.isActive,
+              hasError: !!agencyError,
+              errorMessage: agencyError instanceof Error ? agencyError.message : null
             }, null, 2)}</pre>
           </div>
           
