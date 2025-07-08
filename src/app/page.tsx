@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { prisma } from '@/lib/db/prisma-safe'
+import { getUserById } from '@/lib/db/supabase-client'
 
 // Force this page to be dynamic (not statically generated)
 export const dynamic = 'force-dynamic'
@@ -53,10 +53,7 @@ export default async function HomePage() {
       // If on main domain, check if user has an agency and redirect to their subdomain
       try {
         console.log('🏠 Root page: On main domain, checking user agency in database')
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          include: { agency: true }
-        })
+        const user = await getUserById(userId)
         
         console.log('🏠 Root page: Database result', { 
           userFound: !!user, 

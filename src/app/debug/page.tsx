@@ -1,7 +1,6 @@
 import { headers } from 'next/headers'
 import { getCurrentTenant } from '@/lib/tenant-context'
-import { getAgencyBySlug } from '@/lib/db/queries/agency'
-import { prisma } from '@/lib/db/prisma'
+import { getAgencyBySlug, testConnection } from '@/lib/db/supabase-client'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,17 +41,23 @@ export default async function DebugPage() {
       hasPrismaDataPlatform: !!process.env.PRISMA_DATA_PLATFORM_URL
     })
     
+    // Test connection first
+    let connectionTest = false
+    try {
+      connectionTest = await testConnection()
+      console.log('🐛 Debug: Connection test result:', connectionTest)
+    } catch (error) {
+      console.error('🐛 Debug: Connection test error:', error)
+    }
+    
     // Test agency lookup directly
     let agency = null
     let agencyError = null
     if (agencySlug) {
       try {
-        // Test direct Prisma call
-        console.log('🐛 Debug: Testing direct Prisma call...')
-        agency = await prisma.agency.findUnique({
-          where: { slug: agencySlug }
-        })
-        console.log('🐛 Debug: Direct Prisma result', {
+        console.log('🐛 Debug: Testing direct Supabase call...')
+        agency = await getAgencyBySlug(agencySlug)
+        console.log('🐛 Debug: Direct Supabase result', {
           agencySlug,
           agencyFound: !!agency,
           agencyId: agency?.id,
@@ -60,20 +65,7 @@ export default async function DebugPage() {
         })
       } catch (error) {
         agencyError = error
-        console.error('🐛 Debug: Direct Prisma error', error)
-        
-        // Try the helper function as fallback
-        try {
-          agency = await getAgencyBySlug(agencySlug)
-          console.log('🐛 Debug: Helper function result', {
-            agencySlug,
-            agencyFound: !!agency,
-            agencyId: agency?.id,
-            isActive: agency?.isActive
-          })
-        } catch (helperError) {
-          console.error('🐛 Debug: Helper function error', helperError)
-        }
+        console.error('🐛 Debug: Direct Supabase error', error)
       }
     }
     
@@ -107,7 +99,15 @@ export default async function DebugPage() {
           </div>
           
           <div className="bg-gray-100 p-4 rounded">
-            <h2 className="font-semibold mb-2">Agency Lookup</h2>
+            <h2 className="font-semibold mb-2">Connection Test</h2>
+            <pre className="text-sm">{JSON.stringify({
+              connectionWorking: connectionTest,
+              method: 'Supabase Direct'
+            }, null, 2)}</pre>
+          </div>
+          
+          <div className="bg-gray-100 p-4 rounded">
+            <h2 className="font-semibold mb-2">Agency Lookup (Supabase)</h2>
             <pre className="text-sm">{JSON.stringify({
               agencySlug,
               agencyFound: !!agency,
