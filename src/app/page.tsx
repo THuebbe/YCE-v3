@@ -37,57 +37,9 @@ export default async function HomePage() {
     console.log('🏠 Root page: Auth result', { userId })
     
     if (userId) {
-      // Get current hostname to check if we're on the main domain or a subdomain
-      const headersList = await headers()
-      const hostname = headersList.get('host') || ''
-      const currentSubdomain = getSubdomain(hostname)
-      
-      console.log('🏠 Root page: Hostname info', { hostname, currentSubdomain })
-      
-      // If user is already on a subdomain, just redirect to dashboard
-      if (currentSubdomain) {
-        console.log('🏠 Root page: On subdomain, redirecting to dashboard')
-        redirect('/dashboard')
-      }
-      
-      // If on main domain, check if user has an agency and redirect to their subdomain
-      try {
-        // Only try database connection if Prisma is properly configured
-        if (!process.env.DATABASE_URL) {
-          console.warn('🏠 Root page: DATABASE_URL not configured, redirecting to dashboard')
-          redirect('/dashboard')
-        }
-        
-        console.log('🏠 Root page: Checking database for user:', userId)
-        const user = await prisma.user.findUnique({
-          where: { id: userId },
-          include: { agency: true }
-        })
-        
-        console.log('🏠 Root page: Database result', { user, hasAgency: !!user?.agency })
-        
-        if (user?.agency?.slug) {
-          // Redirect to their agency's subdomain
-          const protocol = hostname.includes('localhost') ? 'http' : 'https'
-          const baseHost = hostname.includes('localhost') ? 'localhost:3000' : hostname
-          const agencyUrl = `${protocol}://${user.agency.slug}.${baseHost}/dashboard`
-          console.log('🏠 Root page: Redirecting to agency subdomain:', agencyUrl)
-          redirect(agencyUrl)
-        } else if (user) {
-          // User exists but no agency, redirect to onboarding
-          console.log('🏠 Root page: User exists but no agency, redirecting to onboarding')
-          redirect('/onboarding')
-        } else {
-          // User not found in database, redirect to onboarding to create user record
-          console.log('🏠 Root page: User not found in database, redirecting to onboarding')
-          redirect('/onboarding')
-        }
-      } catch (dbError) {
-        console.error('🏠 Root page: Database error checking user agency:', dbError)
-        // If database is not working, just redirect to dashboard
-        // The dashboard will handle auth and user creation
-        redirect('/dashboard')
-      }
+      console.log('🏠 Root page: User is authenticated, redirecting to dashboard')
+      // For now, just redirect to dashboard to test if redirect works at all
+      redirect('/dashboard')
     } else {
       console.log('🏠 Root page: No user ID, showing landing page')
     }
