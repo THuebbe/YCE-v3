@@ -65,12 +65,10 @@ export default async function HomePage() {
         })
         
         if (user?.agency?.slug) {
-          // Redirect to their agency's subdomain
-          const protocol = hostname.includes('localhost') ? 'http' : 'https'
-          const baseHost = hostname.includes('localhost') ? 'localhost:3000' : hostname.replace('yce-v3.', '')
-          const agencyUrl = `${protocol}://${user.agency.slug}.${baseHost}/dashboard`
-          console.log('🏠 Root page: Redirecting to agency subdomain:', agencyUrl)
-          redirect(agencyUrl)
+          // TEMPORARY: Redirect to dashboard with agency in URL path instead of subdomain
+          // This works around Vercel's subdomain limitations on free tier
+          console.log('🏠 Root page: Redirecting to dashboard with agency context')
+          redirect(`/dashboard?agency=${user.agency.slug}`)
         } else if (user) {
           // User exists but no agency, redirect to onboarding
           console.log('🏠 Root page: User exists but no agency, redirecting to onboarding')

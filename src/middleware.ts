@@ -60,6 +60,7 @@ export default clerkMiddleware(async (auth, req) => {
     
     // Add hostname context to headers for server components
     response.headers.set('x-hostname', hostname)
+    response.headers.set('x-url', req.url)  // Pass full URL for parameter parsing
     if (subdomain) {
       response.headers.set('x-subdomain', subdomain)
     }

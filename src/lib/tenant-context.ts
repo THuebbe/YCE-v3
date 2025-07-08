@@ -9,13 +9,29 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
     const headersList = await headers()
     const hostname = headersList.get('host') || ''
     
-    // Extract subdomain from hostname
+    // TEMPORARY: Check for agency in URL parameters (workaround for Vercel subdomain limitations)
+    const url = headersList.get('x-url') || ''
+    const urlParams = new URLSearchParams(url.split('?')[1] || '')
+    const agencySlug = urlParams.get('agency')
+    
+    if (agencySlug) {
+      console.log('🏢 Tenant: Found agency slug in URL:', agencySlug)
+      const agency = await getAgencyBySlug(agencySlug)
+      if (agency && agency.isActive) {
+        console.log('🏢 Tenant: Agency found and active:', agency.id)
+        return agency.id
+      }
+    }
+    
+    // Extract subdomain from hostname (original approach)
     const subdomain = getSubdomain(hostname)
     
     if (subdomain) {
+      console.log('🏢 Tenant: Found subdomain:', subdomain)
       // Look up agency by subdomain
       const agency = await getAgencyBySlug(subdomain)
       if (agency && agency.isActive) {
+        console.log('🏢 Tenant: Agency found via subdomain:', agency.id)
         return agency.id
       }
     }
@@ -23,9 +39,11 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
     // Check for custom domain
     const customDomainAgency = await getAgencyByDomain(hostname)
     if (customDomainAgency && customDomainAgency.isActive) {
+      console.log('🏢 Tenant: Agency found via custom domain:', customDomainAgency.id)
       return customDomainAgency.id
     }
     
+    console.log('🏢 Tenant: No tenant context found')
     return null
   } catch (error) {
     console.error('Error resolving tenant:', error)
