@@ -33,15 +33,27 @@ export default async function HomePage() {
   console.log('🏠 Root page: Starting load')
   
   try {
-    const { userId } = await auth()
-    console.log('🏠 Root page: Auth result', { userId })
+    const authResult = await auth()
+    console.log('🏠 Root page: Full auth result', authResult)
+    
+    const { userId, sessionId, orgId, orgRole, sessionClaims } = authResult
+    console.log('🏠 Root page: Auth details', { 
+      userId, 
+      sessionId, 
+      orgId, 
+      orgRole, 
+      hasSessionClaims: !!sessionClaims,
+      claimsKeys: sessionClaims ? Object.keys(sessionClaims) : null
+    })
     
     if (userId) {
       console.log('🏠 Root page: User is authenticated, redirecting to dashboard')
-      // For now, just redirect to dashboard to test if redirect works at all
       redirect('/dashboard')
     } else {
-      console.log('🏠 Root page: No user ID, showing landing page')
+      console.log('🏠 Root page: No user ID, checking if session exists but no userId')
+      if (sessionId) {
+        console.log('🏠 Root page: Session exists but no userId - possible session issue')
+      }
     }
   } catch (authError) {
     console.error('🏠 Root page: Authentication error:', authError)

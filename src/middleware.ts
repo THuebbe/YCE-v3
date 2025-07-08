@@ -40,6 +40,20 @@ export default clerkMiddleware(async (auth, req) => {
     const subdomain = getSubdomain(hostname)
     const isMain = isMainDomain(hostname)
     
+    // Check auth in middleware for debugging
+    try {
+      const authResult = await auth()
+      console.log('🔒 Middleware: Auth check', {
+        url: req.url,
+        hostname,
+        userId: authResult.userId,
+        sessionId: authResult.sessionId,
+        hasAuth: !!authResult.userId
+      })
+    } catch (authError) {
+      console.log('🔒 Middleware: Auth error', authError)
+    }
+    
     // Just pass through and let the app pages handle auth and redirects
     // This keeps the middleware simple while providing Clerk context
     const response = NextResponse.next()
