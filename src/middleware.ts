@@ -66,6 +66,15 @@ export default clerkMiddleware(async (auth, req) => {
     }
     response.headers.set('x-is-main-domain', isMain.toString())
     
+    // Debug logging for tenant resolution
+    console.log('🔧 Middleware: Setting headers', {
+      hostname,
+      url: req.url,
+      subdomain,
+      isMain,
+      'x-url': req.url
+    })
+    
     return response
   } catch (error) {
     console.error('Middleware error:', error)

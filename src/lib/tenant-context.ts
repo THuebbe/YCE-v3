@@ -11,16 +11,27 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
     
     // TEMPORARY: Check for agency in URL parameters (workaround for Vercel subdomain limitations)
     const url = headersList.get('x-url') || ''
-    const urlParams = new URLSearchParams(url.split('?')[1] || '')
+    console.log('🏢 Tenant: Raw x-url header:', url)
+    
+    // Clean the URL by removing fragments before parsing
+    const cleanUrl = url.split('#')[0]
+    const urlParams = new URLSearchParams(cleanUrl.split('?')[1] || '')
     const agencySlug = urlParams.get('agency')
+    
+    console.log('🏢 Tenant: Extracted agency slug:', agencySlug)
     
     if (agencySlug) {
       console.log('🏢 Tenant: Found agency slug in URL:', agencySlug)
       const agency = await getAgencyBySlug(agencySlug)
+      console.log('🏢 Tenant: Database lookup result:', agency)
       if (agency && agency.isActive) {
         console.log('🏢 Tenant: Agency found and active:', agency.id)
         return agency.id
+      } else {
+        console.log('🏢 Tenant: Agency not found or inactive')
       }
+    } else {
+      console.log('🏢 Tenant: No agency slug found in URL')
     }
     
     // Extract subdomain from hostname (original approach)
