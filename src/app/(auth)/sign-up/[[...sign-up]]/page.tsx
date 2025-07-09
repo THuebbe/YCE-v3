@@ -5,10 +5,10 @@ export default async function SignUpPage() {
   const headersList = await headers()
   const hostname = headersList.get('host') || ''
   
-  // Redirect to root path so middleware can handle subdomain logic
+  // Redirect to routing page to handle user flow after authentication
   const redirectUrl = hostname.includes('.localhost') || hostname.includes('localhost')
-    ? `http://${hostname}/`
-    : `https://${hostname}/`
+    ? `http://${hostname}/routing`
+    : `https://${hostname}/routing`
   return (
     <div className="flex min-h-screen items-center justify-center bg-background-white px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">

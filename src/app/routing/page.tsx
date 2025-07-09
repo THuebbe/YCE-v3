@@ -29,21 +29,49 @@ export default async function RoutingPage() {
       user = await getUserById(userId)
     }
     
+    // Add additional wait time for webhook processing
+    if (!user) {
+      console.log('🚏 Routing page: User still not found, waiting additional 3 seconds...')
+      await new Promise(resolve => setTimeout(resolve, 3000)) // Wait 3 more seconds
+      user = await getUserById(userId)
+    }
+    
     if (user?.agency?.slug) {
       console.log('🚏 Routing page: User has agency, redirecting to dashboard:', user.agency.slug)
       redirect(`/dashboard?agency=${user.agency.slug}`)
-    } else if (user) {
+    } else if (user && !user.agency) {
       console.log('🚏 Routing page: User exists but no agency, redirecting to onboarding')
       redirect('/onboarding')
+    } else if (user) {
+      console.log('🚏 Routing page: User exists with agency but no slug, redirecting to onboarding')
+      redirect('/onboarding')
     } else {
-      console.log('🚏 Routing page: User still not found after waiting, redirecting to onboarding')
+      console.log('🚏 Routing page: User still not found after extended waiting, redirecting to onboarding')
       redirect('/onboarding')
     }
 
   } catch (error) {
     console.error('🚏 Routing page: Error during routing:', error)
-    // If anything fails, redirect to onboarding
-    redirect('/onboarding')
+    console.error('🚏 Routing page: Error stack:', error.stack)
+    
+    // Show error page instead of redirect for debugging
+    return (
+      <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-red-900 mb-4">Routing Error</h1>
+          <p className="text-red-700 mb-4">There was an error during authentication routing.</p>
+          <p className="text-sm text-red-600 mb-4">Error: {error.message}</p>
+          <div className="space-y-2">
+            <a href="/sign-in" className="block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+              Try Sign In Again
+            </a>
+            <a href="/onboarding" className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+              Go to Onboarding
+            </a>
+          </div>
+        </div>
+      </div>
+    )
   }
 }
 
