@@ -12,6 +12,9 @@ if (!webhookSecret) {
   throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or environment variables')
 }
 
+// TypeScript assertion since we've already checked it exists
+const secret: string = webhookSecret
+
 export async function POST(req: NextRequest) {
   console.log('🔗 Clerk webhook: Received webhook request')
   
@@ -35,7 +38,7 @@ export async function POST(req: NextRequest) {
     const body = JSON.parse(payload)
 
     // Create a new Svix instance with your secret
-    const wh = new Webhook(webhookSecret)
+    const wh = new Webhook(secret)
 
     let evt: any
 
