@@ -14,11 +14,9 @@ import type {
 } from './types';
 
 // Cache the dashboard metrics for 5 minutes
-export const getDashboardMetrics = cache(async (): Promise<DashboardMetrics> => {
-  const agencyId = await getCurrentTenant();
-  
+export const getDashboardMetrics = cache(async (agencyId: string): Promise<DashboardMetrics> => {
   if (!agencyId) {
-    throw new Error('No tenant context available');
+    throw new Error('Agency ID is required');
   }
   
   console.log('📊 Dashboard: Getting metrics for agency:', agencyId);
@@ -68,11 +66,9 @@ async function getUpcomingDeployments(agencyId: string, endDate: Date): Promise<
 }
 
 // Get recent orders with caching
-export const getRecentOrders = cache(async (params: { limit?: number } = {}): Promise<RecentOrder[]> => {
-  const agencyId = await getCurrentTenant();
-  
+export const getRecentOrders = cache(async (agencyId: string, params: { limit?: number } = {}): Promise<RecentOrder[]> => {
   if (!agencyId) {
-    throw new Error('No tenant context available');
+    throw new Error('Agency ID is required');
   }
   const { limit = 5 } = params;
 
