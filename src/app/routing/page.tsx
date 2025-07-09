@@ -52,10 +52,15 @@ export default async function RoutingPage() {
     }
 
   } catch (error) {
+    // Re-throw redirect errors so they work properly
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error
+    }
+    
     console.error('🚏 Routing page: Error during routing:', error)
     console.error('🚏 Routing page: Error stack:', error instanceof Error ? error.stack : String(error))
     
-    // Show error page instead of redirect for debugging
+    // Show error page for actual errors (not redirects)
     return (
       <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center">
         <div className="text-center max-w-md">
