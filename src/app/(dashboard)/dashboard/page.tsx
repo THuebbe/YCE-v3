@@ -9,8 +9,11 @@ import { DashboardMetrics } from '@/features/dashboard/components/dashboard-metr
 import { DashboardRecentOrders } from '@/features/dashboard/components/dashboard-recent-orders'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 
-export default async function DashboardPage({ searchParams }: { searchParams: { agency?: string } }) {
-  console.log('📊 Dashboard: Loading with search params:', searchParams)
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ agency?: string }> }) {
+  const { userId } = await auth()
+  const resolvedSearchParams = await searchParams
+  
+  console.log('📊 Dashboard: Loading with search params:', resolvedSearchParams)
   
   if (!userId) {
     console.log('📊 Dashboard: No user ID, redirecting to sign-in')
@@ -18,7 +21,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: { 
   }
 
   // Get agency slug from query parameter
-  const agencySlug = searchParams.agency
+  const agencySlug = resolvedSearchParams.agency
   console.log('📊 Dashboard: Agency slug from URL:', agencySlug)
 
   if (!agencySlug) {
