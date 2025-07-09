@@ -1,33 +1,9 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
 import Link from 'next/link'
-import { getUserById } from '@/lib/db/supabase-client'
 
 // Force this page to be dynamic (not statically generated)
 export const dynamic = 'force-dynamic'
-
-// Extract subdomain from hostname
-function getSubdomain(hostname: string): string | null {
-  const hostWithoutPort = hostname.split(':')[0]
-  
-  // Handle localhost development
-  if (hostWithoutPort.endsWith('.localhost') || hostWithoutPort === 'localhost') {
-    const parts = hostWithoutPort.split('.')
-    if (parts.length > 1 && parts[0] !== 'localhost') {
-      return parts[0]
-    }
-    return null
-  }
-  
-  // For production domains
-  const parts = hostWithoutPort.split('.')
-  if (parts.length > 2) {
-    return parts[0]
-  }
-  
-  return null
-}
 
 export default async function HomePage() {
   console.log('🏠 Root page: Starting load')
@@ -37,50 +13,8 @@ export default async function HomePage() {
     console.log('🏠 Root page: Auth result', { userId })
     
     if (userId) {
-      // Get current hostname to check if we're on the main domain or a subdomain
-      const headersList = await headers()
-      const hostname = headersList.get('host') || ''
-      const currentSubdomain = getSubdomain(hostname)
-      
-      console.log('🏠 Root page: ✅ User authenticated! Hostname info:', { hostname, currentSubdomain })
-      
-      // If user is already on a subdomain, just redirect to dashboard
-      if (currentSubdomain) {
-        console.log('🏠 Root page: On subdomain, redirecting to dashboard')
-        redirect('/dashboard')
-      }
-      
-      // If on main domain, check if user has an agency and redirect to their subdomain
-      try {
-        console.log('🏠 Root page: On main domain, checking user agency in database')
-        const user = await getUserById(userId)
-        
-        console.log('🏠 Root page: Database result', { 
-          userFound: !!user, 
-          hasAgency: !!user?.agency, 
-          agencySlug: user?.agency?.slug 
-        })
-        
-        if (user?.agency?.slug) {
-          // TEMPORARY: Redirect to dashboard with agency in URL path instead of subdomain
-          // This works around Vercel's subdomain limitations on free tier
-          console.log('🏠 Root page: Redirecting to dashboard with agency context')
-          redirect(`/dashboard?agency=${user.agency.slug}`)
-        } else if (user) {
-          // User exists but no agency, redirect to onboarding
-          console.log('🏠 Root page: User exists but no agency, redirecting to onboarding')
-          redirect('/onboarding')
-        } else {
-          // User not found in database, redirect to onboarding to create user record
-          console.log('🏠 Root page: User not found in database, redirecting to onboarding')
-          redirect('/onboarding')
-        }
-      } catch (dbError) {
-        console.error('🏠 Root page: Database error checking user agency:', dbError)
-        // If database is not working, redirect to onboarding
-        console.log('🏠 Root page: Database error, redirecting to onboarding as fallback')
-        redirect('/onboarding')
-      }
+      console.log('🏠 Root page: User authenticated, redirecting to routing page')
+      redirect('/routing')
     } else {
       console.log('🏠 Root page: No user ID, showing landing page')
     }
@@ -89,7 +23,7 @@ export default async function HomePage() {
     // If auth fails, fall through to show landing page
   }
   
-  console.log('🏠 Root page: Falling through to landing page')
+  console.log('🏠 Root page: Showing landing page')
 
   // Show landing page for unauthenticated users
   return (
