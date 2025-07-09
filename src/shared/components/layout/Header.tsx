@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth, UserButton, OrganizationSwitcher } from '@clerk/nextjs'
 import { Menu, X, Building2, Settings } from 'lucide-react'
 import Link from 'next/link'
@@ -9,28 +9,8 @@ import { Button } from '@/components/ui/button'
 export function Header() {
   const { isSignedIn } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [signOutUrl, setSignOutUrl] = useState('/sign-in')
-
-  // Set up the correct sign-out URL based on environment
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname
-      const port = window.location.port
-      
-      // Check if we're on a subdomain
-      const isSubdomain = hostname.includes('.localhost') || 
-                         (hostname.includes('.') && !hostname.startsWith('www.') && hostname !== 'localhost')
-      
-      if (isSubdomain) {
-        const isDev = hostname.includes('localhost')
-        const protocol = isDev ? 'http' : 'https'
-        const mainDomain = process.env.NEXT_PUBLIC_MAIN_DOMAIN || (isDev ? `localhost:${port || '3000'}` : 'yardcardelite.com')
-        setSignOutUrl(`${protocol}://${mainDomain}/sign-in`)
-      } else {
-        setSignOutUrl('/sign-in')
-      }
-    }
-  }, [])
+  // Since we're using query parameters instead of subdomains, always redirect to /sign-in
+  const signOutUrl = '/sign-in'
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
