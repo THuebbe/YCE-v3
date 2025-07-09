@@ -19,6 +19,11 @@ export default async function HomePage() {
       console.log('🏠 Root page: No user ID, showing landing page')
     }
   } catch (authError) {
+    // Re-throw redirect errors so they work properly
+    if (authError instanceof Error && authError.message === 'NEXT_REDIRECT') {
+      throw authError
+    }
+    
     console.error('🏠 Root page: Authentication error:', authError)
     // If auth fails, fall through to show landing page
   }
