@@ -16,7 +16,13 @@ if (!webhookSecret) {
 const secret: string = webhookSecret
 
 export async function POST(req: NextRequest) {
-  console.log('🔗 Clerk webhook: Received webhook request')
+  const url = new URL(req.url)
+  console.log('🔗 Clerk webhook: Received webhook request', {
+    host: req.headers.get('host'),
+    url: url.href,
+    hasSecret: !!webhookSecret,
+    secretPrefix: webhookSecret ? webhookSecret.substring(0, 10) + '...' : 'none'
+  })
   
   try {
     // Get the headers
@@ -25,9 +31,16 @@ export async function POST(req: NextRequest) {
     const svix_timestamp = headerPayload.get('svix-timestamp')
     const svix_signature = headerPayload.get('svix-signature')
 
+    console.log('🔗 Clerk webhook: Headers received', {
+      svix_id: svix_id?.substring(0, 10) + '...',
+      svix_timestamp,
+      svix_signature: svix_signature?.substring(0, 20) + '...',
+      allHeaders: Object.fromEntries(headerPayload.entries())
+    })
+
     // If there are no headers, error out
     if (!svix_id || !svix_timestamp || !svix_signature) {
-      console.error('🔗 Clerk webhook: Missing svix headers')
+      console.error('🔗 Clerk webhook: Missing svix headers', { svix_id: !!svix_id, svix_timestamp: !!svix_timestamp, svix_signature: !!svix_signature })
       return new Response('Error occurred -- no svix headers', {
         status: 400,
       })
