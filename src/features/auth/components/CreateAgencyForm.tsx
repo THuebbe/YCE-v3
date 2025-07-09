@@ -34,7 +34,7 @@ interface ValidationErrors {
   description?: string
 }
 
-interface SubdomainStatus {
+interface SlugStatus {
   checking: boolean
   available: boolean | null
   message: string
@@ -66,8 +66,8 @@ export function CreateAgencyForm() {
   const [step, setStep] = useState(1)
   const totalSteps = 3
   
-  // Subdomain validation state
-  const [subdomainStatus, setSubdomainStatus] = useState<SubdomainStatus>({
+  // Slug validation state
+  const [slugStatus, setSlugStatus] = useState<SlugStatus>({
     checking: false,
     available: null,
     message: ''
@@ -114,10 +114,10 @@ export function CreateAgencyForm() {
     }))
   }
   
-  // Real-time subdomain validation
+  // Real-time slug validation
   useEffect(() => {
     if (!debouncedSlug || debouncedSlug.length < 3) {
-      setSubdomainStatus({
+      setSlugStatus({
         checking: false,
         available: null,
         message: ''
@@ -128,29 +128,29 @@ export function CreateAgencyForm() {
     // Validate format first
     const slugValidation = createAgencySchema.shape.slug.safeParse(debouncedSlug)
     if (!slugValidation.success) {
-      setSubdomainStatus({
+      setSlugStatus({
         checking: false,
         available: false,
-        message: slugValidation.error.errors[0]?.message || 'Invalid subdomain format'
+        message: slugValidation.error.errors[0]?.message || 'Invalid slug format'
       })
       return
     }
     
     // Check availability
-    setSubdomainStatus(prev => ({ ...prev, checking: true }))
+    setSlugStatus(prev => ({ ...prev, checking: true }))
     
     checkSubdomainAvailability(debouncedSlug).then(result => {
-      setSubdomainStatus({
+      setSlugStatus({
         checking: false,
         available: result.available,
         message: result.message
       })
     }).catch((error) => {
-      console.error('Subdomain check error:', error)
-      setSubdomainStatus({
+      console.error('Slug check error:', error)
+      setSlugStatus({
         checking: false,
         available: false,
-        message: 'Unable to check subdomain availability'
+        message: 'Unable to check slug availability'
       })
     })
   }, [debouncedSlug])
@@ -170,8 +170,8 @@ export function CreateAgencyForm() {
       const slugResult = createAgencySchema.shape.slug.safeParse(formData.slug)
       if (!slugResult.success) {
         newErrors.slug = slugResult.error.errors[0]?.message
-      } else if (!subdomainStatus.available) {
-        newErrors.slug = subdomainStatus.message || 'Subdomain is not available'
+      } else if (!slugStatus.available) {
+        newErrors.slug = slugStatus.message || 'Slug is not available'
       }
     }
     
@@ -221,8 +221,8 @@ export function CreateAgencyForm() {
       return
     }
     
-    if (!subdomainStatus.available) {
-      setSubmitError('Please choose an available subdomain')
+    if (!slugStatus.available) {
+      setSubmitError('Please choose an available agency slug')
       return
     }
     
@@ -297,7 +297,7 @@ export function CreateAgencyForm() {
           <div className="space-y-6">
             <div>
               <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-                Choose Your Subdomain *
+                Choose Your Agency URL Slug *
               </label>
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
@@ -315,27 +315,27 @@ export function CreateAgencyForm() {
                     />
                   </div>
                   <div className="px-4 py-3 bg-gray-50 border border-l-0 border-gray-300 rounded-r-lg text-gray-600">
-                    .yardcardelite.com
+                    ?agency=
                   </div>
                 </div>
                 
                 {formData.slug && (
                   <div className="flex items-center space-x-2">
-                    {subdomainStatus.checking ? (
+                    {slugStatus.checking ? (
                       <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                    ) : subdomainStatus.available === true ? (
+                    ) : slugStatus.available === true ? (
                       <Check className="h-4 w-4 text-green-500" />
-                    ) : subdomainStatus.available === false ? (
+                    ) : slugStatus.available === false ? (
                       <X className="h-4 w-4 text-red-500" />
                     ) : null}
                     
                     <span className={`text-sm ${
-                      subdomainStatus.checking ? 'text-blue-600' :
-                      subdomainStatus.available === true ? 'text-green-600' :
-                      subdomainStatus.available === false ? 'text-red-600' :
+                      slugStatus.checking ? 'text-blue-600' :
+                      slugStatus.available === true ? 'text-green-600' :
+                      slugStatus.available === false ? 'text-red-600' :
                       'text-gray-600'
                     }`}>
-                      {subdomainStatus.message || 'Enter a subdomain to check availability'}
+                      {slugStatus.message || 'Enter a slug to check availability'}
                     </span>
                   </div>
                 )}
@@ -348,7 +348,7 @@ export function CreateAgencyForm() {
                 </p>
               )}
               <p className="mt-1 text-sm text-gray-500">
-                Your clients will visit your booking page at this address
+                This will be used in your dashboard URL: /dashboard?agency=your-slug
               </p>
             </div>
           </div>
@@ -473,7 +473,7 @@ export function CreateAgencyForm() {
             onClick={handleNext}
             disabled={
               (step === 1 && !formData.name) ||
-              (step === 2 && (!formData.slug || !subdomainStatus.available || subdomainStatus.checking))
+              (step === 2 && (!formData.slug || !slugStatus.available || slugStatus.checking))
             }
             className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
@@ -484,8 +484,8 @@ export function CreateAgencyForm() {
             type="submit"
             disabled={
               isSubmitting ||
-              !subdomainStatus.available ||
-              subdomainStatus.checking ||
+              !slugStatus.available ||
+              slugStatus.checking ||
               Object.keys(errors).length > 0
             }
             className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
