@@ -223,3 +223,25 @@ export async function testConnection(): Promise<boolean> {
     return false
   }
 }
+
+// Database migration function
+export async function makeAgencyIdNullable(): Promise<boolean> {
+  try {
+    console.log('🔧 Supabase: Making agencyId nullable...')
+    
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql: 'ALTER TABLE users ALTER COLUMN "agencyId" DROP NOT NULL;'
+    })
+    
+    if (error) {
+      console.error('❌ Supabase: Error making agencyId nullable:', error)
+      return false
+    }
+    
+    console.log('✅ Supabase: agencyId is now nullable')
+    return true
+  } catch (error) {
+    console.error('❌ Supabase: Exception making agencyId nullable:', error)
+    return false
+  }
+}

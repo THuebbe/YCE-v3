@@ -71,7 +71,22 @@ export async function POST(req: NextRequest) {
       })
 
       try {
-        // Create user in Supabase
+        // Get the default/first agency to assign new users to (temporary until onboarding)
+        const { data: defaultAgency, error: agencyError } = await supabase
+          .from('agencies')
+          .select('id')
+          .eq('isActive', true)
+          .limit(1)
+          .single()
+
+        if (agencyError || !defaultAgency) {
+          console.error('🔗 Clerk webhook: No default agency found:', agencyError)
+          return new Response('No default agency found', { status: 500 })
+        }
+
+        console.log('🔗 Clerk webhook: Assigning user to default agency:', defaultAgency.id)
+
+        // Create user in Supabase - assigned to default agency temporarily
         const { data, error } = await supabase
           .from('users')
           .insert({
@@ -80,6 +95,7 @@ export async function POST(req: NextRequest) {
             firstName: first_name,
             lastName: last_name,
             role: 'USER',
+            agencyId: defaultAgency.id, // Temporarily assigned to default agency
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           })
