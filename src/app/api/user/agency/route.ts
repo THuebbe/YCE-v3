@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { prisma } from '@/lib/db/prisma'
+import { getUserById } from '@/lib/db/supabase-client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Simplified single query to get user with agency
     console.log('🔍 API: Fetching user and agency for:', userId)
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { agency: true }
-    })
+    const user = await getUserById(userId)
     
     console.log('🔍 API: User query result:', user)
 

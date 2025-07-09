@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getUserById } from '@/lib/db/supabase-client'
 import { Loader2 } from 'lucide-react'
+import Link from 'next/link'
 
 // Force this page to be dynamic (not statically generated)
 export const dynamic = 'force-dynamic'
@@ -52,7 +53,7 @@ export default async function RoutingPage() {
 
   } catch (error) {
     console.error('🚏 Routing page: Error during routing:', error)
-    console.error('🚏 Routing page: Error stack:', error.stack)
+    console.error('🚏 Routing page: Error stack:', error instanceof Error ? error.stack : String(error))
     
     // Show error page instead of redirect for debugging
     return (
@@ -60,14 +61,14 @@ export default async function RoutingPage() {
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold text-red-900 mb-4">Routing Error</h1>
           <p className="text-red-700 mb-4">There was an error during authentication routing.</p>
-          <p className="text-sm text-red-600 mb-4">Error: {error.message}</p>
+          <p className="text-sm text-red-600 mb-4">Error: {error instanceof Error ? error.message : String(error)}</p>
           <div className="space-y-2">
-            <a href="/sign-in" className="block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            <Link href="/sign-in" className="block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
               Try Sign In Again
-            </a>
-            <a href="/onboarding" className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            </Link>
+            <Link href="/onboarding" className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
               Go to Onboarding
-            </a>
+            </Link>
           </div>
         </div>
       </div>

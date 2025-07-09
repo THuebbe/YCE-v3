@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAgencyBySlug } from '@/lib/db/queries/agency'
+import { getAgencyBySlug } from '@/lib/db/supabase-client'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)

@@ -88,16 +88,21 @@ export function OrderDetails({ order }: OrderDetailsProps) {
     setIsGeneratingDocument(type);
     try {
       let result: { success: boolean; result?: any; error?: string };
-      switch (type) {
-        case 'pickTicket':
-          result = await generatePickTicket(order.id);
-          break;
-        case 'orderSummary':
-          result = await generateOrderSummary(order.id);
-          break;
-        case 'pickupChecklist':
-          result = await generatePickupChecklist(order.id);
-          break;
+      try {
+        switch (type) {
+          case 'pickTicket':
+            await generatePickTicket(order.id);
+            break;
+          case 'orderSummary':
+            await generateOrderSummary(order.id);
+            break;
+          case 'pickupChecklist':
+            await generatePickupChecklist(order.id);
+            break;
+        }
+        result = { success: true };
+      } catch (actionError) {
+        result = { success: false, error: actionError instanceof Error ? actionError.message : 'Unknown error' };
       }
 
       if (result.success && result.result) {

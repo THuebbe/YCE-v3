@@ -1,6 +1,6 @@
 import { auth } from '@clerk/nextjs/server'
 import { getUserById } from '@/lib/db/supabase-client'
-import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +77,7 @@ export default async function DebugAuthPage() {
                 )}
                 {userError && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                    <p className="text-sm text-red-600">Error: {userError.message}</p>
+                    <p className="text-sm text-red-600">Error: {userError instanceof Error ? userError.message : String(userError)}</p>
                   </div>
                 )}
               </div>
@@ -118,31 +118,31 @@ export default async function DebugAuthPage() {
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
               <div className="space-y-3">
-                <a
+                <Link
                   href="/routing"
                   className="block w-full bg-blue-600 text-white px-4 py-2 rounded text-center hover:bg-blue-700"
                 >
                   Test Routing Logic
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/sign-in"
                   className="block w-full bg-gray-600 text-white px-4 py-2 rounded text-center hover:bg-gray-700"
                 >
                   Go to Sign In
-                </a>
-                <a
+                </Link>
+                <Link
                   href="/onboarding"
                   className="block w-full bg-green-600 text-white px-4 py-2 rounded text-center hover:bg-green-700"
                 >
                   Go to Onboarding
-                </a>
+                </Link>
                 {user?.agency?.slug && (
-                  <a
+                  <Link
                     href={`/dashboard?agency=${user.agency.slug}`}
                     className="block w-full bg-purple-600 text-white px-4 py-2 rounded text-center hover:bg-purple-700"
                   >
                     Go to Dashboard
-                  </a>
+                  </Link>
                 )}
               </div>
             </div>
@@ -153,7 +153,7 @@ export default async function DebugAuthPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Raw Data</h2>
             <div className="bg-gray-100 rounded p-4 overflow-x-auto">
               <pre className="text-sm text-gray-700">
-                {JSON.stringify({ userId, user, userError: userError?.message }, null, 2)}
+                {JSON.stringify({ userId, user, userError: userError instanceof Error ? userError.message : String(userError) }, null, 2)}
               </pre>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default async function DebugAuthPage() {
       <div className="min-h-screen bg-red-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-900 mb-4">Debug Page Error</h1>
-          <p className="text-red-700">Error: {error.message}</p>
+          <p className="text-red-700">Error: {error instanceof Error ? error.message : String(error)}</p>
         </div>
       </div>
     )

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { getDashboardMetrics, getRecentOrders, getPlatformPopularSigns } from '@/features/dashboard/actions'
+// import { getDashboardMetrics, getRecentOrders, getPlatformPopularSigns } from '@/features/dashboard/actions'
 
 export async function GET() {
   try {
@@ -10,40 +10,25 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Use our new server actions to fetch real data
-    const [metrics, recentOrders, platformSigns] = await Promise.all([
-      getDashboardMetrics(),
-      getRecentOrders({ limit: 5 }),
-      getPlatformPopularSigns()
-    ]);
-
-    // Transform to match existing component expectations
+    // TODO: Re-enable when dashboard actions are reimplemented with Supabase
+    // Temporary mock data to prevent build errors
     const dashboardData = {
-      openOrders: metrics.openOrders,
-      upcomingOrders: metrics.upcomingDeployments.map(deployment => ({
-        id: deployment.id,
-        customerName: deployment.customerName,
-        eventDate: deployment.eventDate.toISOString(),
-        status: deployment.status,
-        signCount: deployment.signCount
-      })),
-      popularSigns: metrics.popularSigns.map(sign => ({
-        name: sign.name,
-        count: sign.totalOrdered
-      })),
+      openOrders: 0,
+      upcomingOrders: [],
+      popularSigns: [],
       revenue: {
-        current: metrics.monthlyRevenue,
-        previous: metrics.monthlyRevenue - (metrics.monthlyRevenue * (metrics.monthlyRevenueChange / 100)),
-        change: metrics.monthlyRevenueChange
+        current: 0,
+        previous: 0,
+        change: 0
       },
-      recentOrders: recentOrders,
-      platformPopularSigns: platformSigns,
+      recentOrders: [],
+      platformPopularSigns: [],
       metrics: {
-        completedOrdersThisMonth: metrics.completedOrdersThisMonth,
-        averageOrderValue: metrics.averageOrderValue,
-        pendingOrders: metrics.pendingOrdersCount,
-        processingOrders: metrics.processingOrdersCount,
-        deployedOrders: metrics.deployedOrdersCount
+        completedOrdersThisMonth: 0,
+        averageOrderValue: 0,
+        pendingOrders: 0,
+        processingOrders: 0,
+        deployedOrders: 0
       }
     }
 

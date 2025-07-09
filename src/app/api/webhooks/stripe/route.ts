@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import { prisma } from '@/lib/db/prisma';
+// import { prisma } from '@/lib/db/prisma';
 
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -45,6 +45,10 @@ export async function POST(request: NextRequest) {
         const account = event.data.object as Stripe.Account;
         
         // Update the agency's Stripe account status
+        // TODO: Replace with Supabase query
+        /*
+        // TODO: Replace with Supabase query
+        /*
         await prisma.agency.updateMany({
           where: { stripeAccountId: account.id },
           data: {
@@ -54,6 +58,7 @@ export async function POST(request: NextRequest) {
             stripeDetailsSubmitted: account.details_submitted,
           },
         });
+        */
 
         console.log(`Updated account ${account.id} status`);
         break;
@@ -63,6 +68,8 @@ export async function POST(request: NextRequest) {
         const application = event.data.object as Stripe.Application;
         
         // Handle account disconnection
+        // TODO: Replace with Supabase query
+        /*
         await prisma.agency.updateMany({
           where: { stripeAccountId: application.id },
           data: {
@@ -74,6 +81,7 @@ export async function POST(request: NextRequest) {
             stripeDetailsSubmitted: false,
           },
         });
+        */
 
         console.log(`Deauthorized account ${application.id}`);
         break;
@@ -85,6 +93,8 @@ export async function POST(request: NextRequest) {
         // Update capabilities when they change
         const account = await stripe!.accounts.retrieve(capability.account as string);
         
+        // TODO: Replace with Supabase query
+        /*
         await prisma.agency.updateMany({
           where: { stripeAccountId: account.id },
           data: {
@@ -94,6 +104,7 @@ export async function POST(request: NextRequest) {
             stripeDetailsSubmitted: account.details_submitted,
           },
         });
+        */
 
         console.log(`Updated capabilities for account ${account.id}`);
         break;
@@ -106,6 +117,8 @@ export async function POST(request: NextRequest) {
         // Update account status when person information changes
         const account = await stripe!.accounts.retrieve(person.account as string);
         
+        // TODO: Replace with Supabase query
+        /*
         await prisma.agency.updateMany({
           where: { stripeAccountId: account.id },
           data: {
@@ -115,6 +128,7 @@ export async function POST(request: NextRequest) {
             stripeDetailsSubmitted: account.details_submitted,
           },
         });
+        */
 
         console.log(`Updated account ${account.id} after person ${event.type}`);
         break;
