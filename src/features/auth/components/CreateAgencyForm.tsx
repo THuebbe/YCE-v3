@@ -300,22 +300,22 @@ export function CreateAgencyForm() {
                 Choose Your Agency URL Slug *
               </label>
               <div className="space-y-3">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-0">
+                  <div className="px-4 py-3 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg text-gray-600 text-sm">
+                    yce-v3.vercel.app/dashboard?agency=
+                  </div>
                   <div className="relative flex-1">
                     <input
                       id="slug"
                       type="text"
                       value={formData.slug}
                       onChange={(e) => handleSlugChange(e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-l-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-r-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
                         errors.slug ? 'border-red-300' : 'border-gray-300'
                       }`}
                       placeholder="your-business"
                       maxLength={30}
                     />
-                  </div>
-                  <div className="px-4 py-3 bg-gray-50 border border-l-0 border-gray-300 rounded-r-lg text-gray-600">
-                    ?agency=
                   </div>
                 </div>
                 
