@@ -102,6 +102,7 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
 
     // Generate a unique ID for the agency (simulating cuid())
     const agencyId = `clz${Date.now().toString(36)}${Math.random().toString(36).substring(2, 15)}`
+    const now = new Date().toISOString()
 
     // Create the agency using Supabase
     const { data: agency, error: agencyError } = await supabase
@@ -112,21 +113,27 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         slug,
         description,
         isActive: true,
+        createdAt: now,
+        updatedAt: now,
+        stripeChargesEnabled: false,
+        stripePayoutsEnabled: false,
+        stripeDetailsSubmitted: false,
+        address: {},
+        agencyCode: `AG${Date.now()}`,
+        businessName: name,
         city: 'Default City', // TODO: Get from form
         email: user.emailAddresses[0]?.emailAddress || '',
-        phone: '', // TODO: Get from form
-        address: {}, // TODO: Get from form
-        agencyCode: `AG${Date.now()}`, // Simple code generation
-        businessName: name,
         orderCounter: 0,
+        phone: '', // TODO: Get from form
         pricingConfig: {
-          basePrice: 50,
-          extraDayPrice: 10,
-          lateFee: 25
+          lateFee: 25,
+          basePrice: 95, // Match schema default
+          extraDayPrice: 10
         },
-        subscriptionStatus: 'active',
+        settings: {},
         stripeConnectStatus: 'pending',
-        subscriptionStartDate: new Date().toISOString()
+        subscriptionStartDate: now,
+        subscriptionStatus: 'trial' // Match schema default instead of 'active'
       })
       .select()
       .single()
