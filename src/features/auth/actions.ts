@@ -100,10 +100,14 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
       }
     }
 
+    // Generate a unique ID for the agency (simulating cuid())
+    const agencyId = `clz${Date.now().toString(36)}${Math.random().toString(36).substring(2, 15)}`
+
     // Create the agency using Supabase
     const { data: agency, error: agencyError } = await supabase
       .from('agencies')
       .insert({
+        id: agencyId,
         name,
         slug,
         description,
