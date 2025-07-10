@@ -188,10 +188,15 @@ export function CreateAgencyForm() {
   
   // Handle next step
   const handleNext = () => {
+    console.log('🔄 handleNext called - current step:', step, 'totalSteps:', totalSteps)
     // Clear any previous submit errors when navigating
     setSubmitError(null)
     if (validateStep(step)) {
-      setStep(Math.min(step + 1, totalSteps))
+      const nextStep = Math.min(step + 1, totalSteps)
+      console.log('✅ Validation passed - moving to step:', nextStep)
+      setStep(nextStep)
+    } else {
+      console.log('❌ Validation failed - staying on step:', step)
     }
   }
   
@@ -205,12 +210,13 @@ export function CreateAgencyForm() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     console.log('🎯 handleSubmit called!', e.type, e)
+    console.log('📊 Current state - step:', step, 'totalSteps:', totalSteps, 'isSubmitting:', isSubmitting)
     console.trace('handleSubmit stack trace')
     e.preventDefault()
     
     // Prevent auto-submission - only allow if user is on final step and has filled required fields
     if (step !== totalSteps) {
-      console.log('❌ Preventing submission - not on final step')
+      console.log('❌ Preventing submission - not on final step. Current step:', step, 'Required step:', totalSteps)
       return
     }
     
@@ -243,14 +249,21 @@ export function CreateAgencyForm() {
       console.log('📥 Server action result:', result)
       
       if (result.success && result.agency) {
-        // Complete onboarding and redirect
+        // Complete onboarding and redirect (this will throw NEXT_REDIRECT)
         await completeOnboarding(result.agency.slug)
       } else {
         setSubmitError(result.error || 'Failed to create agency')
+        setIsSubmitting(false)
       }
     } catch (error) {
+      // Check if this is a Next.js redirect (which is expected)
+      if (error && typeof error === 'object' && 'digest' in error && 
+          typeof error.digest === 'string' && error.digest.includes('NEXT_REDIRECT')) {
+        // This is expected - let the redirect happen
+        throw error
+      }
+      console.error('Unexpected error during agency creation:', error)
       setSubmitError('An unexpected error occurred. Please try again.')
-    } finally {
       setIsSubmitting(false)
     }
   }
@@ -476,6 +489,7 @@ export function CreateAgencyForm() {
               (step === 2 && (!formData.slug || !slugStatus.available || slugStatus.checking))
             }
             className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            onFocus={() => console.log('Next button focused on step:', step)}
           >
             Next
           </button>
@@ -490,7 +504,7 @@ export function CreateAgencyForm() {
             }
             className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
             autoFocus={false}
-            onFocus={(e) => console.log('Submit button focused')}
+            onFocus={() => console.log('Submit button focused on step:', step)}
           >
             {isSubmitting ? (
               <>
