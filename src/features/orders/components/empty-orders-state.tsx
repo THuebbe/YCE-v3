@@ -56,7 +56,7 @@ export function EmptyOrdersState() {
             </Button>
             <Button 
               variant="secondary"
-              onClick={() => window.open('/dashboard/settings', '_self')}
+              onClick={() => window.open('/routing', '_self')}
             >
               <ArrowRight className="h-4 w-4 mr-2" />
               Configure Settings

@@ -7,7 +7,9 @@
     "build": "next build",
     "vercel-build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cleanup:preview": "tsx scripts/cleanup-test-data.ts --preview",
+    "cleanup:confirm": "tsx scripts/cleanup-test-data.ts --confirm"
   },
   "dependencies": {
     "@anthropic-ai/claude-code": "^1.0.38",

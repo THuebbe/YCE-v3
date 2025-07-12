@@ -39,7 +39,7 @@ export default async function RoutingPage() {
     
     if (user?.agency?.slug) {
       console.log('🚏 Routing page: User has agency, redirecting to dashboard:', user.agency.slug)
-      redirect(`/dashboard?agency=${user.agency.slug}`)
+      redirect(`/${user.agency.slug}/dashboard`)
     } else if (user && !user.agency) {
       console.log('🚏 Routing page: User exists but no agency, redirecting to onboarding')
       redirect('/onboarding')

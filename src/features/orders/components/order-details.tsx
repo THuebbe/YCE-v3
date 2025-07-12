@@ -28,6 +28,7 @@ import { useToast } from '@/shared/components/feedback/toast';
 import { EditSignsModal } from './edit-signs-modal';
 import { CancelOrderModal } from './cancel-order-modal';
 import { OrderWithDetails } from '../types';
+import { useAgencySlug } from '@/lib/navigation';
 
 interface OrderDetailsProps {
   order: any; // Using any for now due to interface conflicts with mock data
@@ -39,6 +40,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
   const [documents, setDocuments] = useState<any[]>([]);
   const router = useRouter();
   const { toast } = useToast();
+  const agencySlug = useAgencySlug();
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
   const statusColor = getOrderStatusBadgeColor(order.status);
@@ -68,7 +70,12 @@ export function OrderDetails({ order }: OrderDetailsProps) {
   };
 
   const handleBack = () => {
-    router.push('/dashboard/orders');
+    if (agencySlug) {
+      router.push(`/${agencySlug}/orders`);
+    } else {
+      console.error('No agency context available for navigation - redirecting to routing page');
+      router.push('/routing');
+    }
   };
 
   const [showEditModal, setShowEditModal] = useState(false);
@@ -91,35 +98,49 @@ export function OrderDetails({ order }: OrderDetailsProps) {
       try {
         switch (type) {
           case 'pickTicket':
-            await generatePickTicket(order.id);
+            result = await generatePickTicket(order.id);
             break;
           case 'orderSummary':
-            await generateOrderSummary(order.id);
+            result = await generateOrderSummary(order.id);
             break;
           case 'pickupChecklist':
-            await generatePickupChecklist(order.id);
+            result = await generatePickupChecklist(order.id);
             break;
         }
-        result = { success: true };
       } catch (actionError) {
+        console.error('🚨 Action Error:', actionError);
         result = { success: false, error: actionError instanceof Error ? actionError.message : 'Unknown error' };
       }
 
+      console.log('📝 Server Response:', result);
+      console.log('📝 Success condition check:', { 
+        success: result.success, 
+        hasResult: !!result.result,
+        condition: result.success && result.result 
+      });
+
       if (result.success && result.result) {
+        console.log('✅ Entering success block');
+        console.log('📄 Result data:', result.result);
+        
         // Update local documents state
         const newDocument = {
           type: result.result.type,
           url: result.result.url,
           filename: result.result.filename,
-          generatedAt: result.result.generatedAt.toISOString()
+          generatedAt: new Date().toISOString() // Fix: don't call toISOString() on already-string date
         };
+        console.log('📄 New document object:', newDocument);
+        
         setDocuments((prev: any) => [...prev, newDocument]);
+        console.log('✅ Documents state updated');
 
         toast({
           title: 'Document Generated',
           description: `${result.result.filename} has been generated successfully`,
           variant: 'success'
         });
+        console.log('✅ Success toast called');
       } else {
         const errorMessage = result.error || 'Failed to generate document';
         const isConfigError = errorMessage.includes('BLOB_READ_WRITE_TOKEN');
@@ -378,7 +399,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                   {order.status === 'deployed' && (
                     <Button
                       variant="secondary"
-                      onClick={() => router.push(`/dashboard/orders/${order.id}/check-in`)}
+                      onClick={() => agencySlug ? router.push(`/${agencySlug}/orders/${order.id}/check-in`) : router.push('/routing')}
                       className="w-full mt-2"
                     >
                       📱 Mobile Check-In

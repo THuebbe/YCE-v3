@@ -101,6 +101,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       const doc = new PDFDocument({
         size: 'A4',
         margin: 50,
+        bufferPages: true,
         info: {
           Title: `Pick Ticket - Order ${order.orderNumber}`,
           Author: 'YardCard Elite',

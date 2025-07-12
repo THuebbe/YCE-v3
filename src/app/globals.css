@@ -246,6 +246,20 @@ body {
   letter-spacing: -0.02em;
 }
 
+.text-h4 {
+  font-size: var(--font-size-h4);
+  line-height: var(--line-height-h4);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.text-h5 {
+  font-size: var(--font-size-h5);
+  line-height: var(--line-height-h5);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
 .text-body {
   font-size: var(--font-size-body);
   line-height: var(--line-height-body);

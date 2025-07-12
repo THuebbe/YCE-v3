@@ -9,16 +9,20 @@ export const metadata = {
   description: 'Manage your yard sign inventory and stock levels'
 }
 
-export default async function Inventory({ searchParams }: { searchParams: Promise<{ agency?: string }> }) {
+export default async function Inventory({ 
+  params 
+}: { 
+  params: Promise<{ agency: string }> 
+}) {
   const { userId } = await auth()
-  const resolvedSearchParams = await searchParams
+  const resolvedParams = await params
   
   if (!userId) {
     redirect('/sign-in')
   }
 
-  // Get agency slug from query parameter
-  const agencySlug = resolvedSearchParams.agency
+  // Get agency slug from URL parameter
+  const agencySlug = resolvedParams.agency
 
   if (!agencySlug) {
     redirect('/routing')

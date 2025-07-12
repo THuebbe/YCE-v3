@@ -1,15 +1,15 @@
-import { prisma } from '@/lib/db/prisma';
-import { getCurrentTenant } from '@/lib/tenant-context';
-// import { Order } from '@prisma/client';
+import { supabase } from '@/lib/db/supabase-client';
+import { getCurrentTenant } from '@/lib/tenant-context-supabase';
 
 export async function generateOrderNumber(agencyId: string): Promise<{ orderNumber: string; internalNumber: string }> {
   // Get the agency's abbreviation for the order number prefix
-  const agency = await prisma.agency.findUnique({
-    where: { id: agencyId },
-    select: { name: true }
-  });
+  const { data: agency, error: agencyError } = await supabase
+    .from('agencies')
+    .select('name')
+    .eq('id', agencyId)
+    .single();
 
-  if (!agency) {
+  if (agencyError || !agency) {
     throw new Error('Agency not found');
   }
 
@@ -22,11 +22,13 @@ export async function generateOrderNumber(agencyId: string): Promise<{ orderNumb
     .substring(0, 3);
 
   // Get the next sequential number for this agency
-  const lastOrder = await prisma.order.findFirst({
-    where: { agencyId },
-    orderBy: { internalNumber: 'desc' },
-    select: { internalNumber: true }
-  });
+  const { data: lastOrder } = await supabase
+    .from('orders')
+    .select('internalNumber')
+    .eq('agencyId', agencyId)
+    .order('internalNumber', { ascending: false })
+    .limit(1)
+    .single();
 
   const nextNumber = lastOrder && lastOrder.internalNumber 
     ? parseInt(lastOrder.internalNumber.split('-')[1]) + 1 
@@ -46,14 +48,14 @@ export async function requireOrder(orderId: string): Promise<any> {
     throw new Error('No tenant context available');
   }
 
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      agencyId
-    }
-  });
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('id', orderId)
+    .eq('agencyId', agencyId)
+    .single();
 
-  if (!order) {
+  if (error || !order) {
     throw new Error('Order not found or access denied');
   }
 
@@ -67,51 +69,25 @@ export async function requireOrderWithDetails(orderId: string) {
     throw new Error('No tenant context available');
   }
 
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      agencyId
-    },
-    include: {
-      orderItems: {
-        include: {
-          sign: {
-            select: {
-              id: true,
-              name: true,
-              category: true,
-              imageUrl: true
-            }
-          }
-        }
-      },
-      agency: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          email: true
-        }
-      },
-      activities: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      }
-    }
-  });
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      orderItems:order_items(
+        *,
+        sign:signs(id, name, category, imageUrl)
+      ),
+      agency:agencies(id, name, slug, email),
+      activities:order_activities(
+        *,
+        user:users(id, firstName, lastName, email)
+      )
+    `)
+    .eq('id', orderId)
+    .eq('agencyId', agencyId)
+    .single();
 
-  if (!order) {
+  if (error || !order) {
     throw new Error('Order not found or access denied');
   }
 
@@ -200,37 +176,23 @@ export async function getOrderWithDetails(orderId: string) {
     throw new Error('No tenant context available');
   }
 
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      agencyId
-    },
-    include: {
-      orderItems: {
-        include: {
-          sign: true
-        }
-      },
-      activities: {
-        include: {
-          user: true
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
-      },
-      signCheckIns: {
-        include: {
-          sign: true,
-          checkedInBy: true
-        }
-      },
-      agency: true,
-      createdBy: true
-    }
-  });
+  // Get order with related data
+  const { data: order, error: orderError } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      orderItems:order_items(
+        *,
+        sign:sign_library(*)
+      ),
+      agency:agencies(*),
+      createdBy:users(*)
+    `)
+    .eq('id', orderId)
+    .eq('agencyId', agencyId)
+    .single();
 
-  if (!order) {
+  if (orderError || !order) {
     throw new Error('Order not found or access denied');
   }
 
@@ -252,15 +214,15 @@ export async function updateOrderDocuments(
     throw new Error('No tenant context available');
   }
 
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      agencyId
-    },
-    select: { documents: true }
-  });
+  // Get current order documents
+  const { data: order, error: fetchError } = await supabase
+    .from('orders')
+    .select('documents')
+    .eq('id', orderId)
+    .eq('agencyId', agencyId)
+    .single();
 
-  if (!order) {
+  if (fetchError || !order) {
     throw new Error('Order not found or access denied');
   }
 
@@ -273,12 +235,15 @@ export async function updateOrderDocuments(
   const updatedDocuments = [...existingDocuments, documentMetadata];
 
   // Update order with new documents
-  await prisma.order.update({
-    where: { id: orderId },
-    data: {
-      documents: updatedDocuments
-    }
-  });
+  const { error: updateError } = await supabase
+    .from('orders')
+    .update({ documents: updatedDocuments })
+    .eq('id', orderId)
+    .eq('agencyId', agencyId);
+
+  if (updateError) {
+    throw new Error('Failed to update order documents');
+  }
 
   return updatedDocuments;
 }
@@ -290,15 +255,14 @@ export async function getOrderDocuments(orderId: string) {
     throw new Error('No tenant context available');
   }
 
-  const order = await prisma.order.findFirst({
-    where: {
-      id: orderId,
-      agencyId
-    },
-    select: { documents: true }
-  });
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select('documents')
+    .eq('id', orderId)
+    .eq('agencyId', agencyId)
+    .single();
 
-  if (!order) {
+  if (error || !order) {
     throw new Error('Order not found or access denied');
   }
 

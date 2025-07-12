@@ -10,28 +10,50 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
     
     console.log('🏢 Tenant (Supabase): Starting tenant resolution for hostname:', hostname)
     
-    // PRIORITY 1: Check for agency in URL parameters (workaround for Vercel subdomain limitations)
+    // PRIORITY 1: Extract agency slug from route path (new agency-first routing)
     const url = headersList.get('x-url') || ''
-    console.log('🏢 Tenant (Supabase): Checking URL for agency parameter:', url)
+    console.log('🏢 Tenant (Supabase): Checking URL for agency in route path:', url)
     
     if (url) {
-      const cleanUrl = url.split('#')[0]
-      const urlParams = new URLSearchParams(cleanUrl.split('?')[1] || '')
+      const urlPath = new URL(url).pathname
+      const pathSegments = urlPath.split('/').filter(Boolean)
+      
+      // Check if this is an agency-specific route: /[agency]/dashboard/* or /[agency]/orders/*
+      if (pathSegments.length >= 2 && 
+          (pathSegments[1] === 'dashboard' || 
+           pathSegments[1] === 'orders' || 
+           pathSegments[1] === 'inventory' || 
+           pathSegments[1] === 'customers' || 
+           pathSegments[1] === 'reports' || 
+           pathSegments[1] === 'settings')) {
+        
+        const agencySlug = pathSegments[0]
+        console.log('🏢 Tenant (Supabase): Found agency slug in route path:', agencySlug)
+        
+        const agency = await getAgencyBySlug(agencySlug)
+        if (agency && agency.isActive) {
+          console.log('🏢 Tenant (Supabase): ✅ Agency resolved via route path:', agency.id)
+          return agency.id
+        } else {
+          console.log('🏢 Tenant (Supabase): ❌ Agency not found or inactive via route path')
+        }
+      }
+      
+      // FALLBACK: Check for legacy agency in URL parameters
+      const urlParams = new URLSearchParams(url.split('?')[1] || '')
       const agencySlug = urlParams.get('agency')
       
       if (agencySlug) {
-        console.log('🏢 Tenant (Supabase): Found agency slug in URL:', agencySlug)
+        console.log('🏢 Tenant (Supabase): Found legacy agency slug in URL parameter:', agencySlug)
         const agency = await getAgencyBySlug(agencySlug)
         if (agency && agency.isActive) {
-          console.log('🏢 Tenant (Supabase): ✅ Agency resolved via URL parameter:', agency.id)
+          console.log('🏢 Tenant (Supabase): ✅ Agency resolved via legacy URL parameter:', agency.id)
           return agency.id
-        } else {
-          console.log('🏢 Tenant (Supabase): ❌ Agency not found or inactive via URL parameter')
         }
       }
     }
     
-    // PRIORITY 2: Extract subdomain from hostname (original approach)
+    // PRIORITY 2: Extract subdomain from hostname
     const subdomain = getSubdomain(hostname)
     
     if (subdomain) {

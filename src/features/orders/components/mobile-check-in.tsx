@@ -97,7 +97,8 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
         variant: 'success'
       });
 
-      router.push(`/dashboard/orders/${order.id}`);
+      // For now, redirect to routing page since we need agency context
+      router.push('/routing');
     } catch (error) {
       toast({
         title: 'Error',

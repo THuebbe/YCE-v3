@@ -5,20 +5,23 @@ import { useAuth, UserButton, OrganizationSwitcher } from '@clerk/nextjs'
 import { Menu, X, Building2, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useAgencySlug } from '@/lib/navigation'
 
 export function Header() {
   const { isSignedIn } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const agencySlug = useAgencySlug()
   // Since we're using query parameters instead of subdomains, always redirect to /sign-in
   const signOutUrl = '/sign-in'
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Orders', href: '/dashboard/orders' },
-    { name: 'Inventory', href: '/dashboard/inventory' },
-    { name: 'Customers', href: '/dashboard/customers' },
-    { name: 'Reports', href: '/dashboard/reports' },
-  ]
+  // Create agency-aware navigation (only show if agencySlug exists)
+  const navigation = agencySlug ? [
+    { name: 'Dashboard', href: `/${agencySlug}/dashboard` },
+    { name: 'Orders', href: `/${agencySlug}/orders` },
+    { name: 'Inventory', href: `/${agencySlug}/inventory` },
+    { name: 'Customers', href: `/${agencySlug}/customers` },
+    { name: 'Reports', href: `/${agencySlug}/reports` },
+  ] : []
 
   const publicNavigation = [
     { name: 'Features', href: '/#features' },
@@ -33,7 +36,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href={isSignedIn ? '/dashboard' : '/'} className="flex items-center space-x-2">
+            <Link href={isSignedIn && agencySlug ? `/${agencySlug}/dashboard` : '/'} className="flex items-center space-x-2">
               <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">YE</span>
               </div>
@@ -95,11 +98,13 @@ export function Header() {
                 </div>
 
                 {/* Settings Button */}
-                <Button variant="ghost" size="sm" asChild className="hidden md:flex">
-                  <Link href="/dashboard/settings">
-                    <Settings className="h-4 w-4" />
-                  </Link>
-                </Button>
+                {agencySlug && (
+                  <Button variant="ghost" size="sm" asChild className="hidden md:flex">
+                    <Link href={`/${agencySlug}/settings`}>
+                      <Settings className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
 
                 {/* User Button */}
                 <UserButton

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { Calendar, User, Package } from "@/shared/components/ui/icons";
@@ -12,6 +13,8 @@ export function RecentOrdersList({
   error = null, 
   limit = 5 
 }: RecentOrdersListProps) {
+  const params = useParams();
+  const agencySlug = params.agency as string;
   if (loading) {
     return (
       <Card>
@@ -53,8 +56,8 @@ export function RecentOrdersList({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Recent Orders</CardTitle>
-          {orders.length > 0 && (
-            <Link href="/dashboard/orders">
+          {orders.length > 0 && agencySlug && (
+            <Link href={`/${agencySlug}/orders`}>
               <Button variant="ghost" size="sm">
                 View All
               </Button>
@@ -78,8 +81,11 @@ export function RecentOrdersList({
 }
 
 function OrderItem({ order }: { order: any }) {
+  const params = useParams();
+  const agencySlug = params.agency as string;
+  
   return (
-    <Link href={`/dashboard/orders/${order.id}`} className="block">
+    <Link href={agencySlug ? `/${agencySlug}/orders/${order.id}` : '/routing'} className="block">
       <div className="flex items-center justify-between p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer">
       <div className="space-y-1">
         <div className="flex items-center space-x-2">

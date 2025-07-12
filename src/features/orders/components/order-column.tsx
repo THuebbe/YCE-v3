@@ -15,13 +15,13 @@ export function OrderColumn({ status, title, description, orders }: OrderColumnP
   const statusColor = getStatusColor(status);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-background-white rounded-xl shadow-default border border-neutral-200 overflow-hidden">
       {/* Column Header */}
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+      <div className="p-medium border-b border-neutral-200 bg-background-light">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-semibold text-gray-900">{title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{description}</p>
+            <h3 className="text-h5 text-neutral-700">{title}</h3>
+            <p className="text-body-small text-neutral-600 mt-1">{description}</p>
           </div>
           <Badge variant="secondary" className={`${statusColor} font-medium`}>
             {orders.length}
@@ -30,11 +30,11 @@ export function OrderColumn({ status, title, description, orders }: OrderColumnP
       </div>
 
       {/* Orders List */}
-      <div className="p-4 space-y-3 max-h-[800px] overflow-y-auto">
+      <div className="p-medium space-y-small max-h-[800px] overflow-y-auto">
         {orders.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-neutral-500">
             <div className="text-4xl mb-2">📋</div>
-            <p className="text-sm">No {title.toLowerCase()} orders</p>
+            <p className="text-body-small">No {title.toLowerCase()} orders</p>
           </div>
         ) : (
           orders.map((order) => (
