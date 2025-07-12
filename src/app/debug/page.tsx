@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import Link from 'next/link'
 import { getCurrentTenant } from '@/lib/tenant-context'
 import { getAgencyBySlug, testConnection } from '@/lib/db/supabase-client'
 
@@ -130,9 +131,9 @@ export default async function DebugPage() {
         
         <div className="mt-6">
           <p className="text-sm text-gray-600">
-            Try: <a href="/debug?agency=yardcard-elite-west-branch" className="text-blue-600 underline">
+            Try: <Link href="/debug?agency=yardcard-elite-west-branch" className="text-blue-600 underline">
               /debug?agency=yardcard-elite-west-branch
-            </a>
+            </Link>
           </p>
         </div>
       </div>
