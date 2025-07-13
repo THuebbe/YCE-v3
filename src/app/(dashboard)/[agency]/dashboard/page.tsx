@@ -9,6 +9,9 @@ import { DashboardMetrics } from '@/features/dashboard/components/dashboard-metr
 import { DashboardRecentOrders } from '@/features/dashboard/components/dashboard-recent-orders'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 
+// Force dynamic rendering since we use server-side data fetching
+export const dynamic = 'force-dynamic'
+
 interface DashboardPageProps {
   params: Promise<{
     agency: string;

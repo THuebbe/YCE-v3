@@ -15,6 +15,9 @@ export const metadata = {
   description: 'Manage your yard sign orders'
 };
 
+// Force dynamic rendering since we use headers() for tenant resolution
+export const dynamic = 'force-dynamic';
+
 export default async function OrdersPage({ params }: OrdersPageProps) {
   const { agency } = await params;
   

@@ -4,6 +4,9 @@ import { MobileCheckIn } from '@/features/orders/components/mobile-check-in';
 import { MobileCheckInSkeleton } from '@/features/orders/components/mobile-check-in-skeleton';
 import { requireOrderWithDetails } from '@/features/orders/utils';
 
+// Force dynamic rendering since we use server-side data fetching with tenant context
+export const dynamic = 'force-dynamic';
+
 interface CheckInPageProps {
   params: Promise<{
     agency: string;
