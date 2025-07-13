@@ -1,7 +1,7 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/db/prisma';
+import { supabase } from '@/lib/db/supabase-client';
 import Stripe from 'stripe';
 
 // Initialize Stripe
@@ -18,10 +18,19 @@ export async function createStripeConnectAccount() {
     }
 
     // Get user's agency
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { agency: true }
-    });
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select(`
+        *,
+        agency:agencies(*)
+      `)
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user:', userError);
+      return { success: false, error: 'User not found' };
+    }
 
     if (!user || !user.agency) {
       return { success: false, error: 'Agency not found' };
@@ -68,17 +77,22 @@ export async function createStripeConnectAccount() {
     });
 
     // Update agency with Stripe account info
-    await prisma.agency.update({
-      where: { id: user.agency.id },
-      data: {
+    const { error: updateError } = await supabase
+      .from('agencies')
+      .update({
         stripeAccountId: account.id,
         stripeAccountStatus: 'pending',
         stripeOnboardingUrl: accountLink.url,
         stripeChargesEnabled: false,
         stripePayoutsEnabled: false,
         stripeDetailsSubmitted: false,
-      },
-    });
+      })
+      .eq('id', user.agency.id);
+
+    if (updateError) {
+      console.error('Error updating agency:', updateError);
+      return { success: false, error: 'Failed to update agency' };
+    }
 
     return { 
       success: true, 
@@ -103,10 +117,19 @@ export async function getStripeConnectStatus() {
     }
 
     // Get user's agency
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { agency: true }
-    });
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select(`
+        *,
+        agency:agencies(*)
+      `)
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user:', userError);
+      throw new Error('User not found');
+    }
 
     if (!user || !user.agency) {
       throw new Error('Agency not found');
@@ -128,15 +151,15 @@ export async function getStripeConnectStatus() {
     const account = await stripe.accounts.retrieve(agency.stripeAccountId);
 
     // Update local database with latest info
-    await prisma.agency.update({
-      where: { id: agency.id },
-      data: {
+    await supabase
+      .from('agencies')
+      .update({
         stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
         stripeChargesEnabled: account.charges_enabled,
         stripePayoutsEnabled: account.payouts_enabled,
         stripeDetailsSubmitted: account.details_submitted,
-      },
-    });
+      })
+      .eq('id', agency.id);
 
     // If account is not fully set up, create new onboarding link
     let onboardingUrl: string | undefined;
@@ -151,10 +174,10 @@ export async function getStripeConnectStatus() {
       onboardingUrl = accountLink.url;
       
       // Update onboarding URL in database
-      await prisma.agency.update({
-        where: { id: agency.id },
-        data: { stripeOnboardingUrl: onboardingUrl },
-      });
+      await supabase
+        .from('agencies')
+        .update({ stripeOnboardingUrl: onboardingUrl })
+        .eq('id', agency.id);
     }
 
     return {

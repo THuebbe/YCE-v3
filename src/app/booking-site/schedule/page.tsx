@@ -1,5 +1,5 @@
 import { headers } from 'next/headers'
-import { getAgencyBySlug } from '@/lib/db/queries/agency'
+import { getAgencyBySlug } from '@/lib/db/supabase-client'
 import Link from 'next/link'
 
 function getSubdomain(hostname: string): string | null {
