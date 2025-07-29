@@ -124,7 +124,56 @@ export interface PreviewAlternative {
 export type LayoutStyle = 'compact' | 'spread' | 'centered' | 'auto';
 export type TimeWindow = 'morning' | 'afternoon' | 'evening';
 
-// Sign and inventory types
+// Zone-specific sign types for 5-zone display system
+export type SignZone = 'zone1' | 'zone2' | 'zone3' | 'zone4' | 'zone5';
+export type SignType = 'letter' | 'number' | 'ordinal' | 'decoration' | 'backdrop' | 'bookend';
+
+// 5-Zone Display System Types
+export interface DisplayZone {
+  zone: SignZone;
+  signs: ZoneSign[];
+  totalWidth: number;
+  fillPercentage?: number; // Only applicable to Zone 3
+}
+
+export interface ZoneSign {
+  signId: string;
+  zone: SignZone;
+  type: SignType;
+  position: number; // Order within the zone
+  character?: string; // For letters/numbers
+  isOrdinal?: boolean; // For ordinal indicators (st, nd, rd, th)
+  style: SignStyle;
+}
+
+export interface SignStyle {
+  // Development styling (colored shapes)
+  dev?: {
+    backgroundColor?: string;
+    borderRadius?: string;
+    width?: string;
+    height?: string;
+  };
+  // Production styling (actual sign images)
+  prod?: {
+    imageUrl?: string;
+    width?: string;
+    height?: string;
+  };
+}
+
+export interface LayoutCalculation {
+  zone1: DisplayZone; // Event message + numbers
+  zone2: DisplayZone; // Recipient name(s)
+  zone3: DisplayZone; // Decorative fill (left/right sides)
+  zone4: DisplayZone; // Backdrop elements
+  zone5: DisplayZone; // Bookend signs
+  totalWidth: number;
+  gridColumns: number;
+  meetsMinimumFill: boolean;
+}
+
+// Enhanced sign interface with zone information
 export interface Sign {
   id: string;
   name: string;
@@ -143,6 +192,12 @@ export interface Sign {
   availableQuantity: number;
   agencyId?: string; // For agency-specific signs
   isPlatformSign: boolean;
+  // Zone-specific properties
+  zone: SignZone;
+  type: SignType;
+  character?: string; // For letters/numbers (A-Z, 0-9)
+  isOrdinal?: boolean; // For ordinal indicators
+  style: SignStyle;
 }
 
 export interface InventoryHold {

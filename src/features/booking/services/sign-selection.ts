@@ -39,7 +39,7 @@ export class SignSelectionService {
       const totalWidth = selectedSigns.reduce((sum, sign) => sum + sign.dimensions.width, 0);
       const fillPercentage = totalWidth / (criteria.preferredWidth || 30);
       
-      const success = selectedSigns.length > 0 && fillPercentage >= 0.75;
+      const success = selectedSigns.length > 0 && fillPercentage >= 0.60;
 
       return {
         success,
@@ -263,7 +263,7 @@ export class SignSelectionService {
     }
     
     const totalWidth = selectedSigns.reduce((sum, sign) => sum + sign.dimensions.width, 0);
-    if (totalWidth < (criteria.preferredWidth || 30) * 0.75) {
+    if (totalWidth < (criteria.preferredWidth || 30) * 0.60) {
       reasons.push('Not enough signs to fill the minimum yard space');
     }
     

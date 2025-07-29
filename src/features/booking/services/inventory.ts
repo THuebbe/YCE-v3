@@ -9,7 +9,7 @@ import {
 } from '../types';
 
 const HOLD_DURATION_HOURS = 1;
-const MINIMUM_FILL_PERCENTAGE = 0.75;
+const MINIMUM_FILL_PERCENTAGE = 0.60;
 const YARD_WIDTH_FEET = 30; // Standard yard width
 
 export class InventoryService {
@@ -213,76 +213,23 @@ export class InventoryService {
   }
 
   /**
-   * Get all signs available to an agency
+   * Get all signs available to an agency with zone classifications
    */
   async getAvailableSigns(agencyId: string): Promise<Sign[]> {
-    // Mock data - in real app, this would query Supabase
+    // Mock data with zone classifications - in real app, this would query Supabase
     const mockSigns: Sign[] = [
-      {
-        id: 'sign_1',
-        name: 'Happy Birthday',
-        category: 'birthday',
-        theme: 'classic',
-        dimensions: { width: 4, height: 2 },
-        imageUrl: '/placeholder/happy-birthday.jpg',
-        keywords: ['happy', 'birthday', 'celebration', 'party'],
-        available: true,
-        totalQuantity: 10,
-        availableQuantity: 8,
-        isPlatformSign: true
-      },
-      {
-        id: 'sign_2',
-        name: 'Congratulations',
-        category: 'celebration',
-        theme: 'classic',
-        dimensions: { width: 5, height: 2 },
-        imageUrl: '/placeholder/congratulations.jpg',
-        keywords: ['congratulations', 'congrats', 'achievement', 'success'],
-        available: true,
-        totalQuantity: 8,
-        availableQuantity: 6,
-        isPlatformSign: true
-      },
-      {
-        id: 'sign_3',
-        name: 'Welcome Home',
-        category: 'welcome',
-        theme: 'classic',
-        dimensions: { width: 4, height: 2 },
-        imageUrl: '/placeholder/welcome-home.jpg',
-        keywords: ['welcome', 'home', 'return', 'family'],
-        available: true,
-        totalQuantity: 5,
-        availableQuantity: 3,
-        isPlatformSign: true
-      },
-      {
-        id: 'sign_4',
-        name: 'Number 1',
-        category: 'numbers',
-        theme: 'classic',
-        dimensions: { width: 2, height: 3 },
-        imageUrl: '/placeholder/number-1.jpg',
-        keywords: ['1', 'one', 'first', 'number'],
-        available: true,
-        totalQuantity: 15,
-        availableQuantity: 12,
-        isPlatformSign: true
-      },
-      {
-        id: 'sign_5',
-        name: 'Number 8',
-        category: 'numbers',
-        theme: 'classic',
-        dimensions: { width: 2, height: 3 },
-        imageUrl: '/placeholder/number-8.jpg',
-        keywords: ['8', 'eight', 'number'],
-        available: true,
-        totalQuantity: 12,
-        availableQuantity: 10,
-        isPlatformSign: true
-      }
+      // Zone 1 & 2: Letter stakes (A-Z)
+      ...this.generateLetterStakes(),
+      // Zone 1: Number stakes (0-9) 
+      ...this.generateNumberStakes(),
+      // Zone 1: Ordinal stakes (ST, ND, RD, TH)
+      ...this.generateOrdinalStakes(),
+      // Zone 3: Decoration signs (hobbies, themes)
+      ...this.generateDecorationSigns(),
+      // Zone 4: Backdrop elements
+      ...this.generateBackdropElements(),
+      // Zone 5: Bookend signs
+      ...this.generateBookendSigns(),
     ];
 
     return mockSigns;
@@ -387,5 +334,250 @@ export class InventoryService {
       console.error('Error extending hold:', error);
       return false;
     }
+  }
+
+  // Zone-specific sign generators
+
+  /**
+   * Generate letter stakes A-Z for zones 1 and 2
+   */
+  private generateLetterStakes(): Sign[] {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const signs: Sign[] = [];
+
+    for (const letter of letters) {
+      signs.push({
+        id: `letter-${letter}`,
+        name: `Letter ${letter}`,
+        category: 'letters',
+        theme: 'classic',
+        dimensions: { width: 2, height: 2 },
+        imageUrl: `/placeholder/letter-${letter.toLowerCase()}.jpg`,
+        keywords: [letter.toLowerCase()],
+        available: true,
+        totalQuantity: 20,
+        availableQuantity: 18,
+        isPlatformSign: true,
+        zone: 'zone1',
+        type: 'letter',
+        character: letter,
+        style: {
+          dev: {
+            backgroundColor: '#1e40af',
+            borderRadius: '4px',
+            width: '2rem',
+            height: '2rem'
+          }
+        }
+      });
+    }
+
+    return signs;
+  }
+
+  /**
+   * Generate number stakes 0-9 for zone 1
+   */
+  private generateNumberStakes(): Sign[] {
+    const numbers = '0123456789';
+    const signs: Sign[] = [];
+
+    for (const number of numbers) {
+      signs.push({
+        id: `number-${number}`,
+        name: `Number ${number}`,
+        category: 'numbers',
+        theme: 'classic',
+        dimensions: { width: 2, height: 2 },
+        imageUrl: `/placeholder/number-${number}.jpg`,
+        keywords: [number],
+        available: true,
+        totalQuantity: 15,
+        availableQuantity: 12,
+        isPlatformSign: true,
+        zone: 'zone1',
+        type: 'number',
+        character: number,
+        style: {
+          dev: {
+            backgroundColor: '#059669',
+            borderRadius: '4px',
+            width: '2rem',
+            height: '2rem'
+          }
+        }
+      });
+    }
+
+    return signs;
+  }
+
+  /**
+   * Generate ordinal stakes (ST, ND, RD, TH) for zone 1
+   */
+  private generateOrdinalStakes(): Sign[] {
+    const ordinals = ['ST', 'ND', 'RD', 'TH'];
+    const signs: Sign[] = [];
+
+    for (const ordinal of ordinals) {
+      signs.push({
+        id: `ordinal-${ordinal}`,
+        name: `Ordinal ${ordinal}`,
+        category: 'ordinals',
+        theme: 'classic',
+        dimensions: { width: 1.5, height: 1.5 },
+        imageUrl: `/placeholder/ordinal-${ordinal.toLowerCase()}.jpg`,
+        keywords: [ordinal.toLowerCase()],
+        available: true,
+        totalQuantity: 10,
+        availableQuantity: 8,
+        isPlatformSign: true,
+        zone: 'zone1',
+        type: 'ordinal',
+        character: ordinal,
+        isOrdinal: true,
+        style: {
+          dev: {
+            backgroundColor: '#059669',
+            borderRadius: '4px',
+            width: '1.5rem',
+            height: '1.5rem'
+          }
+        }
+      });
+    }
+
+    return signs;
+  }
+
+  /**
+   * Generate decoration signs for zone 3
+   */
+  private generateDecorationSigns(): Sign[] {
+    const decorations = [
+      { name: 'Baseball', keywords: ['sports', 'baseball', 'games'], theme: 'sports' },
+      { name: 'Soccer Ball', keywords: ['sports', 'soccer', 'football'], theme: 'sports' },
+      { name: 'Basketball', keywords: ['sports', 'basketball', 'games'], theme: 'sports' },
+      { name: 'Gaming Controller', keywords: ['gaming', 'games', 'play'], theme: 'fun' },
+      { name: 'Music Notes', keywords: ['music', 'songs', 'melody'], theme: 'fun' },
+      { name: 'Art Palette', keywords: ['art', 'painting', 'creative'], theme: 'fun' },
+      { name: 'Crown', keywords: ['princess', 'royal', 'crown'], theme: 'princess' },
+      { name: 'Castle', keywords: ['princess', 'castle', 'fairy'], theme: 'princess' },
+      { name: 'Superhero Shield', keywords: ['superhero', 'hero', 'shield'], theme: 'superhero' },
+      { name: 'Stars', keywords: ['stars', 'bright', 'colorful'], theme: 'colorful' },
+      { name: 'Rainbow', keywords: ['rainbow', 'colors', 'bright'], theme: 'colorful' },
+      { name: 'Flowers', keywords: ['flowers', 'garden', 'pretty'], theme: 'colorful' }
+    ];
+
+    const signs: Sign[] = [];
+
+    for (const decoration of decorations) {
+      signs.push({
+        id: `decoration-${decoration.name.toLowerCase().replace(/\s+/g, '-')}`,
+        name: decoration.name,
+        category: 'decorations',
+        theme: decoration.theme,
+        dimensions: { width: 2, height: 2 },
+        imageUrl: `/placeholder/${decoration.name.toLowerCase().replace(/\s+/g, '-')}.jpg`,
+        keywords: decoration.keywords,
+        available: true,
+        totalQuantity: 8,
+        availableQuantity: 6,
+        isPlatformSign: true,
+        zone: 'zone3',
+        type: 'decoration',
+        style: {
+          dev: {
+            backgroundColor: '#7c3aed',
+            borderRadius: '50%',
+            width: '2rem',
+            height: '2rem'
+          }
+        }
+      });
+    }
+
+    return signs;
+  }
+
+  /**
+   * Generate backdrop elements for zone 4
+   */
+  private generateBackdropElements(): Sign[] {
+    const backdrops = [
+      { name: 'Balloon Cluster', keywords: ['balloons', 'party', 'celebration'] },
+      { name: 'Confetti', keywords: ['confetti', 'party', 'celebration'] },
+      { name: 'Streamers', keywords: ['streamers', 'party', 'decoration'] }
+    ];
+
+    const signs: Sign[] = [];
+
+    for (const backdrop of backdrops) {
+      signs.push({
+        id: `backdrop-${backdrop.name.toLowerCase().replace(/\s+/g, '-')}`,
+        name: backdrop.name,
+        category: 'backdrop',
+        theme: 'classic',
+        dimensions: { width: 1, height: 1 },
+        imageUrl: `/placeholder/${backdrop.name.toLowerCase().replace(/\s+/g, '-')}.jpg`,
+        keywords: backdrop.keywords,
+        available: true,
+        totalQuantity: 15,
+        availableQuantity: 12,
+        isPlatformSign: true,
+        zone: 'zone4',
+        type: 'backdrop',
+        style: {
+          dev: {
+            backgroundColor: '#3b82f6',
+            borderRadius: '2px',
+            width: '1rem',
+            height: '1rem'
+          }
+        }
+      });
+    }
+
+    return signs;
+  }
+
+  /**
+   * Generate bookend signs for zone 5
+   */
+  private generateBookendSigns(): Sign[] {
+    const bookends = [
+      { name: 'Left Bookend', position: 'left' },
+      { name: 'Right Bookend', position: 'right' }
+    ];
+
+    const signs: Sign[] = [];
+
+    for (const bookend of bookends) {
+      signs.push({
+        id: `bookend-${bookend.position}`,
+        name: bookend.name,
+        category: 'bookends',
+        theme: 'classic',
+        dimensions: { width: 1.5, height: 4 },
+        imageUrl: `/placeholder/bookend-${bookend.position}.jpg`,
+        keywords: ['bookend', bookend.position],
+        available: true,
+        totalQuantity: 5,
+        availableQuantity: 4,
+        isPlatformSign: true,
+        zone: 'zone5',
+        type: 'bookend',
+        style: {
+          dev: {
+            backgroundColor: '#22c55e',
+            borderRadius: '4px',
+            width: '1.5rem',
+            height: '4rem'
+          }
+        }
+      });
+    }
+
+    return signs;
   }
 }

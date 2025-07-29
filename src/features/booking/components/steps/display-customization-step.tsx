@@ -8,6 +8,9 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { InventoryService } from '../../services/inventory';
 import { SignSelectionService } from '../../services/sign-selection';
+import { LayoutCalculatorService } from '../../services/layout-calculator';
+import { DisplayGrid } from '../display/DisplayGrid';
+import { LayoutCalculation } from '../../types';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const eventMessages = [
@@ -58,13 +61,14 @@ export function DisplayCustomizationStep() {
     }
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [selectedSigns, setSelectedSigns] = useState<Sign[]>([]);
+  const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [holdId, setHoldId] = useState<string | null>(null);
   
   const inventoryService = new InventoryService();
   const signSelectionService = new SignSelectionService();
+  const layoutCalculatorService = new LayoutCalculatorService();
 
   const handleInputChange = (field: keyof DisplayFormData, value: any) => {
     setLocalData(prev => ({ ...prev, [field]: value }));
@@ -74,11 +78,11 @@ export function DisplayCustomizationStep() {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
     
-    // Trigger new sign selection when key fields change
-    if (['eventMessage', 'customMessage', 'eventNumber', 'characterTheme', 'hobbies'].includes(field)) {
-      // Debounce the selection update
+    // Trigger new layout calculation when key fields change
+    if (['eventMessage', 'customMessage', 'eventNumber', 'characterTheme', 'hobbies', 'recipientName'].includes(field)) {
+      // Debounce the layout update
       setTimeout(() => {
-        generateSignSelection();
+        generateLayoutPreview();
       }, 500);
     }
   };
@@ -92,7 +96,7 @@ export function DisplayCustomizationStep() {
     handleInputChange('hobbies', newHobbies);
   };
 
-  const generateSignSelection = async () => {
+  const generateLayoutPreview = async () => {
     if (!localData.eventMessage || !localData.recipientName) {
       return;
     }
@@ -110,23 +114,30 @@ export function DisplayCustomizationStep() {
         return;
       }
       
-      const result = await signSelectionService.selectSignsForMessage({
+      const layoutResult = await layoutCalculatorService.calculateLayout({
         message: message,
+        recipientName: localData.recipientName,
+        eventNumber: localData.eventNumber,
         theme: localData.characterTheme,
         hobbies: localData.hobbies,
-        eventType: localData.eventMessage,
-        agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
-        maxSigns: 8,
-        preferredWidth: 30
+        agencyId: 'yardcard-elite-west-branch' // TODO: Get from route params
       });
       
-      if (result.success) {
-        setSelectedSigns(result.selectedSigns);
+      if (layoutResult.meetsMinimumFill) {
+        setLayoutCalculation(layoutResult);
         
-        // Create soft hold on selected signs
-        if (result.signAllocations.length > 0) {
+        // Create soft hold on all selected signs
+        const allSignAllocations = [
+          ...layoutResult.zone1.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
+          ...layoutResult.zone2.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
+          ...layoutResult.zone3.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
+          ...layoutResult.zone4.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
+          ...layoutResult.zone5.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const }))
+        ];
+        
+        if (allSignAllocations.length > 0) {
           const holdResult = await inventoryService.createSoftHold(
-            result.signAllocations,
+            allSignAllocations,
             'yardcard-elite-west-branch',
             'session_' + Date.now().toString()
           );
@@ -136,10 +147,11 @@ export function DisplayCustomizationStep() {
           }
         }
       } else {
-        setPreviewError(result.reasons?.join(', ') || 'Could not generate preview');
+        setPreviewError(`Zone 3 fill requirement not met (${Math.round((layoutResult.zone3.fillPercentage || 0) * 100)}% < 60% minimum)`);
+        setLayoutCalculation(layoutResult); // Still show the layout for debugging
       }
     } catch (error) {
-      console.error('Error generating sign selection:', error);
+      console.error('Error generating layout preview:', error);
       setPreviewError('Failed to generate preview');
     } finally {
       setPreviewLoading(false);
@@ -163,10 +175,10 @@ export function DisplayCustomizationStep() {
     nextStep();
   };
   
-  // Generate initial sign selection
+  // Generate initial layout preview
   useEffect(() => {
     if (localData.eventMessage && localData.recipientName) {
-      generateSignSelection();
+      generateLayoutPreview();
     }
   }, []);
 
@@ -410,46 +422,39 @@ export function DisplayCustomizationStep() {
             </h3>
             
             {previewError ? (
-              <div className="aspect-[5/3] bg-red-50 border-2 border-red-200 rounded-lg flex items-center justify-center mb-4">
-                <div className="text-center p-4">
-                  <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                  <p className="text-body-small text-red-700">{previewError}</p>
-                </div>
-              </div>
-            ) : selectedSigns.length > 0 ? (
-              <div className="space-y-4 mb-4">
-                <div className="aspect-[5/3] bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center p-4">
-                  <div className="text-center">
-                    <div className="text-h4 font-bold text-neutral-800 mb-2">
-                      {localData.eventMessage === 'Custom Message' ? localData.customMessage : localData.eventMessage}
-                    </div>
-                    {localData.eventNumber && (
-                      <div className="text-6xl font-bold text-primary mb-2">
-                        {localData.eventNumber}
-                      </div>
-                    )}
-                    <div className="text-h5 text-neutral-700">
-                      {localData.recipientName}
-                    </div>
+              <div className="mb-4">
+                <div className="aspect-[5/2] bg-red-50 border-2 border-red-200 rounded-lg flex items-center justify-center mb-2">
+                  <div className="text-center p-4">
+                    <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                    <p className="text-body-small text-red-700">{previewError}</p>
                   </div>
                 </div>
+                {layoutCalculation && (
+                  <div className="text-xs text-neutral-500 text-center">
+                    Showing debug layout - Zone 3 fill: {Math.round((layoutCalculation.zone3.fillPercentage || 0) * 100)}%
+                  </div>
+                )}
+              </div>
+            ) : null}
+            
+            {layoutCalculation ? (
+              <div className="space-y-4 mb-4">
+                <DisplayGrid layout={layoutCalculation} />
                 
                 <div className="bg-neutral-50 p-3 rounded-lg">
                   <div className="flex items-center mb-2">
                     <CheckCircle2 className="w-4 h-4 text-green-600 mr-2" />
-                    <span className="text-body-small font-medium">Selected Signs ({selectedSigns.length})</span>
+                    <span className="text-body-small font-medium">5-Zone Layout Generated</span>
                   </div>
-                  <div className="space-y-1">
-                    {selectedSigns.slice(0, 3).map((sign) => (
-                      <div key={sign.id} className="text-body-small text-neutral-700">
-                        • {sign.name} ({sign.dimensions.width}' × {sign.dimensions.height}')
-                      </div>
-                    ))}
-                    {selectedSigns.length > 3 && (
-                      <div className="text-body-small text-neutral-500">
-                        + {selectedSigns.length - 3} more signs
-                      </div>
-                    )}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>Zone 1: {layoutCalculation.zone1.signs.length} message signs</div>
+                    <div>Zone 2: {layoutCalculation.zone2.signs.length} name signs</div>
+                    <div>Zone 3: {layoutCalculation.zone3.signs.length} decorations ({Math.round((layoutCalculation.zone3.fillPercentage || 0) * 100)}% fill)</div>
+                    <div>Zone 4: {layoutCalculation.zone4.signs.length} backdrop elements</div>
+                    <div>Zone 5: {layoutCalculation.zone5.signs.length} bookends</div>
+                    <div className="col-span-2 font-medium">
+                      Total: {layoutCalculation.zone1.signs.length + layoutCalculation.zone2.signs.length + layoutCalculation.zone3.signs.length + layoutCalculation.zone4.signs.length + layoutCalculation.zone5.signs.length} signs, {Math.round(layoutCalculation.totalWidth)} ft wide
+                    </div>
                   </div>
                 </div>
               </div>
@@ -476,19 +481,19 @@ export function DisplayCustomizationStep() {
             
             <Button 
               className="w-full mb-2" 
-              onClick={generateSignSelection}
+              onClick={generateLayoutPreview}
               disabled={previewLoading || !localData.eventMessage || !localData.recipientName}
             >
               {previewLoading ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
-              {selectedSigns.length > 0 ? 'Regenerate Preview' : 'Generate Preview'}
+              {layoutCalculation ? 'Regenerate Layout' : 'Generate Layout'}
             </Button>
             
-            {selectedSigns.length > 0 && (
+            {layoutCalculation && layoutCalculation.meetsMinimumFill && (
               <p className="text-body-small text-green-700 text-center flex items-center justify-center">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Signs reserved for 1 hour
+                All signs reserved for 1 hour
               </p>
             )}
           </div>
