@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import { currentUser } from '@clerk/nextjs/server';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 
 interface AgencyLayoutProps {
@@ -10,22 +9,14 @@ interface AgencyLayoutProps {
 export default async function AgencyLayout({ children, params }: AgencyLayoutProps) {
   const resolvedParams = await params;
   const { agency: agencySlug } = resolvedParams;
-  
-  // Get current user
-  const user = await currentUser();
-  if (!user) {
-    notFound();
-  }
 
-  // Validate agency exists and is active
+  // Validate agency exists and is active (for all routes)
+  // This layout is now only for public agency routes like booking
+  // Authentication will be handled at the individual page level for dashboard routes
   const agency = await getAgencyBySlug(agencySlug);
   if (!agency || !agency.isActive) {
     notFound();
   }
-
-  // TODO: Add user access validation
-  // For now, we'll assume if the user is authenticated and agency exists, they have access
-  // In production, you'd want to check if the user belongs to this agency
 
   // Provide agency context to all child pages
   return (
