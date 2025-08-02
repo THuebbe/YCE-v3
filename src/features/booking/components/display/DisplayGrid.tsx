@@ -17,7 +17,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   
   // Calculate responsive sizing - enhanced for larger preview
   const containerWidth = '100%';
-  const maxWidth = className?.includes('enhanced-preview') ? '100%' : '600px';
+  const maxWidth = className?.includes('enhanced-preview') || className?.includes('review-preview') ? '100%' : '600px';
   
   const baseClasses = `
     relative w-full border-2 border-green-200 rounded-lg p-6
@@ -35,7 +35,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   const containerStyle: React.CSSProperties = {
     maxWidth,
     aspectRatio: '4/2', // Better aspect ratio for new layout
-    minHeight: className?.includes('enhanced-preview') ? '280px' : '200px',
+    minHeight: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '280px' : '200px',
     ...backgroundStyle,
   };
   
@@ -83,8 +83,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: className?.includes('enhanced-preview') ? '2rem' : '1.5rem',
-                    height: className?.includes('enhanced-preview') ? '2rem' : '1.5rem'
+                    width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem',
+                    height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem'
                   }
                 }}
                 isOrdinal={sign.isOrdinal}
@@ -114,8 +114,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                       ...sign.style,
                       dev: {
                         ...sign.style?.dev,
-                        width: className?.includes('enhanced-preview') ? '1rem' : '0.75rem',
-                        height: className?.includes('enhanced-preview') ? '1rem' : '0.75rem'
+                        width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1rem' : '0.75rem',
+                        height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1rem' : '0.75rem'
                       }
                     }}
                   />
@@ -134,8 +134,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: className?.includes('enhanced-preview') ? '1.25rem' : '1rem',
-                    height: className?.includes('enhanced-preview') ? '1.25rem' : '1rem'
+                    width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem',
+                    height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem'
                   }
                 }}
                 className="relative z-20 flex-shrink-0"
@@ -153,8 +153,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                     ...sign.style,
                     dev: {
                       ...sign.style?.dev,
-                      width: className?.includes('enhanced-preview') ? '2rem' : '1.5rem',
-                      height: className?.includes('enhanced-preview') ? '2rem' : '1.5rem'
+                      width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem',
+                      height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem'
                     }
                   }}
                   className="bg-opacity-90"
@@ -173,8 +173,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: className?.includes('enhanced-preview') ? '1.25rem' : '1rem',
-                    height: className?.includes('enhanced-preview') ? '1.25rem' : '1rem'
+                    width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem',
+                    height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem'
                   }
                 }}
                 className="relative z-20 flex-shrink-0"

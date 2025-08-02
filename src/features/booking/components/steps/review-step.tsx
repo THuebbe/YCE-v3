@@ -1,13 +1,63 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { Button } from '@/shared/components/ui/button';
-import { Edit, Calendar, MapPin, CreditCard, Palette, User } from 'lucide-react';
+import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2 } from 'lucide-react';
+import { DisplayGrid } from '../display/DisplayGrid';
+import { LayoutCalculatorService } from '../../services/layout-calculator';
+import { LayoutCalculation } from '../../types';
 
 export function ReviewStep() {
   const { formData, nextStep, prevStep, goToStep } = useWizard();
+  const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  const generateLayoutPreview = async () => {
+    if (!formData.display?.eventMessage || !formData.display?.recipientName) {
+      return;
+    }
+
+    setPreviewLoading(true);
+    
+    try {
+      const layoutCalculatorService = new LayoutCalculatorService();
+      
+      const message = formData.display.eventMessage === 'Custom Message' 
+        ? (formData.display.customMessage || '') 
+        : formData.display.eventMessage;
+      
+      if (!message.trim()) {
+        setPreviewLoading(false);
+        return;
+      }
+      
+      const layoutResult = await layoutCalculatorService.calculateLayout({
+        message: message,
+        recipientName: formData.display.recipientName,
+        eventNumber: formData.display.eventNumber,
+        theme: formData.display.characterTheme,
+        hobbies: formData.display.hobbies,
+        agencyId: 'yardcard-elite-west-branch' // TODO: Get from route params
+      });
+      
+      if (layoutResult.meetsMinimumFill) {
+        setLayoutCalculation(layoutResult);
+      } else {
+        setLayoutCalculation(layoutResult); // Still show for debugging
+      }
+    } catch (error) {
+      console.error('Error generating layout preview:', error);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  // Generate layout on mount
+  useEffect(() => {
+    generateLayoutPreview();
+  }, []);
 
   const calculateTotal = () => {
     const basePrice = 95;
@@ -154,22 +204,45 @@ export function ReviewStep() {
           </div>
           
           {/* Display Preview */}
-          <div className="mb-4">
-            <div className="aspect-[5/3] bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center mb-4">
-              <div className="text-center">
-                <div className="text-h4 font-bold text-neutral-800 mb-2">
-                  {formData.display?.eventMessage || 'Your Message Here'}
-                </div>
-                {formData.display?.eventNumber && (
-                  <div className="text-6xl font-bold text-primary mb-2">
-                    {formData.display.eventNumber}
-                  </div>
-                )}
-                <div className="text-h5 text-neutral-700">
-                  {formData.display?.recipientName || 'Recipient Name'}
+          <div className="mb-6">
+            {previewLoading ? (
+              <div className="aspect-[4/2] bg-neutral-50 border-2 border-neutral-200 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+                  <p className="text-body-small text-neutral-600">Generating your display preview...</p>
                 </div>
               </div>
-            </div>
+            ) : layoutCalculation ? (
+              <div className="aspect-[4/2]">
+                <DisplayGrid layout={layoutCalculation} className="review-preview" />
+              </div>
+            ) : (
+              <div 
+                className="aspect-[4/2] border-2 border-neutral-200 rounded-lg relative overflow-hidden"
+                style={{
+                  backgroundImage: 'url(/preview-front-lawn.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'bottom',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center p-4 bg-white bg-opacity-90 rounded-lg">
+                    <div className="text-h4 font-bold text-neutral-700 mb-2">
+                      {formData.display?.eventMessage || 'Your Message Here'}
+                    </div>
+                    {formData.display?.eventNumber && (
+                      <div className="text-6xl font-bold text-neutral-600 mb-2">
+                        {formData.display.eventNumber}
+                      </div>
+                    )}
+                    <div className="text-h5 text-neutral-600">
+                      {formData.display?.recipientName || 'Recipient Name'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-body-small">
