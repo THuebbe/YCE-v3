@@ -241,7 +241,7 @@ export function DisplayCustomizationStep() {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.3 }}
-      className="max-w-7xl mx-auto px-4 py-8"
+      className="max-w-6xl mx-auto px-4 py-8"
     >
       <div className="text-center mb-8">
         <h1 className="text-h2 text-neutral-900 mb-4">Customize Your Display</h1>
@@ -284,20 +284,28 @@ export function DisplayCustomizationStep() {
                 <DisplayGrid layout={layoutCalculation} className="enhanced-preview" />
               </div>
             ) : (
-              <div className="aspect-[4/2] bg-neutral-50 border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center mb-4">
-                <div className="text-center p-4">
-                  <div className="text-h4 font-bold text-neutral-400 mb-2">
+              <div 
+                className="aspect-[4/2] border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center mb-4"
+                style={{
+                  backgroundImage: 'url(/preview-front-lawn.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              >
+                <div className="text-center p-4 bg-white bg-opacity-90 rounded-lg">
+                  <div className="text-h4 font-bold text-neutral-700 mb-2">
                     {localData.eventMessage || 'Your Message Here'}
                   </div>
                   {localData.eventNumber && (
-                    <div className="text-6xl font-bold text-neutral-300 mb-2">
+                    <div className="text-6xl font-bold text-neutral-600 mb-2">
                       {localData.eventNumber}
                     </div>
                   )}
-                  <div className="text-h5 text-neutral-400">
+                  <div className="text-h5 text-neutral-600">
                     {localData.recipientName || 'Recipient Name'}
                   </div>
-                  <p className="text-body-small text-neutral-500 mt-2">
+                  <p className="text-body-small text-neutral-600 mt-2">
                     Fill in the details above to see your preview
                   </p>
                 </div>

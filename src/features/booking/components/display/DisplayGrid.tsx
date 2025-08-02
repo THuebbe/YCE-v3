@@ -20,15 +20,23 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   const maxWidth = className?.includes('enhanced-preview') ? '100%' : '600px';
   
   const baseClasses = `
-    relative w-full bg-green-50 border-2 border-green-200 rounded-lg p-6
+    relative w-full border-2 border-green-200 rounded-lg p-6
     flex items-center justify-center overflow-hidden
     ${className}
   `.trim();
+  
+  const backgroundStyle: React.CSSProperties = {
+    backgroundImage: 'url(/preview-front-lawn.png)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  };
   
   const containerStyle: React.CSSProperties = {
     maxWidth,
     aspectRatio: '4/2', // Better aspect ratio for new layout
     minHeight: className?.includes('enhanced-preview') ? '280px' : '200px',
+    ...backgroundStyle,
   };
   
   // Calculate positioning for each zone
