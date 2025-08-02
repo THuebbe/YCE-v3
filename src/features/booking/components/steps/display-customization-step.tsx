@@ -202,11 +202,12 @@ export function DisplayCustomizationStep() {
     console.log('📊 localData:', localData);
     console.log('🔒 holdId:', holdId);
     
-    const result = displaySchema.safeParse({ ...localData, holdId });
+    const result = displaySchema.safeParse({ ...localData, holdId: holdId || undefined });
     console.log('✅ Validation result:', result);
     
     if (!result.success) {
       console.log('❌ Validation failed:', result.error.errors);
+      console.log('❌ Detailed validation errors:', result.error.issues);
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach(error => {
         const field = error.path[0] as string;
@@ -232,8 +233,8 @@ export function DisplayCustomizationStep() {
     return basePrice + (extraDays * extraDayPrice);
   };
 
-  const isValid = displaySchema.safeParse(localData).success;
-  console.log('🎛️ Button state - isValid:', isValid, 'localData:', localData);
+  const isValid = displaySchema.safeParse({ ...localData, holdId: holdId || undefined }).success;
+  console.log('🎛️ Button state - isValid:', isValid, 'localData:', localData, 'holdId:', holdId);
 
   return (
     <motion.div
