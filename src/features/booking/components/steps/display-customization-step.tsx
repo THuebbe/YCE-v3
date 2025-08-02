@@ -10,6 +10,7 @@ import { InventoryService } from '../../services/inventory';
 import { SignSelectionService } from '../../services/sign-selection';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { DisplayGrid } from '../display/DisplayGrid';
+import { LetterStake } from '../display/LetterStake';
 import { LayoutCalculation } from '../../types';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -122,13 +123,7 @@ export function DisplayCustomizationStep() {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
     
-    // Trigger new layout calculation when key fields change
-    if (['eventMessage', 'customMessage', 'eventNumber', 'characterTheme', 'hobbies', 'recipientName'].includes(field)) {
-      // Debounce the layout update
-      setTimeout(() => {
-        generateLayoutPreview();
-      }, 500);
-    }
+    // Auto-generation removed - users now manually generate layout with button
   };
 
   const handleHobbyToggle = (hobby: string) => {
@@ -219,12 +214,7 @@ export function DisplayCustomizationStep() {
     nextStep();
   };
   
-  // Generate initial layout preview
-  useEffect(() => {
-    if (localData.eventMessage && localData.recipientName) {
-      generateLayoutPreview();
-    }
-  }, []);
+  // Auto-generation removed - users now manually generate layout with button
 
   const calculateTotal = () => {
     const basePrice = 95;
@@ -285,7 +275,7 @@ export function DisplayCustomizationStep() {
               </div>
             ) : (
               <div 
-                className="aspect-[4/2] border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center mb-4"
+                className="aspect-[4/2] border-2 border-dashed border-neutral-300 rounded-lg relative overflow-hidden mb-4"
                 style={{
                   backgroundImage: 'url(/preview-front-lawn.png)',
                   backgroundSize: 'cover',
@@ -293,21 +283,45 @@ export function DisplayCustomizationStep() {
                   backgroundRepeat: 'no-repeat',
                 }}
               >
-                <div className="text-center p-4 bg-white bg-opacity-90 rounded-lg">
-                  <div className="text-h4 font-bold text-neutral-700 mb-2">
-                    {localData.eventMessage || 'Your Message Here'}
+                {/* Static Placeholder Display */}
+                <div className="flex flex-col items-center justify-end w-full h-full px-6 pb-8 pt-4">
+                  {/* Top Row: "YOUR MESSAGE" */}
+                  <div className="flex items-center justify-center gap-1 mb-3">
+                    {['Y', 'O', 'U', 'R', ' ', 'M', 'E', 'S', 'S', 'A', 'G', 'E'].map((char, index) => (
+                      char === ' ' ? (
+                        <div key={index} className="w-2"></div>
+                      ) : (
+                        <LetterStake
+                          key={index}
+                          character={char}
+                          style={{
+                            dev: {
+                              width: '1.5rem',
+                              height: '1.5rem'
+                            }
+                          }}
+                          className="relative z-10"
+                        />
+                      )
+                    ))}
                   </div>
-                  {localData.eventNumber && (
-                    <div className="text-6xl font-bold text-neutral-600 mb-2">
-                      {localData.eventNumber}
-                    </div>
-                  )}
-                  <div className="text-h5 text-neutral-600">
-                    {localData.recipientName || 'Recipient Name'}
+                  
+                  {/* Bottom Row: "HERE" */}
+                  <div className="flex items-center justify-center gap-1">
+                    {['H', 'E', 'R', 'E'].map((char, index) => (
+                      <LetterStake
+                        key={index}
+                        character={char}
+                        style={{
+                          dev: {
+                            width: '1.5rem',
+                            height: '1.5rem'
+                          }
+                        }}
+                        className="relative z-10"
+                      />
+                    ))}
                   </div>
-                  <p className="text-body-small text-neutral-600 mt-2">
-                    Fill in the details above to see your preview
-                  </p>
                 </div>
               </div>
             )}
