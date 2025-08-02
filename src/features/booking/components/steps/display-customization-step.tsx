@@ -250,218 +250,10 @@ export function DisplayCustomizationStep() {
         </p>
       </div>
 
-      {/* Top Section - Preview and Pricing */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-        {/* Preview Area - Left Side */}
-        <div className="lg:col-span-3">
-          {/* Event Message */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="eventMessage" className="text-label text-neutral-700 mb-2 block">
-                Event Message
-              </label>
-              <select
-                id="eventMessage"
-                value={localData.eventMessage}
-                onChange={(e) => handleInputChange('eventMessage', e.target.value)}
-                className={`
-                  w-full px-4 py-3 border-2 rounded-lg transition-colors focus:outline-none
-                  ${
-                    errors.eventMessage
-                      ? 'border-error focus:border-error'
-                      : 'border-neutral-300 focus:border-primary'
-                  }
-                `}
-              >
-                <option value="">Select an event message</option>
-                {eventMessages.map((messageConfig) => (
-                  <option key={messageConfig.message} value={messageConfig.message}>
-                    {messageConfig.message}
-                  </option>
-                ))}
-              </select>
-              {localData.eventMessage === 'Custom Message' && (
-                <div className="mt-3">
-                  <Input
-                    value={localData.customMessage || ''}
-                    onChange={(e) => handleInputChange('customMessage', e.target.value)}
-                    placeholder="Enter your custom message"
-                    className={errors.customMessage ? 'border-error' : ''}
-                  />
-                </div>
-              )}
-              {errors.eventMessage && (
-                <p className="text-body-small text-error-red mt-1">{errors.eventMessage}</p>
-              )}
-            </div>
-
-            {/* Event Number - Conditional based on selected message */}
-            {(() => {
-              const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
-              const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
-              
-              if (!showNumberField) return null;
-              
-              return (
-                <div>
-                  <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
-                    {selectedMessageConfig?.numberLabel || 'Number (Optional)'}
-                  </label>
-                  <Input
-                    id="eventNumber"
-                    type="number"
-                    value={localData.eventNumber || ''}
-                    onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={selectedMessageConfig?.numberPlaceholder || 'Enter a number'}
-                    min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
-                    max={selectedMessageConfig?.numberType === 'year' ? 2030 : 100}
-                  />
-                </div>
-              );
-            })()
-            }
-          </div>
-
-          {/* Recipient Name */}
-          <div>
-            <label htmlFor="recipientName" className="text-label text-neutral-700 mb-2 block">
-              Recipient Name
-            </label>
-            <Input
-              id="recipientName"
-              type="text"
-              value={localData.recipientName}
-              onChange={(e) => handleInputChange('recipientName', e.target.value)}
-              placeholder="Who is this celebration for?"
-              className={errors.recipientName ? 'border-error' : ''}
-            />
-            {errors.recipientName && (
-              <p className="text-body-small text-error-red mt-1">{errors.recipientName}</p>
-            )}
-          </div>
-
-          {/* Message & Name Styles */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Message Style
-              </label>
-              <div className="space-y-2">
-                {['Classic', 'Bold', 'Script', 'Fun'].map((style) => (
-                  <label
-                    key={style}
-                    className={`
-                      flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors
-                      ${
-                        localData.messageStyle === style
-                          ? 'border-primary bg-secondary-pale'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="messageStyle"
-                      value={style}
-                      checked={localData.messageStyle === style}
-                      onChange={(e) => handleInputChange('messageStyle', e.target.value)}
-                      className="sr-only"
-                    />
-                    <span className="text-body font-medium">{style}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.messageStyle && (
-                <p className="text-body-small text-error-red mt-1">{errors.messageStyle}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Name Style
-              </label>
-              <div className="space-y-2">
-                {['Classic', 'Bold', 'Script', 'Fun'].map((style) => (
-                  <label
-                    key={style}
-                    className={`
-                      flex items-center p-3 border-2 rounded-lg cursor-pointer transition-colors
-                      ${
-                        localData.nameStyle === style
-                          ? 'border-primary bg-secondary-pale'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="nameStyle"
-                      value={style}
-                      checked={localData.nameStyle === style}
-                      onChange={(e) => handleInputChange('nameStyle', e.target.value)}
-                      className="sr-only"
-                    />
-                    <span className="text-body font-medium">{style}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.nameStyle && (
-                <p className="text-body-small text-error-red mt-1">{errors.nameStyle}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Character Theme */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="characterTheme" className="text-label text-neutral-700 mb-2 block">
-                Character Theme (Optional)
-              </label>
-              <select
-                id="characterTheme"
-                value={localData.characterTheme || ''}
-                onChange={(e) => handleInputChange('characterTheme', e.target.value || '')}
-                className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
-              >
-                <option value="">No theme</option>
-                {themes.map((theme) => (
-                  <option key={theme} value={theme}>
-                    {theme}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Hobbies/Interests */}
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Hobbies/Interests (Optional)
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {hobbies.map((hobby) => (
-                  <label
-                    key={hobby}
-                    className={`
-                      flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                      ${
-                        localData.hobbies?.includes(hobby)
-                          ? 'border-primary bg-secondary-pale text-primary'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={localData.hobbies?.includes(hobby) || false}
-                      onChange={() => handleHobbyToggle(hobby)}
-                      className="sr-only"
-                    />
-                    <span className="text-body-small font-medium">{hobby}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
+      {/* Main Layout - 3 Columns: Preview | Form Fields | Pricing */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* Left Column - Preview */}
+        <div className="lg:col-span-5">
           {/* Preview Area */}
           <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
             <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
@@ -532,8 +324,165 @@ export function DisplayCustomizationStep() {
           </div>
         </div>
 
-        {/* Pricing Panel - Right Side */}
-        <div className="lg:col-span-2">
+        {/* Middle Column - Core Form Fields */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Event Message */}
+          <div>
+            <label htmlFor="eventMessage" className="text-label text-neutral-700 mb-2 block">
+              Event Message
+            </label>
+            <select
+              id="eventMessage"
+              value={localData.eventMessage}
+              onChange={(e) => handleInputChange('eventMessage', e.target.value)}
+              className={`
+                w-full px-4 py-3 border-2 rounded-lg transition-colors focus:outline-none
+                ${
+                  errors.eventMessage
+                    ? 'border-error focus:border-error'
+                    : 'border-neutral-300 focus:border-primary'
+                }
+              `}
+            >
+              <option value="">Select an event message</option>
+              {eventMessages.map((messageConfig) => (
+                <option key={messageConfig.message} value={messageConfig.message}>
+                  {messageConfig.message}
+                </option>
+              ))}
+            </select>
+            {localData.eventMessage === 'Custom Message' && (
+              <div className="mt-3">
+                <Input
+                  value={localData.customMessage || ''}
+                  onChange={(e) => handleInputChange('customMessage', e.target.value)}
+                  placeholder="Enter your custom message"
+                  className={errors.customMessage ? 'border-error' : ''}
+                />
+              </div>
+            )}
+            {errors.eventMessage && (
+              <p className="text-body-small text-error-red mt-1">{errors.eventMessage}</p>
+            )}
+          </div>
+          
+          {/* Event Number - Conditional based on selected message */}
+          {(() => {
+            const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
+            const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
+            
+            if (!showNumberField) return null;
+            
+            return (
+              <div>
+                <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
+                  {selectedMessageConfig?.numberLabel || 'Number (Optional)'}
+                </label>
+                <Input
+                  id="eventNumber"
+                  type="number"
+                  value={localData.eventNumber || ''}
+                  onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
+                  placeholder={selectedMessageConfig?.numberPlaceholder || 'Enter a number'}
+                  min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
+                  max={selectedMessageConfig?.numberType === 'year' ? 2030 : 100}
+                />
+              </div>
+            );
+          })()}
+
+          {/* Recipient Name */}
+          <div>
+            <label htmlFor="recipientName" className="text-label text-neutral-700 mb-2 block">
+              Recipient Name
+            </label>
+            <Input
+              id="recipientName"
+              type="text"
+              value={localData.recipientName}
+              onChange={(e) => handleInputChange('recipientName', e.target.value)}
+              placeholder="Who is this celebration for?"
+              className={errors.recipientName ? 'border-error' : ''}
+            />
+            {errors.recipientName && (
+              <p className="text-body-small text-error-red mt-1">{errors.recipientName}</p>
+            )}
+          </div>
+
+          {/* Message & Name Styles */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-label text-neutral-700 mb-3 block">
+                Message Style
+              </label>
+              <div className="space-y-2">
+                {['Classic', 'Bold', 'Script', 'Fun'].map((style) => (
+                  <label
+                    key={style}
+                    className={`
+                      flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                      ${
+                        localData.messageStyle === style
+                          ? 'border-primary bg-secondary-pale'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="messageStyle"
+                      value={style}
+                      checked={localData.messageStyle === style}
+                      onChange={(e) => handleInputChange('messageStyle', e.target.value)}
+                      className="sr-only"
+                    />
+                    <span className="text-body-small font-medium">{style}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.messageStyle && (
+                <p className="text-body-small text-error-red mt-1">{errors.messageStyle}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-label text-neutral-700 mb-3 block">
+                Name Style
+              </label>
+              <div className="space-y-2">
+                {['Classic', 'Bold', 'Script', 'Fun'].map((style) => (
+                  <label
+                    key={style}
+                    className={`
+                      flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                      ${
+                        localData.nameStyle === style
+                          ? 'border-primary bg-secondary-pale'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="nameStyle"
+                      value={style}
+                      checked={localData.nameStyle === style}
+                      onChange={(e) => handleInputChange('nameStyle', e.target.value)}
+                      className="sr-only"
+                    />
+                    <span className="text-body-small font-medium">{style}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.nameStyle && (
+                <p className="text-body-small text-error-red mt-1">{errors.nameStyle}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Pricing */}
+        <div className="lg:col-span-3">
           <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
             <h3 className="text-h5 text-neutral-900 mb-4">Pricing</h3>
             <div className="space-y-3">
@@ -603,9 +552,57 @@ export function DisplayCustomizationStep() {
         </div>
       </div>
 
-      {/* Bottom Section - Customization Options */}
-      <div className="space-y-6">
-        {/* Content will go here in future - for now just the navigation */}
+      {/* Bottom Section - Advanced Options */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Character Theme */}
+        <div>
+          <label htmlFor="characterTheme" className="text-label text-neutral-700 mb-2 block">
+            Character Theme (Optional)
+          </label>
+          <select
+            id="characterTheme"
+            value={localData.characterTheme || ''}
+            onChange={(e) => handleInputChange('characterTheme', e.target.value || '')}
+            className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
+          >
+            <option value="">No theme</option>
+            {themes.map((theme) => (
+              <option key={theme} value={theme}>
+                {theme}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Hobbies/Interests */}
+        <div>
+          <label className="text-label text-neutral-700 mb-3 block">
+            Hobbies/Interests (Optional)
+          </label>
+          <div className="grid grid-cols-2 gap-2">
+            {hobbies.map((hobby) => (
+              <label
+                key={hobby}
+                className={`
+                  flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                  ${
+                    localData.hobbies?.includes(hobby)
+                      ? 'border-primary bg-secondary-pale text-primary'
+                      : 'border-neutral-200 hover:border-neutral-300'
+                  }
+                `}
+              >
+                <input
+                  type="checkbox"
+                  checked={localData.hobbies?.includes(hobby) || false}
+                  onChange={() => handleHobbyToggle(hobby)}
+                  className="sr-only"
+                />
+                <span className="text-body-small font-medium">{hobby}</span>
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Navigation Buttons */}
