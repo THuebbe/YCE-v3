@@ -15,20 +15,20 @@ interface DisplayGridProps {
 export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   const { zone1, zone2, zone3, zone4, zone5, gridColumns } = layout;
   
-  // Calculate responsive sizing
+  // Calculate responsive sizing - enhanced for larger preview
   const containerWidth = '100%';
-  const maxWidth = '600px'; // Reasonable max width for preview
+  const maxWidth = className?.includes('enhanced-preview') ? '100%' : '600px';
   
   const baseClasses = `
-    relative w-full bg-green-50 border-2 border-green-200 rounded-lg p-4
+    relative w-full bg-green-50 border-2 border-green-200 rounded-lg p-6
     flex items-center justify-center overflow-hidden
     ${className}
   `.trim();
   
   const containerStyle: React.CSSProperties = {
     maxWidth,
-    aspectRatio: '5/2', // Wide aspect ratio for yard display
-    minHeight: '200px',
+    aspectRatio: '4/2', // Better aspect ratio for new layout
+    minHeight: className?.includes('enhanced-preview') ? '280px' : '200px',
   };
   
   // Calculate positioning for each zone
@@ -64,9 +64,9 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
       </div>
       
       {/* Main Display Area */}
-      <div className="flex flex-col items-center justify-center w-full h-full px-4 py-2">
+      <div className="flex flex-col items-center justify-center w-full h-full px-6 py-4">
         {/* Zone 1: Event Message (Top Row) */}
-        <div className="flex items-center justify-center gap-0.5 mb-1 max-w-full overflow-hidden">
+        <div className="flex items-center justify-center gap-1 mb-3 max-w-full overflow-hidden">
           {zone1.signs.map((sign, index) => (
             <div key={`zone1-${index}`} className="flex-shrink-0">
               <LetterStake
@@ -75,12 +75,12 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: '1.5rem', // Smaller width to fit better
-                    height: '1.5rem'
+                    width: className?.includes('enhanced-preview') ? '2rem' : '1.5rem',
+                    height: className?.includes('enhanced-preview') ? '2rem' : '1.5rem'
                   }
                 }}
                 isOrdinal={sign.isOrdinal}
-                className="relative z-10 text-xs"
+                className="relative z-10"
               />
             </div>
           ))}
@@ -90,7 +90,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
         <div className="relative flex items-center justify-center w-full max-w-full overflow-hidden">
           {/* Zone 4: Backdrop Elements (Behind everything) */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               {zone4.signs.map((sign, index) => (
                 <div
                   key={`zone4-${index}`}
@@ -106,8 +106,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                       ...sign.style,
                       dev: {
                         ...sign.style?.dev,
-                        width: '0.75rem',
-                        height: '0.75rem'
+                        width: className?.includes('enhanced-preview') ? '1rem' : '0.75rem',
+                        height: className?.includes('enhanced-preview') ? '1rem' : '0.75rem'
                       }
                     }}
                   />
@@ -117,7 +117,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
           </div>
           
           {/* Zone 3: Left Side Decorations */}
-          <div className="flex items-center gap-0.5 mr-1">
+          <div className="flex items-center gap-1 mr-2">
             {zone3.signs.filter(sign => sign.position < zone3.signs.length / 2).map((sign, index) => (
               <DecorationSign
                 key={`zone3-left-${index}`}
@@ -126,8 +126,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: '1rem',
-                    height: '1rem'
+                    width: className?.includes('enhanced-preview') ? '1.25rem' : '1rem',
+                    height: className?.includes('enhanced-preview') ? '1.25rem' : '1rem'
                   }
                 }}
                 className="relative z-20 flex-shrink-0"
@@ -136,7 +136,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
           </div>
           
           {/* Zone 2: Recipient Name (Center) */}
-          <div className="flex items-center justify-center gap-0.5 relative z-10 max-w-full overflow-hidden">
+          <div className="flex items-center justify-center gap-1 relative z-10 max-w-full overflow-hidden">
             {zone2.signs.map((sign, index) => (
               <div key={`zone2-${index}`} className="flex-shrink-0">
                 <LetterStake
@@ -145,18 +145,18 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                     ...sign.style,
                     dev: {
                       ...sign.style?.dev,
-                      width: '1.5rem',
-                      height: '1.5rem'
+                      width: className?.includes('enhanced-preview') ? '2rem' : '1.5rem',
+                      height: className?.includes('enhanced-preview') ? '2rem' : '1.5rem'
                     }
                   }}
-                  className="bg-opacity-90 text-xs"
+                  className="bg-opacity-90"
                 />
               </div>
             ))}
           </div>
           
           {/* Zone 3: Right Side Decorations */}
-          <div className="flex items-center gap-0.5 ml-1">
+          <div className="flex items-center gap-1 ml-2">
             {zone3.signs.filter(sign => sign.position >= zone3.signs.length / 2).map((sign, index) => (
               <DecorationSign
                 key={`zone3-right-${index}`}
@@ -165,8 +165,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: '1rem',
-                    height: '1rem'
+                    width: className?.includes('enhanced-preview') ? '1.25rem' : '1rem',
+                    height: className?.includes('enhanced-preview') ? '1.25rem' : '1rem'
                   }
                 }}
                 className="relative z-20 flex-shrink-0"
