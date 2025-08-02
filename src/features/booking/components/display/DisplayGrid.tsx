@@ -28,7 +28,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   const backgroundStyle: React.CSSProperties = {
     backgroundImage: 'url(/preview-front-lawn.png)',
     backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    backgroundPosition: 'bottom',
     backgroundRepeat: 'no-repeat',
   };
   

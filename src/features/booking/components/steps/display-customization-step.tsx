@@ -289,7 +289,7 @@ export function DisplayCustomizationStep() {
                 style={{
                   backgroundImage: 'url(/preview-front-lawn.png)',
                   backgroundSize: 'cover',
-                  backgroundPosition: 'center',
+                  backgroundPosition: 'bottom',
                   backgroundRepeat: 'no-repeat',
                 }}
               >
