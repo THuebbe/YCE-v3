@@ -198,9 +198,15 @@ export function DisplayCustomizationStep() {
   };
   
   const validateAndContinue = () => {
+    console.log('🔄 validateAndContinue called');
+    console.log('📊 localData:', localData);
+    console.log('🔒 holdId:', holdId);
+    
     const result = displaySchema.safeParse({ ...localData, holdId });
+    console.log('✅ Validation result:', result);
     
     if (!result.success) {
+      console.log('❌ Validation failed:', result.error.errors);
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach(error => {
         const field = error.path[0] as string;
@@ -210,8 +216,11 @@ export function DisplayCustomizationStep() {
       return;
     }
 
+    console.log('✅ Validation passed, updating form data and calling nextStep');
     updateFormData({ display: { ...localData, holdId: holdId || undefined } });
+    console.log('🚀 About to call nextStep()');
     nextStep();
+    console.log('🎯 nextStep() called');
   };
   
   // Auto-generation removed - users now manually generate layout with button
@@ -224,6 +233,7 @@ export function DisplayCustomizationStep() {
   };
 
   const isValid = displaySchema.safeParse(localData).success;
+  console.log('🎛️ Button state - isValid:', isValid, 'localData:', localData);
 
   return (
     <motion.div
@@ -644,7 +654,14 @@ export function DisplayCustomizationStep() {
           Back
         </Button>
         <Button
-          onClick={validateAndContinue}
+          onClick={() => {
+            console.log('🖱️ Continue button clicked! isValid:', isValid);
+            if (!isValid) {
+              console.log('⚠️ Button is disabled, but click still fired');
+              return;
+            }
+            validateAndContinue();
+          }}
           disabled={!isValid}
           className="w-full md:w-auto px-8"
         >
