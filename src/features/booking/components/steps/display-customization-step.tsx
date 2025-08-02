@@ -13,14 +13,58 @@ import { DisplayGrid } from '../display/DisplayGrid';
 import { LayoutCalculation } from '../../types';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
-const eventMessages = [
-  'Happy Birthday',
-  'Congratulations',
-  'Welcome Home',
-  'Get Well Soon',
-  'Graduation',
-  'Happy Anniversary',
-  'Custom Message'
+interface EventMessageConfig {
+  message: string;
+  supportsNumber: boolean;
+  numberLabel?: string;
+  numberPlaceholder?: string;
+  numberType?: 'age' | 'year' | 'milestone' | 'general';
+}
+
+const eventMessages: EventMessageConfig[] = [
+  {
+    message: 'Happy Birthday',
+    supportsNumber: true,
+    numberLabel: 'Age',
+    numberPlaceholder: 'e.g., 25 for 25th birthday',
+    numberType: 'age'
+  },
+  {
+    message: 'Happy Anniversary',
+    supportsNumber: true,
+    numberLabel: 'Anniversary Year',
+    numberPlaceholder: 'e.g., 25 for 25th anniversary',
+    numberType: 'milestone'
+  },
+  {
+    message: 'Graduation',
+    supportsNumber: true,
+    numberLabel: 'Graduation Year',
+    numberPlaceholder: 'e.g., 2024',
+    numberType: 'year'
+  },
+  {
+    message: 'Congratulations',
+    supportsNumber: true,
+    numberLabel: 'Year/Number (Optional)',
+    numberPlaceholder: 'e.g., 2024 or milestone number',
+    numberType: 'general'
+  },
+  {
+    message: 'Welcome Home',
+    supportsNumber: false
+  },
+  {
+    message: 'Get Well Soon',
+    supportsNumber: false
+  },
+  {
+    message: 'Custom Message',
+    supportsNumber: true,
+    numberLabel: 'Number (Optional)',
+    numberPlaceholder: 'Enter any number if applicable',
+    numberType: 'general'
+  }
 ];
 
 const themes = [
@@ -215,20 +259,20 @@ export function DisplayCustomizationStep() {
               Event Message
             </label>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {eventMessages.map((message) => (
+              {eventMessages.map((messageConfig) => (
                 <button
-                  key={message}
-                  onClick={() => handleInputChange('eventMessage', message)}
+                  key={messageConfig.message}
+                  onClick={() => handleInputChange('eventMessage', messageConfig.message)}
                   className={`
                     p-3 text-center border-2 rounded-lg transition-colors
                     ${
-                      localData.eventMessage === message
+                      localData.eventMessage === messageConfig.message
                         ? 'border-primary bg-secondary-pale text-primary'
                         : 'border-neutral-200 hover:border-neutral-300'
                     }
                   `}
                 >
-                  <span className="text-body-small font-medium">{message}</span>
+                  <span className="text-body-small font-medium">{messageConfig.message}</span>
                 </button>
               ))}
             </div>
@@ -247,21 +291,30 @@ export function DisplayCustomizationStep() {
             )}
           </div>
 
-          {/* Event Number */}
-          <div>
-            <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
-              Age/Number (Optional)
-            </label>
-            <Input
-              id="eventNumber"
-              type="number"
-              value={localData.eventNumber || ''}
-              onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
-              placeholder="e.g., 25 for 25th birthday"
-              min={1}
-              max={100}
-            />
-          </div>
+          {/* Event Number - Conditional based on selected message */}
+          {(() => {
+            const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
+            const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
+            
+            if (!showNumberField) return null;
+            
+            return (
+              <div>
+                <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
+                  {selectedMessageConfig?.numberLabel || 'Number (Optional)'}
+                </label>
+                <Input
+                  id="eventNumber"
+                  type="number"
+                  value={localData.eventNumber || ''}
+                  onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
+                  placeholder={selectedMessageConfig?.numberPlaceholder || 'Enter a number'}
+                  min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
+                  max={selectedMessageConfig?.numberType === 'year' ? 2030 : 100}
+                />
+              </div>
+            );
+          })()}
 
           {/* Recipient Name */}
           <div>
@@ -438,25 +491,8 @@ export function DisplayCustomizationStep() {
             ) : null}
             
             {layoutCalculation ? (
-              <div className="space-y-4 mb-4">
+              <div className="mb-4">
                 <DisplayGrid layout={layoutCalculation} />
-                
-                <div className="bg-neutral-50 p-3 rounded-lg">
-                  <div className="flex items-center mb-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-600 mr-2" />
-                    <span className="text-body-small font-medium">5-Zone Layout Generated</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>Zone 1: {layoutCalculation.zone1.signs.length} message signs</div>
-                    <div>Zone 2: {layoutCalculation.zone2.signs.length} name signs</div>
-                    <div>Zone 3: {layoutCalculation.zone3.signs.length} decorations ({Math.round((layoutCalculation.zone3.fillPercentage || 0) * 100)}% fill)</div>
-                    <div>Zone 4: {layoutCalculation.zone4.signs.length} backdrop elements</div>
-                    <div>Zone 5: {layoutCalculation.zone5.signs.length} bookends</div>
-                    <div className="col-span-2 font-medium">
-                      Total: {layoutCalculation.zone1.signs.length + layoutCalculation.zone2.signs.length + layoutCalculation.zone3.signs.length + layoutCalculation.zone4.signs.length + layoutCalculation.zone5.signs.length} signs, {Math.round(layoutCalculation.totalWidth)} ft wide
-                    </div>
-                  </div>
-                </div>
               </div>
             ) : (
               <div className="aspect-[5/3] bg-neutral-50 border-2 border-dashed border-neutral-300 rounded-lg flex items-center justify-center mb-4">

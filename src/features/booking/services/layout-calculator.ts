@@ -68,7 +68,7 @@ export class LayoutCalculatorService {
     const numberMatch = cleanMessage.match(/(\d+)(ST|ND|RD|TH)?/);
     
     if (numberMatch && !eventNumber) {
-      // Number already in message
+      // Number already in message - use as is
       const beforeNumber = cleanMessage.substring(0, numberMatch.index || 0);
       const number = numberMatch[1];
       const ordinal = numberMatch[2] || this.getOrdinalSuffix(parseInt(number));
@@ -97,27 +97,27 @@ export class LayoutCalculatorService {
         signs.push(this.createLetterSign(char, position++, 2));
         totalWidth += 2;
       }
+    } else if (eventNumber) {
+      // Insert number into message at appropriate position
+      const insertionResult = this.insertNumberIntoMessage(cleanMessage, eventNumber);
+      
+      for (const element of insertionResult.elements) {
+        if (element.type === 'letter') {
+          signs.push(this.createLetterSign(element.value, position++, 2));
+          totalWidth += 2;
+        } else if (element.type === 'number') {
+          signs.push(this.createNumberSign(element.value, position++, 2));
+          totalWidth += 2;
+        } else if (element.type === 'ordinal') {
+          signs.push(this.createOrdinalSign(element.value, position++, 1.5));
+          totalWidth += 1.5;
+        }
+      }
     } else {
-      // Add message letters
+      // Just the message without numbers
       for (const char of cleanMessage) {
         signs.push(this.createLetterSign(char, position++, 2));
         totalWidth += 2;
-      }
-      
-      // Add separate event number if provided
-      if (eventNumber) {
-        const numberStr = eventNumber.toString();
-        const ordinal = this.getOrdinalSuffix(eventNumber);
-        
-        for (const digit of numberStr) {
-          signs.push(this.createNumberSign(digit, position++, 2));
-          totalWidth += 2;
-        }
-        
-        if (ordinal) {
-          signs.push(this.createOrdinalSign(ordinal, position++, 1.5));
-          totalWidth += 1.5;
-        }
       }
     }
     
@@ -349,6 +349,82 @@ export class LayoutCalculatorService {
   }
   
   // Utility methods
+  
+  /**
+   * Insert number into message at the appropriate position
+   * Examples: "HAPPYBIRTHDAY" + 40 -> "HAPPY40THBIRTHDAY"
+   *          "HAPPYANNIVERSARY" + 25 -> "HAPPY25THANNIVERSARY"
+   */
+  private insertNumberIntoMessage(message: string, eventNumber: number): {
+    elements: Array<{type: 'letter' | 'number' | 'ordinal', value: string}>
+  } {
+    const elements: Array<{type: 'letter' | 'number' | 'ordinal', value: string}> = [];
+    const numberStr = eventNumber.toString();
+    const ordinal = this.getOrdinalSuffix(eventNumber);
+    
+    // Define insertion patterns for specific messages
+    const insertionPatterns: Record<string, string> = {
+      'HAPPYBIRTHDAY': 'HAPPY',
+      'HAPPYANNIVERSARY': 'HAPPY',
+      'CONGRATULATIONS': 'CONGRATULATIONS',
+      'GRADUATION': '' // Insert at beginning
+    };
+    
+    // Find pattern match
+    let insertionPoint = -1;
+    let prefix = '';
+    
+    for (const [pattern, prefixMatch] of Object.entries(insertionPatterns)) {
+      if (message.startsWith(pattern)) {
+        insertionPoint = prefixMatch.length;
+        prefix = prefixMatch;
+        break;
+      }
+    }
+    
+    // If no specific pattern found, default behavior (append number)
+    if (insertionPoint === -1) {
+      // Add all message letters first
+      for (const char of message) {
+        elements.push({type: 'letter', value: char});
+      }
+      
+      // Then add number and ordinal
+      for (const digit of numberStr) {
+        elements.push({type: 'number', value: digit});
+      }
+      
+      if (ordinal) {
+        elements.push({type: 'ordinal', value: ordinal});
+      }
+    } else {
+      // Insert number at specific position
+      const beforeNumber = message.substring(0, insertionPoint);
+      const afterNumber = message.substring(insertionPoint);
+      
+      // Add letters before number
+      for (const char of beforeNumber) {
+        elements.push({type: 'letter', value: char});
+      }
+      
+      // Add number digits
+      for (const digit of numberStr) {
+        elements.push({type: 'number', value: digit});
+      }
+      
+      // Add ordinal suffix
+      if (ordinal) {
+        elements.push({type: 'ordinal', value: ordinal});
+      }
+      
+      // Add letters after number
+      for (const char of afterNumber) {
+        elements.push({type: 'letter', value: char});
+      }
+    }
+    
+    return { elements };
+  }
   
   private getOrdinalSuffix(number: number): string {
     const remainder = number % 100;
