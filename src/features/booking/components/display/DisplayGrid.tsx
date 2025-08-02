@@ -48,7 +48,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   return (
     <div className={baseClasses} style={containerStyle}>
       {/* Zone 5: Left Bookend */}
-      <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+      <div className="absolute left-2 bottom-8 transform translate-y-0">
         {zone5.signs.filter(sign => sign.position === 0).map((sign, index) => (
           <BookendSign
             key={`bookend-left-${index}`}
@@ -60,7 +60,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
       </div>
       
       {/* Zone 5: Right Bookend */}
-      <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+      <div className="absolute right-2 bottom-8 transform translate-y-0">
         {zone5.signs.filter(sign => sign.position === 1).map((sign, index) => (
           <BookendSign
             key={`bookend-right-${index}`}
@@ -72,7 +72,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
       </div>
       
       {/* Main Display Area */}
-      <div className="flex flex-col items-center justify-center w-full h-full px-6 py-4">
+      <div className="flex flex-col items-center justify-end w-full h-full px-6 pb-8 pt-4">
         {/* Zone 1: Event Message (Top Row) */}
         <div className="flex items-center justify-center gap-1 mb-3 max-w-full overflow-hidden">
           {zone1.signs.map((sign, index) => (
