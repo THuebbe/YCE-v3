@@ -250,10 +250,10 @@ export function DisplayCustomizationStep() {
         </p>
       </div>
 
-      {/* Main Layout - 3 Columns: Preview | Form Fields | Pricing */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        {/* Left Column - Preview */}
-        <div className="lg:col-span-5">
+      {/* Row 1: Preview (span 2 cols) + Pricing */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Preview - Spans 2 columns */}
+        <div className="lg:col-span-2">
           {/* Preview Area */}
           <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
             <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
@@ -324,74 +324,151 @@ export function DisplayCustomizationStep() {
           </div>
         </div>
 
-        {/* Middle Column - Core Form Fields */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Event Message */}
-          <div>
-            <label htmlFor="eventMessage" className="text-label text-neutral-700 mb-2 block">
-              Event Message
-            </label>
-            <select
-              id="eventMessage"
-              value={localData.eventMessage}
-              onChange={(e) => handleInputChange('eventMessage', e.target.value)}
-              className={`
-                w-full px-4 py-3 border-2 rounded-lg transition-colors focus:outline-none
-                ${
-                  errors.eventMessage
-                    ? 'border-error focus:border-error'
-                    : 'border-neutral-300 focus:border-primary'
-                }
-              `}
-            >
-              <option value="">Select an event message</option>
-              {eventMessages.map((messageConfig) => (
-                <option key={messageConfig.message} value={messageConfig.message}>
-                  {messageConfig.message}
-                </option>
-              ))}
-            </select>
-            {localData.eventMessage === 'Custom Message' && (
-              <div className="mt-3">
-                <Input
-                  value={localData.customMessage || ''}
-                  onChange={(e) => handleInputChange('customMessage', e.target.value)}
-                  placeholder="Enter your custom message"
-                  className={errors.customMessage ? 'border-error' : ''}
-                />
+        {/* Pricing - Right column */}
+        <div className="lg:col-span-1">
+          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+            <h3 className="text-h5 text-neutral-900 mb-4">Pricing</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-body">Base Package</span>
+                <span className="text-body font-medium">$95</span>
               </div>
-            )}
-            {errors.eventMessage && (
-              <p className="text-body-small text-error-red mt-1">{errors.eventMessage}</p>
-            )}
+              
+              {/* Extra Days Controls */}
+              <div className="border-t pt-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-body-small">Extra Days Before</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleInputChange('extraDaysBefore', Math.max(0, localData.extraDaysBefore - 1))}
+                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
+                      disabled={localData.extraDaysBefore <= 0}
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center">{localData.extraDaysBefore}</span>
+                    <button
+                      onClick={() => handleInputChange('extraDaysBefore', Math.min(7, localData.extraDaysBefore + 1))}
+                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
+                      disabled={localData.extraDaysBefore >= 7}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-body-small">Extra Days After</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleInputChange('extraDaysAfter', Math.max(0, localData.extraDaysAfter - 1))}
+                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
+                      disabled={localData.extraDaysAfter <= 0}
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center">{localData.extraDaysAfter}</span>
+                    <button
+                      onClick={() => handleInputChange('extraDaysAfter', Math.min(7, localData.extraDaysAfter + 1))}
+                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
+                      disabled={localData.extraDaysAfter >= 7}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
+                  <div className="flex justify-between mt-2 text-body-small">
+                    <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × $10)</span>
+                    <span>${(localData.extraDaysBefore + localData.extraDaysAfter) * 10}</span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
+                <span>Total</span>
+                <span className="text-primary">${calculateTotal()}</span>
+              </div>
+            </div>
           </div>
-          
-          {/* Event Number - Conditional based on selected message */}
-          {(() => {
-            const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
-            const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
-            
-            if (!showNumberField) return null;
-            
-            return (
-              <div>
-                <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
-                  {selectedMessageConfig?.numberLabel || 'Number (Optional)'}
-                </label>
-                <Input
-                  id="eventNumber"
-                  type="number"
-                  value={localData.eventNumber || ''}
-                  onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder={selectedMessageConfig?.numberPlaceholder || 'Enter a number'}
-                  min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
-                  max={selectedMessageConfig?.numberType === 'year' ? 2030 : 100}
-                />
-              </div>
-            );
-          })()}
+        </div>
+      </div>
 
-          {/* Recipient Name */}
+      {/* Row 2: Form Fields (span 2 cols) + Options */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Form Fields - Spans 2 columns */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Event Info Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Event Message */}
+            <div>
+              <label htmlFor="eventMessage" className="text-label text-neutral-700 mb-2 block">
+                Event Message
+              </label>
+              <select
+                id="eventMessage"
+                value={localData.eventMessage}
+                onChange={(e) => handleInputChange('eventMessage', e.target.value)}
+                className={`
+                  w-full px-4 py-3 border-2 rounded-lg transition-colors focus:outline-none
+                  ${
+                    errors.eventMessage
+                      ? 'border-error focus:border-error'
+                      : 'border-neutral-300 focus:border-primary'
+                  }
+                `}
+              >
+                <option value="">Select an event message</option>
+                {eventMessages.map((messageConfig) => (
+                  <option key={messageConfig.message} value={messageConfig.message}>
+                    {messageConfig.message}
+                  </option>
+                ))}
+              </select>
+              {localData.eventMessage === 'Custom Message' && (
+                <div className="mt-3">
+                  <Input
+                    value={localData.customMessage || ''}
+                    onChange={(e) => handleInputChange('customMessage', e.target.value)}
+                    placeholder="Enter your custom message"
+                    className={errors.customMessage ? 'border-error' : ''}
+                  />
+                </div>
+              )}
+              {errors.eventMessage && (
+                <p className="text-body-small text-error-red mt-1">{errors.eventMessage}</p>
+              )}
+            </div>
+            
+            {/* Event Number - Conditional based on selected message */}
+            {(() => {
+              const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
+              const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
+              
+              if (!showNumberField) return <div></div>; // Empty div to maintain grid
+              
+              return (
+                <div>
+                  <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
+                    {selectedMessageConfig?.numberLabel || 'Number (Optional)'}
+                  </label>
+                  <Input
+                    id="eventNumber"
+                    type="number"
+                    value={localData.eventNumber || ''}
+                    onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder={selectedMessageConfig?.numberPlaceholder || 'Enter a number'}
+                    min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
+                    max={selectedMessageConfig?.numberType === 'year' ? 2030 : 100}
+                  />
+                </div>
+              );
+            })()
+            }
+          </div>
+
+          {/* Recipient Name - Full Width */}
           <div>
             <label htmlFor="recipientName" className="text-label text-neutral-700 mb-2 block">
               Recipient Name
@@ -481,126 +558,56 @@ export function DisplayCustomizationStep() {
           </div>
         </div>
 
-        {/* Right Column - Pricing */}
-        <div className="lg:col-span-3">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
-            <h3 className="text-h5 text-neutral-900 mb-4">Pricing</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-body">Base Package</span>
-                <span className="text-body font-medium">$95</span>
-              </div>
-              
-              {/* Extra Days Controls */}
-              <div className="border-t pt-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-body-small">Extra Days Before</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleInputChange('extraDaysBefore', Math.max(0, localData.extraDaysBefore - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysBefore <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData.extraDaysBefore}</span>
-                    <button
-                      onClick={() => handleInputChange('extraDaysBefore', Math.min(7, localData.extraDaysBefore + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysBefore >= 7}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-body-small">Extra Days After</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleInputChange('extraDaysAfter', Math.max(0, localData.extraDaysAfter - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysAfter <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData.extraDaysAfter}</span>
-                    <button
-                      onClick={() => handleInputChange('extraDaysAfter', Math.min(7, localData.extraDaysAfter + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysAfter >= 7}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
-                  <div className="flex justify-between mt-2 text-body-small">
-                    <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × $10)</span>
-                    <span>${(localData.extraDaysBefore + localData.extraDaysAfter) * 10}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
-                <span>Total</span>
-                <span className="text-primary">${calculateTotal()}</span>
-              </div>
-            </div>
+        {/* Options - Right column */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Character Theme */}
+          <div>
+            <label htmlFor="characterTheme" className="text-label text-neutral-700 mb-2 block">
+              Character Theme (Optional)
+            </label>
+            <select
+              id="characterTheme"
+              value={localData.characterTheme || ''}
+              onChange={(e) => handleInputChange('characterTheme', e.target.value || '')}
+              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
+            >
+              <option value="">No theme</option>
+              {themes.map((theme) => (
+                <option key={theme} value={theme}>
+                  {theme}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      </div>
 
-      {/* Bottom Section - Advanced Options */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Character Theme */}
-        <div>
-          <label htmlFor="characterTheme" className="text-label text-neutral-700 mb-2 block">
-            Character Theme (Optional)
-          </label>
-          <select
-            id="characterTheme"
-            value={localData.characterTheme || ''}
-            onChange={(e) => handleInputChange('characterTheme', e.target.value || '')}
-            className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
-          >
-            <option value="">No theme</option>
-            {themes.map((theme) => (
-              <option key={theme} value={theme}>
-                {theme}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Hobbies/Interests */}
-        <div>
-          <label className="text-label text-neutral-700 mb-3 block">
-            Hobbies/Interests (Optional)
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {hobbies.map((hobby) => (
-              <label
-                key={hobby}
-                className={`
-                  flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                  ${
-                    localData.hobbies?.includes(hobby)
-                      ? 'border-primary bg-secondary-pale text-primary'
-                      : 'border-neutral-200 hover:border-neutral-300'
-                  }
-                `}
-              >
-                <input
-                  type="checkbox"
-                  checked={localData.hobbies?.includes(hobby) || false}
-                  onChange={() => handleHobbyToggle(hobby)}
-                  className="sr-only"
-                />
-                <span className="text-body-small font-medium">{hobby}</span>
-              </label>
-            ))}
+          {/* Hobbies/Interests */}
+          <div>
+            <label className="text-label text-neutral-700 mb-3 block">
+              Hobbies/Interests (Optional)
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {hobbies.map((hobby) => (
+                <label
+                  key={hobby}
+                  className={`
+                    flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                    ${
+                      localData.hobbies?.includes(hobby)
+                        ? 'border-primary bg-secondary-pale text-primary'
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }
+                  `}
+                >
+                  <input
+                    type="checkbox"
+                    checked={localData.hobbies?.includes(hobby) || false}
+                    onChange={() => handleHobbyToggle(hobby)}
+                    className="sr-only"
+                  />
+                  <span className="text-body-small font-medium">{hobby}</span>
+                </label>
+              ))}
+            </div>
           </div>
         </div>
       </div>
