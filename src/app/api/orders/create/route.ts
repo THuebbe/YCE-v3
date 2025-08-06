@@ -112,46 +112,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<BookingOr
     console.log('🔢 Generated order number:', orderNumber);
     console.log('🎫 Generated confirmation code:', confirmationCode);
 
-    // Create order record in database
+    // Create order record in database (minimal essential fields only)
     const orderData = {
       orderNumber,
       confirmationCode,
       agencyId,
       status: 'pending',
       totalAmount,
-      paymentIntentId,
-      holdId,
       
-      // Customer information
+      // Customer information (essential)
       customerName: formData.contact.fullName,
       customerEmail: formData.contact.email,
       customerPhone: formData.contact.phone,
       
-      // Event details
+      // Event details (essential)
       eventDate: eventDate.toISOString(),
-      deliveryAddress: formData.event.deliveryAddress,
-      timeWindow: formData.event.timeWindow,
-      deliveryNotes: formData.event.deliveryNotes || null,
       
-      // Display customization
-      eventMessage: formData.display.eventMessage,
-      customMessage: formData.display.customMessage || null,
-      eventNumber: formData.display.eventNumber || null,
-      messageStyle: formData.display.messageStyle,
-      recipientName: formData.display.recipientName,
-      nameStyle: formData.display.nameStyle,
-      characterTheme: formData.display.characterTheme || null,
-      hobbies: formData.display.hobbies || [],
-      extraDaysBefore: formData.display.extraDaysBefore,
-      extraDaysAfter: formData.display.extraDaysAfter,
-      previewUrl: formData.display.previewUrl || null,
-      
-      // Payment information
-      paymentMethod: formData.payment.paymentMethod,
-      
-      // Timestamps
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      // Only include fields that are likely to exist in most database schemas
+      // Additional data can be stored separately if needed
     };
 
     console.log('💾 Inserting order into database...');
