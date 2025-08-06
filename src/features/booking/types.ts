@@ -4,9 +4,13 @@ import { z } from 'zod';
 export const contactSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Please enter a valid phone number').regex(
-    /^[\+]?[(]?[\d\s\-\(\)]{10,}$/,
-    'Please enter a valid phone number'
+  phone: z.string().min(10, 'Please enter a valid phone number').refine(
+    (phone) => {
+      // Check for exactly 10 digits in (###) ###-#### format
+      const digits = phone.replace(/\D/g, '');
+      return digits.length === 10;
+    },
+    'Please enter a valid 10-digit phone number'
   ),
 });
 
@@ -45,7 +49,7 @@ export const displaySchema = z.object({
   extraDaysBefore: z.number().min(0).max(7).default(0),
   extraDaysAfter: z.number().min(0).max(7).default(0),
   previewUrl: z.string().optional(),
-  holdId: z.string().optional(),
+  holdId: z.string().min(1, 'Please generate your display layout first'),
 });
 
 // Payment Step
@@ -67,11 +71,21 @@ export const bookingFormSchema = z.object({
   payment: paymentSchema,
 });
 
+// Extended form data with order result (for confirmation step)
+export const extendedBookingFormSchema = bookingFormSchema.extend({
+  orderResult: z.object({
+    orderId: z.string(),
+    orderNumber: z.string(),
+    confirmationCode: z.string(),
+  }).optional(),
+});
+
 export type ContactFormData = z.infer<typeof contactSchema>;
 export type EventFormData = z.infer<typeof eventSchema>;
 export type DisplayFormData = z.infer<typeof displaySchema>;
 export type PaymentFormData = z.infer<typeof paymentSchema>;
 export type BookingFormData = z.infer<typeof bookingFormSchema>;
+export type ExtendedBookingFormData = z.infer<typeof extendedBookingFormSchema>;
 
 // Wizard state types
 export interface WizardStep {
@@ -86,8 +100,9 @@ export interface WizardStep {
 export interface WizardContextType {
   currentStep: number;
   totalSteps: number;
-  formData: Partial<BookingFormData>;
-  updateFormData: (stepData: Partial<BookingFormData>) => void;
+  furthestStep: number;
+  formData: Partial<ExtendedBookingFormData>;
+  updateFormData: (stepData: Partial<ExtendedBookingFormData>) => void;
   nextStep: () => void;
   prevStep: () => void;
   goToStep: (step: number) => void;

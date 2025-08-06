@@ -4,17 +4,28 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { Button } from '@/shared/components/ui/button';
-import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2 } from 'lucide-react';
+import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2, AlertCircle } from 'lucide-react';
 import { DisplayGrid } from '../display/DisplayGrid';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
-import { LayoutCalculation } from '../../types';
+import { LayoutCalculation, BookingOrderResult } from '../../types';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData } = useWizard();
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [orderProcessing, setOrderProcessing] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
 
+  // Check if we have a valid hold ID and should show preview
+  const hasValidLayout = formData.display?.holdId && formData.display?.eventMessage && formData.display?.recipientName;
+  
   const generateLayoutPreview = async () => {
+    // Only generate if we don't have a hold ID (shouldn't happen in normal flow)
+    if (!hasValidLayout) {
+      console.log('⚠️ Review Step: No valid layout data from Step 3');
+      return;  
+    }
+
     if (!formData.display?.eventMessage || !formData.display?.recipientName) {
       return;
     }
@@ -54,10 +65,12 @@ export function ReviewStep() {
     }
   };
 
-  // Generate layout on mount
+  // Only generate layout if we have valid data from Step 3
   useEffect(() => {
-    generateLayoutPreview();
-  }, []);
+    if (hasValidLayout) {
+      generateLayoutPreview();
+    }
+  }, [hasValidLayout]);
 
   const calculateTotal = () => {
     const basePrice = 95;
@@ -66,13 +79,76 @@ export function ReviewStep() {
     return basePrice + (extraDays * extraDayPrice);
   };
 
-  const handlePlaceOrder = () => {
-    // Here we would typically:
-    // 1. Process payment
-    // 2. Create order in database
-    // 3. Send confirmation email
-    // For now, just move to confirmation
-    nextStep();
+  const handlePlaceOrder = async () => {
+    if (!formData.contact || !formData.event || !formData.display || !formData.payment) {
+      setOrderError('Missing required form data. Please complete all steps.');
+      return;
+    }
+
+    if (!formData.display.holdId) {
+      setOrderError('No inventory hold found. Please go back to Step 3 and generate your display layout.');
+      return;
+    }
+
+    setOrderProcessing(true);
+    setOrderError(null);
+
+    try {
+      // TODO: In a real implementation, process payment with Stripe first
+      const paymentIntentId = 'pi_mock_' + Date.now(); // Mock payment intent ID
+
+      const orderData = {
+        formData: {
+          contact: formData.contact,
+          event: formData.event,
+          display: formData.display,
+          payment: formData.payment
+        },
+        holdId: formData.display.holdId,
+        paymentIntentId,
+        agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
+        totalAmount: calculateTotal()
+      };
+
+      console.log('🚀 Sending order data:', {
+        eventDateType: typeof orderData.formData.event?.eventDate,
+        eventDateValue: orderData.formData.event?.eventDate,
+        fullOrderData: JSON.stringify(orderData, null, 2)
+      });
+
+      const response = await fetch('/api/orders/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      const result: BookingOrderResult = await response.json();
+
+      if (!result.success) {
+        setOrderError(result.error || 'Failed to create order');
+        return;
+      }
+
+      // Store order result for confirmation step
+      updateFormData({
+        orderResult: {
+          orderId: result.orderId || '',
+          orderNumber: result.orderNumber || '',
+          confirmationCode: result.confirmationCode || ''
+        }
+      });
+
+      // Move to confirmation step
+      nextStep();
+
+    } catch (error) {
+      console.error('Unexpected error during order creation:', error);
+      setOrderError('An unexpected error occurred. Please try again.');
+    } finally {
+      setOrderProcessing(false);
+    }
   };
 
   const getPaymentMethodDisplay = (method: string) => {
@@ -102,7 +178,7 @@ export function ReviewStep() {
 
       <div className="space-y-6">
         {/* Contact Information */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <User className="w-5 h-5 text-primary" />
@@ -135,7 +211,7 @@ export function ReviewStep() {
         </div>
 
         {/* Event Details */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <Calendar className="w-5 h-5 text-primary" />
@@ -186,7 +262,7 @@ export function ReviewStep() {
         </div>
 
         {/* Display Customization */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <Palette className="w-5 h-5 text-primary" />
@@ -205,11 +281,28 @@ export function ReviewStep() {
           
           {/* Display Preview */}
           <div className="mb-6">
-            {previewLoading ? (
+            {!hasValidLayout ? (
+              <div className="aspect-[4/2] bg-orange-50 border-2 border-orange-200 rounded-lg flex items-center justify-center">
+                <div className="text-center p-6">
+                  <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+                  <h4 className="text-h5 font-medium text-orange-800 mb-2">Layout Not Generated</h4>
+                  <p className="text-body-small text-orange-700 mb-4">
+                    You need to generate your display layout in Step 3 before reviewing your order.
+                  </p>
+                  <Button
+                    onClick={() => goToStep(3)}
+                    variant="secondary"
+                    className="px-6"
+                  >
+                    Go to Step 3
+                  </Button>
+                </div>
+              </div>
+            ) : previewLoading ? (
               <div className="aspect-[4/2] bg-neutral-50 border-2 border-neutral-200 rounded-lg flex items-center justify-center">
                 <div className="text-center">
                   <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
-                  <p className="text-body-small text-neutral-600">Generating your display preview...</p>
+                  <p className="text-body-small text-neutral-600">Loading your display preview...</p>
                 </div>
               </div>
             ) : layoutCalculation ? (
@@ -217,29 +310,12 @@ export function ReviewStep() {
                 <DisplayGrid layout={layoutCalculation} className="review-preview" />
               </div>
             ) : (
-              <div 
-                className="aspect-[4/2] border-2 border-neutral-200 rounded-lg relative overflow-hidden"
-                style={{
-                  backgroundImage: 'url(/preview-front-lawn.png)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'bottom',
-                  backgroundRepeat: 'no-repeat',
-                }}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-4 bg-white bg-opacity-90 rounded-lg">
-                    <div className="text-h4 font-bold text-neutral-700 mb-2">
-                      {formData.display?.eventMessage || 'Your Message Here'}
-                    </div>
-                    {formData.display?.eventNumber && (
-                      <div className="text-6xl font-bold text-neutral-600 mb-2">
-                        {formData.display.eventNumber}
-                      </div>
-                    )}
-                    <div className="text-h5 text-neutral-600">
-                      {formData.display?.recipientName || 'Recipient Name'}
-                    </div>
-                  </div>
+              <div className="aspect-[4/2] bg-yellow-50 border-2 border-yellow-200 rounded-lg flex items-center justify-center">
+                <div className="text-center p-6">
+                  <AlertCircle className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+                  <p className="text-body-small text-yellow-700">
+                    Unable to load preview. Please go back to Step 3 and regenerate your layout.
+                  </p>
                 </div>
               </div>
             )}
@@ -289,7 +365,7 @@ export function ReviewStep() {
         </div>
 
         {/* Payment Information */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <CreditCard className="w-5 h-5 text-primary" />
@@ -314,7 +390,7 @@ export function ReviewStep() {
         </div>
 
         {/* Order Summary */}
-        <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-6">
+        <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <h3 className="text-h5 text-neutral-900 mb-4">Order Summary</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -346,6 +422,19 @@ export function ReviewStep() {
           </div>
         </div>
 
+        {/* Order Error */}
+        {orderError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="text-body font-medium text-red-800 mb-1">Order Processing Error</h4>
+                <p className="text-body-small text-red-700">{orderError}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Terms Agreement */}
         <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
           <label className="flex items-start space-x-3 cursor-pointer">
@@ -370,15 +459,25 @@ export function ReviewStep() {
         <Button
           onClick={prevStep}
           variant="secondary"
-          className="w-full md:w-auto px-8"
+          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
           Back to Payment
         </Button>
         <Button
           onClick={handlePlaceOrder}
-          className="w-full md:w-auto px-8 bg-primary hover:bg-primary-hover"
+          disabled={orderProcessing || !hasValidLayout}
+          className="w-full md:w-auto px-8 bg-primary hover:bg-primary-hover shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
-          Place Order - ${calculateTotal()}.00
+          {orderProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Processing Order...
+            </>
+          ) : !hasValidLayout ? (
+            'Complete Step 3 First'
+          ) : (
+            `Place Order - $${calculateTotal()}.00`
+          )}
         </Button>
       </div>
     </motion.div>

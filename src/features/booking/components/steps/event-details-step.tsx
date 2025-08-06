@@ -7,7 +7,7 @@ import { eventSchema, EventFormData, TimeWindow } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
-export function EventDetailsStep() {
+export function EventDetailsStep({ custom }: { custom?: string }) {
   const { formData, updateFormData, nextStep, prevStep } = useWizard();
   const [localData, setLocalData] = useState<EventFormData>(
     formData.event || {
@@ -76,10 +76,27 @@ export function EventDetailsStep() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3 }}
+      initial={
+        typeof window !== 'undefined' && window.innerWidth < 768
+          ? { x: custom === 'backward' ? -300 : 300 } // Mobile: slide from left/right
+          : { opacity: 0, x: 20 } // Desktop: fade with slight slide
+      }
+      animate={
+        typeof window !== 'undefined' && window.innerWidth < 768
+          ? { x: 0 } // Mobile: slide to center
+          : { opacity: 1, x: 0 } // Desktop: fade in
+      }
+      exit={
+        typeof window !== 'undefined' && window.innerWidth < 768
+          ? { x: custom === 'backward' ? 300 : -300 } // Mobile: slide out opposite direction
+          : { opacity: 0, x: -20 } // Desktop: fade out
+      }
+      transition={{ 
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        duration: 0.4
+      }}
       className="max-w-2xl mx-auto px-4 py-8"
     >
       <div className="text-center mb-8">
@@ -89,31 +106,33 @@ export function EventDetailsStep() {
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Event Date */}
-        <div>
-          <label htmlFor="eventDate" className="text-label text-neutral-700 mb-2 block">
-            Event Date
-          </label>
-          <Input
-            id="eventDate"
-            type="date"
-            value={formatDateForInput(localData.eventDate)}
-            onChange={(e) => handleDateChange(e.target.value)}
-            min={formatDateForInput(new Date(Date.now() + 48 * 60 * 60 * 1000))}
-            className={errors.eventDate ? 'border-error' : ''}
-          />
-          {errors.eventDate && (
-            <p className="text-body-small text-error-red mt-1">{errors.eventDate}</p>
-          )}
-          <p className="text-body-small text-neutral-500 mt-1">
-            Must be at least 48 hours from today
-          </p>
-        </div>
+      {/* Form Card Container */}
+      <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
+        <div className="space-y-6">
+          {/* Event Date */}
+          <div>
+            <label htmlFor="eventDate" className="text-label text-neutral-700 mb-2 block">
+              Event Date
+            </label>
+            <Input
+              id="eventDate"
+              type="date"
+              value={formatDateForInput(localData.eventDate)}
+              onChange={(e) => handleDateChange(e.target.value)}
+              min={formatDateForInput(new Date(Date.now() + 48 * 60 * 60 * 1000))}
+              className={errors.eventDate ? 'border-error' : ''}
+            />
+            {errors.eventDate && (
+              <p className="text-body-small text-error-red mt-1">{errors.eventDate}</p>
+            )}
+            <p className="text-body-small text-neutral-500 mt-1">
+              Must be at least 48 hours from today
+            </p>
+          </div>
 
-        {/* Delivery Address */}
-        <div className="space-y-4">
-          <h3 className="text-h5 text-neutral-900">Delivery Address</h3>
+          {/* Delivery Address */}
+          <div className="space-y-4">
+            <h3 className="text-h5 text-neutral-900">Delivery Address</h3>
           
           {/* Street Address */}
           <div>
@@ -250,19 +269,20 @@ export function EventDetailsStep() {
           </div>
         </div>
 
-        {/* Delivery Notes */}
-        <div>
-          <label htmlFor="deliveryNotes" className="text-label text-neutral-700 mb-2 block">
-            Delivery Notes (Optional)
-          </label>
-          <textarea
-            id="deliveryNotes"
-            value={localData.deliveryNotes || ''}
-            onChange={(e) => handleInputChange('deliveryNotes', e.target.value)}
-            placeholder="Any special instructions for setup, parking, or yard access..."
-            rows={3}
-            className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none resize-none"
-          />
+          {/* Delivery Notes */}
+          <div>
+            <label htmlFor="deliveryNotes" className="text-label text-neutral-700 mb-2 block">
+              Delivery Notes (Optional)
+            </label>
+            <textarea
+              id="deliveryNotes"
+              value={localData.deliveryNotes || ''}
+              onChange={(e) => handleInputChange('deliveryNotes', e.target.value)}
+              placeholder="Any special instructions for setup, parking, or yard access..."
+              rows={3}
+              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none resize-none"
+            />
+          </div>
         </div>
       </div>
 
@@ -271,14 +291,14 @@ export function EventDetailsStep() {
         <Button
           onClick={prevStep}
           variant="secondary"
-          className="w-full md:w-auto px-8"
+          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
           Back
         </Button>
         <Button
           onClick={validateAndContinue}
           disabled={!isValid}
-          className="w-full md:w-auto px-8"
+          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
           Continue
         </Button>

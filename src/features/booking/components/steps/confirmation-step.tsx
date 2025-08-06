@@ -8,10 +8,12 @@ import { Check, Calendar, MapPin, Mail, Phone, Download, Home } from 'lucide-rea
 
 export function ConfirmationStep() {
   const { formData } = useWizard();
-  const [orderNumber] = useState(() => 
-    `YCE${Date.now().toString().slice(-6)}${Math.random().toString(36).slice(-2).toUpperCase()}`
-  );
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Get order details from the form data
+  const orderResult = formData.orderResult;
+  const orderNumber = orderResult?.orderNumber || 'ORDER-NOT-FOUND';
+  const confirmationCode = orderResult?.confirmationCode || 'N/A';
 
   useEffect(() => {
     // Trigger confetti animation
@@ -130,8 +132,16 @@ export function ConfirmationStep() {
           transition={{ delay: 0.5 }}
           className="bg-primary/10 border border-primary/20 rounded-lg p-4 inline-block"
         >
-          <p className="text-body-small text-neutral-600 mb-1">Order Number</p>
-          <p className="text-h4 font-bold text-primary font-mono">{orderNumber}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+            <div>
+              <p className="text-body-small text-neutral-600 mb-1">Order Number</p>
+              <p className="text-h5 font-bold text-primary font-mono">{orderNumber}</p>
+            </div>
+            <div>
+              <p className="text-body-small text-neutral-600 mb-1">Confirmation Code</p>
+              <p className="text-h5 font-bold text-primary font-mono">{confirmationCode}</p>
+            </div>
+          </div>
         </motion.div>
       </div>
 
@@ -143,7 +153,7 @@ export function ConfirmationStep() {
         className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
       >
         {/* Order Summary */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
             <Check className="w-5 h-5 text-success-green mr-2" />
             Order Summary
@@ -182,7 +192,7 @@ export function ConfirmationStep() {
         </div>
 
         {/* Contact Information */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
           <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
             <Mail className="w-5 h-5 text-primary mr-2" />
             Contact Information
@@ -308,6 +318,9 @@ export function ConfirmationStep() {
         </p>
         <p className="text-body-small text-neutral-500 mt-2">
           Reference your order number: <span className="font-mono">{orderNumber}</span>
+          {confirmationCode !== 'N/A' && (
+            <span> or confirmation code: <span className="font-mono">{confirmationCode}</span></span>
+          )}
         </p>
       </motion.div>
     </motion.div>

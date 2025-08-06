@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { WizardProvider, useWizard } from '../context/wizard-context';
 import { ProgressIndicator } from './progress-indicator';
@@ -59,8 +59,16 @@ const wizardSteps: WizardStep[] = [
 ];
 
 function BookingWizardContent() {
-  const { currentStep } = useWizard();
+  const { currentStep, furthestStep, goToStep } = useWizard();
+  const [previousStep, setPreviousStep] = useState(currentStep);
   const currentStepData = wizardSteps.find(step => step.id === currentStep);
+  
+  // Track step direction for animations
+  const stepDirection = currentStep > previousStep ? 'forward' : 'backward';
+  
+  useEffect(() => {
+    setPreviousStep(currentStep);
+  }, [currentStep]);
   
   if (!currentStepData) {
     return <div>Step not found</div>;
@@ -73,13 +81,28 @@ function BookingWizardContent() {
       <ProgressIndicator 
         currentStep={currentStep} 
         totalSteps={wizardSteps.length}
+        furthestStep={furthestStep}
         steps={wizardSteps}
+        onStepClick={goToStep}
       />
       
       <main className="container mx-auto py-8">
-        <AnimatePresence mode="wait">
-          <StepComponent key={currentStep} />
-        </AnimatePresence>
+        {/* Desktop: Fade transitions */}
+        <div className="hidden md:block">
+          <AnimatePresence mode="wait">
+            <StepComponent key={currentStep} />
+          </AnimatePresence>
+        </div>
+        
+        {/* Mobile: Horizontal slide transitions */}
+        <div className="md:hidden overflow-hidden">
+          <AnimatePresence mode="wait" custom={stepDirection}>
+            <StepComponent 
+              key={currentStep}
+              custom={stepDirection}
+            />
+          </AnimatePresence>
+        </div>
       </main>
     </div>
   );

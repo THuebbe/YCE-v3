@@ -110,7 +110,8 @@ export function PaymentStep() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Side - Payment Form */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2">
+          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard space-y-6">
           {/* Payment Method Selection */}
           <div>
             <label className="text-label text-neutral-700 mb-4 block">
@@ -276,11 +277,12 @@ export function PaymentStep() {
               </div>
             </div>
           </div>
+          </div>
         </div>
 
         {/* Right Side - Order Summary */}
         <div className="space-y-6">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6">
+          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
             <h3 className="text-h5 text-neutral-900 mb-4">Order Summary</h3>
             
             {/* Event Details */}
@@ -337,14 +339,14 @@ export function PaymentStep() {
         <Button
           onClick={prevStep}
           variant="secondary"
-          className="w-full md:w-auto px-8"
+          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
           Back
         </Button>
         <Button
           onClick={validateAndContinue}
           disabled={!isValid}
-          className="w-full md:w-auto px-8"
+          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
           Review Order
         </Button>

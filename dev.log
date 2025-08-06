@@ -1,0 +1,34 @@
+
+> yardcard-elite@0.1.0 dev /mnt/c/Users/thueb/OneDrive/Desktop/Website Projects/YCE v3/yardcard-elite
+> next dev --turbopack
+
+   ▲ Next.js 15.3.4 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.255.255.254:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 1216ms
+ ✓ Ready in 20.4s
+🔒 Middleware: Auth check {
+  url: 'http://localhost:3000/',
+  hostname: 'localhost:3000',
+  userId: null,
+  sessionId: null,
+  hasAuth: false
+}
+🔧 Middleware: Setting headers {
+  hostname: 'localhost:3000',
+  url: 'http://localhost:3000/',
+  subdomain: null,
+  isMain: true,
+  x-url: 'http://localhost:3000/'
+}
+ ○ Compiling / ...
+ ✓ Compiled / in 14.7s
+🏠 Root page: Starting load
+🏠 Root page: Auth result { userId: null }
+🏠 Root page: No user ID, showing landing page
+🏠 Root page: Showing landing page
+ GET / 200 in 16297ms

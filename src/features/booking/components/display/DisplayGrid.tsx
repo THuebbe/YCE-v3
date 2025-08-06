@@ -19,6 +19,19 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   const containerWidth = '100%';
   const maxWidth = className?.includes('enhanced-preview') || className?.includes('review-preview') ? '100%' : '600px';
   
+  // Dynamic sizing based on container and content
+  const isEnhanced = className?.includes('enhanced-preview') || className?.includes('review-preview');
+  const getResponsiveSize = (baseSize: 'large' | 'medium' | 'small') => {
+    // Use CSS custom properties for truly responsive sizing
+    if (baseSize === 'large') {
+      return isEnhanced ? 'clamp(1.25rem, 3vw, 2rem)' : 'clamp(1rem, 2.5vw, 1.5rem)';
+    } else if (baseSize === 'medium') {
+      return isEnhanced ? 'clamp(1rem, 2.5vw, 1.25rem)' : 'clamp(0.75rem, 2vw, 1rem)';
+    } else {
+      return isEnhanced ? 'clamp(0.75rem, 2vw, 1rem)' : 'clamp(0.5rem, 1.5vw, 0.75rem)';
+    }
+  };
+  
   const baseClasses = `
     relative w-full border-2 border-green-200 rounded-lg p-6
     flex items-center justify-center overflow-hidden
@@ -83,8 +96,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem',
-                    height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem'
+                    width: getResponsiveSize('large'),
+                    height: getResponsiveSize('large')
                   }
                 }}
                 isOrdinal={sign.isOrdinal}
@@ -114,8 +127,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                       ...sign.style,
                       dev: {
                         ...sign.style?.dev,
-                        width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1rem' : '0.75rem',
-                        height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1rem' : '0.75rem'
+                        width: getResponsiveSize('small'),
+                        height: getResponsiveSize('small')
                       }
                     }}
                   />
@@ -134,8 +147,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem',
-                    height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem'
+                    width: getResponsiveSize('medium'),
+                    height: getResponsiveSize('medium')
                   }
                 }}
                 className="relative z-20 flex-shrink-0"
@@ -153,8 +166,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                     ...sign.style,
                     dev: {
                       ...sign.style?.dev,
-                      width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem',
-                      height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '2rem' : '1.5rem'
+                      width: getResponsiveSize('large'),
+                      height: getResponsiveSize('large')
                     }
                   }}
                   className="bg-opacity-90"
@@ -173,8 +186,8 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
                   ...sign.style,
                   dev: {
                     ...sign.style?.dev,
-                    width: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem',
-                    height: className?.includes('enhanced-preview') || className?.includes('review-preview') ? '1.25rem' : '1rem'
+                    width: getResponsiveSize('medium'),
+                    height: getResponsiveSize('medium')
                   }
                 }}
                 className="relative z-20 flex-shrink-0"
