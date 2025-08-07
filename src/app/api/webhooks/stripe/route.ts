@@ -6,7 +6,7 @@ import Stripe from 'stripe';
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {
-  apiVersion: '2025-06-30.basil',
+  apiVersion: '2025-07-30.basil',
 }) : null;
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
