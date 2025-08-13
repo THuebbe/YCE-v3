@@ -157,145 +157,121 @@ export function ProgressIndicator({
 
 				{/* Mobile Horizontal Scrolling Progress Bar */}
 				<div className="md:hidden">
-					<div className="relative overflow-hidden">
-						{/* Horizontal scrolling container */}
-						<motion.div 
-							className="flex items-center gap-4 px-4"
-							animate={
-								!isDragging && isSnappingBack
-									? {
-											// Snap-back animation: slide halfway toward locked step, then back
-											x: [
-												`calc(50vw - ${currentStep * 120 + (currentStep - 1) * 16}px)`, // Current position
-												`calc(50vw - ${currentStep * 120 + (currentStep - 1) * 16}px + ${snapBackDirection === 'left' ? '-60px' : '60px'})`, // Halfway toward locked step
-												`calc(50vw - ${currentStep * 120 + (currentStep - 1) * 16}px)` // Back to current
-											]
-										}
-									: !isDragging
-									? { 
-											x: `calc(50vw - ${currentStep * 120 + (currentStep - 1) * 16}px)` // Center current step
-										}
-									: {}
-							}
-							transition={
-								isSnappingBack
-									? {
-											duration: 0.6,
-											times: [0, 0.4, 1],
-											ease: ["easeOut", "easeInOut"]
-										}
-									: { 
-											type: "spring",
-											stiffness: 300,
-											damping: 30,
-											duration: 0.6
-										}
-							}
-							drag="x"
-							dragConstraints={{ left: -120, right: 120 }}
-							dragElastic={0.1}
-							onDragStart={() => setIsDragging(true)}
-							onDragEnd={(event, info) => {
-								setIsDragging(false);
-								
-								// Enhanced swipe navigation with snap-back for locked steps
-								if (Math.abs(info.offset.x) > 50) {
-									if (info.offset.x > 0 && currentStep > 1) {
-										// Swipe right - go to previous step (always allowed)
-										onStepClick?.(currentStep - 1);
-									} else if (info.offset.x < 0 && currentStep < furthestStep) {
-										// Swipe left - go to next step (only if unlocked)
-										onStepClick?.(currentStep + 1);
-									} else if (info.offset.x < 0 && currentStep >= furthestStep) {
-										// Swipe left toward locked step - trigger snap-back
-										setSnapBackDirection('left');
-										setIsSnappingBack(true);
-									}
-								}
-							}}
-							onAnimationComplete={() => {
-								if (isSnappingBack) {
-									setIsSnappingBack(false);
-									setSnapBackDirection(null);
-								}
-							}}
-						>
+					<div className="relative overflow-x-auto">
+						{/* Horizontal scrolling container with same design as desktop */}
+						<div className="flex items-center justify-start gap-6 px-4 min-w-max">
 							{steps.slice(0, totalSteps).map((step, index) => (
-								<motion.div
+								<div
 									key={step.id}
-									className={`
-										flex-shrink-0 w-28 h-16 rounded-lg border-2 flex flex-col items-center justify-center
-										transition-all duration-300 select-none relative
-										${onStepClick && step.id <= furthestStep ? "cursor-pointer" : ""}
-										${step.id > furthestStep ? "cursor-not-allowed opacity-50" : ""}
-										${
-											currentStep === step.id
-												? "bg-primary border-primary text-white shadow-medium scale-110"
-												: currentStep > step.id
-												? "bg-green-50 border-green-200 text-green-700"
-												: step.id > furthestStep
-												? "bg-neutral-50 border-neutral-200 text-neutral-400"
-												: "bg-white border-neutral-300 text-neutral-600 hover:border-primary hover:shadow-default"
-										}
-									`}
-									initial={{ scale: 0.9, opacity: 0 }}
-									animate={{ 
-										scale: currentStep === step.id ? 1.1 : 1,
-										opacity: 1,
-										// Add shake animation for locked step during snap-back
-										x: isSnappingBack && step.id === currentStep + 1 && step.id > furthestStep
-											? [0, -2, 2, -2, 2, 0]
-											: 0
-									}}
-									transition={{ 
-										duration: 0.3,
-										x: { duration: 0.3, times: [0, 0.2, 0.4, 0.6, 0.8, 1] }
-									}}
-									onClick={() => onStepClick?.(step.id)}
-									role={onStepClick ? "button" : undefined}
-									tabIndex={onStepClick && step.id <= furthestStep ? 0 : undefined}
-									onKeyDown={(e) => {
-										if (onStepClick && step.id <= furthestStep && (e.key === "Enter" || e.key === " ")) {
-											e.preventDefault();
-											onStepClick(step.id);
-										}
-									}}
+									className="flex items-center flex-shrink-0"
 								>
-									{/* Step Circle */}
-									<div className={`
-										w-6 h-6 rounded-full border flex items-center justify-center mb-1
-										${
-											currentStep === step.id
-												? "bg-white border-white text-primary"
-												: currentStep > step.id
-												? "bg-green-500 border-green-500 text-white"
-												: "border-current"
-										}
-									`}>
-										{currentStep > step.id ? (
-											<Check className="w-3 h-3" />
-										) : (
-											<span className="text-xs font-bold">{step.id}</span>
-										)}
-									</div>
-									
-									{/* Step Title */}
-									<span className="text-xs font-medium text-center leading-tight">
-										{step.title}
-									</span>
-									
-									{/* Current step indicator */}
-									{currentStep === step.id && (
+									{/* Step Circle - Same as desktop */}
+									<div className="relative flex items-center">
 										<motion.div
-											className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full"
-											initial={{ scale: 0 }}
+											className={`
+												w-10 h-10 rounded-full border-2 flex items-center justify-center
+												transition-all duration-200 select-none
+												${
+													onStepClick && step.id <= furthestStep
+														? "cursor-pointer hover:shadow-medium"
+														: ""
+												}
+												${
+													step.id > furthestStep
+														? "cursor-not-allowed opacity-50"
+														: ""
+												}
+												${
+													currentStep > step.id
+														? "bg-primary border-primary text-white"
+														: currentStep === step.id
+														? "bg-primary border-primary text-white animate-pulse"
+														: step.id > furthestStep
+														? "bg-neutral-100 border-neutral-200 text-neutral-400"
+														: "bg-background-white border-neutral-300 text-neutral-500"
+												}
+											`}
+											initial={{ scale: 0.8 }}
 											animate={{ scale: 1 }}
-											transition={{ delay: 0.2 }}
-										/>
+											transition={{ duration: 0.2 }}
+											onClick={() => onStepClick?.(step.id)}
+											role={onStepClick ? "button" : undefined}
+											tabIndex={onStepClick ? 0 : undefined}
+											onKeyDown={(e) => {
+												if (onStepClick && (e.key === "Enter" || e.key === " ")) {
+													e.preventDefault();
+													onStepClick(step.id);
+												}
+											}}
+										>
+											{currentStep > step.id ? (
+												<Check className="w-5 h-5" />
+											) : (
+												<span className="text-body-small font-medium">
+													{step.id}
+												</span>
+											)}
+										</motion.div>
+
+										{/* Step Label - Below circle on mobile */}
+										<div className="absolute top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+											<span
+												className={`
+													text-xs font-medium select-none text-center
+													${
+														onStepClick && step.id <= furthestStep
+															? "cursor-pointer hover:underline"
+															: ""
+													}
+													${
+														step.id > furthestStep
+															? "cursor-not-allowed opacity-50"
+															: ""
+													}
+													${
+														currentStep >= step.id
+															? "text-primary"
+															: step.id > furthestStep
+															? "text-neutral-400"
+															: "text-neutral-500"
+													}
+												`}
+												onClick={() => onStepClick?.(step.id)}
+												role={onStepClick ? "button" : undefined}
+												tabIndex={onStepClick ? 0 : undefined}
+												onKeyDown={(e) => {
+													if (
+														onStepClick &&
+														(e.key === "Enter" || e.key === " ")
+													) {
+														e.preventDefault();
+														onStepClick(step.id);
+													}
+												}}
+											>
+												{step.title}
+											</span>
+										</div>
+									</div>
+
+									{/* Connection Line - Same as desktop but horizontal */}
+									{index < totalSteps - 1 && (
+										<div className="flex-shrink-0 mx-4">
+											<div
+												className={`
+													h-0.5 w-8 transition-colors duration-300 select-none
+													${
+														currentStep > step.id
+															? "bg-primary"
+															: "bg-neutral-200"
+													}
+												`}
+											/>
+										</div>
 									)}
-								</motion.div>
+								</div>
 							))}
-						</motion.div>
+						</div>
 					</div>
 					
 					{/* Progress indicator */}

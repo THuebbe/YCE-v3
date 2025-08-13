@@ -8,6 +8,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
 export function ContactInfoStep({ custom }: { custom?: string }) {
+  console.log('🔍 ContactInfoStep: Component rendering', { custom });
   const { formData, updateFormData, nextStep } = useWizard();
   const [localData, setLocalData] = useState<ContactFormData>(
     formData.contact || {
@@ -77,31 +78,43 @@ export function ContactInfoStep({ custom }: { custom?: string }) {
   const validationResult = contactSchema.safeParse(localData);
   const isValid = validationResult.success;
   
+  // Debug mobile detection and animation values
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  console.log('🔍 ContactInfoStep: Animation setup', { 
+    isMobile, 
+    custom, 
+    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined' 
+  });
 
   return (
     <motion.div
       initial={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: custom === 'backward' ? -300 : 300 } // Mobile: slide from left/right
+        isMobile
+          ? { x: custom === 'backward' ? -50 : 50, opacity: 0.8 } // Mobile: smaller slide with opacity
           : { opacity: 0, x: 20 } // Desktop: fade with slight slide
       }
       animate={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: 0 } // Mobile: slide to center
+        isMobile
+          ? { x: 0, opacity: 1 } // Mobile: slide to center with full opacity
           : { opacity: 1, x: 0 } // Desktop: fade in
       }
       exit={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: custom === 'backward' ? 300 : -300 } // Mobile: slide out opposite direction
+        isMobile
+          ? { x: custom === 'backward' ? 50 : -50, opacity: 0.8 } // Mobile: smaller slide out
           : { opacity: 0, x: -20 } // Desktop: fade out
       }
       transition={{ 
         type: "spring",
         stiffness: 300,
         damping: 30,
-        duration: 0.4
+        duration: 0.3
       }}
-      className="max-w-2xl mx-auto px-4 py-8"
+      className="max-w-2xl mx-auto px-4 py-8 min-h-[400px]"
+      style={{ 
+        // Ensure content is always positioned within viewport
+        transform: 'translateZ(0)', // Force hardware acceleration
+        willChange: 'transform, opacity' // Optimize for animations
+      }}
     >
       <div className="text-center mb-8">
         <h1 className="text-h2 text-neutral-900 mb-4">Contact Information</h1>

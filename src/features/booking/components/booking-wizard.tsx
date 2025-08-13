@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { WizardProvider, useWizard } from '../context/wizard-context';
 import { ProgressIndicator } from './progress-indicator';
+import { BookingErrorBoundary } from './error-boundary';
 import { ContactInfoStep } from './steps/contact-info-step';
 import { EventDetailsStep } from './steps/event-details-step';
 import { DisplayCustomizationStep } from './steps/display-customization-step';
@@ -71,10 +72,17 @@ function BookingWizardContent() {
   }, [currentStep]);
   
   if (!currentStepData) {
+    console.error('🔍 BookingWizardContent: Step not found', { currentStep, wizardSteps });
     return <div>Step not found</div>;
   }
 
   const StepComponent = currentStepData.component;
+  console.log('🔍 BookingWizardContent: Rendering step', { 
+    currentStep, 
+    stepName: currentStepData.name,
+    componentName: StepComponent.name,
+    stepDirection 
+  });
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -89,19 +97,23 @@ function BookingWizardContent() {
       <main className="container mx-auto py-8">
         {/* Desktop: Fade transitions */}
         <div className="hidden md:block">
-          <AnimatePresence mode="wait">
-            <StepComponent key={currentStep} />
-          </AnimatePresence>
+          <BookingErrorBoundary>
+            <AnimatePresence mode="wait">
+              <StepComponent key={currentStep} />
+            </AnimatePresence>
+          </BookingErrorBoundary>
         </div>
         
         {/* Mobile: Horizontal slide transitions */}
-        <div className="md:hidden overflow-hidden">
-          <AnimatePresence mode="wait" custom={stepDirection}>
-            <StepComponent 
-              key={currentStep}
-              custom={stepDirection}
-            />
-          </AnimatePresence>
+        <div className="md:hidden overflow-x-hidden min-h-[500px]">
+          <BookingErrorBoundary>
+            <AnimatePresence mode="wait" custom={stepDirection}>
+              <StepComponent 
+                key={currentStep}
+                custom={stepDirection}
+              />
+            </AnimatePresence>
+          </BookingErrorBoundary>
         </div>
       </main>
     </div>
