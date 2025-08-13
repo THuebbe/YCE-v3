@@ -6,7 +6,7 @@ export default async function OnboardingPage() {
   // Ensure user is authenticated
   const user = await currentUser()
   if (!user) {
-    redirect('/sign-in')
+    redirect('/auth/sign-in')
   }
 
   return (

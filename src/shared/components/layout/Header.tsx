@@ -11,8 +11,8 @@ export function Header() {
   const { isSignedIn } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const agencySlug = useAgencySlug()
-  // Since we're using query parameters instead of subdomains, always redirect to /sign-in
-  const signOutUrl = '/sign-in'
+  // Since we're using query parameters instead of subdomains, always redirect to /auth/sign-in
+  const signOutUrl = '/auth/sign-in'
 
   // Create agency-aware navigation (only show if agencySlug exists)
   const navigation = agencySlug ? [

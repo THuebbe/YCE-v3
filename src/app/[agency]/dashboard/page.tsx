@@ -26,7 +26,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   
   if (!userId) {
     console.log('📊 Dashboard: No user ID, redirecting to sign-in')
-    redirect('/sign-in')
+    redirect('/auth/sign-in')
   }
 
   // Verify the agency exists and the user has access to it

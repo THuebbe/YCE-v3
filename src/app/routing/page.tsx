@@ -16,7 +16,7 @@ export default async function RoutingPage() {
     
     if (!userId) {
       console.log('🚏 Routing page: No user ID, redirecting to sign-in')
-      redirect('/sign-in')
+      redirect('/auth/sign-in')
     }
 
     // Give a moment for webhooks to process if this is a new user

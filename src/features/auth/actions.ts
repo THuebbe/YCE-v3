@@ -187,7 +187,7 @@ export async function completeOnboarding(agencySlug: string) {
   // Check if user is authenticated
   const user = await currentUser()
   if (!user) {
-    redirect('/sign-in')
+    redirect('/auth/sign-in')
   }
 
   // Redirect to the agency's dashboard using query parameter
