@@ -11,6 +11,9 @@ interface LetterStakeProps {
 }
 
 export function LetterStake({ character, style, isOrdinal = false, className = '' }: LetterStakeProps) {
+  // Mobile detection for responsive behavior
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
   // Use dev styling by default, with production override capability
   const devStyle = style.dev;
   const prodStyle = style.prod;
@@ -35,7 +38,26 @@ export function LetterStake({ character, style, isOrdinal = false, className = '
     backgroundRepeat: 'no-repeat',
   };
   
-  const fontSize = isOrdinal ? '0.75rem' : '1.25rem';
+  // Ultra aggressive mobile font sizing to prevent overflow
+  const getFontSize = () => {
+    if (isMobile) {
+      // Ultra aggressive mobile scaling based on container size
+      const containerWidth = typeof devStyle?.width === 'string' 
+        ? parseFloat(devStyle.width.replace('rem', '')) 
+        : 2; // fallback to 2rem
+      
+      if (isOrdinal) {
+        return `${Math.max(0.25, containerWidth * 0.2)}rem`; // Even more aggressive scaling
+      } else {
+        return `${Math.max(0.35, containerWidth * 0.3)}rem`; // Even more aggressive scaling
+      }
+    } else {
+      // Desktop sizing (existing logic)
+      return isOrdinal ? '0.75rem' : '1.25rem';
+    }
+  };
+  
+  const fontSize = getFontSize();
   
   return (
     <div 
@@ -46,8 +68,9 @@ export function LetterStake({ character, style, isOrdinal = false, className = '
         <span 
           style={{ 
             fontSize,
-            lineHeight: isOrdinal ? '1' : '1.2',
-            marginTop: isOrdinal ? '-0.25rem' : '0'
+            lineHeight: isMobile ? (isOrdinal ? '0.9' : '1') : (isOrdinal ? '1' : '1.2'),
+            marginTop: isMobile ? '0' : (isOrdinal ? '-0.25rem' : '0'),
+            fontWeight: isMobile ? '800' : 'bold' // Bolder text on mobile for clarity
           }}
         >
           {character}

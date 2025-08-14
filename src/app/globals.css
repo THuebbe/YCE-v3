@@ -516,3 +516,42 @@ body {
 .animate-zoom-out {
   animation: zoomOut 150ms ease-in;
 }
+
+/* Mobile preview optimizations */
+.mobile-preview {
+  /* Enhanced mobile container for yard sign previews */
+  max-width: 100vw;
+  contain: layout;
+}
+
+.mobile-preview .flex {
+  /* Ensure flex containers don't overflow on mobile */
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.desktop-preview {
+  /* Desktop-specific preview optimizations */
+  contain: layout;
+}
+
+/* Mobile-specific responsive text scaling */
+@media (max-width: 767px) {
+  .mobile-preview {
+    /* Additional mobile-specific container optimizations */
+    padding: 0.75rem;
+    margin: 0 auto;
+  }
+  
+  .mobile-preview .flex {
+    /* Tighter spacing on mobile to prevent overflow */
+    gap: 0.125rem;
+  }
+  
+  /* Ensure text doesn't break container bounds */
+  .mobile-preview span {
+    white-space: nowrap;
+    text-overflow: clip;
+    max-width: 100%;
+  }
+}
