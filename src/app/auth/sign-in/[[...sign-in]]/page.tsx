@@ -22,7 +22,7 @@ export default async function SignInPage() {
         </div>
         <div className="mt-8">
           <SignIn 
-            redirectUrl={redirectUrl}
+            fallbackRedirectUrl="/routing"
             appearance={{
               elements: {
                 formButtonPrimary: 
