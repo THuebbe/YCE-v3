@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         // Primary Button from style guide
         primary: 
-          "bg-primary text-white shadow-button hover:bg-secondary-light active:bg-primary/90 hover:shadow-medium",
+          "bg-primary !text-white shadow-button hover:bg-secondary-light hover:!text-white active:bg-primary/90 hover:shadow-medium",
         // Secondary Button from style guide
         secondary:
           "bg-background-white border-[1.5px] border-primary text-primary hover:bg-secondary-pale",
@@ -31,8 +31,8 @@ const buttonVariants = cva(
       size: {
         // Mobile height: 44px, Desktop height: 40px from style guide
         default: "h-button-desktop px-medium py-small md:h-button rounded-default",
-        sm: "h-8 px-small py-1 text-body-small rounded-sm",
-        lg: "h-12 px-large py-3 text-lg rounded-lg",
+        sm: "h-8 px-small py-1 rounded-sm text-sm",
+        lg: "h-12 px-large py-3 rounded-lg text-lg",
         icon: "h-button-desktop w-button-desktop md:h-button md:w-button rounded-default",
       },
     },

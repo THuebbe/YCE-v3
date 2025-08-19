@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth, UserButton, OrganizationSwitcher } from '@clerk/nextjs'
-import { Menu, X, Building2, Settings } from 'lucide-react'
+import { useAuth, UserButton } from '@clerk/nextjs'
+import { Menu, X, Building2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAgencySlug } from '@/lib/navigation'
@@ -19,8 +19,6 @@ export function Header() {
     { name: 'Dashboard', href: `/${agencySlug}/dashboard` },
     { name: 'Orders', href: `/${agencySlug}/orders` },
     { name: 'Inventory', href: `/${agencySlug}/inventory` },
-    { name: 'Customers', href: `/${agencySlug}/customers` },
-    { name: 'Reports', href: `/${agencySlug}/reports` },
   ] : []
 
   const publicNavigation = [
@@ -77,31 +75,13 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {isSignedIn ? (
               <>
-                {/* Organization Switcher */}
-                <div className="hidden md:block">
-                  <OrganizationSwitcher
-                    appearance={{
-                      elements: {
-                        organizationSwitcherTrigger: 
-                          'border border-neutral-300 hover:border-neutral-400 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors duration-200',
-                        organizationSwitcherPopoverCard: 
-                          'shadow-xl border border-neutral-200 rounded-xl',
-                        organizationSwitcherPopoverActionButton: 
-                          'text-neutral-700 hover:text-primary hover:bg-neutral-50 rounded-lg transition-colors duration-200',
-                      }
-                    }}
-                    createOrganizationMode="navigation"
-                    createOrganizationUrl="/organization/create"
-                    organizationProfileMode="navigation"
-                    organizationProfileUrl="/organization"
-                  />
-                </div>
 
-                {/* Settings Button */}
+                {/* Manage Agency Button */}
                 {agencySlug && (
-                  <Button variant="ghost" size="sm" asChild className="hidden md:flex">
+                  <Button variant="ghost" size="sm" asChild className="hidden md:flex items-center space-x-2">
                     <Link href={`/${agencySlug}/settings`}>
-                      <Settings className="h-4 w-4" />
+                      <Building2 className="h-4 w-4" />
+                      <span className="hidden lg:inline">Manage Agency</span>
                     </Link>
                   </Button>
                 )}
@@ -166,22 +146,19 @@ export function Header() {
                       {item.name}
                     </Link>
                   ))}
-                  <div className="border-t border-neutral-200 pt-4 mt-4">
-                    <div className="px-3 py-2">
-                      <OrganizationSwitcher
-                        appearance={{
-                          elements: {
-                            organizationSwitcherTrigger: 
-                              'w-full justify-start border border-neutral-300 hover:border-neutral-400 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:text-neutral-900 transition-colors duration-200',
-                          }
-                        }}
-                        createOrganizationMode="navigation"
-                        createOrganizationUrl="/organization/create"
-                        organizationProfileMode="navigation"
-                        organizationProfileUrl="/organization"
-                      />
+                  {/* Manage Agency button for mobile */}
+                  {agencySlug && (
+                    <div className="border-t border-neutral-200 pt-4 mt-4">
+                      <Link
+                        href={`/${agencySlug}/settings`}
+                        className="flex items-center space-x-2 px-3 py-2 text-base font-medium text-neutral-700 hover:text-primary hover:bg-neutral-50 rounded-lg transition-colors duration-200"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Building2 className="h-4 w-4" />
+                        <span>Manage Agency</span>
+                      </Link>
                     </div>
-                  </div>
+                  )}
                 </>
               ) : (
                 <>

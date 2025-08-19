@@ -63,6 +63,7 @@ export {
   ShoppingCart,
   CreditCard,
   DollarSign,
+  Wallet,
   Package,
   Truck,
   

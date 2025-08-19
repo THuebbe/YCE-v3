@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
-import { TrendingUp, TrendingDown, Package, Calendar, DollarSign, CheckCircle } from "@/shared/components/ui/icons";
+import { TrendingUp, TrendingDown, Package, Calendar, DollarSign, Wallet, CheckCircle } from "@/shared/components/ui/icons";
 import type { DashboardMetrics, MetricsGridProps } from "../types";
 
 export function MetricsGrid({ metrics, loading = false, error = null }: MetricsGridProps) {
@@ -45,7 +45,7 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
       <MetricCard
         title="Monthly Revenue"
         value={`$${metrics.monthlyRevenue.toLocaleString()}`}
-        icon={<DollarSign className="h-5 w-5" />}
+        icon={<Wallet className="h-5 w-5" />}
         description="Current month revenue"
         trend={{
           value: Math.abs(revenueChange),
@@ -56,13 +56,18 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
         loading={loading}
       />
 
-      {/* Average Order Value */}
+      {/* Last 30 Days Revenue */}
       <MetricCard
-        title="Avg Order Value"
-        value={`$${Math.round(metrics.averageOrderValue).toLocaleString()}`}
+        title="Last 30 Days"
+        value={`$${metrics.monthlyRevenue.toLocaleString()}`}
         icon={<DollarSign className="h-5 w-5" />}
-        description="Per order average"
-        colorScheme={{ color: 'text-info', bg: 'bg-info/10' }}
+        description="vs previous 30 days"
+        trend={{
+          value: Math.abs(revenueChange),
+          isPositive: isRevenuePositive,
+          icon: isRevenuePositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />
+        }}
+        colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
         loading={loading}
       />
 
