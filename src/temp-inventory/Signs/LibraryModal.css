@@ -1,0 +1,339 @@
+.library-modal {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	background: var(--primary-white);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-sm);
+}
+
+/* Header */
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--space-6);
+	border-bottom: 1px solid var(--light-gray);
+}
+
+.modal-header h2 {
+	font-size: var(--fs-h2);
+	font-weight: var(--fw-bold);
+	color: var(--primary-dark);
+	margin: 0;
+}
+
+.close-button {
+	width: 40px;
+	height: 40px;
+	border-radius: var(--radius-md);
+	border: none;
+	background: var(--background-light);
+	color: var(--primary-dark);
+	cursor: pointer;
+	transition: var(--transition-fast);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.close-button:hover {
+	background: var(--light-gray);
+}
+
+/* Search and Filters */
+.search-filters {
+	padding: var(--space-6);
+	border-bottom: 1px solid var(--light-gray);
+}
+
+.search-bar {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	background: var(--primary-white);
+	border: 1.5px solid var(--light-gray);
+	border-radius: var(--radius-md);
+	padding: var(--space-2) var(--space-4);
+	width: 100%;
+	max-width: 400px;
+	transition: var(--transition-fast);
+	position: relative;
+}
+
+.search-bar:focus-within {
+	border-color: var(--primary-blue);
+	box-shadow: 0 0 0 2px var(--secondary-blue-pale);
+}
+
+.search-bar input {
+	border: none;
+	outline: none;
+	font-size: var(--fs-body);
+	width: 100%;
+	background: none;
+}
+
+.search-bar input::placeholder {
+	color: var(--neutral-gray);
+}
+
+.spinner {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.filters {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	margin-top: var(--space-4);
+}
+
+.filter-group {
+	position: relative;
+	width: 200px;
+}
+
+.category-select {
+	width: 100%;
+	height: 48px;
+	border: 1.5px solid var(--light-gray);
+	border-radius: var(--radius-md);
+	padding: var(--space-2) var(--space-4);
+	font-size: var(--fs-body);
+	color: var(--primary-dark);
+	background: var(--primary-white);
+	appearance: none;
+	cursor: pointer;
+}
+
+.select-icon {
+	position: absolute;
+	right: var(--space-4);
+	top: 50%;
+	transform: translateY(-50%);
+	color: var(--neutral-gray);
+	pointer-events: none;
+}
+
+.filter-chips {
+	display: flex;
+	gap: var(--space-2);
+	flex-wrap: wrap;
+}
+
+.color-chip {
+	width: 32px;
+	height: 32px;
+	border-radius: var(--radius-full);
+	border: 2px solid var(--primary-white);
+	box-shadow: 0 0 0 1px var(--light-gray);
+	cursor: pointer;
+	transition: var(--transition-fast);
+}
+
+.color-chip:hover {
+	transform: scale(1.1);
+}
+
+.color-chip.active {
+	box-shadow: 0 0 0 2px var(--primary-blue);
+}
+
+.theme-chip {
+	padding: var(--space-2) var(--space-4);
+	border-radius: var(--radius-full);
+	border: 1.5px solid var(--light-gray);
+	background: var(--primary-white);
+	color: var(--neutral-gray);
+	font-size: var(--fs-body-small);
+	font-weight: var(--fw-medium);
+	cursor: pointer;
+	transition: var(--transition-fast);
+}
+
+.theme-chip:hover {
+	border-color: var(--primary-blue);
+	color: var(--primary-blue);
+}
+
+.theme-chip.active {
+	background: var(--primary-blue);
+	border-color: var(--primary-blue);
+	color: var(--primary-white);
+}
+
+/* Signs Grid */
+.signs-grid {
+	flex: 1;
+	padding: var(--space-6);
+	overflow-y: auto;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: var(--space-6);
+	max-height: 600px;
+}
+
+.sign-card {
+	background: var(--primary-white);
+	border-radius: var(--radius-lg);
+	overflow: hidden;
+	box-shadow: var(--shadow-sm);
+	transition: var(--transition-normal);
+}
+
+.sign-card:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-md);
+}
+
+.sign-image {
+	position: relative;
+	aspect-ratio: 4/3;
+	overflow: hidden;
+}
+
+.sign-image img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.sign-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	transition: var(--transition-fast);
+}
+
+.sign-card:hover .sign-overlay {
+	opacity: 1;
+}
+
+.add-button {
+	padding: var(--space-2) var(--space-4);
+	border-radius: var(--radius-md);
+	border: none;
+	background: var(--primary-white);
+	color: var(--primary-dark);
+	font-size: var(--fs-body-small);
+	font-weight: var(--fw-medium);
+	cursor: pointer;
+	transition: var(--transition-fast);
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.add-button:hover {
+	background: var(--primary-blue);
+	color: var(--primary-white);
+}
+
+.added-badge {
+	padding: var(--space-2) var(--space-4);
+	border-radius: var(--radius-md);
+	background: var(--success-green);
+	color: var(--primary-white);
+	font-size: var(--fs-body-small);
+	font-weight: var(--fw-medium);
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.sign-info {
+	padding: var(--space-4);
+}
+
+.sign-info h3 {
+	font-size: var(--fs-h4);
+	font-weight: var(--fw-semibold);
+	color: var(--primary-dark);
+	margin: 0 0 var(--space-2) 0;
+}
+
+.category {
+	font-size: var(--fs-body-small);
+	color: var(--neutral-gray);
+}
+
+/* Footer */
+.modal-footer {
+	padding: var(--space-6);
+	border-top: 1px solid var(--light-gray);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: var(--primary-white);
+}
+
+.selected-count {
+	font-size: var(--fs-body);
+	color: var(--primary-dark);
+	font-weight: var(--fw-medium);
+}
+
+.footer-actions {
+	display: flex;
+	gap: var(--space-4);
+}
+
+/* Mobile Adaptations */
+@media (max-width: 768px) {
+	.modal-header {
+		padding: var(--space-4);
+	}
+
+	.search-filters {
+		padding: var(--space-4);
+	}
+
+	.search-bar {
+		max-width: none;
+	}
+
+	.filters {
+		gap: var(--space-2);
+	}
+
+	.filter-group {
+		width: 100%;
+	}
+
+	.signs-grid {
+		padding: var(--space-4);
+		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		max-height: 400px;
+	}
+
+	.modal-footer {
+		padding: var(--space-4);
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+
+	.footer-actions {
+		width: 100%;
+	}
+
+	.footer-actions .btn {
+		flex: 1;
+	}
+}
