@@ -84,7 +84,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 					</Suspense>
 
 					{/* Recent Orders and Additional Sections */}
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
 						<Suspense fallback={<OrdersSkeleton />}>
 							<DashboardRecentOrders agencyId={agency.id} />
 						</Suspense>

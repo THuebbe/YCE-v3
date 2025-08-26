@@ -186,6 +186,64 @@ export default async function ReportsPage({ params }: ReportsPageProps) {
 						</div>
 					</div>
 
+					{/* Additional Analytics Ideas */}
+					<div className="bg-white rounded-lg shadow-default p-6">
+						<h2 className="text-2xl font-bold text-neutral-900 mb-4 flex items-center">
+							💡 Additional Analytics Ideas
+						</h2>
+						<p className="text-neutral-600 mb-6">Future dashboard and analytics enhancements identified during MVP development</p>
+						
+						<div className="space-y-4">
+							<div className="border-l-4 border-indigo-400 pl-4">
+								<h3 className="font-semibold text-neutral-800">Performance & Growth Metrics</h3>
+								<p className="text-neutral-600">Track business growth and performance indicators</p>
+								<div className="bg-gray-50 p-3 mt-2 rounded font-mono text-sm">
+									{`// Growth tracking metrics:
+<MetricCard title="Average Order Value" />
+<MetricCard title="Booking Conversion Rate" />
+<MetricCard title="Customer Retention Rate" />
+<MetricCard title="Revenue Per Customer" />`}
+								</div>
+							</div>
+
+							<div className="border-l-4 border-teal-400 pl-4">
+								<h3 className="font-semibold text-neutral-800">Operational Insights</h3>
+								<p className="text-neutral-600">Real-time operational efficiency tracking</p>
+								<div className="bg-gray-50 p-3 mt-2 rounded font-mono text-sm">
+									{`// Operational analytics:
+<MetricCard title="Sign Utilization Rate" />
+<MetricCard title="Peak Booking Periods" />
+<MetricCard title="Geographic Performance" />
+<MetricCard title="Order Fulfillment Time" />`}
+								</div>
+							</div>
+
+							<div className="border-l-4 border-violet-400 pl-4">
+								<h3 className="font-semibold text-neutral-800">Forecasting & Planning</h3>
+								<p className="text-neutral-600">Future-focused business intelligence</p>
+								<div className="bg-gray-50 p-3 mt-2 rounded font-mono text-sm">
+									{`// Planning metrics:
+<MetricCard title="Next 30 Days Revenue" />
+<MetricCard title="Seasonal Trends" />
+<MetricCard title="Equipment Status" />
+<MetricCard title="Capacity Planning" />`}
+								</div>
+							</div>
+
+							<div className="border-l-4 border-pink-400 pl-4">
+								<h3 className="font-semibold text-neutral-800">Customer Experience</h3>
+								<p className="text-neutral-600">Monitor and improve customer satisfaction</p>
+								<div className="bg-gray-50 p-3 mt-2 rounded font-mono text-sm">
+									{`// Experience metrics:
+<MetricCard title="Customer Satisfaction Score" />
+<MetricCard title="Support Ticket Volume" />
+<MetricCard title="Review/Feedback Analytics" />
+<MetricCard title="Customer Journey Analytics" />`}
+								</div>
+							</div>
+						</div>
+					</div>
+
 					{/* Export & Sharing */}
 					<div className="bg-white rounded-lg shadow-default p-6">
 						<h2 className="text-2xl font-bold text-neutral-900 mb-4 flex items-center">

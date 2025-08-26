@@ -36,6 +36,7 @@ export const getDashboardMetrics = cache(async (agencyId: string): Promise<Dashb
       openOrders: metrics.openOrdersCount,
       monthlyRevenue: metrics.monthlyRevenue,
       monthlyRevenueChange,
+      last30DaysRevenue: metrics.last30DaysRevenue || 0,
       popularSigns: [], // TODO: Implement popular signs with Supabase
       upcomingDeployments: [], // TODO: Implement upcoming deployments with Supabase
       completedOrdersThisMonth: metrics.completedOrdersCount,

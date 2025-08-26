@@ -59,14 +59,9 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
       {/* Last 30 Days Revenue */}
       <MetricCard
         title="Last 30 Days"
-        value={`$${metrics.monthlyRevenue.toLocaleString()}`}
+        value={`$${metrics.last30DaysRevenue.toLocaleString()}`}
         icon={<DollarSign className="h-5 w-5" />}
-        description="vs previous 30 days"
-        trend={{
-          value: Math.abs(revenueChange),
-          isPositive: isRevenuePositive,
-          icon: isRevenuePositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />
-        }}
+        description="Rolling 30-day revenue"
         colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
         loading={loading}
       />

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
+import { sendOrderNotificationEmail } from "@/lib/email";
 import { z } from "zod";
 
 // Relaxed input validation schema - only validate essential fields
@@ -223,10 +224,25 @@ export async function POST(
 
 		console.log("✅ Order created successfully:", orderRecord?.id);
 
+		// Send email notification to agency
+		try {
+			await sendOrderNotificationEmail({
+				orderNumber: orderRecord.orderNumber,
+				customerName: formData.contact.fullName,
+				eventDate: eventDate.toISOString(),
+				totalAmount: totalAmount,
+				agencyName: agency.name,
+				agencyEmail: agency.contactEmail || agency.email || 'no-email@agency.com',
+			});
+			console.log("📧 Order notification email sent successfully");
+		} catch (emailError) {
+			console.error("⚠️ Failed to send order notification email:", emailError);
+			// Don't fail the order creation if email fails
+		}
+
 		// TODO: Convert soft hold to hard hold (inventory management)
-		// TODO: Send confirmation email
+		// TODO: Send confirmation email to customer
 		// TODO: Create calendar event for delivery
-		// TODO: Notify agency of new order
 
 		return NextResponse.json({
 			success: true,

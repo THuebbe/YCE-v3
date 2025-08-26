@@ -5,6 +5,7 @@ export interface DashboardMetrics {
   openOrders: number;
   monthlyRevenue: number;
   monthlyRevenueChange: number; // Percentage change from previous month
+  last30DaysRevenue: number; // Rolling 30-day revenue
   popularSigns: PopularSign[];
   upcomingDeployments: UpcomingDeployment[];
   completedOrdersThisMonth: number;

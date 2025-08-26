@@ -111,34 +111,11 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 	}
 
 	return (
-		<div className={className}>
-			{/* Metrics Grid */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-				<MetricCard
-					title="Upcoming Orders"
-					value={data?.upcomingOrders.length || 0}
-					icon="📅"
-					colorScheme="default"
-					isLoading={loading}
-					description="Next 5 orders"
-				/>
-
-				<MetricCard
-					title="Popular Signs"
-					value={data?.popularSigns[0]?.name || "Loading..."}
-					icon="⭐"
-					colorScheme="default"
-					isLoading={loading}
-					description={
-						data?.popularSigns[0] ? `${data.popularSigns[0].count} orders` : ""
-					}
-				/>
-			</div>
-
+		<div className={`h-full ${className}`}>
 			{/* Dashboard Cards */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
 				{/* Upcoming Orders Card */}
-				<div className="bg-white rounded-2xl shadow-default p-6 border border-neutral-100">
+				<div className="bg-white rounded-2xl shadow-default p-6 border border-neutral-100 h-full flex flex-col">
 					<div className="flex items-center justify-between mb-6">
 						<h3 className="text-xl font-semibold text-neutral-900">
 							Upcoming Orders
@@ -150,8 +127,9 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 						)}
 					</div>
 
-					{loading ? (
-						<div className="space-y-4">
+					<div className="flex-1">
+						{loading ? (
+							<div className="space-y-4">
 							{[1, 2, 3].map((i) => (
 								<div
 									key={i}
@@ -204,10 +182,11 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 							</p>
 						</div>
 					)}
+					</div>
 				</div>
 
 				{/* Popular Signs Card */}
-				<div className="bg-white rounded-2xl shadow-default p-6 border border-neutral-100">
+				<div className="bg-white rounded-2xl shadow-default p-6 border border-neutral-100 h-full flex flex-col">
 					<div className="flex items-center justify-between mb-6">
 						<h3 className="text-xl font-semibold text-neutral-900">
 							Popular Signs
@@ -223,8 +202,9 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 						</div>
 					</div>
 
-					{loading ? (
-						<div className="space-y-3">
+					<div className="flex-1">
+						{loading ? (
+							<div className="space-y-3">
 							{[1, 2, 3, 4, 5].map((i) => (
 								<div
 									key={i}
@@ -279,6 +259,7 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 							</p>
 						</div>
 					)}
+					</div>
 				</div>
 			</div>
 		</div>
