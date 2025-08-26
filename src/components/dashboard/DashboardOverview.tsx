@@ -130,58 +130,58 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 					<div className="flex-1">
 						{loading ? (
 							<div className="space-y-4">
-							{[1, 2, 3].map((i) => (
-								<div
-									key={i}
-									className="animate-pulse"
-								>
-									<div className="h-4 bg-neutral-100 rounded w-1/3 mb-2"></div>
-									<div className="h-3 bg-neutral-100 rounded w-1/2"></div>
-								</div>
-							))}
-						</div>
-					) : data?.upcomingOrders.length ? (
-						<div className="space-y-4">
-							{data.upcomingOrders.slice(0, 5).map((order) => (
-								<div
-									key={order.id}
-									className="flex items-center justify-between py-3 border-b border-neutral-100 last:border-b-0"
-								>
-									<div>
-										<h4 className="font-medium text-neutral-900">
-											{order.customerName}
-										</h4>
-										<p className="text-sm text-neutral-600">
-											{order.signCount} signs •{" "}
-											{new Date(order.eventDate).toLocaleDateString()}
-										</p>
-									</div>
-									<span
-										className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-											order.status === "pending"
-												? "bg-accent-yellow/10 text-accent-yellow"
-												: order.status === "processing"
-												? "bg-accent-blue/10 text-accent-blue"
-												: "bg-accent-green/10 text-accent-green"
-										}`}
+								{[1, 2, 3].map((i) => (
+									<div
+										key={i}
+										className="animate-pulse"
 									>
-										{order.status.charAt(0).toUpperCase() +
-											order.status.slice(1)}
-									</span>
-								</div>
-							))}
-						</div>
-					) : (
-						<div className="text-center py-8">
-							<div className="text-4xl mb-4">📅</div>
-							<h4 className="text-lg font-medium text-neutral-900 mb-2">
-								No upcoming orders
-							</h4>
-							<p className="text-neutral-600">
-								Share your booking link to get started!
-							</p>
-						</div>
-					)}
+										<div className="h-4 bg-neutral-100 rounded w-1/3 mb-2"></div>
+										<div className="h-3 bg-neutral-100 rounded w-1/2"></div>
+									</div>
+								))}
+							</div>
+						) : data?.upcomingOrders.length ? (
+							<div className="space-y-4">
+								{data.upcomingOrders.slice(0, 5).map((order) => (
+									<div
+										key={order.id}
+										className="flex items-center justify-between py-3 border-b border-neutral-100 last:border-b-0"
+									>
+										<div>
+											<h4 className="font-medium text-neutral-900">
+												{order.customerName}
+											</h4>
+											<p className="text-sm text-neutral-600">
+												{order.signCount} signs •{" "}
+												{new Date(order.eventDate).toLocaleDateString()}
+											</p>
+										</div>
+										<span
+											className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+												order.status === "pending"
+													? "bg-accent-yellow/10 text-accent-yellow"
+													: order.status === "processing"
+													? "bg-accent-blue/10 text-accent-blue"
+													: "bg-accent-green/10 text-accent-green"
+											}`}
+										>
+											{order.status.charAt(0).toUpperCase() +
+												order.status.slice(1)}
+										</span>
+									</div>
+								))}
+							</div>
+						) : (
+							<div className="text-center py-8">
+								<div className="text-4xl mb-4">📅</div>
+								<h4 className="text-lg font-medium text-neutral-900 mb-2">
+									No upcoming orders
+								</h4>
+								<p className="text-neutral-600">
+									Share your booking link to get started!
+								</p>
+							</div>
+						)}
 					</div>
 				</div>
 
@@ -205,60 +205,60 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 					<div className="flex-1">
 						{loading ? (
 							<div className="space-y-3">
-							{[1, 2, 3, 4, 5].map((i) => (
-								<div
-									key={i}
-									className="flex items-center justify-between animate-pulse"
-								>
-									<div className="h-4 bg-neutral-100 rounded w-1/2"></div>
-									<div className="h-4 bg-neutral-100 rounded w-8"></div>
-								</div>
-							))}
-						</div>
-					) : data?.popularSigns.length ? (
-						<div className="space-y-3">
-							{data.popularSigns.map((sign, index) => (
-								<div
-									key={sign.name}
-									className="flex items-center justify-between"
-								>
-									<div className="flex items-center space-x-3">
-										<span className="text-sm font-medium text-neutral-500 w-4">
-											#{index + 1}
-										</span>
-										<span className="font-medium text-neutral-900">
-											{sign.name}
-										</span>
+								{[1, 2, 3, 4, 5].map((i) => (
+									<div
+										key={i}
+										className="flex items-center justify-between animate-pulse"
+									>
+										<div className="h-4 bg-neutral-100 rounded w-1/2"></div>
+										<div className="h-4 bg-neutral-100 rounded w-8"></div>
 									</div>
-									<div className="flex items-center space-x-2">
-										<div className="w-16 bg-neutral-100 rounded-full h-2">
-											<div
-												className="bg-primary h-2 rounded-full transition-all duration-500"
-												style={{
-													width: `${
-														(sign.count / data.popularSigns[0].count) * 100
-													}%`,
-												}}
-											/>
+								))}
+							</div>
+						) : data?.popularSigns.length ? (
+							<div className="space-y-3">
+								{data.popularSigns.map((sign, index) => (
+									<div
+										key={sign.name}
+										className="flex items-center justify-between"
+									>
+										<div className="flex items-center space-x-3">
+											<span className="text-sm font-medium text-neutral-500 w-4">
+												#{index + 1}
+											</span>
+											<span className="font-medium text-neutral-900">
+												{sign.name}
+											</span>
 										</div>
-										<span className="text-sm font-medium text-neutral-700 w-8 text-right">
-											{sign.count}
-										</span>
+										<div className="flex items-center space-x-2">
+											<div className="w-16 bg-neutral-100 rounded-full h-2">
+												<div
+													className="bg-primary h-2 rounded-full transition-all duration-500"
+													style={{
+														width: `${
+															(sign.count / data.popularSigns[0].count) * 100
+														}%`,
+													}}
+												/>
+											</div>
+											<span className="text-sm font-medium text-neutral-700 w-8 text-right">
+												{sign.count}
+											</span>
+										</div>
 									</div>
-								</div>
-							))}
-						</div>
-					) : (
-						<div className="text-center py-8">
-							<div className="text-4xl mb-4">📊</div>
-							<h4 className="text-lg font-medium text-neutral-900 mb-2">
-								No data yet
-							</h4>
-							<p className="text-neutral-600">
-								Add inventory to see popular signs!
-							</p>
-						</div>
-					)}
+								))}
+							</div>
+						) : (
+							<div className="text-center py-8">
+								<div className="text-4xl mb-4">📊</div>
+								<h4 className="text-lg font-medium text-neutral-900 mb-2">
+									No data yet
+								</h4>
+								<p className="text-neutral-600">
+									Add inventory to see popular signs!
+								</p>
+							</div>
+						)}
 					</div>
 				</div>
 			</div>
