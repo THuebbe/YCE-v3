@@ -48,3 +48,6 @@ test-users-credentials.json
 
 # Build artifacts
 tsconfig.tsbuildinfo
+
+# Development planning documents
+planning-docs/
