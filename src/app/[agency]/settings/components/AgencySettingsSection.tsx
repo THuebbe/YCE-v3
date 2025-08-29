@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { AgencyWithProfile } from "@/types/agency";
 import {
@@ -16,6 +16,295 @@ interface BlackoutDate {
 	reason?: string;
 	type: 'holiday' | 'maintenance' | 'vacation' | 'special_event';
 }
+
+// BookingRules type
+interface BookingRules {
+	minimumLeadTimeHours: number;
+	maximumRentalDays: number;
+	minimumRentalDays: number;
+	allowSameDayBooking: boolean;
+}
+
+// BlackoutDatesTab Props
+interface BlackoutDatesTabProps {
+	blackoutDates: BlackoutDate[];
+	setBlackoutDates: React.Dispatch<React.SetStateAction<BlackoutDate[]>>;
+}
+
+// BookingPoliciesTab Props
+interface BookingPoliciesTabProps {
+	bookingRules: BookingRules;
+	setBookingRules: React.Dispatch<React.SetStateAction<BookingRules>>;
+}
+
+// Separate BlackoutDatesTab Component
+const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
+	blackoutDates,
+	setBlackoutDates,
+}) => {
+	const addBlackoutDate = useCallback(() => {
+		const newBlackoutDate: BlackoutDate = {
+			id: crypto.randomUUID(),
+			date: '',
+			title: '',
+			reason: '',
+			type: 'holiday'
+		};
+		setBlackoutDates(prev => [...prev, newBlackoutDate]);
+	}, [setBlackoutDates]);
+
+	const updateBlackoutDate = useCallback((id: string, field: keyof BlackoutDate, value: string) => {
+		setBlackoutDates(prev => 
+			prev.map(date => 
+				date.id === id ? { ...date, [field]: value } : date
+			)
+		);
+	}, [setBlackoutDates]);
+
+	const removeBlackoutDate = useCallback((id: string) => {
+		setBlackoutDates(prev => prev.filter(date => date.id !== id));
+	}, [setBlackoutDates]);
+
+	return (
+		<div className="space-y-6">
+			<div>
+				<h3 className="text-lg font-semibold text-gray-900 mb-4">
+					Blackout Dates
+				</h3>
+				<p className="text-sm text-gray-600 mb-6">
+					Block specific dates when your agency is unavailable for deliveries or pickups.
+				</p>
+			</div>
+
+			<div className="space-y-4">
+				{blackoutDates.map((blackoutDate) => (
+					<div key={blackoutDate.id} className="p-4 border border-gray-200 rounded-lg">
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Date
+								</label>
+								<input
+									type="date"
+									value={blackoutDate.date}
+									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'date', e.target.value)}
+									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Title
+								</label>
+								<input
+									type="text"
+									value={blackoutDate.title}
+									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'title', e.target.value)}
+									placeholder="e.g., Christmas Day"
+									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+								/>
+							</div>
+
+							<div>
+								<label className="block text-sm font-medium text-gray-700 mb-1">
+									Type
+								</label>
+								<select
+									value={blackoutDate.type}
+									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'type', e.target.value)}
+									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+								>
+									<option value="holiday">Holiday</option>
+									<option value="maintenance">Maintenance</option>
+									<option value="vacation">Vacation</option>
+									<option value="special_event">Special Event</option>
+								</select>
+							</div>
+
+							<div className="flex items-end">
+								<button
+									onClick={() => removeBlackoutDate(blackoutDate.id)}
+									className="px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md text-sm font-medium"
+								>
+									Remove
+								</button>
+							</div>
+						</div>
+
+						<div className="mt-4">
+							<label className="block text-sm font-medium text-gray-700 mb-1">
+								Reason (Optional)
+							</label>
+							<textarea
+								value={blackoutDate.reason || ''}
+								onChange={(e) => updateBlackoutDate(blackoutDate.id, 'reason', e.target.value)}
+								placeholder="Optional description or reason for this blackout date"
+								rows={2}
+								className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							/>
+						</div>
+					</div>
+				))}
+
+				{blackoutDates.length === 0 && (
+					<div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+						<p className="text-gray-500 mb-4">No blackout dates configured</p>
+						<button
+							onClick={addBlackoutDate}
+							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						>
+							Add First Blackout Date
+						</button>
+					</div>
+				)}
+
+				{blackoutDates.length > 0 && (
+					<button
+						onClick={addBlackoutDate}
+						className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+					>
+						Add Another Blackout Date
+					</button>
+				)}
+			</div>
+		</div>
+	);
+};
+
+// Separate BookingPoliciesTab Component
+const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
+	bookingRules,
+	setBookingRules,
+}) => {
+	const updateBookingRule = useCallback((field: keyof BookingRules, value: number | boolean) => {
+		setBookingRules(prev => ({
+			...prev,
+			[field]: value
+		}));
+	}, [setBookingRules]);
+
+	return (
+		<div className="space-y-6">
+			<div>
+				<h3 className="text-lg font-semibold text-gray-900 mb-4">
+					Booking Policies
+				</h3>
+				<p className="text-sm text-gray-600 mb-6">
+					Set rules and restrictions for how customers can book your services.
+				</p>
+			</div>
+
+			<div className="space-y-6">
+				{/* Minimum Lead Time */}
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Minimum Lead Time
+						</label>
+						<div className="flex items-center space-x-3">
+							<input
+								type="number"
+								value={bookingRules.minimumLeadTimeHours}
+								onChange={(e) => updateBookingRule('minimumLeadTimeHours', parseInt(e.target.value) || 0)}
+								min="0"
+								max="168"
+								className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							/>
+							<span className="text-sm text-gray-600">hours before rental start</span>
+						</div>
+						<p className="mt-1 text-xs text-gray-500">
+							How far in advance customers must book (0-168 hours)
+						</p>
+					</div>
+
+					{/* Same Day Booking Toggle */}
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">
+							Same-Day Booking
+						</label>
+						<div className="flex items-center space-x-3">
+							<input
+								type="checkbox"
+								checked={bookingRules.allowSameDayBooking}
+								onChange={(e) => updateBookingRule('allowSameDayBooking', e.target.checked)}
+								className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+							/>
+							<span className="text-sm text-gray-700">Allow same-day bookings</span>
+						</div>
+						<p className="mt-1 text-xs text-gray-500">
+							Override lead time requirement for same-day requests
+						</p>
+					</div>
+				</div>
+
+				{/* Rental Duration Limits */}
+				<div className="border-t pt-6">
+					<h4 className="text-md font-medium text-gray-900 mb-4">Rental Duration Limits</h4>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Minimum Rental Period
+							</label>
+							<div className="flex items-center space-x-3">
+								<input
+									type="number"
+									value={bookingRules.minimumRentalDays}
+									onChange={(e) => updateBookingRule('minimumRentalDays', parseInt(e.target.value) || 1)}
+									min="1"
+									max="7"
+									className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+								/>
+								<span className="text-sm text-gray-600">days</span>
+							</div>
+							<p className="mt-1 text-xs text-gray-500">
+								Shortest rental period allowed (1-7 days)
+							</p>
+						</div>
+
+						<div>
+							<label className="block text-sm font-medium text-gray-700 mb-2">
+								Maximum Rental Period
+							</label>
+							<div className="flex items-center space-x-3">
+								<input
+									type="number"
+									value={bookingRules.maximumRentalDays}
+									onChange={(e) => updateBookingRule('maximumRentalDays', parseInt(e.target.value) || 1)}
+									min="1"
+									max="30"
+									className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+								/>
+								<span className="text-sm text-gray-600">days</span>
+							</div>
+							<p className="mt-1 text-xs text-gray-500">
+								Longest rental period allowed (1-30 days)
+							</p>
+						</div>
+					</div>
+				</div>
+
+				{/* Validation Warning */}
+				{bookingRules.maximumRentalDays < bookingRules.minimumRentalDays && (
+					<div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+						<div className="text-yellow-800 text-sm">
+							⚠️ Maximum rental period must be greater than or equal to minimum rental period.
+						</div>
+					</div>
+				)}
+
+				{/* Business Rules Summary */}
+				<div className="bg-gray-50 p-4 rounded-lg">
+					<h4 className="text-sm font-medium text-gray-900 mb-2">Current Policy Summary</h4>
+					<ul className="text-sm text-gray-600 space-y-1">
+						<li>• Customers must book at least <strong>{bookingRules.minimumLeadTimeHours} hours</strong> in advance</li>
+						<li>• Same-day booking: <strong>{bookingRules.allowSameDayBooking ? 'Allowed' : 'Not allowed'}</strong></li>
+						<li>• Rental period: <strong>{bookingRules.minimumRentalDays} - {bookingRules.maximumRentalDays} days</strong></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	);
+};
 
 interface AgencySettingsSectionProps {
 	agency: AgencyWithProfile;
@@ -48,6 +337,12 @@ export default function AgencySettingsSection({
 		defaultOperatingHours
 	);
 	const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([]);
+	const [bookingRules, setBookingRules] = useState<BookingRules>({
+		minimumLeadTimeHours: 48,
+		maximumRentalDays: 14,
+		minimumRentalDays: 1,
+		allowSameDayBooking: false
+	});
 	const [validationErrors, setValidationErrors] = useState<string[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -110,6 +405,30 @@ export default function AgencySettingsSection({
 		};
 
 		loadBlackoutDates();
+	}, [agency.id]);
+
+	// Load agency booking rules on mount
+	useEffect(() => {
+		const loadBookingRules = async () => {
+			try {
+				const response = await fetch(
+					`/api/agency/booking-rules?agencyId=${agency.id}`
+				);
+
+				if (response.ok) {
+					const result = await response.json();
+					if (result.success && result.data) {
+						setBookingRules(result.data);
+					}
+				} else {
+					console.error("API response not ok:", response.status);
+				}
+			} catch (error) {
+				console.error("Failed to load booking rules:", error);
+			}
+		};
+
+		loadBookingRules();
 	}, [agency.id]);
 
 	// Operating Hours Component (Phase 3A focus)
@@ -252,141 +571,6 @@ export default function AgencySettingsSection({
 	);
 
 	// Placeholder components for other tabs
-	const BlackoutDatesTab = () => {
-		const addBlackoutDate = () => {
-			const newBlackoutDate: BlackoutDate = {
-				id: crypto.randomUUID(),
-				date: '',
-				title: '',
-				reason: '',
-				type: 'holiday'
-			};
-			setBlackoutDates(prev => [...prev, newBlackoutDate]);
-		};
-
-		const updateBlackoutDate = (id: string, field: keyof BlackoutDate, value: string) => {
-			setBlackoutDates(prev => 
-				prev.map(date => 
-					date.id === id ? { ...date, [field]: value } : date
-				)
-			);
-		};
-
-		const removeBlackoutDate = (id: string) => {
-			setBlackoutDates(prev => prev.filter(date => date.id !== id));
-		};
-
-		const formatDate = (dateString: string) => {
-			if (!dateString) return '';
-			const date = new Date(dateString);
-			return date.toLocaleDateString();
-		};
-
-		return (
-			<div className="space-y-6">
-				<div>
-					<h3 className="text-lg font-semibold text-gray-900 mb-4">
-						Blackout Dates
-					</h3>
-					<p className="text-sm text-gray-600 mb-6">
-						Block specific dates when your agency is unavailable for deliveries or pickups.
-					</p>
-				</div>
-
-				<div className="space-y-4">
-					{blackoutDates.map((blackoutDate) => (
-						<div key={blackoutDate.id} className="p-4 border border-gray-200 rounded-lg">
-							<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-1">
-										Date
-									</label>
-									<input
-										type="date"
-										value={blackoutDate.date}
-										onChange={(e) => updateBlackoutDate(blackoutDate.id, 'date', e.target.value)}
-										className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-									/>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-1">
-										Title
-									</label>
-									<input
-										type="text"
-										value={blackoutDate.title}
-										onChange={(e) => updateBlackoutDate(blackoutDate.id, 'title', e.target.value)}
-										placeholder="e.g., Christmas Day"
-										className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-									/>
-								</div>
-
-								<div>
-									<label className="block text-sm font-medium text-gray-700 mb-1">
-										Type
-									</label>
-									<select
-										value={blackoutDate.type}
-										onChange={(e) => updateBlackoutDate(blackoutDate.id, 'type', e.target.value)}
-										className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-									>
-										<option value="holiday">Holiday</option>
-										<option value="maintenance">Maintenance</option>
-										<option value="vacation">Vacation</option>
-										<option value="special_event">Special Event</option>
-									</select>
-								</div>
-
-								<div className="flex items-end">
-									<button
-										onClick={() => removeBlackoutDate(blackoutDate.id)}
-										className="px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md text-sm font-medium"
-									>
-										Remove
-									</button>
-								</div>
-							</div>
-
-							<div className="mt-4">
-								<label className="block text-sm font-medium text-gray-700 mb-1">
-									Reason (Optional)
-								</label>
-								<textarea
-									value={blackoutDate.reason || ''}
-									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'reason', e.target.value)}
-									placeholder="Optional description or reason for this blackout date"
-									rows={2}
-									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-								/>
-							</div>
-						</div>
-					))}
-
-					{blackoutDates.length === 0 && (
-						<div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-							<p className="text-gray-500 mb-4">No blackout dates configured</p>
-							<button
-								onClick={addBlackoutDate}
-								className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-							>
-								Add First Blackout Date
-							</button>
-						</div>
-					)}
-
-					{blackoutDates.length > 0 && (
-						<button
-							onClick={addBlackoutDate}
-							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-						>
-							Add Another Blackout Date
-						</button>
-					)}
-				</div>
-			</div>
-		);
-	};
 
 	const PoliciesTab = () => (
 		<div className="text-center py-12">
@@ -424,19 +608,24 @@ export default function AgencySettingsSection({
 		{
 			id: "blackout-dates",
 			name: "Blackout Dates",
-			content: <BlackoutDatesTab />,
+			content: <BlackoutDatesTab blackoutDates={blackoutDates} setBlackoutDates={setBlackoutDates} />,
 		},
-		{ id: "policies", name: "Policies", content: <PoliciesTab /> },
-		{
-			id: "customer-experience",
-			name: "Customer Experience",
-			content: <CustomerExperienceTab />,
+		{ 
+			id: "policies", 
+			name: "Policies", 
+			content: <BookingPoliciesTab bookingRules={bookingRules} setBookingRules={setBookingRules} /> 
 		},
-		{
-			id: "notifications",
-			name: "Notification Settings",
-			content: <NotificationSettingsTab />,
-		},
+		// Future features - hidden for now
+		// {
+		// 	id: "customer-experience",
+		// 	name: "Customer Experience", 
+		// 	content: <CustomerExperienceTab />,
+		// },
+		// {
+		// 	id: "notifications",
+		// 	name: "Notification Settings",
+		// 	content: <NotificationSettingsTab />,
+		// },
 	];
 
 	const handleSave = async () => {
@@ -464,6 +653,11 @@ export default function AgencySettingsSection({
 				dataToSave = blackoutDates;
 				endpoint = `/api/agency/blackout-dates?agencyId=${agency.id}`;
 				successMessage = "Blackout dates saved successfully!";
+			} else if (activeTab === 'policies') {
+				// Save booking policies
+				dataToSave = bookingRules;
+				endpoint = `/api/agency/booking-rules?agencyId=${agency.id}`;
+				successMessage = "Booking policies saved successfully!";
 			} else {
 				setSaveMessage("This tab doesn't support saving yet");
 				return;
