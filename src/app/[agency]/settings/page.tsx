@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 import { Header } from '@/shared/components/layout/Header'
 import { AgencyProfileSection } from './components/AgencyProfileSection'
+import FinancialManagementSection from './components/FinancialManagementSection'
+import AgencySettingsSection from './components/AgencySettingsSection'
 
 interface SettingsPageProps {
   params: Promise<{
@@ -63,49 +65,14 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
               />
             </section>
 
-            {/* Financial Management Section - Coming Soon */}
+            {/* Financial Management Section */}
             <section>
-              <div className="bg-white rounded-lg shadow-default p-6">
-                <div className="text-center py-8">
-                  <div className="mx-auto w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-                    <svg className="h-8 w-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                    Financial Management
-                  </h3>
-                  <p className="text-neutral-600 max-w-md mx-auto mb-4">
-                    Configure payment processing, Stripe Connect, and pricing settings.
-                  </p>
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                    Coming in Phase 2
-                  </div>
-                </div>
-              </div>
+              <FinancialManagementSection agency={agency} />
             </section>
 
-            {/* Agency Settings Section - Coming Soon */}
+            {/* Agency Settings Section */}
             <section>
-              <div className="bg-white rounded-lg shadow-default p-6">
-                <div className="text-center py-8">
-                  <div className="mx-auto w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-                    <svg className="h-8 w-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-semibold text-neutral-900 mb-2">
-                    Operational Settings
-                  </h3>
-                  <p className="text-neutral-600 max-w-md mx-auto mb-4">
-                    Configure business hours, blackout dates, booking policies, and customer experience.
-                  </p>
-                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                    Coming in Phase 3
-                  </div>
-                </div>
-              </div>
+              <AgencySettingsSection agency={agency} />
             </section>
 
             {/* Team Management Section - Future Feature */}
