@@ -123,7 +123,8 @@ describe('Financial Management Section - Success Criteria Validation', () => {
 
   // Success Criterion 7: Error Handling
   test('handles payment setup errors gracefully', async () => {
-    const mockCreateStripeAccount = require('@/features/payments/actions').createStripeConnectAccount
+    const { createStripeConnectAccount } = await import('@/features/payments/actions')
+    const mockCreateStripeAccount = createStripeConnectAccount as jest.MockedFunction<typeof createStripeConnectAccount>
     mockCreateStripeAccount.mockResolvedValue({
       success: false,
       error: 'Failed to create Stripe account'
@@ -261,7 +262,8 @@ describe('Financial Management Section - API Integration', () => {
   })
 
   test('initiates Stripe Connect onboarding flow', async () => {
-    const mockCreateStripeAccount = require('@/features/payments/actions').createStripeConnectAccount
+    const { createStripeConnectAccount } = await import('@/features/payments/actions')
+    const mockCreateStripeAccount = createStripeConnectAccount as jest.MockedFunction<typeof createStripeConnectAccount>
     mockCreateStripeAccount.mockResolvedValue({
       success: true,
       onboardingUrl: 'https://connect.stripe.com/onboarding/123',

@@ -199,7 +199,7 @@ const SignCustomization = () => {
 							className={`tab ${activeTab === "image" ? "active" : ""}`}
 							onClick={() => setActiveTab("image")}
 						>
-							<Image size={20} />
+							<Image size={20} alt="" />
 							Image
 						</button>
 						<button
