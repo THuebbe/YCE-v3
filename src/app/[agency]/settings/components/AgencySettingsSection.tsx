@@ -2,7 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
-import { AgencyWithProfile } from "@/types/agency";
+// Agency interface - only needs id property for API calls
+interface AgencyWithProfile {
+	id: string;
+	name?: string;
+	slug?: string;
+}
 import {
 	OperatingHours,
 	operatingHoursSchema,
