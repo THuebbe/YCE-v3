@@ -99,20 +99,19 @@ export default function FinancialManagementSection({
   const loadStripeStatus = async () => {
     try {
       const status = await getStripeConnectStatus()
-      if (status.success) {
-        setStripeStatus({
-          accountId: status.accountId || null,
-          isConnected: !!status.accountId,
-          hasCompletedOnboarding: status.accountStatus === 'enabled',
-          chargesEnabled: status.chargesEnabled || false,
-          payoutsEnabled: status.payoutsEnabled || false,
-          detailsSubmitted: status.detailsSubmitted || false,
-          currentlyDue: [],
-          eventuallyDue: [],
-          pastDue: [],
-          pendingVerification: []
-        })
-      }
+      // getStripeConnectStatus returns status object directly, no 'success' property
+      setStripeStatus({
+        accountId: status.accountId || null,
+        isConnected: !!status.accountId,
+        hasCompletedOnboarding: status.accountStatus === 'enabled',
+        chargesEnabled: status.chargesEnabled || false,
+        payoutsEnabled: status.payoutsEnabled || false,
+        detailsSubmitted: status.detailsSubmitted || false,
+        currentlyDue: [],
+        eventuallyDue: [],
+        pastDue: [],
+        pendingVerification: []
+      })
     } catch (error) {
       console.error('Error loading Stripe status:', error)
     }
