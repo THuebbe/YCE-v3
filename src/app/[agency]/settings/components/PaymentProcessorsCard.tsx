@@ -10,11 +10,11 @@ import { StripeSetupTab } from './StripeSetupTab'
 import { PayPalSetupTab } from './PayPalSetupTab'
 import { VenmoSetupTab } from './VenmoSetupTab'
 import type { 
-  Agency, 
   StripeConnectStatus, 
   PayPalConnectStatus,
   BraintreeConnectStatus
 } from '../validation/financialManagement'
+import type { Agency } from '@/lib/types/agency'
 
 interface PaymentProcessorsCardProps {
   agency: Agency
@@ -48,9 +48,9 @@ export function PaymentProcessorsCard({
   const [activeTab, setActiveTab] = useState('settings')
 
   // Status indicators for tabs
-  const stripeEnabled = stripeStatus?.isConnected && stripeStatus?.hasCompletedOnboarding
-  const paypalEnabled = paypalStatus?.isConnected && paypalStatus?.hasCompletedOnboarding
-  const venmoEnabled = braintreeStatus?.isConnected && braintreeStatus?.venmoEnabled
+  const stripeEnabled = !!(stripeStatus?.isConnected && stripeStatus?.hasCompletedOnboarding)
+  const paypalEnabled = !!(paypalStatus?.isConnected && paypalStatus?.hasCompletedOnboarding)
+  const venmoEnabled = !!(braintreeStatus?.isConnected && braintreeStatus?.venmoEnabled)
 
   const getTabIcon = (processor: string) => {
     switch (processor) {

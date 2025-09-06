@@ -119,7 +119,7 @@ export function VenmoCheckoutButton({
       }
 
       console.log('✅ Venmo payment completed successfully')
-      onSuccess(result.transactionId, {
+      onSuccess(result.transactionId || '', {
         paymentMethodType: 'venmo',
         amount: amount,
         description: description,

@@ -13,9 +13,9 @@ import {
   processPayPalCallback
 } from '@/features/payments/paypal-actions'
 import type { 
-  Agency, 
   PayPalConnectStatus 
 } from '../validation/financialManagement'
+import type { Agency } from '@/lib/types/agency'
 
 interface PayPalSetupTabProps {
   agency: Agency
@@ -209,7 +209,7 @@ export function PayPalSetupTab({
               <Button
                 onClick={handleRefreshPayPalStatus}
                 disabled={isRefreshing}
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 className="mt-2"
               >
@@ -233,7 +233,7 @@ export function PayPalSetupTab({
                 <Button
                   onClick={handleRefreshPayPalStatus}
                   disabled={isRefreshing || isLoading}
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -378,7 +378,7 @@ export function PayPalSetupTab({
                 
                 <Button
                   onClick={() => window.open('https://www.paypal.com/businessmanage/account/aboutBusiness', '_blank')}
-                  variant="outline"
+                  variant="secondary"
                   className="flex items-center gap-2"
                 >
                   <ExternalLink className="w-4 h-4" />

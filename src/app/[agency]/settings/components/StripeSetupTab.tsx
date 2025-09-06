@@ -12,9 +12,9 @@ import {
   refreshStripeAccount 
 } from '@/features/payments/actions'
 import type { 
-  Agency, 
   StripeConnectStatus 
 } from '../validation/financialManagement'
+import type { Agency } from '@/lib/types/agency'
 
 interface StripeSetupTabProps {
   agency: Agency
@@ -194,7 +194,7 @@ export function StripeSetupTab({
               <Button
                 onClick={handleRefreshStripeStatus}
                 disabled={isRefreshing}
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 className="mt-2"
               >
@@ -218,7 +218,7 @@ export function StripeSetupTab({
                 <Button
                   onClick={handleRefreshStripeStatus}
                   disabled={isRefreshing || isLoading}
-                  variant="outline"
+                  variant="secondary"
                   size="sm"
                 >
                   <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -264,7 +264,7 @@ export function StripeSetupTab({
                     <div className="text-xs text-gray-600">
                       ID: {stripeStatus.accountId?.substring(0, 12)}...
                     </div>
-                    <Badge variant="outline" className="mt-2">Connected</Badge>
+                    <Badge variant="secondary" className="mt-2">Connected</Badge>
                   </div>
                 </Card>
                 
@@ -330,7 +330,7 @@ export function StripeSetupTab({
                 {stripeStatus.hasCompletedOnboarding && (
                   <Button
                     onClick={() => window.open(`https://dashboard.stripe.com/connect/accounts/${stripeStatus.accountId}`, '_blank')}
-                    variant="outline"
+                    variant="secondary"
                     className="flex items-center gap-2"
                   >
                     <ExternalLink className="w-4 h-4" />

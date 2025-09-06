@@ -49,7 +49,6 @@ export async function POST(request: NextRequest) {
     switch (webhookNotification.kind) {
       case 'transaction_settled':
       case 'transaction_settlement_declined':
-      case 'transaction_submitted_for_settlement':
         await handleTransactionWebhook(webhookNotification);
         break;
 
@@ -64,9 +63,8 @@ export async function POST(request: NextRequest) {
         await handleSubscriptionWebhook(webhookNotification);
         break;
 
-      case 'merchant_account_approved':
-      case 'merchant_account_declined':
-      case 'merchant_account_suspended':
+      case 'sub_merchant_account_approved':
+      case 'sub_merchant_account_declined':
         await handleMerchantAccountWebhook(webhookNotification);
         break;
 

@@ -17,11 +17,11 @@ import {
   Info 
 } from 'lucide-react'
 import type { 
-  Agency, 
   StripeConnectStatus, 
   PayPalConnectStatus,
   PaymentMethod 
 } from '../validation/financialManagement'
+import type { Agency } from '@/lib/types/agency'
 
 interface PaymentSettingsTabProps {
   agency: Agency
@@ -41,8 +41,8 @@ export function PaymentSettingsTab({
   const [isUpdating, setIsUpdating] = useState(false)
   
   // Current processor states
-  const stripeEnabled = stripeStatus?.isConnected && stripeStatus?.hasCompletedOnboarding
-  const paypalEnabled = paypalStatus?.isConnected && paypalStatus?.hasCompletedOnboarding
+  const stripeEnabled = !!(stripeStatus?.isConnected && stripeStatus?.hasCompletedOnboarding)
+  const paypalEnabled = !!(paypalStatus?.isConnected && paypalStatus?.hasCompletedOnboarding)
   const yceProcessingEnabled = true // Always available as fallback
 
   // Determine current primary processor
@@ -54,10 +54,10 @@ export function PaymentSettingsTab({
 
   const [primaryProcessor, setPrimaryProcessor] = useState<PaymentMethod>(getCurrentPaymentMethod())
 
-  const handlePrimaryProcessorChange = async (value: PaymentMethod) => {
+  const handlePrimaryProcessorChange = async (value: string) => {
     try {
       setIsUpdating(true)
-      setPrimaryProcessor(value)
+      setPrimaryProcessor(value as PaymentMethod)
       
       // In a real implementation, you would save this to the API
       // For now, just simulate the API call
@@ -197,9 +197,8 @@ export function PaymentSettingsTab({
             <Select
               value={primaryProcessor}
               onValueChange={handlePrimaryProcessorChange}
-              disabled={isUpdating}
             >
-              <SelectTrigger id="primary-processor">
+              <SelectTrigger id="primary-processor" disabled={isUpdating}>
                 <SelectValue placeholder="Select primary processor" />
               </SelectTrigger>
               <SelectContent>

@@ -114,7 +114,7 @@ export function VenmoPaymentForm({
         }
 
         setBraintreeConfig({
-          clientToken: tokenResult.clientToken,
+          clientToken: tokenResult.clientToken || '',
           environment: tokenResult.environment
         })
 
@@ -210,7 +210,7 @@ export function VenmoPaymentForm({
       }
 
       console.log('✅ Venmo payment successful:', result.transactionId)
-      onSuccess(result.transactionId)
+      onSuccess(result.transactionId || '')
 
     } catch (error) {
       console.error('❌ Venmo payment failed:', error)

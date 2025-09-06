@@ -25,7 +25,7 @@ import {
   updateVenmoSettings,
   refreshBraintreeAccount
 } from '@/features/payments/braintree-actions'
-import type { Agency } from '../validation/financialManagement'
+import type { Agency } from '@/lib/types/agency'
 
 // Braintree/Venmo status type
 interface BraintreeConnectStatus {
@@ -88,7 +88,11 @@ export function VenmoSetupTab({
       const status = await getBraintreeStatus()
       console.log('📊 Braintree status received in component:', status)
       
-      setBraintreeStatus(status)
+      setBraintreeStatus({
+        ...status,
+        environment: (status.environment as 'sandbox' | 'production') || 'sandbox',
+        paymentMethodUsage: (status.paymentMethodUsage as 'single_use' | 'multi_use') || 'single_use'
+      })
     } catch (error) {
       console.error('❌ Error loading Braintree status in component:', error)
       setLoadError(error instanceof Error ? error.message : 'Failed to load Braintree status')
@@ -128,8 +132,12 @@ export function VenmoSetupTab({
       
       const result = await refreshBraintreeAccount()
       
-      if (result.success) {
-        setBraintreeStatus(result.status)
+      if (result.success && result.status) {
+        setBraintreeStatus({
+          ...result.status,
+          environment: (result.status.environment as 'sandbox' | 'production') || 'sandbox',
+          paymentMethodUsage: (result.status.paymentMethodUsage as 'single_use' | 'multi_use') || 'single_use'
+        })
         onSuccess?.()
       } else {
         onError?.(result.error || 'Failed to refresh Braintree status')
@@ -181,7 +189,7 @@ export function VenmoSetupTab({
 
   const getStatusBadge = () => {
     if (!braintreeStatus?.isConnected) {
-      return <Badge variant="outline">Not Connected</Badge>
+      return <Badge variant="secondary">Not Connected</Badge>
     }
     if (braintreeStatus.accountStatus === 'active' && braintreeStatus.venmoEnabled) {
       return <Badge variant="default" className="bg-green-500">Active</Badge>
@@ -189,7 +197,7 @@ export function VenmoSetupTab({
     if (braintreeStatus.accountStatus === 'active') {
       return <Badge variant="secondary" className="bg-orange-500">Connected - Venmo Disabled</Badge>
     }
-    return <Badge variant="outline" className="bg-red-500 text-white">Account Issue</Badge>
+    return <Badge variant="secondary" className="bg-red-500 text-white">Account Issue</Badge>
   }
 
   if (isLoading) {
@@ -225,7 +233,7 @@ export function VenmoSetupTab({
             <div className="flex items-center gap-3">
               {getStatusBadge()}
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={handleRefreshBraintreeStatus}
                 disabled={isRefreshing}
@@ -394,12 +402,11 @@ export function VenmoSetupTab({
                         </div>
                         <Select
                           value={braintreeStatus.paymentMethodUsage}
-                          onValueChange={(usage: 'single_use' | 'multi_use') => 
-                            handleUpdateSettings({ paymentMethodUsage: usage })
+                          onValueChange={(value: string) => 
+                            handleUpdateSettings({ paymentMethodUsage: value as 'single_use' | 'multi_use' })
                           }
-                          disabled={isUpdatingSettings}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger disabled={isUpdatingSettings}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>

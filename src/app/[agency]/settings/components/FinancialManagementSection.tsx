@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertTriangle, DollarSign, Save } from 'lucide-react'
 import type { 
-  Agency,
   FinancialManagementFormData, 
   FinancialValidationErrors, 
   PaymentMethod,
@@ -20,6 +19,7 @@ import type {
   SubscriptionInfo,
   calculateNetPayout
 } from '../validation/financialManagement'
+import type { Agency } from '@/lib/types/agency'
 
 interface FinancialManagementSectionProps {
   agency: Agency

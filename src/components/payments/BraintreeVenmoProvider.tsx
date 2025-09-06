@@ -82,7 +82,7 @@ export function BraintreeVenmoProvider({ children }: BraintreeVenmoProviderProps
           throw new Error(tokenResult.error)
         }
 
-        setClientToken(tokenResult.clientToken)
+        setClientToken(tokenResult.clientToken || null)
         setEnvironment(tokenResult.environment || 'sandbox')
 
         // Create Braintree client
