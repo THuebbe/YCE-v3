@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-// import { prisma } from '@/lib/db/prisma';
+import { supabase } from '@/lib/db/supabase-client';
 
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -37,76 +37,97 @@ export async function POST(request: NextRequest) {
       return new NextResponse('Invalid signature', { status: 400 });
     }
 
-    console.log('Processing Stripe webhook event:', event.type);
+    console.log('🎯 Processing Stripe webhook event:', event.type, 'ID:', event.id);
 
     // Handle the event
     switch (event.type) {
       case 'account.updated': {
         const account = event.data.object as Stripe.Account;
         
-        // Update the agency's Stripe account status
-        // TODO: Replace with Supabase query
-        /*
-        // TODO: Replace with Supabase query
-        /*
-        await prisma.agency.updateMany({
-          where: { stripeAccountId: account.id },
-          data: {
-            stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-            stripeChargesEnabled: account.charges_enabled,
-            stripePayoutsEnabled: account.payouts_enabled,
-            stripeDetailsSubmitted: account.details_submitted,
-          },
-        });
-        */
+        try {
+          // Update the agency's Stripe account status
+          const { error } = await supabase
+            .from('agencies')
+            .update({
+              stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
+              stripeChargesEnabled: account.charges_enabled,
+              stripePayoutsEnabled: account.payouts_enabled,
+              stripeDetailsSubmitted: account.details_submitted,
+            })
+            .eq('stripeAccountId', account.id);
 
-        console.log(`Updated account ${account.id} status`);
+          if (error) {
+            console.error('Error updating agency Stripe status:', error);
+            throw error;
+          }
+
+          console.log('✅ Updated account', account.id, 'status:', {
+            chargesEnabled: account.charges_enabled,
+            payoutsEnabled: account.payouts_enabled,
+            detailsSubmitted: account.details_submitted,
+            eventId: event.id
+          });
+        } catch (error) {
+          console.error('Failed to update agency Stripe status:', error);
+        }
         break;
       }
 
       case 'account.application.deauthorized': {
         const application = event.data.object as Stripe.Application;
         
-        // Handle account disconnection
-        // TODO: Replace with Supabase query
-        /*
-        await prisma.agency.updateMany({
-          where: { stripeAccountId: application.id },
-          data: {
-            stripeAccountId: null,
-            stripeAccountStatus: null,
-            stripeOnboardingUrl: null,
-            stripeChargesEnabled: false,
-            stripePayoutsEnabled: false,
-            stripeDetailsSubmitted: false,
-          },
-        });
-        */
+        try {
+          // Handle account disconnection
+          const { error } = await supabase
+            .from('agencies')
+            .update({
+              stripeAccountId: null,
+              stripeAccountStatus: null,
+              stripeOnboardingUrl: null,
+              stripeChargesEnabled: false,
+              stripePayoutsEnabled: false,
+              stripeDetailsSubmitted: false,
+            })
+            .eq('stripeAccountId', application.id);
 
-        console.log(`Deauthorized account ${application.id}`);
+          if (error) {
+            console.error('Error deauthorizing agency Stripe account:', error);
+            throw error;
+          }
+
+          console.log(`Deauthorized account ${application.id}`);
+        } catch (error) {
+          console.error('Failed to deauthorize agency Stripe account:', error);
+        }
         break;
       }
 
       case 'capability.updated': {
         const capability = event.data.object as Stripe.Capability;
         
-        // Update capabilities when they change
-        const account = await stripe!.accounts.retrieve(capability.account as string);
-        
-        // TODO: Replace with Supabase query
-        /*
-        await prisma.agency.updateMany({
-          where: { stripeAccountId: account.id },
-          data: {
-            stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-            stripeChargesEnabled: account.charges_enabled,
-            stripePayoutsEnabled: account.payouts_enabled,
-            stripeDetailsSubmitted: account.details_submitted,
-          },
-        });
-        */
+        try {
+          // Update capabilities when they change
+          const account = await stripe!.accounts.retrieve(capability.account as string);
+          
+          const { error } = await supabase
+            .from('agencies')
+            .update({
+              stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
+              stripeChargesEnabled: account.charges_enabled,
+              stripePayoutsEnabled: account.payouts_enabled,
+              stripeDetailsSubmitted: account.details_submitted,
+            })
+            .eq('stripeAccountId', account.id);
 
-        console.log(`Updated capabilities for account ${account.id}`);
+          if (error) {
+            console.error('Error updating agency capabilities:', error);
+            throw error;
+          }
+
+          console.log(`Updated capabilities for account ${account.id}`);
+        } catch (error) {
+          console.error('Failed to update agency capabilities:', error);
+        }
         break;
       }
 
@@ -114,23 +135,29 @@ export async function POST(request: NextRequest) {
       case 'person.updated': {
         const person = event.data.object as Stripe.Person;
         
-        // Update account status when person information changes
-        const account = await stripe!.accounts.retrieve(person.account as string);
-        
-        // TODO: Replace with Supabase query
-        /*
-        await prisma.agency.updateMany({
-          where: { stripeAccountId: account.id },
-          data: {
-            stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-            stripeChargesEnabled: account.charges_enabled,
-            stripePayoutsEnabled: account.payouts_enabled,
-            stripeDetailsSubmitted: account.details_submitted,
-          },
-        });
-        */
+        try {
+          // Update account status when person information changes
+          const account = await stripe!.accounts.retrieve(person.account as string);
+          
+          const { error } = await supabase
+            .from('agencies')
+            .update({
+              stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
+              stripeChargesEnabled: account.charges_enabled,
+              stripePayoutsEnabled: account.payouts_enabled,
+              stripeDetailsSubmitted: account.details_submitted,
+            })
+            .eq('stripeAccountId', account.id);
 
-        console.log(`Updated account ${account.id} after person ${event.type}`);
+          if (error) {
+            console.error('Error updating agency after person change:', error);
+            throw error;
+          }
+
+          console.log(`Updated account ${account.id} after person ${event.type}`);
+        } catch (error) {
+          console.error('Failed to update agency after person change:', error);
+        }
         break;
       }
 
@@ -165,5 +192,16 @@ export async function POST(request: NextRequest) {
 
 // Handle GET requests (for webhook endpoint verification)
 export async function GET() {
-  return new NextResponse('Stripe webhook endpoint', { status: 200 });
+  const isConfigured = !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
+  
+  return new NextResponse(JSON.stringify({
+    status: 'Stripe webhook endpoint active',
+    configured: isConfigured,
+    timestamp: new Date().toISOString()
+  }), { 
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 }
