@@ -1,68 +1,66 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-
-// Temporary Agency type definition - should match the actual Agency type from database
-interface Agency {
-  id: string
-  name?: string
-  slug?: string
-  basePrice?: number
-  extraDayPrice?: number
-  lateFee?: number
-  stripeAccountId?: string | null
-  stripeAccountStatus?: string | null
-  stripeOnboardingUrl?: string | null
-  stripeChargesEnabled?: boolean
-  stripePayoutsEnabled?: boolean
-  stripeDetailsSubmitted?: boolean
-  subscriptionStatus?: string
-  subscriptionStartDate?: string
-}
-import { 
+import { PaymentProcessorsCard } from './PaymentProcessorsCard'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AlertTriangle, DollarSign, Save } from 'lucide-react'
+import type { 
+  Agency,
   FinancialManagementFormData, 
   FinancialValidationErrors, 
   PaymentMethod,
   PricingConfig,
-  YCEPaymentConfig,
   StripeConnectStatus,
+  PayPalConnectStatus,
+  BraintreeConnectStatus,
   SubscriptionInfo,
-  financialManagementSchema,
   calculateNetPayout
 } from '../validation/financialManagement'
-import { createStripeConnectAccount, getStripeConnectStatus } from '@/features/payments/actions'
 
 interface FinancialManagementSectionProps {
   agency: Agency
+  stripeReturnSuccess?: boolean
+  stripeReturnRefresh?: boolean
+  paypalReturnSuccess?: boolean
+  paypalReturnRefresh?: boolean
+  braintreeReturnSuccess?: boolean
+  braintreeReturnRefresh?: boolean
   onSuccess?: () => void
   onError?: (error: string) => void
 }
 
 export default function FinancialManagementSection({ 
   agency, 
+  stripeReturnSuccess = false,
+  stripeReturnRefresh = false,
+  paypalReturnSuccess = false,
+  paypalReturnRefresh = false,
+  braintreeReturnSuccess = false,
+  braintreeReturnRefresh = false,
   onSuccess, 
   onError 
 }: FinancialManagementSectionProps) {
-  const [formData, setFormData] = useState<FinancialManagementFormData>({
-    paymentMethod: 'stripe_connect' as PaymentMethod,
-    pricingConfig: {
-      basePrice: agency.basePrice || 50,
-      extraDayPrice: agency.extraDayPrice || 10,
-      lateFee: agency.lateFee || 25,
-    }
+  const [pricingConfig, setPricingConfig] = useState<PricingConfig>({
+    basePrice: agency.basePrice || 50,
+    extraDayPrice: agency.extraDayPrice || 10,
+    lateFee: agency.lateFee || 25,
   })
 
-  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null)
+  const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
+  const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus | null>(null)
+  const [braintreeStatus, setBraintreeStatus] = useState<BraintreeConnectStatus | null>(null)
   const [errors, setErrors] = useState<FinancialValidationErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
 
-  // Load financial settings on component mount
+  // Load pricing configuration and subscription info on component mount
   useEffect(() => {
     loadFinancialSettings()
-    loadStripeStatus()
     loadSubscriptionInfo()
   }, [agency.id])
 
@@ -78,42 +76,22 @@ export default function FinancialManagementSection({
 
       if (data && data.success && data.data) {
         const responseData = data.data
-        setFormData(prev => ({
-          ...prev,
-          paymentMethod: responseData.paymentMethod || 'stripe_connect',
-          pricingConfig: {
-            basePrice: responseData.basePrice || prev.pricingConfig.basePrice,
-            extraDayPrice: responseData.extraDayPrice || prev.pricingConfig.extraDayPrice,
-            lateFee: responseData.lateFee || prev.pricingConfig.lateFee,
-          }
-        }))
+        setPricingConfig({
+          basePrice: responseData.basePrice || pricingConfig.basePrice,
+          extraDayPrice: responseData.extraDayPrice || pricingConfig.extraDayPrice,
+          lateFee: responseData.lateFee || pricingConfig.lateFee,
+        })
+        
+        // Set payment processor status
+        setStripeStatus(responseData.stripeStatus || null)
+        setPaypalStatus(responseData.paypalStatus || null)
+        setBraintreeStatus(responseData.braintreeStatus || null)
       }
     } catch (error) {
       console.error('Error loading financial settings:', error)
-      setLoadError(error instanceof Error ? error.message : 'Network error occurred')
+      onError?.(error instanceof Error ? error.message : 'Network error occurred')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const loadStripeStatus = async () => {
-    try {
-      const status = await getStripeConnectStatus()
-      // getStripeConnectStatus returns status object directly, no 'success' property
-      setStripeStatus({
-        accountId: status.accountId || null,
-        isConnected: !!status.accountId,
-        hasCompletedOnboarding: status.accountStatus === 'enabled',
-        chargesEnabled: status.chargesEnabled || false,
-        payoutsEnabled: status.payoutsEnabled || false,
-        detailsSubmitted: status.detailsSubmitted || false,
-        currentlyDue: [],
-        eventuallyDue: [],
-        pastDue: [],
-        pendingVerification: []
-      })
-    } catch (error) {
-      console.error('Error loading Stripe status:', error)
     }
   }
 
@@ -136,19 +114,11 @@ export default function FinancialManagementSection({
     }
   }
 
-  const handlePaymentMethodChange = (method: PaymentMethod) => {
-    setFormData(prev => ({ ...prev, paymentMethod: method }))
-    setErrors(prev => ({ ...prev, paymentMethod: undefined }))
-  }
-
   const handlePricingChange = (field: keyof PricingConfig, value: string) => {
     const numericValue = parseFloat(value) || 0
-    setFormData(prev => ({
+    setPricingConfig(prev => ({
       ...prev,
-      pricingConfig: {
-        ...prev.pricingConfig,
-        [field]: numericValue
-      }
+      [field]: numericValue
     }))
     
     // Clear field-specific errors
@@ -161,385 +131,209 @@ export default function FinancialManagementSection({
     }))
   }
 
-  const handleStripeConnect = async () => {
-    try {
-      setIsLoading(true)
-      const result = await createStripeConnectAccount()
-      
-      if (result.success && result.onboardingUrl) {
-        // Redirect to Stripe onboarding
-        window.location.href = result.onboardingUrl
-      } else {
-        throw new Error(result.error || 'Failed to create Stripe account')
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to connect with Stripe'
-      setLoadError(errorMessage)
-      onError?.(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handleSavePricing = async () => {
     try {
       setIsSaving(true)
       setErrors({})
 
       // Validate pricing configuration
-      const validationResult = financialManagementSchema.safeParse({
-        paymentMethod: formData.paymentMethod,
-        pricingConfig: formData.pricingConfig
-      })
-
-      if (!validationResult.success) {
-        const fieldErrors: FinancialValidationErrors = {}
-        validationResult.error.errors.forEach(error => {
-          const field = error.path.join('.')
-          if (field.startsWith('pricingConfig.')) {
-            const pricingField = field.replace('pricingConfig.', '') as keyof PricingConfig
-            fieldErrors.pricingConfig = {
-              ...fieldErrors.pricingConfig,
-              [pricingField]: [error.message]
-            }
-          }
-        })
-        setErrors(fieldErrors)
+      if (pricingConfig.basePrice <= 0) {
+        setErrors({ pricingConfig: { basePrice: ['Base price must be greater than 0'] } })
         return
       }
 
-      const response = await fetch(`/api/agency/financial-settings?agencyId=${agency.id}`, {
-        method: 'PUT',
+      if (pricingConfig.extraDayPrice < 0) {
+        setErrors({ pricingConfig: { extraDayPrice: ['Extra day price cannot be negative'] } })
+        return
+      }
+
+      if (pricingConfig.lateFee < 0) {
+        setErrors({ pricingConfig: { lateFee: ['Late fee cannot be negative'] } })
+        return
+      }
+
+      const response = await fetch(`/api/agency/financial-settings`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          basePrice: formData.pricingConfig.basePrice,
-          extraDayPrice: formData.pricingConfig.extraDayPrice,
-          lateFee: formData.pricingConfig.lateFee,
+          agencyId: agency.id,
+          pricingConfig
         })
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        if (data.details) {
-          const fieldErrors: FinancialValidationErrors = {}
-          data.details.forEach((detail: any) => {
-            if (detail.field.startsWith('pricingConfig.')) {
-              const pricingField = detail.field.replace('pricingConfig.', '') as keyof PricingConfig
-              fieldErrors.pricingConfig = {
-                ...fieldErrors.pricingConfig,
-                [pricingField]: [detail.message]
-              }
-            }
-          })
-          setErrors(fieldErrors)
-          return
-        }
-        throw new Error(data.error || 'Failed to save pricing settings')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to save pricing configuration')
       }
 
       onSuccess?.()
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to save pricing settings'
-      setLoadError(errorMessage)
-      onError?.(errorMessage)
+      console.error('Error saving pricing configuration:', error)
+      onError?.(error instanceof Error ? error.message : 'Failed to save pricing configuration')
     } finally {
       setIsSaving(false)
     }
   }
 
-  // Render loading state
-  if (isLoading && !formData) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-          </div>
+          <div className="bg-gray-200 rounded-lg h-96"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div role="region" aria-label="Financial Management" className="space-y-8">
-      {loadError && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <div className="text-red-800 text-sm">
-              {loadError.includes('Network') ? 'Network error occurred' : 
-               loadError.includes('permissions') ? 'Insufficient permissions' : 
-               loadError.includes('load') ? 'Failed to load financial settings' : 
-               loadError}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Method Selection */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Processing Method</h3>
-        
-        <div className="space-y-4">
-          <div className="flex items-start space-x-3">
-            <input
-              id="stripe-connect"
-              name="payment-method"
-              type="radio"
-              checked={formData.paymentMethod === 'stripe_connect'}
-              onChange={() => handlePaymentMethodChange('stripe_connect')}
-              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              aria-labelledby="stripe-connect-label"
-            />
-            <div className="flex-1">
-              <label id="stripe-connect-label" htmlFor="stripe-connect" className="block text-sm font-medium text-gray-900">
-                Stripe Connect
-              </label>
-              <p className="text-sm text-gray-600">Direct payments to your bank account, full control over payouts and timing</p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-3">
-            <input
-              id="yce-processing"
-              name="payment-method"
-              type="radio"
-              checked={formData.paymentMethod === 'yce_processing'}
-              onChange={() => handlePaymentMethodChange('yce_processing')}
-              className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-              aria-labelledby="yce-processing-label"
-            />
-            <div className="flex-1">
-              <label id="yce-processing-label" htmlFor="yce-processing" className="block text-sm font-medium text-gray-900">
-                YardCard Elite Payment Processing
-              </label>
-              <p className="text-sm text-gray-600">We handle all payment processing complexity, service fee applies</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stripe Connect Status */}
-      {formData.paymentMethod === 'stripe_connect' && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Stripe Connect Status</h3>
-            {stripeStatus?.isConnected && (
-              <div 
-                data-testid="stripe-status-indicator"
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  stripeStatus.hasCompletedOnboarding 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-yellow-100 text-yellow-800'
-                }`}
-              >
-                {stripeStatus.hasCompletedOnboarding ? 'Setup Complete' : 'Setup Pending'}
-              </div>
-            )}
-          </div>
-
-          {!stripeStatus?.isConnected ? (
-            <div className="text-center py-6">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Set up Stripe Connect</h4>
-              <p className="text-sm text-gray-600 mb-4">Direct payments to your bank account with full control over payouts</p>
-              <button
-                onClick={handleStripeConnect}
-                disabled={isLoading}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {isLoading ? 'Connecting...' : 'Connect with Stripe'}
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-sm font-medium text-gray-900">Stripe Account Connected</div>
-                <div className="text-xs text-gray-600">Account ID: {stripeStatus.accountId?.substring(0, 12)}...</div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm font-medium text-gray-900">
-                  {stripeStatus.chargesEnabled ? 'Charges Enabled' : 'Charges Pending'}
-                </div>
-                <div className={`text-xs ${stripeStatus.chargesEnabled ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {stripeStatus.chargesEnabled ? 'Ready to accept payments' : 'Verification required'}
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-sm font-medium text-gray-900">
-                  {stripeStatus.payoutsEnabled ? 'Payouts Enabled' : 'Payouts Pending'}
-                </div>
-                <div className={`text-xs ${stripeStatus.payoutsEnabled ? 'text-green-600' : 'text-yellow-600'}`}>
-                  {stripeStatus.payoutsEnabled ? 'Bank account connected' : 'Bank setup required'}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* YCE Payment Processing */}
-      {formData.paymentMethod === 'yce_processing' && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">YardCard Elite Payment Processing</h3>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              We handle all payment processing complexity, tax reporting, and customer support.
-            </p>
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Service Fee Calculation</h4>
-              <div className="text-sm text-blue-800">
-                <div>Example: $100 rental</div>
-                <div>Service Fee (5%): ${calculateNetPayout(100).serviceFee}</div>
-                <div className="font-medium">Net Payout: ${calculateNetPayout(100).netPayout}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="space-y-6">
+      {/* Payment Processors Card - New Tabbed Interface */}
+      <PaymentProcessorsCard 
+        agency={agency}
+        stripeStatus={stripeStatus}
+        paypalStatus={paypalStatus}
+        braintreeStatus={braintreeStatus}
+        stripeReturnSuccess={stripeReturnSuccess}
+        stripeReturnRefresh={stripeReturnRefresh}
+        paypalReturnSuccess={paypalReturnSuccess}
+        paypalReturnRefresh={paypalReturnRefresh}
+        braintreeReturnSuccess={braintreeReturnSuccess}
+        braintreeReturnRefresh={braintreeReturnRefresh}
+        onSuccess={onSuccess}
+        onError={onError}
+      />
 
       {/* Pricing Configuration */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Pricing Configuration</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label htmlFor="base-price" className="block text-sm font-medium text-gray-700 mb-1">
-              Base Price
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
+      <Card className="shadow-sm border-0">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Pricing Configuration
+          </CardTitle>
+          <CardDescription>
+            Set your base pricing and additional fees for yard card rentals.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="base-price">Base Price</Label>
+              <Input
                 id="base-price"
                 type="number"
-                min="0"
                 step="0.01"
-                value={formData.pricingConfig.basePrice}
+                min="0.01"
+                value={pricingConfig.basePrice}
                 onChange={(e) => handlePricingChange('basePrice', e.target.value)}
-                className="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                aria-describedby={errors.pricingConfig?.basePrice ? "base-price-error" : undefined}
+                placeholder="50.00"
               />
+              {errors.pricingConfig?.basePrice && (
+                <p className="text-sm text-red-600">{errors.pricingConfig.basePrice[0]}</p>
+              )}
             </div>
-            {errors.pricingConfig?.basePrice && (
-              <p id="base-price-error" className="mt-1 text-sm text-red-600">
-                {errors.pricingConfig.basePrice[0]}
-              </p>
-            )}
-          </div>
 
-          <div>
-            <label htmlFor="extra-day-price" className="block text-sm font-medium text-gray-700 mb-1">
-              Extra Day Price
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="extra-day-price">Extra Day Price</Label>
+              <Input
                 id="extra-day-price"
                 type="number"
-                min="0"
                 step="0.01"
-                value={formData.pricingConfig.extraDayPrice}
+                min="0"
+                value={pricingConfig.extraDayPrice}
                 onChange={(e) => handlePricingChange('extraDayPrice', e.target.value)}
-                className="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                aria-describedby={errors.pricingConfig?.extraDayPrice ? "extra-day-price-error" : undefined}
+                placeholder="10.00"
               />
+              {errors.pricingConfig?.extraDayPrice && (
+                <p className="text-sm text-red-600">{errors.pricingConfig.extraDayPrice[0]}</p>
+              )}
             </div>
-            {errors.pricingConfig?.extraDayPrice && (
-              <p id="extra-day-price-error" className="mt-1 text-sm text-red-600">
-                {errors.pricingConfig.extraDayPrice[0]}
-              </p>
-            )}
-          </div>
 
-          <div>
-            <label htmlFor="late-fee" className="block text-sm font-medium text-gray-700 mb-1">
-              Late Fee
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="late-fee">Late Fee</Label>
+              <Input
                 id="late-fee"
                 type="number"
-                min="0"
                 step="0.01"
-                value={formData.pricingConfig.lateFee}
+                min="0"
+                value={pricingConfig.lateFee}
                 onChange={(e) => handlePricingChange('lateFee', e.target.value)}
-                className="block w-full pl-7 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                aria-describedby={errors.pricingConfig?.lateFee ? "late-fee-error" : undefined}
+                placeholder="25.00"
               />
+              {errors.pricingConfig?.lateFee && (
+                <p className="text-sm text-red-600">{errors.pricingConfig.lateFee[0]}</p>
+              )}
             </div>
-            {errors.pricingConfig?.lateFee && (
-              <p id="late-fee-error" className="mt-1 text-sm text-red-600">
-                {errors.pricingConfig.lateFee[0]}
-              </p>
-            )}
           </div>
-        </div>
 
-        <div className="mt-4">
-          <button
-            onClick={handleSavePricing}
-            disabled={isSaving}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
-          >
-            {isSaving ? 'Saving...' : 'Save Pricing'}
-          </button>
-        </div>
-      </div>
+          {/* Preview */}
+          <div className="bg-gray-50 shadow-sm rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-900 mb-2">Pricing Preview</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">Standard rental:</span>
+                <span className="font-medium ml-2">${pricingConfig.basePrice.toFixed(2)}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Each extra day:</span>
+                <span className="font-medium ml-2">+${pricingConfig.extraDayPrice.toFixed(2)}</span>
+              </div>
+              <div>
+                <span className="text-gray-600">Late return:</span>
+                <span className="font-medium ml-2">+${pricingConfig.lateFee.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
 
-      {/* Subscription Status */}
+          <div className="flex justify-end">
+            <Button onClick={handleSavePricing} disabled={isSaving}>
+              <Save className="w-4 h-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Pricing'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Subscription Information */}
       {subscriptionInfo && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Subscription Status</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Status:</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-                    subscriptionInfo.status === 'active' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {subscriptionInfo.status}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Plan:</span>
-                  <span className="text-sm text-gray-900">{subscriptionInfo.planName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm font-medium text-gray-700">Price:</span>
-                  <span className="text-sm text-gray-900">${subscriptionInfo.planPrice}/{subscriptionInfo.billingInterval}</span>
-                </div>
+        <Card className="shadow-sm border-0">
+          <CardHeader>
+            <CardTitle>Subscription & Billing</CardTitle>
+            <CardDescription>
+              Your current subscription and payment information.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Current Plan</h4>
+                <p className="text-2xl font-bold text-gray-900">
+                  {subscriptionInfo.planName}
+                </p>
+                <p className="text-sm text-gray-600">
+                  ${subscriptionInfo.planPrice}/
+                  {subscriptionInfo.billingInterval === 'month' ? 'month' : 'year'}
+                </p>
               </div>
-            </div>
-            
-            <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Billing Information</h4>
-              <div className="space-y-2">
-                <div className="text-sm text-gray-600">
-                  Next billing: {new Date(subscriptionInfo.nextBillingDate).toLocaleDateString()}
-                </div>
-                <div className="text-sm text-gray-600">
+
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Next Billing Date</h4>
+                <p className="text-gray-900">
+                  {new Date(subscriptionInfo.nextBillingDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </p>
+                <p className="text-sm text-gray-600">
                   Payment method: {subscriptionInfo.paymentMethodType} 
-                  {subscriptionInfo.lastFourDigits && ` ending in ****${subscriptionInfo.lastFourDigits}`}
-                </div>
+                  {subscriptionInfo.lastFourDigits && ` ending in ${subscriptionInfo.lastFourDigits}`}
+                </p>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

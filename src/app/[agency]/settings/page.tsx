@@ -10,11 +10,18 @@ interface SettingsPageProps {
   params: Promise<{
     agency: string
   }>
+  searchParams: Promise<{
+    success?: string
+    refresh?: string
+    braintree_success?: string
+    braintree_refresh?: string
+  }>
 }
 
-export default async function SettingsPage({ params }: SettingsPageProps) {
+export default async function SettingsPage({ params, searchParams }: SettingsPageProps) {
   const { userId } = await auth()
   const { agency: agencySlug } = await params
+  const { success, refresh, braintree_success, braintree_refresh } = await searchParams
 
   if (!userId) {
     redirect('/auth/sign-in')
@@ -67,7 +74,13 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
             {/* Financial Management Section */}
             <section>
-              <FinancialManagementSection agency={agency} />
+              <FinancialManagementSection 
+                agency={agency} 
+                stripeReturnSuccess={success === 'true'}
+                stripeReturnRefresh={refresh === 'true'}
+                braintreeReturnSuccess={braintree_success === 'true'}
+                braintreeReturnRefresh={braintree_refresh === 'true'}
+              />
             </section>
 
             {/* Agency Settings Section */}

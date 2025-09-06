@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 Financial Settings API: Fetching financial settings for agency: ${agencyId}`)
 
-    // Get agency financial data from database
+    // Get agency financial data from database (including Braintree fields)
     const { data: agency, error } = await supabase
       .from('agencies')
       .select(`
@@ -63,7 +63,17 @@ export async function GET(request: NextRequest) {
         stripeAccountStatus,
         stripeChargesEnabled,
         stripePayoutsEnabled,
-        stripeDetailsSubmitted
+        stripeDetailsSubmitted,
+        braintree_environment,
+        braintree_merchant_id,
+        braintree_public_key,
+        braintree_account_status,
+        venmo_enabled,
+        venmo_allow_desktop,
+        venmo_allow_web_login,
+        venmo_payment_method_usage,
+        braintree_last_sync_at,
+        braintree_integration_data
       `)
       .eq('id', agencyId)
       .eq('isActive', true)
@@ -85,9 +95,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Determine payment method based on Stripe status
+    // Determine payment method based on connected processors
     const hasStripeAccount = !!agency.stripeAccountId
-    const paymentMethod = hasStripeAccount ? 'stripe_connect' : 'yce_processing'
+    const hasBraintreeAccount = !!agency.braintree_merchant_id
+    
+    // Payment method priority: Stripe > Braintree/Venmo > YCE Processing
+    let paymentMethod = 'yce_processing'
+    if (hasStripeAccount && agency.stripeDetailsSubmitted) {
+      paymentMethod = 'stripe_connect'
+    } else if (hasBraintreeAccount && agency.venmo_enabled) {
+      paymentMethod = 'venmo_connect'
+    }
 
     // Extract pricing data from JSONB pricingConfig field
     const pricingConfig = agency.pricingConfig || {}
@@ -104,7 +122,32 @@ export async function GET(request: NextRequest) {
         chargesEnabled: agency.stripeChargesEnabled,
         payoutsEnabled: agency.stripePayoutsEnabled,
         detailsSubmitted: agency.stripeDetailsSubmitted
-      } : null
+      } : null,
+      braintreeStatus: hasBraintreeAccount ? {
+        merchantId: agency.braintree_merchant_id,
+        isConnected: true,
+        environment: agency.braintree_environment || 'sandbox',
+        venmoEnabled: agency.venmo_enabled || false,
+        accountStatus: agency.braintree_account_status || 'active',
+        allowDesktop: agency.venmo_allow_desktop || true,
+        allowWebLogin: agency.venmo_allow_web_login || true,
+        paymentMethodUsage: agency.venmo_payment_method_usage || 'multi_use',
+        lastSyncAt: agency.braintree_last_sync_at,
+        integrationData: agency.braintree_integration_data ? JSON.parse(agency.braintree_integration_data) : null,
+        publicKey: agency.braintree_public_key
+      } : {
+        merchantId: null,
+        isConnected: false,
+        environment: 'sandbox',
+        venmoEnabled: false,
+        accountStatus: 'not_connected',
+        allowDesktop: true,
+        allowWebLogin: true,
+        paymentMethodUsage: 'multi_use',
+        lastSyncAt: null,
+        integrationData: null,
+        publicKey: null
+      }
     }
 
     console.log('✅ Financial Settings API: Financial settings retrieved successfully')
