@@ -31,7 +31,7 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
         console.log('🏢 Tenant (Supabase): Found agency slug in route path:', agencySlug)
         
         const agency = await getAgencyBySlug(agencySlug)
-        if (agency && agency.isActive) {
+        if (agency && agency.is_active) {
           console.log('🏢 Tenant (Supabase): ✅ Agency resolved via route path:', agency.id)
           return agency.id
         } else {
@@ -46,7 +46,7 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
       if (agencySlug) {
         console.log('🏢 Tenant (Supabase): Found legacy agency slug in URL parameter:', agencySlug)
         const agency = await getAgencyBySlug(agencySlug)
-        if (agency && agency.isActive) {
+        if (agency && agency.is_active) {
           console.log('🏢 Tenant (Supabase): ✅ Agency resolved via legacy URL parameter:', agency.id)
           return agency.id
         }
@@ -59,7 +59,7 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
     if (subdomain) {
       console.log('🏢 Tenant (Supabase): Found subdomain:', subdomain)
       const agency = await getAgencyBySlug(subdomain)
-      if (agency && agency.isActive) {
+      if (agency && agency.is_active) {
         console.log('🏢 Tenant (Supabase): ✅ Agency resolved via subdomain:', agency.id)
         return agency.id
       } else {
@@ -69,7 +69,7 @@ export const getCurrentTenant = cache(async (): Promise<string | null> => {
     
     // PRIORITY 3: Check for custom domain
     const customDomainAgency = await getAgencyByDomain(hostname)
-    if (customDomainAgency && customDomainAgency.isActive) {
+    if (customDomainAgency && customDomainAgency.is_active) {
       console.log('🏢 Tenant (Supabase): ✅ Agency resolved via custom domain:', customDomainAgency.id)
       return customDomainAgency.id
     }

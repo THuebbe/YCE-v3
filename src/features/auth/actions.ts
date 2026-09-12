@@ -28,7 +28,7 @@ export async function checkSubdomainAvailability(slug: string): Promise<Subdomai
       .from('agencies')
       .select('id')
       .eq('slug', slug)
-      .eq('isActive', true)
+      .eq('is_active', true)
       .single()
 
     if (error && error.code !== 'PGRST116') {
@@ -112,28 +112,28 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         name,
         slug,
         description,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-        stripeChargesEnabled: false,
-        stripePayoutsEnabled: false,
-        stripeDetailsSubmitted: false,
+        is_active: true,
+        created_at: now,
+        updated_at: now,
+        stripe_charges_enabled: false,
+        stripe_payouts_enabled: false,
+        stripe_details_submitted: false,
         address: {},
-        agencyCode: `AG${Date.now()}`,
-        businessName: name,
+        agency_code: `AG${Date.now()}`,
+        business_name: name,
         city: 'Default City', // TODO: Get from form
         email: user.emailAddresses[0]?.emailAddress || '',
-        orderCounter: 0,
+        order_counter: 0,
         phone: '', // TODO: Get from form
-        pricingConfig: {
+        pricing_config: {
           lateFee: 25,
           basePrice: 95, // Match schema default
           extraDayPrice: 10
         },
         settings: {},
-        stripeConnectStatus: 'pending',
-        subscriptionStartDate: now,
-        subscriptionStatus: 'trial' // Match schema default instead of 'active'
+        stripe_connect_status: 'pending',
+        subscription_start_date: now,
+        subscription_status: 'trial' // Match schema default instead of 'active'
       })
       .select()
       .single()
@@ -150,9 +150,9 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
     const { error: userError } = await supabase
       .from('users')
       .update({
-        agencyId: agency.id,
+        agency_id: agency.id,
         role: 'ADMIN',
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', user.id)
 

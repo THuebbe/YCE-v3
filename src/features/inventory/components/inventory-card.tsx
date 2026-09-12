@@ -68,9 +68,9 @@ export function InventoryCard({
   }
 
   const getStockStatus = () => {
-    if (item.availableQuantity === 0) {
+    if (item.available_quantity === 0) {
       return { status: 'out-of-stock', label: 'Out of Stock', color: 'bg-error text-white' }
-    } else if (item.availableQuantity <= 5) {
+    } else if (item.available_quantity <= 5) {
       return { status: 'low-stock', label: 'Low Stock', color: 'bg-warning text-white' }
     } else {
       return { status: 'in-stock', label: 'In Stock', color: 'bg-success text-white' }
@@ -92,8 +92,8 @@ export function InventoryCard({
   }
 
   const formatDimensions = () => {
-    if (sign.sizeWidth && sign.sizeHeight) {
-      return `${sign.sizeWidth}" × ${sign.sizeHeight}"`
+    if (sign.size_width && sign.size_height) {
+      return `${sign.size_width}" × ${sign.size_height}"`
     }
     if (sign.dimensions && typeof sign.dimensions === 'object') {
       const { width, height } = sign.dimensions as any
@@ -116,7 +116,7 @@ export function InventoryCard({
       {/* Image */}
       <div className="relative aspect-[4/3] bg-neutral-100">
         <Image
-          src={sign.thumbnailUrl || sign.imageUrl}
+          src={sign.thumbnail_url || sign.image_url}
           alt={sign.name}
           fill
           className="object-cover"
@@ -124,7 +124,7 @@ export function InventoryCard({
         />
         
         {/* Custom badge */}
-        {!sign.isPlatform && (
+        {!sign.is_platform && (
           <div className="absolute top-2 left-2">
             <Badge variant="secondary" className="bg-accent-pink text-white text-xs">
               Custom
@@ -133,7 +133,7 @@ export function InventoryCard({
         )}
 
         {/* Bundle badge */}
-        {sign.bundleId && (
+        {sign.bundle_id && (
           <div className="absolute bottom-2 left-2">
             <Badge variant="secondary" className="bg-primary text-white text-xs">
               <Package className="h-3 w-3 mr-1" />
@@ -209,27 +209,27 @@ export function InventoryCard({
           <div className="flex items-center justify-between">
             <span className="text-sm text-neutral-600">Available:</span>
             <span className={`font-medium ${
-              item.availableQuantity === 0 ? 'text-error' :
-              item.availableQuantity <= 5 ? 'text-warning' :
+              item.available_quantity === 0 ? 'text-error' :
+              item.available_quantity <= 5 ? 'text-warning' :
               'text-success'
             }`}>
-              {item.availableQuantity}
+              {item.available_quantity}
             </span>
           </div>
 
           {/* Allocated Quantity */}
-          {item.allocatedQuantity > 0 && (
+          {item.allocated_quantity > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-neutral-600">Allocated:</span>
-              <span className="font-medium text-info">{item.allocatedQuantity}</span>
+              <span className="font-medium text-info">{item.allocated_quantity}</span>
             </div>
           )}
 
           {/* Deployed Quantity */}
-          {item.deployedQuantity > 0 && (
+          {item.deployed_quantity > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-neutral-600">Deployed:</span>
-              <span className="font-medium text-neutral-700">{item.deployedQuantity}</span>
+              <span className="font-medium text-neutral-700">{item.deployed_quantity}</span>
             </div>
           )}
         </div>
@@ -253,7 +253,7 @@ export function InventoryCard({
         {/* Actions */}
         <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
           <div className="text-xs text-neutral-500">
-            Updated {new Date(item.updatedAt).toLocaleDateString()}
+            Updated {new Date(item.updated_at).toLocaleDateString()}
           </div>
           
           <div className="flex items-center space-x-1">
@@ -268,7 +268,7 @@ export function InventoryCard({
               </Button>
             )}
             
-            {onDelete && item.allocatedQuantity === 0 && item.deployedQuantity === 0 && (
+            {onDelete && item.allocated_quantity === 0 && item.deployed_quantity === 0 && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -283,7 +283,7 @@ export function InventoryCard({
         </div>
 
         {/* Warning for items with allocations */}
-        {(item.allocatedQuantity > 0 || item.deployedQuantity > 0) && onDelete && (
+        {(item.allocated_quantity > 0 || item.deployed_quantity > 0) && onDelete && (
           <div className="mt-2 p-2 bg-warning/10 rounded-md">
             <div className="flex items-center text-xs text-warning">
               <AlertTriangle className="h-3 w-3 mr-1" />

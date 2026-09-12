@@ -12,16 +12,16 @@ export async function GET() {
 
     // Get user's agency information
     const user = await getUserById(userId)
-    if (!user?.agencyId) {
+    if (!user?.agency_id) {
       return NextResponse.json({ error: 'User not associated with an agency' }, { status: 400 })
     }
 
     // Fetch real dashboard data
-    console.log('📊 Dashboard API: Fetching data for agency:', user.agencyId)
+    console.log('📊 Dashboard API: Fetching data for agency:', user.agency_id)
     
     const [dashboardMetrics, upcomingOrders] = await Promise.all([
-      getDashboardMetrics(user.agencyId),
-      getUpcomingOrdersByAgency(user.agencyId, 10)
+      getDashboardMetrics(user.agency_id),
+      getUpcomingOrdersByAgency(user.agency_id, 10)
     ])
 
     // Calculate revenue change percentage

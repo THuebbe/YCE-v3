@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
           const { data: agencies, error: findError } = await supabase
             .from('agencies')
             .select('*')
-            .or(`paypalAccountId.eq.${merchantId},paypalSharedId.eq.${merchantId}`)
+            .or(`paypal_account_id.eq.${merchantId},paypal_shared_id.eq.${merchantId}`)
             .limit(1);
 
           if (findError) {
@@ -160,22 +160,22 @@ export async function POST(request: NextRequest) {
 
           // Update agency with completed onboarding status
           const updateData: any = {
-            paypalAccountStatus: 'enabled',
-            paypalPermissionsGranted: true,
-            paypalEmailConfirmed: true, // Assume confirmed if onboarding completed
-            paypalPaymentsReceivable: true, // Assume payments enabled if onboarding completed
-            paypalDetailsSubmitted: true,
-            paypalLastSyncAt: new Date().toISOString(),
-            paypalIntegrationData: JSON.stringify({
-              ...JSON.parse(agency.paypalIntegrationData || '{}'),
+            paypal_account_status: 'enabled',
+            paypal_permissions_granted: true,
+            paypal_email_confirmed: true, // Assume confirmed if onboarding completed
+            paypal_payments_receivable: true, // Assume payments enabled if onboarding completed
+            paypal_details_submitted: true,
+            paypal_last_sync_at: new Date().toISOString(),
+            paypal_integration_data: JSON.stringify({
+              ...JSON.parse(agency.paypal_integration_data || '{}'),
               onboardingCompletedAt: new Date().toISOString(),
               webhookEvent: event.id
             })
           };
 
           // If we don't have an account ID yet, use the merchant ID from webhook
-          if (!agency.paypalAccountId) {
-            updateData.paypalAccountId = merchantId;
+          if (!agency.paypal_account_id) {
+            updateData.paypal_account_id = merchantId;
           }
 
           const { error: updateError } = await supabase
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
 
           console.log('✅ Updated agency', agency.id, 'PayPal onboarding completed:', {
             merchantId,
-            paypalAccountStatus: 'enabled',
+            paypal_account_status: 'enabled',
             eventId: event.id
           });
         } catch (error) {
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
           const { data: agencies, error: findError } = await supabase
             .from('agencies')
             .select('*')
-            .eq('paypalAccountId', merchantId)
+            .eq('paypal_account_id', merchantId)
             .limit(1);
 
           if (findError) {
@@ -238,15 +238,15 @@ export async function POST(request: NextRequest) {
           const { error: updateError } = await supabase
             .from('agencies')
             .update({
-              paypalAccountStatus: 'disconnected',
-              paypalPermissionsGranted: false,
-              paypalEmailConfirmed: false,
-              paypalPaymentsReceivable: false,
-              paypalDetailsSubmitted: false,
-              paypalOnboardingUrl: null, // Clear onboarding URL
-              paypalLastSyncAt: new Date().toISOString(),
-              paypalIntegrationData: JSON.stringify({
-                ...JSON.parse(agency.paypalIntegrationData || '{}'),
+              paypal_account_status: 'disconnected',
+              paypal_permissions_granted: false,
+              paypal_email_confirmed: false,
+              paypal_payments_receivable: false,
+              paypal_details_submitted: false,
+              paypal_onboarding_url: null, // Clear onboarding URL
+              paypal_last_sync_at: new Date().toISOString(),
+              paypal_integration_data: JSON.stringify({
+                ...JSON.parse(agency.paypal_integration_data || '{}'),
                 consentRevokedAt: new Date().toISOString(),
                 webhookEvent: event.id
               })
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
 
           console.log('✅ Updated agency', agency.id, 'PayPal consent revoked:', {
             merchantId,
-            paypalAccountStatus: 'disconnected',
+            paypal_account_status: 'disconnected',
             eventId: event.id
           });
         } catch (error) {

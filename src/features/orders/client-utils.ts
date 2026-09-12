@@ -60,7 +60,7 @@ export function shouldAutoRefund(order: any): boolean {
 
 export function isWithinCancellationWindow(order: any): boolean {
   // Check if order is within 24-hour cancellation window
-  const orderTime = new Date(order.createdAt);
+  const orderTime = new Date(order.created_at);
   const now = new Date();
   const hoursSinceOrder = (now.getTime() - orderTime.getTime()) / (1000 * 60 * 60);
   

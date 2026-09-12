@@ -16,13 +16,13 @@ export async function getOrdersByAgency() {
       .from('orders')
       .select(`
         *,
-        orderItems:order_items(
+        order_items(
           *,
           sign:sign_library(*)
         )
       `)
-      .eq('agencyId', agencyId)
-      .order('createdAt', { ascending: false });
+      .eq('agency_id', agencyId)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('❌ Orders: Error fetching orders:', error);
@@ -50,14 +50,14 @@ export async function getOrdersByStatus(status: string) {
       .from('orders')
       .select(`
         *,
-        orderItems:order_items(
+        order_items(
           *,
           sign:sign_library(*)
         )
       `)
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
       .eq('status', status)
-      .order('createdAt', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('❌ Orders: Error fetching orders by status:', error);

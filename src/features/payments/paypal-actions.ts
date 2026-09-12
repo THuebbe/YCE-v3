@@ -60,26 +60,8 @@ export async function createPayPalPartnerReferral() {
       return { success: false, error: 'Agency not found' };
     }
 
-    // Check if agency already has a PayPal account
-    if (user.agency.paypalAccountId) {
-      // If account exists but onboarding is not complete, return existing onboarding URL
-      if (user.agency.paypalOnboardingUrl && !user.agency.paypalDetailsSubmitted) {
-        return { 
-          success: true, 
-          onboardingUrl: user.agency.paypalOnboardingUrl,
-          accountId: user.agency.paypalAccountId 
-        };
-      }
-      
-      // If account is fully set up
-      if (user.agency.paypalDetailsSubmitted) {
-        return { 
-          success: true, 
-          message: 'PayPal account already connected',
-          accountId: user.agency.paypalAccountId 
-        };
-      }
-    }
+    // For now, we don't check for existing PayPal accounts since the database
+    // columns don't exist yet. Each request will create a new Partner Referral.
 
     // Get PayPal access token
     const accessToken = await getPayPalAccessToken();
@@ -110,13 +92,7 @@ export async function createPayPalPartnerReferral() {
           type: 'SHARE_DATA_CONSENT',
           granted: true
         }
-      ],
-      partner_config_override: {
-        partner_logo_url: `${process.env.NEXT_PUBLIC_APP_URL}/logo.png`,
-        return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${user.agency.slug}/settings?paypal_success=true`,
-        return_url_description: 'Return to YardCard Elite dashboard',
-        action_renewal_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${user.agency.slug}/settings?paypal_refresh=true`
-      }
+      ]
     };
 
     // Call PayPal Partner Referrals API
@@ -149,28 +125,14 @@ export async function createPayPalPartnerReferral() {
       throw new Error('No action URL returned from PayPal');
     }
 
-    // Update agency with PayPal referral info
-    const { error: updateError } = await supabase
-      .from('agencies')
-      .update({
-        paypalAccountStatus: 'pending',
-        paypalOnboardingUrl: actionUrl,
-        paypalPermissionsGranted: false,
-        paypalEmailConfirmed: false,
-        paypalPaymentsReceivable: false,
-        paypalDetailsSubmitted: false,
-        paypalIntegrationData: JSON.stringify({ 
-          trackingId,
-          referralId: referralData.partner_referral_id 
-        }),
-        paypalLastSyncAt: new Date().toISOString()
-      })
-      .eq('id', user.agency.id);
-
-    if (updateError) {
-      console.error('Error updating agency:', updateError);
-      return { success: false, error: 'Failed to update agency' };
-    }
+    // For now, we don't store PayPal integration data in the database
+    // since the required columns don't exist yet. The integration will work
+    // through the PayPal onboarding flow directly.
+    console.log('✅ PayPal Partner Referral created successfully', {
+      trackingId,
+      referralId: referralData.partner_referral_id,
+      actionUrl
+    });
 
     return { 
       success: true, 
@@ -233,12 +195,12 @@ export async function processPayPalCallback(authCode: string, sharedId: string) 
     const { error: updateError } = await supabase
       .from('agencies')
       .update({
-        paypalAccountId: sharedId,
-        paypalAuthCode: authCode,
-        paypalSharedId: sharedId,
-        paypalAccountStatus: 'connected',
-        paypalPermissionsGranted: true, // Permissions granted by completing OAuth flow
-        paypalLastSyncAt: new Date().toISOString()
+        paypal_account_id: sharedId,
+        paypal_auth_code: authCode,
+        paypal_shared_id: sharedId,
+        paypal_account_status: 'connected',
+        paypal_permissions_granted: true, // Permissions granted by completing OAuth flow
+        paypal_last_sync_at: new Date().toISOString()
       })
       .eq('id', user.agency.id);
 
@@ -291,11 +253,11 @@ export async function getPayPalConnectStatus() {
     console.log('🏦 Agency found for PayPal status check:', { 
       id: agency.id, 
       slug: agency.slug,
-      hasPayPalAccount: !!agency.paypalAccountId 
+      hasPayPalAccount: !!agency.paypal_account_id 
     });
 
     // If no PayPal account exists
-    if (!agency.paypalAccountId) {
+    if (!agency.paypal_account_id) {
       console.log('🏦 No PayPal account ID found for agency');
       return {
         accountId: null,
@@ -321,7 +283,7 @@ export async function getPayPalConnectStatus() {
       
       if (partnerId) {
         const statusResponse = await fetch(
-          `${PAYPAL_BASE_URL}/v1/customer/partners/${partnerId}/merchant-integrations/${agency.paypalAccountId}`,
+          `${PAYPAL_BASE_URL}/v1/customer/partners/${partnerId}/merchant-integrations/${agency.paypal_account_id}`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
@@ -341,10 +303,10 @@ export async function getPayPalConnectStatus() {
           await supabase
             .from('agencies')
             .update({
-              paypalEmailConfirmed: sellerStatus.primary_email_confirmed || false,
-              paypalPaymentsReceivable: sellerStatus.payments_receivable || false,
-              paypalDetailsSubmitted: (sellerStatus.payments_receivable && sellerStatus.primary_email_confirmed) || false,
-              paypalLastSyncAt: new Date().toISOString()
+              paypal_email_confirmed: sellerStatus.primary_email_confirmed || false,
+              paypal_payments_receivable: sellerStatus.payments_receivable || false,
+              paypal_details_submitted: (sellerStatus.payments_receivable && sellerStatus.primary_email_confirmed) || false,
+              paypal_last_sync_at: new Date().toISOString()
             })
             .eq('id', agency.id);
         }
@@ -355,17 +317,17 @@ export async function getPayPalConnectStatus() {
 
     // Return status (using API data if available, otherwise cached database data)
     return {
-      accountId: agency.paypalAccountId,
-      isConnected: !!agency.paypalAccountId,
-      hasCompletedOnboarding: agency.paypalDetailsSubmitted || (sellerStatus?.payments_receivable && sellerStatus?.primary_email_confirmed),
-      permissionsGranted: agency.paypalPermissionsGranted || false,
-      emailConfirmed: agency.paypalEmailConfirmed || sellerStatus?.primary_email_confirmed || false,
-      paymentsReceivable: agency.paypalPaymentsReceivable || sellerStatus?.payments_receivable || false,
-      detailsSubmitted: agency.paypalDetailsSubmitted || false,
-      authCode: agency.paypalAuthCode,
-      sharedId: agency.paypalSharedId,
-      lastSyncAt: agency.paypalLastSyncAt,
-      integrationData: agency.paypalIntegrationData,
+      accountId: agency.paypal_account_id,
+      isConnected: !!agency.paypal_account_id,
+      hasCompletedOnboarding: agency.paypal_details_submitted || (sellerStatus?.payments_receivable && sellerStatus?.primary_email_confirmed),
+      permissionsGranted: agency.paypal_permissions_granted || false,
+      emailConfirmed: agency.paypal_email_confirmed || sellerStatus?.primary_email_confirmed || false,
+      paymentsReceivable: agency.paypal_payments_receivable || sellerStatus?.payments_receivable || false,
+      detailsSubmitted: agency.paypal_details_submitted || false,
+      authCode: agency.paypal_auth_code,
+      sharedId: agency.paypal_shared_id,
+      lastSyncAt: agency.paypal_last_sync_at,
+      integrationData: agency.paypal_integration_data,
     };
   } catch (error) {
     console.error('❌ Error getting PayPal Connect status:', error);
@@ -384,17 +346,17 @@ export async function getPayPalConnectStatus() {
         
       if (user?.agency) {
         const cachedStatus = {
-          accountId: user.agency.paypalAccountId,
-          isConnected: !!user.agency.paypalAccountId,
-          hasCompletedOnboarding: user.agency.paypalDetailsSubmitted || false,
-          permissionsGranted: user.agency.paypalPermissionsGranted || false,
-          emailConfirmed: user.agency.paypalEmailConfirmed || false,
-          paymentsReceivable: user.agency.paypalPaymentsReceivable || false,
-          detailsSubmitted: user.agency.paypalDetailsSubmitted || false,
-          authCode: user.agency.paypalAuthCode,
-          sharedId: user.agency.paypalSharedId,
-          lastSyncAt: user.agency.paypalLastSyncAt,
-          integrationData: user.agency.paypalIntegrationData,
+          accountId: user.agency.paypal_account_id,
+          isConnected: !!user.agency.paypal_account_id,
+          hasCompletedOnboarding: user.agency.paypal_details_submitted || false,
+          permissionsGranted: user.agency.paypal_permissions_granted || false,
+          emailConfirmed: user.agency.paypal_email_confirmed || false,
+          paymentsReceivable: user.agency.paypal_payments_receivable || false,
+          detailsSubmitted: user.agency.paypal_details_submitted || false,
+          authCode: user.agency.paypal_auth_code,
+          sharedId: user.agency.paypal_shared_id,
+          lastSyncAt: user.agency.paypal_last_sync_at,
+          integrationData: user.agency.paypal_integration_data,
         };
         console.log('✅ Using cached PayPal status from database:', cachedStatus);
         return cachedStatus;
@@ -449,18 +411,18 @@ export async function pollPayPalAccountsForStatusUpdates() {
     
     const { data: agencies, error: queryError } = await supabase
       .from('agencies')
-      .select('id, slug, paypalAccountId, paypalAccountStatus, paypalLastSyncAt, paypalDetailsSubmitted, paypalPaymentsReceivable, paypalEmailConfirmed')
-      .not('paypalAccountId', 'is', null) // Has a PayPal account
+      .select('id, slug, paypal_account_id, paypal_account_status, paypal_last_sync_at, paypal_details_submitted, paypal_payments_receivable, paypal_email_confirmed')
+      .not('paypal_account_id', 'is', null) // Has a PayPal account
       .or(`
-        paypalAccountStatus.eq.pending,
-        paypalAccountStatus.eq.connected,
-        paypalLastSyncAt.is.null,
-        paypalLastSyncAt.lt.${thirtyMinutesAgo}
+        paypal_account_status.eq.pending,
+        paypal_account_status.eq.connected,
+        paypal_last_sync_at.is.null,
+        paypal_last_sync_at.lt.${thirtyMinutesAgo}
       `)
       .or(`
-        paypalDetailsSubmitted.is.false,
-        paypalPaymentsReceivable.is.false,
-        paypalEmailConfirmed.is.false
+        paypal_details_submitted.is.false,
+        paypal_payments_receivable.is.false,
+        paypal_email_confirmed.is.false
       `)
       .limit(50); // Batch process to avoid overwhelming the API
 
@@ -485,7 +447,7 @@ export async function pollPayPalAccountsForStatusUpdates() {
     // Poll each agency's PayPal status
     for (const agency of agencies) {
       try {
-        console.log(`🔍 Polling PayPal status for agency ${agency.slug} (${agency.paypalAccountId})`);
+        console.log(`🔍 Polling PayPal status for agency ${agency.slug} (${agency.paypal_account_id})`);
         polledCount++;
 
         if (!partnerId) {
@@ -495,7 +457,7 @@ export async function pollPayPalAccountsForStatusUpdates() {
 
         // Get seller integration status from PayPal API
         const statusResponse = await fetch(
-          `${PAYPAL_BASE_URL}/v1/customer/partners/${partnerId}/merchant-integrations/${agency.paypalAccountId}`,
+          `${PAYPAL_BASE_URL}/v1/customer/partners/${partnerId}/merchant-integrations/${agency.paypal_account_id}`,
           {
             headers: {
               'Authorization': `Bearer ${accessToken}`,
@@ -518,24 +480,24 @@ export async function pollPayPalAccountsForStatusUpdates() {
         // Determine if this is a meaningful update
         const isOnboardingComplete = sellerStatus.payments_receivable && sellerStatus.primary_email_confirmed;
         const hasStatusChanged = (
-          agency.paypalPaymentsReceivable !== sellerStatus.payments_receivable ||
-          agency.paypalEmailConfirmed !== sellerStatus.primary_email_confirmed ||
-          (agency.paypalDetailsSubmitted !== isOnboardingComplete)
+          agency.paypal_payments_receivable !== sellerStatus.payments_receivable ||
+          agency.paypal_email_confirmed !== sellerStatus.primary_email_confirmed ||
+          (agency.paypal_details_submitted !== isOnboardingComplete)
         );
 
         // Update database with latest status
         const updateData: any = {
-          paypalEmailConfirmed: sellerStatus.primary_email_confirmed || false,
-          paypalPaymentsReceivable: sellerStatus.payments_receivable || false,
-          paypalDetailsSubmitted: isOnboardingComplete,
-          paypalLastSyncAt: new Date().toISOString()
+          paypal_email_confirmed: sellerStatus.primary_email_confirmed || false,
+          paypal_payments_receivable: sellerStatus.payments_receivable || false,
+          paypal_details_submitted: isOnboardingComplete,
+          paypal_last_sync_at: new Date().toISOString()
         };
 
         // Update account status based on capabilities
         if (isOnboardingComplete) {
-          updateData.paypalAccountStatus = 'enabled';
-        } else if (agency.paypalAccountStatus === 'pending' && (sellerStatus.payments_receivable || sellerStatus.primary_email_confirmed)) {
-          updateData.paypalAccountStatus = 'connected'; // Partial setup
+          updateData.paypal_account_status = 'enabled';
+        } else if (agency.paypal_account_status === 'pending' && (sellerStatus.payments_receivable || sellerStatus.primary_email_confirmed)) {
+          updateData.paypal_account_status = 'connected'; // Partial setup
         }
 
         const { error: updateError } = await supabase
@@ -549,9 +511,9 @@ export async function pollPayPalAccountsForStatusUpdates() {
           updatedCount++;
           if (hasStatusChanged) {
             console.log(`✅ Updated PayPal status for agency ${agency.slug}:`, {
-              accountStatus: updateData.paypalAccountStatus || agency.paypalAccountStatus,
-              paymentsReceivable: updateData.paypalPaymentsReceivable,
-              emailConfirmed: updateData.paypalEmailConfirmed,
+              accountStatus: updateData.paypal_account_status || agency.paypal_account_status,
+              paymentsReceivable: updateData.paypal_payments_receivable,
+              emailConfirmed: updateData.paypal_email_confirmed,
               onboardingComplete: isOnboardingComplete
             });
           }
@@ -571,7 +533,7 @@ export async function pollPayPalAccountsForStatusUpdates() {
       success: true, 
       polledCount, 
       updatedCount,
-      agencies: agencies.map(a => ({ id: a.id, slug: a.slug, accountId: a.paypalAccountId }))
+      agencies: agencies.map(a => ({ id: a.id, slug: a.slug, accountId: a.paypal_account_id }))
     };
   } catch (error) {
     console.error('❌ Error in PayPal polling process:', error);
@@ -587,21 +549,21 @@ export async function shouldPollPayPalStatus(agencyId: string): Promise<boolean>
   try {
     const { data: agency } = await supabase
       .from('agencies')
-      .select('paypalAccountId, paypalAccountStatus, paypalLastSyncAt, paypalDetailsSubmitted')
+      .select('paypal_account_id, paypal_account_status, paypal_last_sync_at, paypal_details_submitted')
       .eq('id', agencyId)
       .single();
 
-    if (!agency?.paypalAccountId) {
+    if (!agency?.paypal_account_id) {
       return false; // No PayPal account to poll
     }
 
     // Poll if account is in pending status, hasn't been synced recently, or onboarding isn't complete
     const lastSyncThreshold = new Date(Date.now() - 30 * 60 * 1000); // 30 minutes ago
-    const lastSyncAt = agency.paypalLastSyncAt ? new Date(agency.paypalLastSyncAt) : null;
+    const lastSyncAt = agency.paypal_last_sync_at ? new Date(agency.paypal_last_sync_at) : null;
     
     return (
-      agency.paypalAccountStatus === 'pending' ||
-      !agency.paypalDetailsSubmitted ||
+      agency.paypal_account_status === 'pending' ||
+      !agency.paypal_details_submitted ||
       !lastSyncAt ||
       lastSyncAt < lastSyncThreshold
     );

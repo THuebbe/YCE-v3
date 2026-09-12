@@ -49,12 +49,12 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase
             .from('agencies')
             .update({
-              stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-              stripeChargesEnabled: account.charges_enabled,
-              stripePayoutsEnabled: account.payouts_enabled,
-              stripeDetailsSubmitted: account.details_submitted,
+              stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
+              stripe_charges_enabled: account.charges_enabled,
+              stripe_payouts_enabled: account.payouts_enabled,
+              stripe_details_submitted: account.details_submitted,
             })
-            .eq('stripeAccountId', account.id);
+            .eq('stripe_account_id', account.id);
 
           if (error) {
             console.error('Error updating agency Stripe status:', error);
@@ -81,14 +81,14 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase
             .from('agencies')
             .update({
-              stripeAccountId: null,
-              stripeAccountStatus: null,
-              stripeOnboardingUrl: null,
-              stripeChargesEnabled: false,
-              stripePayoutsEnabled: false,
-              stripeDetailsSubmitted: false,
+              stripe_account_id: null,
+              stripe_account_status: null,
+              stripe_onboarding_url: null,
+              stripe_charges_enabled: false,
+              stripe_payouts_enabled: false,
+              stripe_details_submitted: false,
             })
-            .eq('stripeAccountId', application.id);
+            .eq('stripe_account_id', application.id);
 
           if (error) {
             console.error('Error deauthorizing agency Stripe account:', error);
@@ -112,12 +112,12 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase
             .from('agencies')
             .update({
-              stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-              stripeChargesEnabled: account.charges_enabled,
-              stripePayoutsEnabled: account.payouts_enabled,
-              stripeDetailsSubmitted: account.details_submitted,
+              stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
+              stripe_charges_enabled: account.charges_enabled,
+              stripe_payouts_enabled: account.payouts_enabled,
+              stripe_details_submitted: account.details_submitted,
             })
-            .eq('stripeAccountId', account.id);
+            .eq('stripe_account_id', account.id);
 
           if (error) {
             console.error('Error updating agency capabilities:', error);
@@ -142,12 +142,12 @@ export async function POST(request: NextRequest) {
           const { error } = await supabase
             .from('agencies')
             .update({
-              stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-              stripeChargesEnabled: account.charges_enabled,
-              stripePayoutsEnabled: account.payouts_enabled,
-              stripeDetailsSubmitted: account.details_submitted,
+              stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
+              stripe_charges_enabled: account.charges_enabled,
+              stripe_payouts_enabled: account.payouts_enabled,
+              stripe_details_submitted: account.details_submitted,
             })
-            .eq('stripeAccountId', account.id);
+            .eq('stripe_account_id', account.id);
 
           if (error) {
             console.error('Error updating agency after person change:', error);

@@ -28,7 +28,7 @@ export async function getAgencyBySlug(slug: string): Promise<any | null> {
       .from('agencies')
       .select('*')
       .eq('slug', slug)
-      .eq('isActive', true)
+      .eq('is_active', true)
       .single()
     
     if (error) {
@@ -52,7 +52,7 @@ export async function getAgencyByDomain(domain: string): Promise<any | null> {
       .from('agencies')
       .select('*')
       .eq('domain', domain)
-      .eq('isActive', true)
+      .eq('is_active', true)
       .single()
     
     if (error) {
@@ -120,8 +120,8 @@ export async function getOrdersByAgency(agencyId: string, limit: number = 10): P
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('agencyId', agencyId)
-      .order('createdAt', { ascending: false })
+      .eq('agency_id', agencyId)
+      .order('created_at', { ascending: false })
       .limit(limit)
     
     if (error) {
@@ -148,15 +148,15 @@ export async function getUpcomingOrdersByAgency(agencyId: string, limit: number 
       .from('orders')
       .select(`
         id,
-        customerName,
-        eventDate,
+        customer_name,
+        event_date,
         status,
-        orderItems:order_items(quantity)
+        order_items(quantity)
       `)
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
       .in('status', ['pending', 'processing', 'deployed'])
-      .gte('eventDate', today)
-      .order('eventDate', { ascending: true })
+      .gte('event_date', today)
+      .order('event_date', { ascending: true })
       .limit(limit)
     
     if (error) {
@@ -172,10 +172,10 @@ export async function getUpcomingOrdersByAgency(agencyId: string, limit: number 
     // Transform the data to match the component interface
     const transformedOrders = orders.map(order => ({
       id: order.id,
-      customerName: order.customerName,
-      eventDate: order.eventDate,
+      customer_name: order.customer_name,
+      event_date: order.event_date,
       status: order.status,
-      signCount: order.orderItems?.reduce((total: number, item: any) => total + (item.quantity || 0), 0) || 0
+      signCount: order.order_items?.reduce((total: number, item: any) => total + (item.quantity || 0), 0) || 0
     }))
     
     console.log(`✅ Supabase: Found ${transformedOrders.length} upcoming orders`)
@@ -203,40 +203,40 @@ export async function getDashboardMetrics(agencyId: string): Promise<any> {
     const { data: openOrders, error: openOrdersError } = await supabase
       .from('orders')
       .select('id')
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
       .in('status', ['pending', 'processing', 'deployed'])
     
     // Get monthly revenue (current month)
     const { data: currentMonthOrders, error: currentMonthError } = await supabase
       .from('orders')
-      .select('total, completedAt, updatedAt')
-      .eq('agencyId', agencyId)
+      .select('total, completed_at, updated_at')
+      .eq('agency_id', agencyId)
       .eq('status', 'completed')
-      .or(`completedAt.gte.${startOfMonth.toISOString()},and(completedAt.is.null,updatedAt.gte.${startOfMonth.toISOString()})`)
+      .or(`completed_at.gte.${startOfMonth.toISOString()},and(completed_at.is.null,updated_at.gte.${startOfMonth.toISOString()})`)
     
     // Get previous month revenue
     const { data: prevMonthOrders, error: prevMonthError } = await supabase
       .from('orders')
-      .select('total, completedAt, updatedAt')
-      .eq('agencyId', agencyId)
+      .select('total, completed_at, updated_at')
+      .eq('agency_id', agencyId)
       .eq('status', 'completed')
-      .or(`and(completedAt.gte.${startOfPrevMonth.toISOString()},completedAt.lt.${startOfMonth.toISOString()}),and(completedAt.is.null,updatedAt.gte.${startOfPrevMonth.toISOString()},updatedAt.lt.${startOfMonth.toISOString()})`)
+      .or(`and(completed_at.gte.${startOfPrevMonth.toISOString()},completed_at.lt.${startOfMonth.toISOString()}),and(completed_at.is.null,updated_at.gte.${startOfPrevMonth.toISOString()},updated_at.lt.${startOfMonth.toISOString()})`)
     
     // Get completed orders count (current month)
     const { data: completedOrders, error: completedOrdersError } = await supabase
       .from('orders')
-      .select('id, completedAt, updatedAt')
-      .eq('agencyId', agencyId)
+      .select('id, completed_at, updated_at')
+      .eq('agency_id', agencyId)
       .eq('status', 'completed')
-      .or(`completedAt.gte.${startOfMonth.toISOString()},and(completedAt.is.null,updatedAt.gte.${startOfMonth.toISOString()})`)
+      .or(`completed_at.gte.${startOfMonth.toISOString()},and(completed_at.is.null,updated_at.gte.${startOfMonth.toISOString()})`)
     
     // Get last 30 days revenue (rolling)
     const { data: last30DaysOrders, error: last30DaysError } = await supabase
       .from('orders')
-      .select('total, completedAt, updatedAt')
-      .eq('agencyId', agencyId)
+      .select('total, completed_at, updated_at')
+      .eq('agency_id', agencyId)
       .eq('status', 'completed')
-      .or(`completedAt.gte.${thirtyDaysAgo.toISOString()},and(completedAt.is.null,updatedAt.gte.${thirtyDaysAgo.toISOString()})`)
+      .or(`completed_at.gte.${thirtyDaysAgo.toISOString()},and(completed_at.is.null,updated_at.gte.${thirtyDaysAgo.toISOString()})`)
     
     // Calculate metrics
     const openOrdersCount = openOrders?.length || 0

@@ -1,0 +1,5692 @@
+{
+  "schemaVersion": 1,
+  "generatedBy": "generate_signs.py",
+  "placeholderSet": true,
+  "pxPerInch": 20,
+  "nominalLetterHeightIn": 24.0,
+  "styles": [
+    "classic"
+  ],
+  "colorways": [
+    "red",
+    "blue",
+    "pink",
+    "gold",
+    "green",
+    "purple",
+    "black"
+  ],
+  "assetCount": 315,
+  "assets": [
+    {
+      "id": "letter-a-classic-red",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-red",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-red",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-red",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-red",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-red",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-red",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-red",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-red",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-red",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-red",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-red",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-red",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-red",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-red",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-red",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-red",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-red",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-red",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-red",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-red",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-red",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-red",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-red",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-red",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-red",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-red",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-red",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-red",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-red",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-red",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-red",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-red",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-red",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-red",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-red",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-red",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-red",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-red",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-red",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-red",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-red",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-red",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-red",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-red",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "red",
+      "file": "classic/red/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-a-classic-blue",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-blue",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-blue",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-blue",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-blue",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-blue",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-blue",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-blue",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-blue",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-blue",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-blue",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-blue",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-blue",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-blue",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-blue",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-blue",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-blue",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-blue",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-blue",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-blue",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-blue",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-blue",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-blue",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-blue",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-blue",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-blue",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-blue",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-blue",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-blue",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-blue",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-blue",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-blue",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-blue",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-blue",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-blue",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-blue",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-blue",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-blue",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-blue",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-blue",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-blue",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-blue",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-blue",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-blue",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-blue",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "blue",
+      "file": "classic/blue/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-a-classic-pink",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-pink",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-pink",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-pink",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-pink",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-pink",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-pink",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-pink",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-pink",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-pink",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-pink",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-pink",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-pink",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-pink",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-pink",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-pink",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-pink",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-pink",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-pink",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-pink",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-pink",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-pink",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-pink",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-pink",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-pink",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-pink",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-pink",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-pink",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-pink",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-pink",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-pink",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-pink",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-pink",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-pink",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-pink",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-pink",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-pink",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-pink",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-pink",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-pink",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-pink",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-pink",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-pink",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-pink",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-pink",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "pink",
+      "file": "classic/pink/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-a-classic-gold",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-gold",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-gold",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-gold",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-gold",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-gold",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-gold",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-gold",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-gold",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-gold",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-gold",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-gold",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-gold",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-gold",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-gold",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-gold",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-gold",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-gold",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-gold",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-gold",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-gold",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-gold",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-gold",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-gold",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-gold",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-gold",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-gold",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-gold",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-gold",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-gold",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-gold",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-gold",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-gold",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-gold",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-gold",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-gold",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-gold",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-gold",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-gold",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-gold",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-gold",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-gold",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-gold",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-gold",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-gold",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "gold",
+      "file": "classic/gold/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-a-classic-green",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-green",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-green",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-green",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-green",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-green",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-green",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-green",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-green",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-green",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-green",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-green",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-green",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-green",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-green",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-green",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-green",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-green",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-green",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-green",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-green",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-green",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-green",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-green",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-green",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-green",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-green",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-green",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-green",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-green",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-green",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-green",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-green",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-green",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-green",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-green",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-green",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-green",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-green",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-green",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-green",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-green",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-green",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-green",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-green",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "green",
+      "file": "classic/green/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-a-classic-purple",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-purple",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-purple",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-purple",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-purple",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-purple",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-purple",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-purple",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-purple",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-purple",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-purple",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-purple",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-purple",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-purple",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-purple",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-purple",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-purple",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-purple",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-purple",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-purple",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-purple",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-purple",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-purple",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-purple",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-purple",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-purple",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-purple",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-purple",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-purple",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-purple",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-purple",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-purple",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-purple",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-purple",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-purple",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-purple",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-purple",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-purple",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-purple",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-purple",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-purple",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-purple",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-purple",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-purple",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-purple",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "purple",
+      "file": "classic/purple/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-a-classic-black",
+      "type": "letter",
+      "character": "A",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/A.png",
+      "widthPx": 548,
+      "heightPx": 578,
+      "widthIn": 27.4,
+      "heightIn": 28.9,
+      "baselineYPct": 0.8962,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8962
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-b-classic-black",
+      "type": "letter",
+      "character": "B",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/B.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8855,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8855
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-c-classic-black",
+      "type": "letter",
+      "character": "C",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/C.png",
+      "widthPx": 449,
+      "heightPx": 586,
+      "widthIn": 22.45,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-d-classic-black",
+      "type": "letter",
+      "character": "D",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/D.png",
+      "widthPx": 485,
+      "heightPx": 575,
+      "widthIn": 24.25,
+      "heightIn": 28.75,
+      "baselineYPct": 0.8957,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8957
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-e-classic-black",
+      "type": "letter",
+      "character": "E",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/E.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-f-classic-black",
+      "type": "letter",
+      "character": "F",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/F.png",
+      "widthPx": 422,
+      "heightPx": 581,
+      "widthIn": 21.1,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8967,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8967
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-g-classic-black",
+      "type": "letter",
+      "character": "G",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/G.png",
+      "widthPx": 526,
+      "heightPx": 604,
+      "widthIn": 26.3,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-h-classic-black",
+      "type": "letter",
+      "character": "H",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/H.png",
+      "widthPx": 508,
+      "heightPx": 588,
+      "widthIn": 25.4,
+      "heightIn": 29.4,
+      "baselineYPct": 0.8844,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8844
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-i-classic-black",
+      "type": "letter",
+      "character": "I",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/I.png",
+      "widthPx": 289,
+      "heightPx": 570,
+      "widthIn": 14.45,
+      "heightIn": 28.5,
+      "baselineYPct": 0.8947,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8947
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-j-classic-black",
+      "type": "letter",
+      "character": "J",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/J.png",
+      "widthPx": 450,
+      "heightPx": 591,
+      "widthIn": 22.5,
+      "heightIn": 29.55,
+      "baselineYPct": 0.8849,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8849
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-k-classic-black",
+      "type": "letter",
+      "character": "K",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/K.png",
+      "widthPx": 527,
+      "heightPx": 611,
+      "widthIn": 26.35,
+      "heightIn": 30.55,
+      "baselineYPct": 0.8691,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8691
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-l-classic-black",
+      "type": "letter",
+      "character": "L",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/L.png",
+      "widthPx": 399,
+      "heightPx": 571,
+      "widthIn": 19.95,
+      "heightIn": 28.55,
+      "baselineYPct": 0.9159,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9159
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-m-classic-black",
+      "type": "letter",
+      "character": "M",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/M.png",
+      "widthPx": 623,
+      "heightPx": 597,
+      "widthIn": 31.15,
+      "heightIn": 29.85,
+      "baselineYPct": 0.8827,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8827
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-n-classic-black",
+      "type": "letter",
+      "character": "N",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/N.png",
+      "widthPx": 566,
+      "heightPx": 586,
+      "widthIn": 28.3,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-o-classic-black",
+      "type": "letter",
+      "character": "O",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/O.png",
+      "widthPx": 532,
+      "heightPx": 546,
+      "widthIn": 26.6,
+      "heightIn": 27.3,
+      "baselineYPct": 0.8974,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8974
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-p-classic-black",
+      "type": "letter",
+      "character": "P",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/P.png",
+      "widthPx": 490,
+      "heightPx": 594,
+      "widthIn": 24.5,
+      "heightIn": 29.7,
+      "baselineYPct": 0.8906,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8906
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-q-classic-black",
+      "type": "letter",
+      "character": "Q",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/Q.png",
+      "widthPx": 569,
+      "heightPx": 638,
+      "widthIn": 28.45,
+      "heightIn": 31.9,
+      "baselineYPct": 0.8088,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8088
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-r-classic-black",
+      "type": "letter",
+      "character": "R",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/R.png",
+      "widthPx": 501,
+      "heightPx": 589,
+      "widthIn": 25.05,
+      "heightIn": 29.45,
+      "baselineYPct": 0.8981,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8981
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-s-classic-black",
+      "type": "letter",
+      "character": "S",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/S.png",
+      "widthPx": 456,
+      "heightPx": 599,
+      "widthIn": 22.8,
+      "heightIn": 29.95,
+      "baselineYPct": 0.8915,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8915
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-t-classic-black",
+      "type": "letter",
+      "character": "T",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/T.png",
+      "widthPx": 471,
+      "heightPx": 577,
+      "widthIn": 23.55,
+      "heightIn": 28.85,
+      "baselineYPct": 0.896,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.896
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-u-classic-black",
+      "type": "letter",
+      "character": "U",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/U.png",
+      "widthPx": 514,
+      "heightPx": 581,
+      "widthIn": 25.7,
+      "heightIn": 29.05,
+      "baselineYPct": 0.8692,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8692
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-v-classic-black",
+      "type": "letter",
+      "character": "V",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/V.png",
+      "widthPx": 538,
+      "heightPx": 583,
+      "widthIn": 26.9,
+      "heightIn": 29.15,
+      "baselineYPct": 0.8868,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8868
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-w-classic-black",
+      "type": "letter",
+      "character": "W",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/W.png",
+      "widthPx": 716,
+      "heightPx": 582,
+      "widthIn": 35.8,
+      "heightIn": 29.1,
+      "baselineYPct": 0.89,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.89
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-x-classic-black",
+      "type": "letter",
+      "character": "X",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/X.png",
+      "widthPx": 533,
+      "heightPx": 586,
+      "widthIn": 26.65,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-y-classic-black",
+      "type": "letter",
+      "character": "Y",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/Y.png",
+      "widthPx": 542,
+      "heightPx": 577,
+      "widthIn": 27.1,
+      "heightIn": 28.85,
+      "baselineYPct": 0.8718,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8718
+      },
+      "placeholder": true
+    },
+    {
+      "id": "letter-z-classic-black",
+      "type": "letter",
+      "character": "Z",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/Z.png",
+      "widthPx": 429,
+      "heightPx": 587,
+      "widthIn": 21.45,
+      "heightIn": 29.35,
+      "baselineYPct": 0.8978,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8978
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-0-classic-black",
+      "type": "number",
+      "character": "0",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/0.png",
+      "widthPx": 523,
+      "heightPx": 582,
+      "widthIn": 26.15,
+      "heightIn": 29.1,
+      "baselineYPct": 0.8935,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8935
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-1-classic-black",
+      "type": "number",
+      "character": "1",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/1.png",
+      "widthPx": 371,
+      "heightPx": 586,
+      "widthIn": 18.55,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-2-classic-black",
+      "type": "number",
+      "character": "2",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/2.png",
+      "widthPx": 438,
+      "heightPx": 600,
+      "widthIn": 21.9,
+      "heightIn": 30.0,
+      "baselineYPct": 0.9,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-3-classic-black",
+      "type": "number",
+      "character": "3",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/3.png",
+      "widthPx": 453,
+      "heightPx": 615,
+      "widthIn": 22.65,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-4-classic-black",
+      "type": "number",
+      "character": "4",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/4.png",
+      "widthPx": 466,
+      "heightPx": 595,
+      "widthIn": 23.3,
+      "heightIn": 29.75,
+      "baselineYPct": 0.8992,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8992
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-5-classic-black",
+      "type": "number",
+      "character": "5",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/5.png",
+      "widthPx": 456,
+      "heightPx": 592,
+      "widthIn": 22.8,
+      "heightIn": 29.6,
+      "baselineYPct": 0.8953,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8953
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-6-classic-black",
+      "type": "number",
+      "character": "6",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/6.png",
+      "widthPx": 483,
+      "heightPx": 604,
+      "widthIn": 24.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.8841,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8841
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-7-classic-black",
+      "type": "number",
+      "character": "7",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/7.png",
+      "widthPx": 442,
+      "heightPx": 588,
+      "widthIn": 22.1,
+      "heightIn": 29.4,
+      "baselineYPct": 0.898,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.898
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-8-classic-black",
+      "type": "number",
+      "character": "8",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/8.png",
+      "widthPx": 481,
+      "heightPx": 592,
+      "widthIn": 24.05,
+      "heightIn": 29.6,
+      "baselineYPct": 0.897,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.897
+      },
+      "placeholder": true
+    },
+    {
+      "id": "number-9-classic-black",
+      "type": "number",
+      "character": "9",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/9.png",
+      "widthPx": 470,
+      "heightPx": 586,
+      "widthIn": 23.5,
+      "heightIn": 29.3,
+      "baselineYPct": 0.8976,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8976
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-exclamation-classic-black",
+      "type": "punctuation",
+      "character": "!",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/exclamation.png",
+      "widthPx": 276,
+      "heightPx": 624,
+      "widthIn": 13.8,
+      "heightIn": 31.2,
+      "baselineYPct": 0.859,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.859
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-question-classic-black",
+      "type": "punctuation",
+      "character": "?",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/question.png",
+      "widthPx": 461,
+      "heightPx": 615,
+      "widthIn": 23.05,
+      "heightIn": 30.75,
+      "baselineYPct": 0.8569,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8569
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-ampersand-classic-black",
+      "type": "punctuation",
+      "character": "&",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/ampersand.png",
+      "widthPx": 536,
+      "heightPx": 559,
+      "widthIn": 26.8,
+      "heightIn": 27.95,
+      "baselineYPct": 0.8927,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8927
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-apostrophe-classic-black",
+      "type": "punctuation",
+      "character": "'",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/apostrophe.png",
+      "widthPx": 267,
+      "heightPx": 318,
+      "widthIn": 13.35,
+      "heightIn": 15.9,
+      "baselineYPct": 1.8176,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.8176
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-period-classic-black",
+      "type": "punctuation",
+      "character": ".",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/period.png",
+      "widthPx": 251,
+      "heightPx": 247,
+      "widthIn": 12.55,
+      "heightIn": 12.35,
+      "baselineYPct": 0.749,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.749
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-comma-classic-black",
+      "type": "punctuation",
+      "character": ",",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/comma.png",
+      "widthPx": 253,
+      "heightPx": 312,
+      "widthIn": 12.65,
+      "heightIn": 15.6,
+      "baselineYPct": 0.6154,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.6154
+      },
+      "placeholder": true
+    },
+    {
+      "id": "punct-hyphen-classic-black",
+      "type": "punctuation",
+      "character": "-",
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/hyphen.png",
+      "widthPx": 330,
+      "heightPx": 228,
+      "widthIn": 16.5,
+      "heightIn": 11.4,
+      "baselineYPct": 1.4781,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 1.4781
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-heart-classic-black",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/heart.png",
+      "widthPx": 528,
+      "heightPx": 480,
+      "widthIn": 26.4,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "shape-star-classic-black",
+      "type": "shape",
+      "character": null,
+      "style": "classic",
+      "colorway": "black",
+      "file": "classic/black/star.png",
+      "widthPx": 503,
+      "heightPx": 480,
+      "widthIn": 25.15,
+      "heightIn": 24.0,
+      "baselineYPct": 0.97,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.97
+      },
+      "placeholder": true
+    }
+  ]
+}

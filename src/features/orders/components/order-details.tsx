@@ -187,14 +187,14 @@ export function OrderDetails({ order }: OrderDetailsProps) {
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">
-              Order #{order.orderNumber}
+              Order #{order.order_number}
             </h1>
             <div className="flex items-center space-x-2 mt-2">
               <Badge className={`${statusColor} text-sm`}>
                 {order.status}
               </Badge>
               <span className="text-sm text-gray-500">
-                Created {formatDate(new Date(order.createdAt))}
+                Created {formatDate(new Date(order.created_at))}
               </span>
             </div>
           </div>
@@ -234,40 +234,40 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                 <div className="space-y-3">
                   <div className="flex items-center text-sm">
                     <User className="h-4 w-4 mr-3 text-gray-400" />
-                    <span className="text-gray-900">{order.customerName}</span>
+                    <span className="text-gray-900">{order.customer_name}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <Mail className="h-4 w-4 mr-3 text-gray-400" />
-                    <span className="text-gray-900">{order.customerEmail}</span>
+                    <span className="text-gray-900">{order.customer_email}</span>
                   </div>
-                  {order.customerPhone && (
+                  {order.customer_phone && (
                     <div className="flex items-center text-sm">
                       <Phone className="h-4 w-4 mr-3 text-gray-400" />
-                      <span className="text-gray-900">{order.customerPhone}</span>
+                      <span className="text-gray-900">{order.customer_phone}</span>
                     </div>
                   )}
                 </div>
                 <div className="space-y-3">
                   <div className="flex items-center text-sm">
                     <Calendar className="h-4 w-4 mr-3 text-gray-400" />
-                    <span className="text-gray-900">{formatEventDate(new Date(order.eventDate))}</span>
+                    <span className="text-gray-900">{formatEventDate(new Date(order.event_date))}</span>
                   </div>
                   <div className="flex items-start text-sm">
                     <MapPin className="h-4 w-4 mr-3 text-gray-400 mt-0.5" />
-                    <span className="text-gray-900">{order.eventAddress}</span>
+                    <span className="text-gray-900">{order.event_address}</span>
                   </div>
-                  {order.eventType && (
+                  {order.event_type && (
                     <div className="flex items-center text-sm">
                       <Package className="h-4 w-4 mr-3 text-gray-400" />
-                      <span className="text-gray-900">{order.eventType}</span>
+                      <span className="text-gray-900">{order.event_type}</span>
                     </div>
                   )}
                 </div>
               </div>
-              {order.specialInstructions && (
+              {order.special_instructions && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                   <p className="text-sm text-gray-700">
-                    <strong>Special Instructions:</strong> {order.specialInstructions}
+                    <strong>Special Instructions:</strong> {order.special_instructions}
                   </p>
                 </div>
               )}
@@ -281,12 +281,12 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                 Order Items
               </h3>
               <div className="space-y-4">
-                {order.orderItems?.map((item: any) => (
+                {order.order_items?.map((item: any) => (
                   <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      {item.sign.imageUrl && (
+                      {item.sign.image_url && (
                         <img
-                          src={item.sign.imageUrl}
+                          src={item.sign.image_url}
                           alt={item.sign.name}
                           className="w-12 h-12 object-cover rounded"
                         />
@@ -301,7 +301,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                         Qty: {item.quantity}
                       </div>
                       <div className="font-medium text-gray-900">
-                        {formatCurrency(item.lineTotal)}
+                        {formatCurrency(item.line_total)}
                       </div>
                     </div>
                   </div>
@@ -331,10 +331,10 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {activity.user.firstName} {activity.user.lastName}
+                          {activity.user.first_name} {activity.user.last_name}
                         </span>
                         <span className="text-xs text-gray-500">
-                          {formatDate(new Date(activity.createdAt))}
+                          {formatDate(new Date(activity.created_at))}
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 mt-1">

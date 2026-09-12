@@ -24,14 +24,14 @@ export async function generateOrderNumber(agencyId: string): Promise<{ orderNumb
   // Get the next sequential number for this agency
   const { data: lastOrder } = await supabase
     .from('orders')
-    .select('internalNumber')
-    .eq('agencyId', agencyId)
-    .order('internalNumber', { ascending: false })
+    .select('internal_number')
+    .eq('agency_id', agencyId)
+    .order('internal_number', { ascending: false })
     .limit(1)
     .single();
 
-  const nextNumber = lastOrder && lastOrder.internalNumber 
-    ? parseInt(lastOrder.internalNumber.split('-')[1]) + 1 
+  const nextNumber = lastOrder && lastOrder.internal_number
+    ? parseInt(lastOrder.internal_number.split('-')[1]) + 1
     : 1;
   const paddedNumber = nextNumber.toString().padStart(4, '0');
 
@@ -52,7 +52,7 @@ export async function requireOrder(orderId: string): Promise<any> {
     .from('orders')
     .select('*')
     .eq('id', orderId)
-    .eq('agencyId', agencyId)
+    .eq('agency_id', agencyId)
     .single();
 
   if (error || !order) {
@@ -73,18 +73,18 @@ export async function requireOrderWithDetails(orderId: string) {
     .from('orders')
     .select(`
       *,
-      orderItems:order_items(
+      order_items(
         *,
-        sign:signs(id, name, category, imageUrl)
+        sign:signs(id, name, category, image_url)
       ),
       agency:agencies(id, name, slug, email),
       activities:order_activities(
         *,
-        user:users(id, firstName, lastName, email)
+        user:users(id, first_name, last_name, email)
       )
     `)
     .eq('id', orderId)
-    .eq('agencyId', agencyId)
+    .eq('agency_id', agencyId)
     .single();
 
   if (error || !order) {
@@ -132,7 +132,7 @@ export function canCancelOrder(order: any): boolean {
 
 export function isWithinCancellationWindow(order: any): boolean {
   // Check if order is within 24-hour cancellation window
-  const orderTime = new Date(order.createdAt);
+  const orderTime = new Date(order.created_at);
   const now = new Date();
   const hoursSinceOrder = (now.getTime() - orderTime.getTime()) / (1000 * 60 * 60);
   
@@ -181,7 +181,7 @@ export async function getOrderWithDetails(orderId: string) {
     .from('orders')
     .select(`
       *,
-      orderItems:order_items(
+      order_items(
         *,
         sign:sign_library(*)
       ),
@@ -189,7 +189,7 @@ export async function getOrderWithDetails(orderId: string) {
       createdBy:users(*)
     `)
     .eq('id', orderId)
-    .eq('agencyId', agencyId)
+    .eq('agency_id', agencyId)
     .single();
 
   if (orderError || !order) {
@@ -219,7 +219,7 @@ export async function updateOrderDocuments(
     .from('orders')
     .select('documents')
     .eq('id', orderId)
-    .eq('agencyId', agencyId)
+    .eq('agency_id', agencyId)
     .single();
 
   if (fetchError || !order) {
@@ -239,7 +239,7 @@ export async function updateOrderDocuments(
     .from('orders')
     .update({ documents: updatedDocuments })
     .eq('id', orderId)
-    .eq('agencyId', agencyId);
+    .eq('agency_id', agencyId);
 
   if (updateError) {
     throw new Error('Failed to update order documents');
@@ -259,7 +259,7 @@ export async function getOrderDocuments(orderId: string) {
     .from('orders')
     .select('documents')
     .eq('id', orderId)
-    .eq('agencyId', agencyId)
+    .eq('agency_id', agencyId)
     .single();
 
   if (error || !order) {

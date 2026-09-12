@@ -14,7 +14,7 @@ export default async function AgencyLayout({ children, params }: AgencyLayoutPro
   // This layout is now only for public agency routes like booking
   // Authentication will be handled at the individual page level for dashboard routes
   const agency = await getAgencyBySlug(agencySlug);
-  if (!agency || !agency.isActive) {
+  if (!agency || !agency.is_active) {
     notFound();
   }
 

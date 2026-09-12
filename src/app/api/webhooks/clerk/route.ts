@@ -90,12 +90,12 @@ export async function POST(req: NextRequest) {
           .insert({
             id,
             email: email_addresses[0]?.email_address,
-            firstName: first_name,
-            lastName: last_name,
+            first_name: first_name,
+            last_name: last_name,
             role: 'USER',
-            agencyId: null, // No agency assigned - user will go through onboarding
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            agency_id: null, // No agency assigned - user will go through onboarding
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
           })
           .select()
           .single()
@@ -122,9 +122,9 @@ export async function POST(req: NextRequest) {
           .from('users')
           .update({
             email: email_addresses[0]?.email_address,
-            firstName: first_name,
-            lastName: last_name,
-            updatedAt: new Date().toISOString()
+            first_name: first_name,
+            last_name: last_name,
+            updated_at: new Date().toISOString()
           })
           .eq('id', id)
 

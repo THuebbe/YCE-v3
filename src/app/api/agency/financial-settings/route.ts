@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Validate user has access to this agency
     const user = await getUserById(userId)
-    if (!user || user.agencyId !== agencyId) {
+    if (!user || user.agency_id !== agencyId) {
       console.log('❌ Financial Settings API: User not authorized for this agency')
       return NextResponse.json(
         { success: false, error: 'User not authorized for this agency' },
@@ -53,30 +53,20 @@ export async function GET(request: NextRequest) {
 
     console.log(`🔍 Financial Settings API: Fetching financial settings for agency: ${agencyId}`)
 
-    // Get agency financial data from database (including Braintree fields)
+    // Get agency financial data from database (only existing fields)
     const { data: agency, error } = await supabase
       .from('agencies')
       .select(`
         id,
-        pricingConfig,
-        stripeAccountId,
-        stripeAccountStatus,
-        stripeChargesEnabled,
-        stripePayoutsEnabled,
-        stripeDetailsSubmitted,
-        braintree_environment,
-        braintree_merchant_id,
-        braintree_public_key,
-        braintree_account_status,
-        venmo_enabled,
-        venmo_allow_desktop,
-        venmo_allow_web_login,
-        venmo_payment_method_usage,
-        braintree_last_sync_at,
-        braintree_integration_data
+        pricing_config,
+        stripe_account_id,
+        stripe_account_status,
+        stripe_charges_enabled,
+        stripe_payouts_enabled,
+        stripe_details_submitted
       `)
       .eq('id', agencyId)
-      .eq('isActive', true)
+      .eq('is_active', true)
       .single()
 
     if (error) {
@@ -96,19 +86,19 @@ export async function GET(request: NextRequest) {
     }
 
     // Determine payment method based on connected processors
-    const hasStripeAccount = !!agency.stripeAccountId
-    const hasBraintreeAccount = !!agency.braintree_merchant_id
+    const hasStripeAccount = !!agency.stripe_account_id
+    // PayPal integration will be handled by separate PayPal actions
+    // For now, assume no PayPal account until properly connected
+    const hasPayPalAccount = false
     
-    // Payment method priority: Stripe > Braintree/Venmo > YCE Processing
+    // Payment method priority: Stripe > YCE Processing (PayPal handled separately)
     let paymentMethod = 'yce_processing'
-    if (hasStripeAccount && agency.stripeDetailsSubmitted) {
+    if (hasStripeAccount && agency.stripe_details_submitted) {
       paymentMethod = 'stripe_connect'
-    } else if (hasBraintreeAccount && agency.venmo_enabled) {
-      paymentMethod = 'venmo_connect'
     }
 
     // Extract pricing data from JSONB pricingConfig field
-    const pricingConfig = agency.pricingConfig || {}
+    const pricingConfig = agency.pricing_config || {}
 
     // Map database fields to API response format
     const financialData = {
@@ -117,25 +107,45 @@ export async function GET(request: NextRequest) {
       extraDayPrice: pricingConfig.extraDayPrice || 10,
       lateFee: pricingConfig.lateFee || 25,
       stripeStatus: hasStripeAccount ? {
-        accountId: agency.stripeAccountId,
-        accountStatus: agency.stripeAccountStatus,
-        chargesEnabled: agency.stripeChargesEnabled,
-        payoutsEnabled: agency.stripePayoutsEnabled,
-        detailsSubmitted: agency.stripeDetailsSubmitted
-      } : null,
-      braintreeStatus: hasBraintreeAccount ? {
-        merchantId: agency.braintree_merchant_id,
-        isConnected: true,
-        environment: agency.braintree_environment || 'sandbox',
-        venmoEnabled: agency.venmo_enabled || false,
-        accountStatus: agency.braintree_account_status || 'active',
-        allowDesktop: agency.venmo_allow_desktop || true,
-        allowWebLogin: agency.venmo_allow_web_login || true,
-        paymentMethodUsage: agency.venmo_payment_method_usage || 'multi_use',
-        lastSyncAt: agency.braintree_last_sync_at,
-        integrationData: agency.braintree_integration_data ? JSON.parse(agency.braintree_integration_data) : null,
-        publicKey: agency.braintree_public_key
+        accountId: agency.stripe_account_id,
+        accountStatus: agency.stripe_account_status,
+        chargesEnabled: agency.stripe_charges_enabled,
+        payoutsEnabled: agency.stripe_payouts_enabled,
+        detailsSubmitted: agency.stripe_details_submitted,
+        // Add missing properties expected by frontend
+        isConnected: true, // If we have a stripeAccountId, it's connected
+        hasCompletedOnboarding: agency.stripe_details_submitted && 
+                               agency.stripe_charges_enabled && 
+                               agency.stripe_payouts_enabled,
+        // Add missing arrays for requirements (empty for now since we don't track these)
+        currentlyDue: [],
+        eventuallyDue: [],
+        pastDue: [],
+        pendingVerification: []
       } : {
+        accountId: null,
+        accountStatus: null,
+        chargesEnabled: false,
+        payoutsEnabled: false,
+        detailsSubmitted: false,
+        isConnected: false,
+        hasCompletedOnboarding: false,
+        currentlyDue: [],
+        eventuallyDue: [],
+        pastDue: [],
+        pendingVerification: []
+      },
+      paypalStatus: {
+        accountId: null,
+        accountStatus: 'not_connected',
+        isConnected: false,
+        hasCompletedOnboarding: false,
+        paymentsReceivable: false,
+        emailConfirmed: false,
+        detailsSubmitted: false
+      },
+      // Braintree/Venmo status - placeholder for future implementation
+      braintreeStatus: {
         merchantId: null,
         isConnected: false,
         environment: 'sandbox',
@@ -193,7 +203,7 @@ export async function PUT(request: NextRequest) {
 
     // Validate user has access to this agency
     const user = await getUserById(userId)
-    if (!user || user.agencyId !== agencyId) {
+    if (!user || user.agency_id !== agencyId) {
       console.log('❌ Financial Settings API: User not authorized for this agency')
       return NextResponse.json(
         { success: false, error: 'User not authorized for this agency' },
@@ -249,11 +259,11 @@ export async function PUT(request: NextRequest) {
     const { error } = await supabase
       .from('agencies')
       .update({
-        pricingConfig,
-        updatedAt: new Date().toISOString()
+        pricing_config: pricingConfig,
+        updated_at: new Date().toISOString()
       })
       .eq('id', agencyId)
-      .eq('isActive', true)
+      .eq('is_active', true)
 
     if (error) {
       console.error('❌ Financial Settings API: Database update error:', error)

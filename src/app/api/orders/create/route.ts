@@ -160,8 +160,8 @@ export async function POST(
 
 		// Create order record in database - mapping to actual database columns
 		const orderData = {
-			orderNumber,
-			agencyId: actualAgencyId, // Use the UUID, not the slug
+			order_number: orderNumber,
+			agency_id: actualAgencyId, // Use the UUID, not the slug
 			status: "pending",
 
 			// Map totalAmount to existing 'total' and 'subtotal' columns
@@ -169,46 +169,46 @@ export async function POST(
 			subtotal: totalAmount, // Set subtotal equal to total for now (no extra fees)
 
 			// Customer information (essential) - using existing column names
-			customerName: formData.contact.fullName,
-			customerEmail: formData.contact.email,
-			customerPhone: formData.contact.phone,
+			customer_name: formData.contact.fullName,
+			customer_email: formData.contact.email,
+			customer_phone: formData.contact.phone,
 
 			// Event details - using existing column names
-			eventDate: eventDate.toISOString(),
-			eventAddress: formData.event.deliveryAddress
+			event_date: eventDate.toISOString(),
+			event_address: formData.event.deliveryAddress
 				? `${formData.event.deliveryAddress.street}, ${formData.event.deliveryAddress.city}, ${formData.event.deliveryAddress.state} ${formData.event.deliveryAddress.zipCode}`
 				: "Address not provided",
-			deliveryTime: formData.event.timeWindow || null,
-			deliveryNotes: formData.event.deliveryNotes || null,
+			delivery_time: formData.event.timeWindow || null,
+			delivery_notes: formData.event.deliveryNotes || null,
 
 			// Display customization - mapping to existing columns
 			message: formData.display?.eventMessage || "Event Message",
-			messageText:
+			message_text:
 				formData.display?.eventMessage === "Custom Message"
 					? formData.display?.customMessage
 					: formData.display?.eventMessage,
 			theme: formData.display?.characterTheme || null,
 
 			// Payment information
-			paymentMethod: formData.payment?.paymentMethod || null,
-			paymentIntentId: paymentIntentId,
-			paymentStatus: "pending",
+			payment_method: formData.payment?.paymentMethod || null,
+			payment_intent_id: paymentIntentId,
+			payment_status: "pending",
 
 			// Additional metadata
-			specialInstructions: formData.event.deliveryNotes || null,
+			special_instructions: formData.event.deliveryNotes || null,
 
 			// Store confirmation code (now working!)
-			confirmationCode: confirmationCode,
+			confirmation_code: confirmationCode,
 
-			// Add updatedAt since it's required (createdAt has default, updatedAt doesn't)
-			updatedAt: new Date().toISOString(),
+			// Add updated_at since it's required (created_at has default, updated_at doesn't)
+			updated_at: new Date().toISOString(),
 		};
 
 		console.log("💾 Inserting order into database...");
 		const { data: orderRecord, error: insertError } = await supabase
 			.from("orders")
 			.insert([orderData])
-			.select("id, orderNumber")
+			.select("id, order_number")
 			.single();
 
 		if (insertError) {
@@ -227,7 +227,7 @@ export async function POST(
 		// Send email notification to agency
 		try {
 			await sendOrderNotificationEmail({
-				orderNumber: orderRecord.orderNumber,
+				orderNumber: orderRecord.order_number,
 				customerName: formData.contact.fullName,
 				eventDate: eventDate.toISOString(),
 				totalAmount: totalAmount,
@@ -247,7 +247,7 @@ export async function POST(
 		return NextResponse.json({
 			success: true,
 			orderId: orderRecord.id,
-			orderNumber: orderRecord.orderNumber,
+			orderNumber: orderRecord.order_number,
 			confirmationCode: confirmationCode, // Use generated code since it may not be stored in DB
 		});
 	} catch (error) {

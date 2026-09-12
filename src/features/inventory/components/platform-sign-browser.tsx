@@ -112,8 +112,8 @@ export function PlatformSignBrowser({ initialSigns = [] }: PlatformSignBrowserPr
     // Size filter
     if (filters.sizes && filters.sizes.length > 0) {
       filtered = filtered.filter(sign => {
-        const width = sign.sizeWidth || 0
-        const height = sign.sizeHeight || 0
+        const width = sign.size_width || 0
+        const height = sign.size_height || 0
         const maxDimension = Math.max(width, height)
         
         return filters.sizes!.some(size => {
@@ -128,7 +128,7 @@ export function PlatformSignBrowser({ initialSigns = [] }: PlatformSignBrowserPr
 
     // Bundle filter
     if (filters.bundleOnly) {
-      filtered = filtered.filter(sign => sign.bundleId)
+      filtered = filtered.filter(sign => sign.bundle_id)
     }
 
     return filtered

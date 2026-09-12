@@ -67,7 +67,7 @@ export default async function DebugAuthPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Name:</span>
-                      <span className="text-gray-600">{user.firstName} {user.lastName}</span>
+                      <span className="text-gray-600">{user.first_name} {user.last_name}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Role:</span>
@@ -105,8 +105,8 @@ export default async function DebugAuthPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Agency Active:</span>
-                      <span className={user.agency.isActive ? 'text-green-600' : 'text-red-600'}>
-                        {user.agency.isActive ? 'Yes' : 'No'}
+                      <span className={user.agency.is_active ? 'text-green-600' : 'text-red-600'}>
+                        {user.agency.is_active ? 'Yes' : 'No'}
                       </span>
                     </div>
                   </>

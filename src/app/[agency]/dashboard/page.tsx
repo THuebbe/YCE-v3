@@ -70,7 +70,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 				{/* Page Header */}
 				<div className="mb-8">
 					<p className="mt-3 text-lg text-neutral-600">
-						Welcome back{user.firstName ? `, ${user.firstName}` : ""}!
+						Welcome back{user.first_name ? `, ${user.first_name}` : ""}!
 						Here&apos;s an overview of{" "}
 						{agency.name || "your yard sign rental business"}.
 					</p>

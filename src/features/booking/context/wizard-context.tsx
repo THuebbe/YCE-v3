@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { BookingFormData, WizardContextType } from '../types';
+import { usePaymentMethods } from '../hooks/usePaymentMethods';
 
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
@@ -21,6 +22,9 @@ export function WizardProvider({
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [furthestStep, setFurthestStep] = useState(initialStep);
   const [formData, setFormData] = useState<Partial<BookingFormData>>(initialData);
+  
+  // Payment methods hook
+  const paymentMethodsHook = usePaymentMethods();
 
   const updateFormData = useCallback((stepData: Partial<BookingFormData>) => {
     setFormData(prev => ({
@@ -81,6 +85,14 @@ export function WizardProvider({
     canGoPrev,
     isFirstStep,
     isLastStep,
+    // Payment methods
+    paymentMethods: {
+      availablePaymentMethods: paymentMethodsHook.availablePaymentMethods,
+      isLoading: paymentMethodsHook.isLoading,
+      error: paymentMethodsHook.error,
+      defaultPaymentMethod: paymentMethodsHook.defaultPaymentMethod,
+    },
+    loadPaymentMethods: paymentMethodsHook.loadPaymentMethods,
   };
 
   return (

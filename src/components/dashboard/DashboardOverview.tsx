@@ -149,11 +149,11 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 									>
 										<div>
 											<h4 className="font-medium text-neutral-900">
-												{order.customerName}
+												{order.customer_name}
 											</h4>
 											<p className="text-sm text-neutral-600">
 												{order.signCount} signs •{" "}
-												{new Date(order.eventDate).toLocaleDateString()}
+												{new Date(order.event_date).toLocaleDateString()}
 											</p>
 										</div>
 										<span

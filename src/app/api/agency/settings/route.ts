@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     // Verify user has access to this agency
     const user = await getUserById(userId)
-    if (!user || user.agencyId !== agencyId) {
+    if (!user || user.agency_id !== agencyId) {
       return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 })
     }
 
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest) {
 
     // Verify user has access to this agency
     const user = await getUserById(userId)
-    if (!user || user.agencyId !== agencyId) {
+    if (!user || user.agency_id !== agencyId) {
       return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 })
     }
 
@@ -108,7 +108,7 @@ export async function PUT(request: NextRequest) {
       .from('agencies')
       .update({ 
         settings: validatedSettings,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', agencyId)
       .select('id, settings')

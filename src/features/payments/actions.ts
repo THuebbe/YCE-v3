@@ -37,22 +37,22 @@ export async function createStripeConnectAccount() {
     }
 
     // Check if agency already has a Stripe account
-    if (user.agency.stripeAccountId) {
+    if (user.agency.stripe_account_id) {
       // If account exists but onboarding is not complete, return existing onboarding URL
-      if (user.agency.stripeOnboardingUrl && !user.agency.stripeDetailsSubmitted) {
+      if (user.agency.stripe_onboarding_url && !user.agency.stripe_details_submitted) {
         return { 
           success: true, 
-          onboardingUrl: user.agency.stripeOnboardingUrl,
-          accountId: user.agency.stripeAccountId 
+          onboardingUrl: user.agency.stripe_onboarding_url,
+          accountId: user.agency.stripe_account_id 
         };
       }
       
       // If account is fully set up
-      if (user.agency.stripeDetailsSubmitted) {
+      if (user.agency.stripe_details_submitted) {
         return { 
           success: true, 
           message: 'Stripe account already connected',
-          accountId: user.agency.stripeAccountId 
+          accountId: user.agency.stripe_account_id 
         };
       }
     }
@@ -80,12 +80,12 @@ export async function createStripeConnectAccount() {
     const { error: updateError } = await supabase
       .from('agencies')
       .update({
-        stripeAccountId: account.id,
-        stripeAccountStatus: 'pending',
-        stripeOnboardingUrl: accountLink.url,
-        stripeChargesEnabled: false,
-        stripePayoutsEnabled: false,
-        stripeDetailsSubmitted: false,
+        stripe_account_id: account.id,
+        stripe_account_status: 'pending',
+        stripe_onboarding_url: accountLink.url,
+        stripe_charges_enabled: false,
+        stripe_payouts_enabled: false,
+        stripe_details_submitted: false,
       })
       .eq('id', user.agency.id);
 
@@ -144,11 +144,11 @@ export async function getStripeConnectStatus() {
     console.log('💳 Agency found for Stripe status check:', { 
       id: agency.id, 
       slug: agency.slug,
-      hasStripeAccount: !!agency.stripeAccountId 
+      hasStripeAccount: !!agency.stripe_account_id 
     });
 
     // If no Stripe account exists
-    if (!agency.stripeAccountId) {
+    if (!agency.stripe_account_id) {
       console.log('💳 No Stripe account ID found for agency');
       return {
         hasAccount: false,
@@ -159,14 +159,14 @@ export async function getStripeConnectStatus() {
     }
 
     // Get latest account info from Stripe with retry logic
-    console.log('💳 Fetching account details from Stripe API for account:', agency.stripeAccountId);
+    console.log('💳 Fetching account details from Stripe API for account:', agency.stripe_account_id);
     let account: Stripe.Account | null = null;
     let retryCount = 0;
     const maxRetries = 3;
     
     while (retryCount < maxRetries) {
       try {
-        account = await stripe.accounts.retrieve(agency.stripeAccountId);
+        account = await stripe.accounts.retrieve(agency.stripe_account_id);
         console.log('💳 Stripe account retrieved (attempt', retryCount + 1, '):', {
           id: account.id,
           chargesEnabled: account.charges_enabled,
@@ -195,10 +195,10 @@ export async function getStripeConnectStatus() {
     const { error: updateError } = await supabase
       .from('agencies')
       .update({
-        stripeAccountStatus: account.charges_enabled ? 'enabled' : 'pending',
-        stripeChargesEnabled: account.charges_enabled,
-        stripePayoutsEnabled: account.payouts_enabled,
-        stripeDetailsSubmitted: account.details_submitted,
+        stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
+        stripe_charges_enabled: account.charges_enabled,
+        stripe_payouts_enabled: account.payouts_enabled,
+        stripe_details_submitted: account.details_submitted,
       })
       .eq('id', agency.id);
 
@@ -212,7 +212,7 @@ export async function getStripeConnectStatus() {
     let onboardingUrl: string | undefined;
     if (!account.details_submitted) {
       const accountLink = await stripe.accountLinks.create({
-        account: agency.stripeAccountId,
+        account: agency.stripe_account_id,
         refresh_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${agency.slug}/settings?refresh=true`,
         return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${agency.slug}/settings?success=true`,
         type: 'account_onboarding',
@@ -223,13 +223,13 @@ export async function getStripeConnectStatus() {
       // Update onboarding URL in database
       await supabase
         .from('agencies')
-        .update({ stripeOnboardingUrl: onboardingUrl })
+        .update({ stripe_onboarding_url: onboardingUrl })
         .eq('id', agency.id);
     }
 
     return {
       hasAccount: true,
-      accountId: agency.stripeAccountId,
+      accountId: agency.stripe_account_id,
       accountStatus: account.charges_enabled ? 'enabled' : 'pending',
       chargesEnabled: account.charges_enabled,
       payoutsEnabled: account.payouts_enabled,
@@ -253,12 +253,12 @@ export async function getStripeConnectStatus() {
         
       if (user?.agency) {
         const cachedStatus = {
-          hasAccount: !!user.agency.stripeAccountId,
-          accountId: user.agency.stripeAccountId,
-          accountStatus: user.agency.stripeAccountStatus || 'pending',
-          chargesEnabled: user.agency.stripeChargesEnabled || false,
-          payoutsEnabled: user.agency.stripePayoutsEnabled || false,
-          detailsSubmitted: user.agency.stripeDetailsSubmitted || false,
+          hasAccount: !!user.agency.stripe_account_id,
+          accountId: user.agency.stripe_account_id,
+          accountStatus: user.agency.stripe_account_status || 'pending',
+          chargesEnabled: user.agency.stripe_charges_enabled || false,
+          payoutsEnabled: user.agency.stripe_payouts_enabled || false,
+          detailsSubmitted: user.agency.stripe_details_submitted || false,
         };
         console.log('✅ Using cached status from database:', cachedStatus);
         return cachedStatus;

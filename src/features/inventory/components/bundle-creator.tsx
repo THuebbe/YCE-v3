@@ -82,8 +82,8 @@ export function BundleCreator({ onSuccess, onCancel }: BundleCreatorProps) {
 
     // Calculate bundle "fullness" based on dimensions
     const totalArea = selectedSigns.reduce((sum, sign) => {
-      const width = sign.sizeWidth || 24 // Default width
-      const height = sign.sizeHeight || 18 // Default height
+      const width = sign.size_width || 24 // Default width
+      const height = sign.size_height || 18 // Default height
       return sum + (width * height)
     }, 0)
 
@@ -145,8 +145,8 @@ export function BundleCreator({ onSuccess, onCancel }: BundleCreatorProps) {
 
   const calculateBundleStats = () => {
     const totalArea = selectedSigns.reduce((sum, sign) => {
-      const width = sign.sizeWidth || 24
-      const height = sign.sizeHeight || 18
+      const width = sign.size_width || 24
+      const height = sign.size_height || 18
       return sum + (width * height)
     }, 0)
     
@@ -374,7 +374,7 @@ export function BundleCreator({ onSuccess, onCancel }: BundleCreatorProps) {
                 <div key={sign.id} className="flex items-center space-x-4 p-3 border border-neutral-200 rounded-lg hover:bg-neutral-50">
                   <div className="relative w-16 h-16 bg-neutral-100 rounded-lg overflow-hidden">
                     <img
-                      src={sign.thumbnailUrl || sign.imageUrl}
+                      src={sign.thumbnail_url || sign.image_url}
                       alt={sign.name}
                       className="w-full h-full object-cover"
                     />

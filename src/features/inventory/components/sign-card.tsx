@@ -64,8 +64,8 @@ export function SignCard({
   }
 
   const formatDimensions = () => {
-    if (sign.sizeWidth && sign.sizeHeight) {
-      return `${sign.sizeWidth}" × ${sign.sizeHeight}"`
+    if (sign.size_width && sign.size_height) {
+      return `${sign.size_width}" × ${sign.size_height}"`
     }
     if (sign.dimensions && typeof sign.dimensions === 'object') {
       const { width, height } = sign.dimensions as any
@@ -92,7 +92,7 @@ export function SignCard({
         {/* Image */}
         <div className="relative aspect-[4/3] bg-neutral-100">
           <Image
-            src={sign.thumbnailUrl || sign.imageUrl}
+            src={sign.thumbnail_url || sign.image_url}
             alt={sign.name}
             fill
             className="object-cover"
@@ -101,12 +101,12 @@ export function SignCard({
           
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-wrap gap-1">
-            {!sign.isPlatform && showCustomBadge && (
+            {!sign.is_platform && showCustomBadge && (
               <Badge variant="secondary" className="bg-accent-pink text-white text-xs">
                 Custom
               </Badge>
             )}
-            {sign.bundleId && (
+            {sign.bundle_id && (
               <Badge variant="secondary" className="bg-primary text-white text-xs">
                 <Package className="h-3 w-3 mr-1" />
                 Bundle
@@ -117,7 +117,7 @@ export function SignCard({
           {/* Price */}
           <div className="absolute top-2 right-2">
             <Badge variant="secondary" className="bg-white/90 text-neutral-900 text-xs">
-              {formatPrice(sign.rentalPrice)}
+              {formatPrice(sign.rental_price)}
             </Badge>
           </div>
 
@@ -210,7 +210,7 @@ export function SignCard({
             <div className="flex items-center space-x-4 mb-4">
               <div className="relative w-16 h-16 bg-neutral-100 rounded-lg overflow-hidden">
                 <Image
-                  src={sign.thumbnailUrl || sign.imageUrl}
+                  src={sign.thumbnail_url || sign.image_url}
                   alt={sign.name}
                   fill
                   className="object-cover"

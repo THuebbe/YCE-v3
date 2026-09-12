@@ -62,7 +62,7 @@ export default async function DebugPage() {
           agencySlug,
           agencyFound: !!agency,
           agencyId: agency?.id,
-          isActive: agency?.isActive
+          isActive: agency?.is_active
         })
       } catch (error) {
         agencyError = error
@@ -114,7 +114,7 @@ export default async function DebugPage() {
               agencyFound: !!agency,
               agencyId: agency?.id,
               agencyName: agency?.name,
-              isActive: agency?.isActive,
+              isActive: agency?.is_active,
               hasError: !!agencyError,
               errorMessage: agencyError instanceof Error ? agencyError.message : null
             }, null, 2)}</pre>

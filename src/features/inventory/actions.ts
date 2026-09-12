@@ -45,7 +45,7 @@ export const getPlatformSignLibrary = unstable_cache(
       let query = supabase
         .from('sign_library')
         .select('*')
-        .eq('isPlatform', true)
+        .eq('is_platform', true)
         .order('name')
 
       // Apply filters
@@ -66,7 +66,7 @@ export const getPlatformSignLibrary = unstable_cache(
       }
 
       if (filters?.bundleOnly) {
-        query = query.not('bundleId', 'is', null)
+        query = query.not('bundle_id', 'is', null)
       }
 
       const { data, error } = await query
@@ -94,8 +94,8 @@ export async function addSignToInventory({ signId, quantity }: AddToInventoryReq
     const { data: existingItem } = await supabase
       .from('agency_inventory')
       .select('*')
-      .eq('agencyId', agencyId)
-      .eq('signId', signId)
+      .eq('agency_id', agencyId)
+      .eq('sign_id', signId)
       .single()
 
     if (existingItem) {
@@ -103,10 +103,10 @@ export async function addSignToInventory({ signId, quantity }: AddToInventoryReq
       const newQuantity = existingItem.quantity + quantity
       const { error } = await supabase
         .from('agency_inventory')
-        .update({ 
+        .update({
           quantity: newQuantity,
-          availableQuantity: newQuantity - existingItem.allocatedQuantity - existingItem.deployedQuantity,
-          updatedAt: new Date().toISOString()
+          available_quantity: newQuantity - existingItem.allocated_quantity - existingItem.deployed_quantity,
+          updated_at: new Date().toISOString()
         })
         .eq('id', existingItem.id)
 
@@ -119,12 +119,12 @@ export async function addSignToInventory({ signId, quantity }: AddToInventoryReq
       const { error } = await supabase
         .from('agency_inventory')
         .insert({
-          agencyId,
-          signId,
+          agency_id: agencyId,
+          sign_id: signId,
           quantity,
-          availableQuantity: quantity,
-          allocatedQuantity: 0,
-          deployedQuantity: 0
+          available_quantity: quantity,
+          allocated_quantity: 0,
+          deployed_quantity: 0
         })
 
       if (error) {
@@ -151,8 +151,8 @@ export async function getAgencyInventory(filters?: InventoryFilters): Promise<In
         *,
         sign:sign_library(*)
       `)
-      .eq('agencyId', agencyId)
-      .order('updatedAt', { ascending: false })
+      .eq('agency_id', agencyId)
+      .order('updated_at', { ascending: false })
 
     // Apply filters
     if (filters?.search) {
@@ -161,15 +161,15 @@ export async function getAgencyInventory(filters?: InventoryFilters): Promise<In
     }
 
     if (filters?.lowStock) {
-      query = query.lte('availableQuantity', 5)
+      query = query.lte('available_quantity', 5)
     }
 
     if (filters?.outOfStock) {
-      query = query.eq('availableQuantity', 0)
+      query = query.eq('available_quantity', 0)
     }
 
     if (filters?.customOnly) {
-      query = query.eq('sign.isPlatform', false)
+      query = query.eq('sign.is_platform', false)
     }
 
     const { data, error } = await query
@@ -195,7 +195,7 @@ export async function updateInventoryQuantity({ id, quantity }: UpdateInventoryR
       .from('agency_inventory')
       .select('*')
       .eq('id', id)
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
       .single()
 
     if (fetchError || !currentItem) {
@@ -203,7 +203,7 @@ export async function updateInventoryQuantity({ id, quantity }: UpdateInventoryR
     }
 
     // Calculate new available quantity
-    const newAvailableQuantity = quantity - currentItem.allocatedQuantity - currentItem.deployedQuantity
+    const newAvailableQuantity = quantity - currentItem.allocated_quantity - currentItem.deployed_quantity
 
     if (newAvailableQuantity < 0) {
       return { success: false, error: 'Cannot reduce quantity below allocated/deployed amount' }
@@ -213,11 +213,11 @@ export async function updateInventoryQuantity({ id, quantity }: UpdateInventoryR
       .from('agency_inventory')
       .update({
         quantity,
-        availableQuantity: newAvailableQuantity,
-        updatedAt: new Date().toISOString()
+        available_quantity: newAvailableQuantity,
+        updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
 
     if (error) {
       console.error('Error updating inventory quantity:', error)
@@ -239,16 +239,16 @@ export async function removeFromInventory(inventoryId: string): Promise<{ succes
     // Check if item has allocations
     const { data: item, error: fetchError } = await supabase
       .from('agency_inventory')
-      .select('allocatedQuantity, deployedQuantity')
+      .select('allocated_quantity, deployed_quantity')
       .eq('id', inventoryId)
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
       .single()
 
     if (fetchError || !item) {
       return { success: false, error: 'Inventory item not found' }
     }
 
-    if (item.allocatedQuantity > 0 || item.deployedQuantity > 0) {
+    if (item.allocated_quantity > 0 || item.deployed_quantity > 0) {
       return { success: false, error: 'Cannot remove inventory with active allocations' }
     }
 
@@ -256,7 +256,7 @@ export async function removeFromInventory(inventoryId: string): Promise<{ succes
       .from('agency_inventory')
       .delete()
       .eq('id', inventoryId)
-      .eq('agencyId', agencyId)
+      .eq('agency_id', agencyId)
 
     if (error) {
       console.error('Error removing inventory:', error)
@@ -287,11 +287,11 @@ export async function checkBulkAvailability(
           .from('order_signs')
           .select(`
             quantity,
-            order:orders!inner(eventDate, status)
+            order:orders!inner(event_date, status)
           `)
-          .eq('signId', item.signId)
-          .gte('order.eventDate', startDate.toISOString())
-          .lte('order.eventDate', endDate.toISOString())
+          .eq('sign_id', item.signId)
+          .gte('order.event_date', startDate.toISOString())
+          .lte('order.event_date', endDate.toISOString())
           .not('order.status', 'in', '(cancelled,completed)')
 
         const allocatedQuantity = allocatedOrders?.reduce((sum, os) => sum + os.quantity, 0) || 0
@@ -300,8 +300,8 @@ export async function checkBulkAvailability(
         const { data: inventory } = await supabase
           .from('agency_inventory')
           .select('quantity')
-          .eq('agencyId', agencyId)
-          .eq('signId', item.signId)
+          .eq('agency_id', agencyId)
+          .eq('sign_id', item.signId)
           .single()
 
         const totalQuantity = inventory?.quantity || 0
@@ -347,11 +347,11 @@ export async function createSoftHold(
     const { data: hold, error: holdError } = await supabase
       .from('inventory_holds')
       .insert({
-        agencyId,
-        orderId,
-        sessionId,
-        expiresAt: expiresAt.toISOString(),
-        isActive: true
+        agency_id: agencyId,
+        order_id: orderId,
+        session_id: sessionId,
+        expires_at: expiresAt.toISOString(),
+        is_active: true
       })
       .select()
       .single()
@@ -363,10 +363,10 @@ export async function createSoftHold(
 
     // Create hold items
     const holdItems = items.map(item => ({
-      holdId: hold.id,
-      signId: item.signId,
+      hold_id: hold.id,
+      sign_id: item.signId,
       quantity: item.quantity,
-      unitPrice: 0 // Will be updated when order is created
+      unit_price: 0 // Will be updated when order is created
     }))
 
     const { error: itemsError } = await supabase
@@ -427,16 +427,16 @@ export async function createBundle({ name, description, signIds, bundlePositions
     // Update signs to belong to this bundle
     const signUpdates = signIds.map((signId, index) => ({
       id: signId,
-      bundleId: bundle.id,
-      bundlePosition: bundlePositions[index] || index + 1
+      bundle_id: bundle.id,
+      bundle_position: bundlePositions[index] || index + 1
     }))
 
     for (const update of signUpdates) {
       const { error } = await supabase
         .from('sign_library')
         .update({
-          bundleId: update.bundleId,
-          bundlePosition: update.bundlePosition
+          bundle_id: update.bundle_id,
+          bundle_position: update.bundle_position
         })
         .eq('id', update.id)
 
@@ -542,8 +542,8 @@ export async function uploadCustomSign(formData: FormData): Promise<{ success: b
     const themes = JSON.parse(formData.get('themes') as string || '[]')
     const holidays = JSON.parse(formData.get('holidays') as string || '[]')
     const keywords = JSON.parse(formData.get('keywords') as string || '[]')
-    const sizeWidth = parseInt(formData.get('sizeWidth') as string) || null
-    const sizeHeight = parseInt(formData.get('sizeHeight') as string) || null
+    const sizeWidth = parseInt(formData.get('size_width') as string) || null
+    const sizeHeight = parseInt(formData.get('size_height') as string) || null
     const dimensions = formData.get('dimensions') ? JSON.parse(formData.get('dimensions') as string) : null
 
     // Validate required fields
@@ -568,14 +568,14 @@ export async function uploadCustomSign(formData: FormData): Promise<{ success: b
         themes,
         holidays,
         keywords,
-        sizeWidth,
-        sizeHeight,
+        size_width: sizeWidth,
+        size_height: sizeHeight,
         dimensions,
-        imageUrl: uploadResult.url,
-        thumbnailUrl: uploadResult.thumbnailUrl,
-        isPlatform: false,
-        createdBy: agencyId,
-        rentalPrice: 0
+        image_url: uploadResult.url,
+        thumbnail_url: uploadResult.thumbnailUrl,
+        is_platform: false,
+        created_by: agencyId,
+        rental_price: 0
       })
       .select()
       .single()
@@ -612,8 +612,8 @@ export async function updateCustomSign(
       .from('sign_library')
       .select('*')
       .eq('id', signId)
-      .eq('createdBy', agencyId)
-      .eq('isPlatform', false)
+      .eq('created_by', agencyId)
+      .eq('is_platform', false)
       .single()
 
     if (fetchError || !existingSign) {
@@ -624,10 +624,10 @@ export async function updateCustomSign(
       .from('sign_library')
       .update({
         ...updates,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', signId)
-      .eq('createdBy', agencyId)
+      .eq('created_by', agencyId)
 
     if (error) {
       console.error('Error updating custom sign:', error)
@@ -649,10 +649,10 @@ export async function deleteCustomSign(signId: string): Promise<{ success: boole
     // Get the sign details for cleanup
     const { data: sign, error: fetchError } = await supabase
       .from('sign_library')
-      .select('imageUrl, thumbnailUrl, createdBy')
+      .select('image_url, thumbnail_url, created_by')
       .eq('id', signId)
-      .eq('createdBy', agencyId)
-      .eq('isPlatform', false)
+      .eq('created_by', agencyId)
+      .eq('is_platform', false)
       .single()
 
     if (fetchError || !sign) {
@@ -663,7 +663,7 @@ export async function deleteCustomSign(signId: string): Promise<{ success: boole
     const { data: inventoryItems } = await supabase
       .from('agency_inventory')
       .select('quantity')
-      .eq('signId', signId)
+      .eq('sign_id', signId)
 
     if (inventoryItems && inventoryItems.length > 0) {
       const totalQuantity = inventoryItems.reduce((sum, item) => sum + item.quantity, 0)
@@ -677,7 +677,7 @@ export async function deleteCustomSign(signId: string): Promise<{ success: boole
       .from('sign_library')
       .delete()
       .eq('id', signId)
-      .eq('createdBy', agencyId)
+      .eq('created_by', agencyId)
 
     if (deleteError) {
       console.error('Error deleting custom sign:', deleteError)
@@ -686,12 +686,12 @@ export async function deleteCustomSign(signId: string): Promise<{ success: boole
 
     // Clean up uploaded images
     try {
-      if (sign.imageUrl) {
-        const imageKey = sign.imageUrl.split('/').slice(-2).join('/') // Extract key from URL
+      if (sign.image_url) {
+        const imageKey = sign.image_url.split('/').slice(-2).join('/') // Extract key from URL
         await StorageService.deleteSignImage(imageKey)
       }
-      if (sign.thumbnailUrl) {
-        const thumbnailKey = sign.thumbnailUrl.split('/').slice(-2).join('/') // Extract key from URL
+      if (sign.thumbnail_url) {
+        const thumbnailKey = sign.thumbnail_url.split('/').slice(-2).join('/') // Extract key from URL
         await StorageService.deleteSignImage(thumbnailKey)
       }
     } catch (storageError) {
@@ -714,8 +714,8 @@ export async function getCustomSigns(): Promise<Sign[]> {
     const { data, error } = await supabase
       .from('sign_library')
       .select('*')
-      .eq('createdBy', agencyId)
-      .eq('isPlatform', false)
+      .eq('created_by', agencyId)
+      .eq('is_platform', false)
       .order('name')
 
     if (error) {

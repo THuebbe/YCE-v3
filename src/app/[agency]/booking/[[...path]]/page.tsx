@@ -21,7 +21,7 @@ export default async function AgencyBookingPage({ params, searchParams }: Bookin
 
   // Verify the agency exists and is accepting bookings
   const agency = await getAgencyBySlug(agencySlug);
-  if (!agency || !agency.isActive) {
+  if (!agency || !agency.is_active) {
     notFound();
   }
 

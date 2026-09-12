@@ -52,15 +52,15 @@ export async function generateOrderDocument(
     switch (type) {
       case 'pickTicket':
         pdfBuffer = await generatePickTicketPDF(order);
-        filename = `pick-ticket-${order.orderNumber}.pdf`;
+        filename = `pick-ticket-${order.order_number}.pdf`;
         break;
       case 'orderSummary':
         pdfBuffer = await generateOrderSummaryPDF(order);
-        filename = `order-summary-${order.orderNumber}.pdf`;
+        filename = `order-summary-${order.order_number}.pdf`;
         break;
       case 'pickupChecklist':
         pdfBuffer = await generatePickupChecklistPDF(order);
-        filename = `pickup-checklist-${order.orderNumber}.pdf`;
+        filename = `pickup-checklist-${order.order_number}.pdf`;
         break;
       default:
         throw new DocumentGenerationError(
@@ -103,7 +103,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
         margin: 50,
         bufferPages: true,
         info: {
-          Title: `Pick Ticket - Order ${order.orderNumber}`,
+          Title: `Pick Ticket - Order ${order.order_number}`,
           Author: 'YardCard Elite',
           Subject: 'Pick Ticket',
           Keywords: 'pick ticket, order, deployment'
@@ -123,7 +123,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       doc.moveDown();
 
       // Order information
-      doc.fontSize(14).text(`Order #: ${order.orderNumber}`, { continued: true });
+      doc.fontSize(14).text(`Order #: ${order.order_number}`, { continued: true });
       doc.text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
       doc.moveDown();
 
@@ -131,11 +131,11 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       doc.fontSize(16).text('Customer Information', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(12)
-        .text(`Name: ${order.customerName}`)
-        .text(`Email: ${order.customerEmail}`)
-        .text(`Phone: ${order.customerPhone || 'Not provided'}`)
-        .text(`Event Date: ${new Date(order.eventDate).toLocaleDateString()}`)
-        .text(`Event Address: ${order.eventAddress || 'Not provided'}`);
+        .text(`Name: ${order.customer_name}`)
+        .text(`Email: ${order.customer_email}`)
+        .text(`Phone: ${order.customer_phone || 'Not provided'}`)
+        .text(`Event Date: ${new Date(order.event_date).toLocaleDateString()}`)
+        .text(`Event Address: ${order.event_address || 'Not provided'}`);
       doc.moveDown();
 
       // Special instructions
@@ -150,7 +150,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       doc.fontSize(16).text('Items to Pick', { underline: true });
       doc.moveDown(0.5);
 
-      const signCount = order.orderItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+      const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
       doc.fontSize(12).text(`Total Signs: ${signCount}`);
       doc.moveDown();
 
@@ -165,7 +165,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
-      order.orderItems?.forEach((item: any, index: number) => {
+      order.order_items?.forEach((item: any, index: number) => {
         doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
         doc.text(item.sign.name, 100, yPosition, { width: 200 });
         doc.text(item.sign.category, 300, yPosition, { width: 100 });
@@ -193,7 +193,7 @@ async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
         size: 'A4',
         margin: 50,
         info: {
-          Title: `Order Summary - ${order.orderNumber}`,
+          Title: `Order Summary - ${order.order_number}`,
           Author: 'YardCard Elite',
           Subject: 'Order Summary',
           Keywords: 'order summary, invoice, receipt'
@@ -213,20 +213,20 @@ async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
       doc.moveDown();
 
       // Order details
-      doc.fontSize(14).text(`Order #: ${order.orderNumber}`, { continued: true });
+      doc.fontSize(14).text(`Order #: ${order.order_number}`, { continued: true });
       doc.text(`Status: ${order.status.toUpperCase()}`, { align: 'right' });
-      doc.text(`Order Date: ${new Date(order.createdAt).toLocaleDateString()}`, { continued: true });
-      doc.text(`Event Date: ${new Date(order.eventDate).toLocaleDateString()}`, { align: 'right' });
+      doc.text(`Order Date: ${new Date(order.created_at).toLocaleDateString()}`, { continued: true });
+      doc.text(`Event Date: ${new Date(order.event_date).toLocaleDateString()}`, { align: 'right' });
       doc.moveDown();
 
       // Customer information
       doc.fontSize(16).text('Customer Information', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(12)
-        .text(`Name: ${order.customerName}`)
-        .text(`Email: ${order.customerEmail}`)
-        .text(`Phone: ${order.customerPhone || 'Not provided'}`)
-        .text(`Event Address: ${order.eventAddress || 'Not provided'}`);
+        .text(`Name: ${order.customer_name}`)
+        .text(`Email: ${order.customer_email}`)
+        .text(`Phone: ${order.customer_phone || 'Not provided'}`)
+        .text(`Event Address: ${order.event_address || 'Not provided'}`);
       doc.moveDown();
 
       // Order items
@@ -246,12 +246,12 @@ async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
       yPosition += 10;
 
       // Items
-      order.orderItems?.forEach((item: any) => {
+      order.order_items?.forEach((item: any) => {
         doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
         doc.text(item.sign.name, 100, yPosition, { width: 200 });
         doc.text(item.sign.category, 300, yPosition, { width: 100 });
         doc.text(`$${(item.unitPrice / 100).toFixed(2)}`, 400, yPosition, { width: 75 });
-        doc.text(`$${(item.lineTotal / 100).toFixed(2)}`, 475, yPosition, { width: 75 });
+        doc.text(`$${(item.line_total / 100).toFixed(2)}`, 475, yPosition, { width: 75 });
         yPosition += 25;
       });
 
@@ -278,7 +278,7 @@ async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
       doc.fontSize(16).text('Payment Information', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(12)
-        .text(`Payment Status: ${order.paymentStatus.toUpperCase()}`)
+        .text(`Payment Status: ${order.payment_status.toUpperCase()}`)
         .text(`Payment Method: ${order.paymentMethod || 'Not specified'}`);
 
       // Special instructions
@@ -308,7 +308,7 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
         size: 'A4',
         margin: 50,
         info: {
-          Title: `Pickup Checklist - Order ${order.orderNumber}`,
+          Title: `Pickup Checklist - Order ${order.order_number}`,
           Author: 'YardCard Elite',
           Subject: 'Pickup Checklist',
           Keywords: 'pickup checklist, return, inventory'
@@ -328,7 +328,7 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
       doc.moveDown();
 
       // Order information
-      doc.fontSize(14).text(`Order #: ${order.orderNumber}`, { continued: true });
+      doc.fontSize(14).text(`Order #: ${order.order_number}`, { continued: true });
       doc.text(`Pickup Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
       doc.moveDown();
 
@@ -336,16 +336,16 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
       doc.fontSize(16).text('Customer Information', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(12)
-        .text(`Name: ${order.customerName}`)
-        .text(`Address: ${order.eventAddress || 'Not provided'}`)
-        .text(`Phone: ${order.customerPhone || 'Not provided'}`);
+        .text(`Name: ${order.customer_name}`)
+        .text(`Address: ${order.event_address || 'Not provided'}`)
+        .text(`Phone: ${order.customer_phone || 'Not provided'}`);
       doc.moveDown();
 
       // Items to collect
       doc.fontSize(16).text('Items to Collect', { underline: true });
       doc.moveDown(0.5);
 
-      const signCount = order.orderItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+      const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
       doc.fontSize(12).text(`Total Signs: ${signCount}`);
       doc.moveDown();
 
@@ -360,7 +360,7 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
-      order.orderItems?.forEach((item: any) => {
+      order.order_items?.forEach((item: any) => {
         doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
         doc.text(item.sign.name, 100, yPosition, { width: 200 });
         doc.text('□ Good  □ Damaged', 300, yPosition, { width: 100 });
@@ -417,7 +417,7 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
 
   const orderInfo = `
     <div class="order-info">
-      <div>Order #: ${order.orderNumber}</div>
+      <div>Order #: ${order.order_number}</div>
       <div>Date: ${new Date().toLocaleDateString()}</div>
     </div>
   `;
@@ -425,11 +425,11 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
   const customerInfo = `
     <div class="customer-info">
       <h2>Customer Information</h2>
-      <p><strong>Name:</strong> ${order.customerName}</p>
-      <p><strong>Email:</strong> ${order.customerEmail}</p>
-      <p><strong>Phone:</strong> ${order.customerPhone || 'Not provided'}</p>
-      <p><strong>Event Date:</strong> ${new Date(order.eventDate).toLocaleDateString()}</p>
-      <p><strong>Address:</strong> ${order.eventAddress || 'Not provided'}</p>
+      <p><strong>Name:</strong> ${order.customer_name}</p>
+      <p><strong>Email:</strong> ${order.customer_email}</p>
+      <p><strong>Phone:</strong> ${order.customer_phone || 'Not provided'}</p>
+      <p><strong>Event Date:</strong> ${new Date(order.event_date).toLocaleDateString()}</p>
+      <p><strong>Address:</strong> ${order.event_address || 'Not provided'}</p>
     </div>
   `;
 
@@ -438,7 +438,7 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
       return `
         <html>
           <head>
-            <title>Pick Ticket - Order ${order.orderNumber}</title>
+            <title>Pick Ticket - Order ${order.order_number}</title>
             ${commonStyles}
           </head>
           <body>
@@ -448,7 +448,7 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
             <h2>Items to Pick</h2>
             <table>
               <tr><th>Qty</th><th>Sign Name</th><th>Category</th><th>Notes</th></tr>
-              ${order.orderItems?.map((item: any) => `
+              ${order.order_items?.map((item: any) => `
                 <tr>
                   <td>${item.quantity}</td>
                   <td>${item.sign.name}</td>
@@ -468,7 +468,7 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
       return `
         <html>
           <head>
-            <title>Order Summary - ${order.orderNumber}</title>
+            <title>Order Summary - ${order.order_number}</title>
             ${commonStyles}
           </head>
           <body>
@@ -478,12 +478,12 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
             <h2>Order Items</h2>
             <table>
               <tr><th>Qty</th><th>Sign Name</th><th>Unit Price</th><th>Total</th></tr>
-              ${order.orderItems?.map((item: any) => `
+              ${order.order_items?.map((item: any) => `
                 <tr>
                   <td>${item.quantity}</td>
                   <td>${item.sign.name}</td>
                   <td>$${(item.unitPrice / 100).toFixed(2)}</td>
-                  <td>$${(item.lineTotal / 100).toFixed(2)}</td>
+                  <td>$${(item.line_total / 100).toFixed(2)}</td>
                 </tr>
               `).join('')}
             </table>
@@ -499,7 +499,7 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
       return `
         <html>
           <head>
-            <title>Pickup Checklist - Order ${order.orderNumber}</title>
+            <title>Pickup Checklist - Order ${order.order_number}</title>
             ${commonStyles}
           </head>
           <body>
@@ -509,7 +509,7 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
             <h2>Items to Collect</h2>
             <table>
               <tr><th>Qty</th><th>Sign Name</th><th>Condition</th><th>Notes</th></tr>
-              ${order.orderItems?.map((item: any) => `
+              ${order.order_items?.map((item: any) => `
                 <tr>
                   <td>${item.quantity}</td>
                   <td>${item.sign.name}</td>

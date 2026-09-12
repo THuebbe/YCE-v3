@@ -83,7 +83,7 @@ export function MyInventoryList({ initialInventory = [] }: MyInventoryListProps)
 
     // Custom signs only
     if (filters.customOnly) {
-      filtered = filtered.filter(item => item.sign && !item.sign.isPlatform)
+      filtered = filtered.filter(item => item.sign && !item.sign.is_platform)
     }
 
     return filtered

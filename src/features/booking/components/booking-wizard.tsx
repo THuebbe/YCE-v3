@@ -59,13 +59,21 @@ const wizardSteps: WizardStep[] = [
   },
 ];
 
-function BookingWizardContent() {
-  const { currentStep, furthestStep, goToStep } = useWizard();
+function BookingWizardContent({ agencyId }: { agencyId?: string }) {
+  const { currentStep, furthestStep, goToStep, loadPaymentMethods, paymentMethods } = useWizard();
   const [previousStep, setPreviousStep] = useState(currentStep);
   const currentStepData = wizardSteps.find(step => step.id === currentStep);
   
   // Track step direction for animations
   const stepDirection = currentStep > previousStep ? 'forward' : 'backward';
+  
+  // Load payment methods when agencyId is available
+  useEffect(() => {
+    if (agencyId && !paymentMethods.isLoading && paymentMethods.availablePaymentMethods.length === 0) {
+      console.log('🔍 BookingWizard: Loading payment methods for agency:', agencyId);
+      loadPaymentMethods(agencyId);
+    }
+  }, [agencyId, loadPaymentMethods, paymentMethods.isLoading, paymentMethods.availablePaymentMethods.length]);
   
   useEffect(() => {
     setPreviousStep(currentStep);
@@ -128,7 +136,7 @@ interface BookingWizardProps {
 export function BookingWizard({ agencyId, initialStep = 1 }: BookingWizardProps) {
   return (
     <WizardProvider totalSteps={wizardSteps.length} initialStep={initialStep}>
-      <BookingWizardContent />
+      <BookingWizardContent agencyId={agencyId} />
     </WizardProvider>
   );
 }

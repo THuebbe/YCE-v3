@@ -52,9 +52,9 @@ export const displaySchema = z.object({
   holdId: z.string().min(1, 'Please generate your display layout first'),
 });
 
-// Payment Step
-export const paymentSchema = z.object({
-  paymentMethod: z.enum(['card', 'apple_pay', 'paypal', 'venmo'], {
+// Payment Step - Dynamic schema based on available methods
+export const createPaymentSchema = (availablePaymentMethods: string[] = ['card', 'apple_pay', 'paypal', 'venmo']) => z.object({
+  paymentMethod: z.enum(availablePaymentMethods as [string, ...string[]], {
     required_error: 'Please select a payment method',
   }),
   paymentMethodId: z.string().optional(),
@@ -62,6 +62,9 @@ export const paymentSchema = z.object({
     zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
   }).optional(),
 });
+
+// Default payment schema for backward compatibility
+export const paymentSchema = createPaymentSchema();
 
 // Complete form data
 export const bookingFormSchema = z.object({
@@ -110,6 +113,9 @@ export interface WizardContextType {
   canGoPrev: boolean;
   isFirstStep: boolean;
   isLastStep: boolean;
+  // Payment Methods State
+  paymentMethods: PaymentMethodsState;
+  loadPaymentMethods: (agencyId: string) => Promise<void>;
 }
 
 // Preview generation types
@@ -305,4 +311,71 @@ export interface AgencyBookingConfig {
   extraDayPrice: number;
   availableThemes: string[];
   availableSignStyles: string[];
+}
+
+// Payment Method Types for Dynamic Selection
+export interface PaymentMethodProcessor {
+  stripe?: {
+    accountId: string;
+    environment: 'production' | 'development';
+  };
+  braintree?: {
+    environment: 'sandbox' | 'production';
+    merchantId: string;
+    publicKey: string;
+    allowDesktop: boolean;
+    allowWebLogin: boolean;
+    paymentMethodUsage: string;
+  };
+  paypal?: {
+    accountId: string;
+    environment: 'production' | 'sandbox';
+  };
+  platform?: {
+    environment: 'production' | 'development';
+  };
+}
+
+export interface AvailablePaymentMethod {
+  id: 'card' | 'apple_pay' | 'paypal' | 'venmo';
+  name: string;
+  description: string;
+  icon: string;
+  processor: 'stripe' | 'braintree' | 'paypal' | 'platform';
+  processorConfig: PaymentMethodProcessor[keyof PaymentMethodProcessor];
+}
+
+export interface PaymentMethodsResponse {
+  success: boolean;
+  data?: {
+    agencyId: string;
+    agencyName: string;
+    agencySlug: string;
+    availablePaymentMethods: AvailablePaymentMethod[];
+    defaultPaymentMethod: string;
+    processorSummary: {
+      stripe: {
+        connected: boolean;
+        accountId: string | null;
+      };
+      braintree: {
+        connected: boolean;
+        venmoEnabled: boolean;
+        environment: string | null;
+      };
+      paypal: {
+        connected: boolean;
+        accountId: string | null;
+      };
+    };
+  };
+  error?: string;
+}
+
+// Payment Method Loading States
+export interface PaymentMethodsState {
+  availablePaymentMethods: AvailablePaymentMethod[];
+  isLoading: boolean;
+  error: string | null;
+  defaultPaymentMethod: string | null;
 }

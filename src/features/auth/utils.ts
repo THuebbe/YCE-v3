@@ -32,7 +32,7 @@ export async function getCurrentAuthenticatedUser(): Promise<AuthenticatedUser |
     const { data: dbUser, error } = await supabase
       .from('users')
       .select('*')
-      .eq('agencyId', tenantId)
+      .eq('agency_id', tenantId)
       .eq('email', clerkUser.emailAddresses[0]?.emailAddress)
       .single()
     
@@ -43,9 +43,9 @@ export async function getCurrentAuthenticatedUser(): Promise<AuthenticatedUser |
     return {
       id: dbUser.id,
       email: dbUser.email,
-      firstName: dbUser.firstName,
-      lastName: dbUser.lastName,
-      tenantId: dbUser.agencyId,
+      firstName: dbUser.first_name,
+      lastName: dbUser.last_name,
+      tenantId: dbUser.agency_id,
       role: dbUser.role
     }
   } catch (error) {
@@ -73,7 +73,7 @@ export async function validateUserTenantAccess(userId?: string): Promise<boolean
     const { data: dbUser } = await supabase
       .from('users')
       .select('id')
-      .eq('agencyId', tenantId)
+      .eq('agency_id', tenantId)
       .or(`id.eq.${targetUserId},email.eq.${clerkUser.emailAddresses[0]?.emailAddress}`)
       .single()
 

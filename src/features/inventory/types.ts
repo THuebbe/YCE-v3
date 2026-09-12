@@ -4,62 +4,62 @@ export interface Sign {
   description?: string
   category: string
   theme?: string
-  sizeWidth?: number
-  sizeHeight?: number
+  size_width?: number
+  size_height?: number
   dimensions?: Record<string, any>
   themes: string[]
   holidays: string[]
   keywords: string[]
-  imageUrl: string
-  thumbnailUrl?: string
-  isPlatform: boolean
-  createdBy?: string
-  bundleId?: string
-  bundlePosition?: number
-  rentalPrice: number
-  createdAt: string
-  updatedAt: string
+  image_url: string
+  thumbnail_url?: string
+  is_platform: boolean
+  created_by?: string
+  bundle_id?: string
+  bundle_position?: number
+  rental_price: number
+  created_at: string
+  updated_at: string
 }
 
 export interface Bundle {
   id: string
   name: string
   description?: string
-  createdAt: string
-  updatedAt: string
+  created_at: string
+  updated_at: string
   signs?: Sign[]
 }
 
 export interface InventoryItem {
   id: string
-  agencyId: string
-  signId: string
+  agency_id: string
+  sign_id: string
   quantity: number
-  availableQuantity: number
-  allocatedQuantity: number
-  deployedQuantity: number
-  createdAt: string
-  updatedAt: string
+  available_quantity: number
+  allocated_quantity: number
+  deployed_quantity: number
+  created_at: string
+  updated_at: string
   sign?: Sign
 }
 
 export interface InventoryHold {
   id: string
-  agencyId: string
-  orderId?: string
-  sessionId?: string
-  isActive: boolean
-  expiresAt: string
-  createdAt: string
+  agency_id: string
+  order_id?: string
+  session_id?: string
+  is_active: boolean
+  expires_at: string
+  created_at: string
   items?: InventoryHoldItem[]
 }
 
 export interface InventoryHoldItem {
   id: string
-  holdId: string
-  signId: string
+  hold_id: string
+  sign_id: string
   quantity: number
-  unitPrice: number
+  unit_price: number
   sign?: Sign
 }
 
@@ -69,7 +69,7 @@ export interface SignSearchFilters {
   themes?: string[]
   holidays?: string[]
   sizes?: string[]
-  isPlatform?: boolean
+  is_platform?: boolean
   bundleOnly?: boolean
 }
 
@@ -105,8 +105,8 @@ export interface UploadCustomSignRequest {
   themes: string[]
   holidays: string[]
   keywords: string[]
-  sizeWidth?: number
-  sizeHeight?: number
+  size_width?: number
+  size_height?: number
   dimensions?: Record<string, any>
   imageFile: File
 }
@@ -118,8 +118,8 @@ export interface CustomSignUploadData {
   themes: string[]
   holidays: string[]
   keywords: string[]
-  sizeWidth?: number
-  sizeHeight?: number
+  size_width?: number
+  size_height?: number
   dimensions?: Record<string, any>
 }
 
@@ -151,7 +151,7 @@ export interface SignImageMetadata {
 
 export interface UploadResult {
   url: string
-  thumbnailUrl?: string
+  thumbnail_url?: string
   size: number
   dimensions: SignImageMetadata
 }

@@ -108,13 +108,13 @@ function OrderItem({ order }: { order: any }) {
 					<div className="flex items-center space-x-2">
 						<User className="h-4 w-4 text-neutral-500" />
 						<span className="font-medium text-neutral-900">
-							{order.customerName}
+							{order.customer_name}
 						</span>
 						<StatusBadge status={order.status} />
 					</div>
 					<div className="flex items-center space-x-4 text-body-small text-neutral-600">
 						<div className="flex items-center space-x-1">
-							<span>#{order.orderNumber}</span>
+							<span>#{order.order_number}</span>
 						</div>
 						<div className="flex items-center space-x-1">
 							<Package className="h-3 w-3" />
@@ -122,7 +122,7 @@ function OrderItem({ order }: { order: any }) {
 						</div>
 						<div className="flex items-center space-x-1">
 							<Calendar className="h-3 w-3" />
-							<span>{new Date(order.eventDate).toLocaleDateString()}</span>
+							<span>{new Date(order.event_date).toLocaleDateString()}</span>
 						</div>
 					</div>
 				</div>
@@ -131,7 +131,7 @@ function OrderItem({ order }: { order: any }) {
 						${order.total.toLocaleString()}
 					</div>
 					<div className="text-body-small text-neutral-500">
-						{new Date(order.createdAt).toLocaleDateString()}
+						{new Date(order.created_at).toLocaleDateString()}
 					</div>
 				</div>
 			</div>

@@ -19,7 +19,7 @@ export interface PopularSign {
   id: string;
   name: string;
   category: string;
-  imageUrl: string;
+  image_url: string;
   totalOrdered: number;
   revenue: number;
   isMySign?: boolean; // Differentiates between agency's signs vs platform-wide
@@ -27,11 +27,11 @@ export interface PopularSign {
 
 export interface UpcomingDeployment {
   id: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  eventDate: Date;
-  deliveryTime: string | null;
+  order_number: string;
+  customer_name: string;
+  customer_email: string;
+  event_date: Date;
+  delivery_time: string | null;
   status: OrderStatus;
   signCount: number;
   address: string;
@@ -40,14 +40,14 @@ export interface UpcomingDeployment {
 
 export interface RecentOrder {
   id: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  eventDate: Date;
+  order_number: string;
+  customer_name: string;
+  customer_email: string;
+  event_date: Date;
   status: OrderStatus;
   total: number;
   signCount: number;
-  createdAt: Date;
+  created_at: Date;
 }
 
 export type OrderStatus = 'pending' | 'processing' | 'deployed' | 'completed' | 'cancelled';

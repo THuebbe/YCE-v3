@@ -44,7 +44,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
 
       toast({
         title: 'Demo Mode - Order Cancel',
-        description: `Would cancel Order #${order.orderNumber}${refundAmount > 0 ? ` with ${formatCurrency(refundAmount)} refund` : ''} - this is demo data`,
+        description: `Would cancel Order #${order.order_number}${refundAmount > 0 ? ` with ${formatCurrency(refundAmount)} refund` : ''} - this is demo data`,
         variant: 'success'
       });
 
@@ -83,7 +83,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
       <ModalHeader>
         <ModalTitle className="flex items-center text-red-600">
           <AlertTriangle className="h-5 w-5 mr-2" />
-          Cancel Order #{order.orderNumber}
+          Cancel Order #{order.order_number}
         </ModalTitle>
         <ModalDescription>
           This action cannot be undone. Please review the cancellation details below.
@@ -97,12 +97,12 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Customer:</span>
-              <span className="ml-2 text-gray-900">{order.customerName}</span>
+              <span className="ml-2 text-gray-900">{order.customer_name}</span>
             </div>
             <div>
               <span className="text-gray-600">Event Date:</span>
               <span className="ml-2 text-gray-900">
-                {new Date(order.eventDate).toLocaleDateString()}
+                {new Date(order.event_date).toLocaleDateString()}
               </span>
             </div>
             <div>

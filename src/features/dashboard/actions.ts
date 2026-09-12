@@ -79,14 +79,14 @@ export const getRecentOrders = cache(async (agencyId: string, params: { limit?: 
 
     return orders.map((order: any) => ({
       id: order.id,
-      orderNumber: order.orderNumber || order.internalNumber || 'N/A',
-      customerName: order.customerName || 'Unknown',
-      customerEmail: order.customerEmail || 'No email',
-      eventDate: order.eventDate || order.deploymentDate,
+      order_number: order.order_number || order.internal_number || 'N/A',
+      customer_name: order.customer_name || 'Unknown',
+      customer_email: order.customer_email || 'No email',
+      event_date: order.event_date || order.deploymentDate,
       status: order.status as OrderStatus,
       total: Number(order.totalAmount || order.total || 0),
       signCount: 1, // TODO: Implement proper sign count with Supabase
-      createdAt: order.createdAt
+      created_at: order.created_at
     }));
 
   } catch (error) {

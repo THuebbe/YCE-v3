@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Validate user has access to this agency
     const user = await getUserById(userId)
-    if (!user || user.agencyId !== agencyId) {
+    if (!user || user.agency_id !== agencyId) {
       console.log('❌ Agency Profile API: User not authorized for this agency')
       return NextResponse.json(
         { success: false, error: 'User not authorized for this agency' },
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       .from('agencies')
       .select('*')
       .eq('id', agencyId)
-      .eq('isActive', true)
+      .eq('is_active', true)
       .single()
 
     if (error) {
@@ -148,7 +148,7 @@ export async function PUT(request: NextRequest) {
 
     // Validate user has access to this agency
     const user = await getUserById(userId)
-    if (!user || user.agencyId !== agencyId) {
+    if (!user || user.agency_id !== agencyId) {
       console.log('❌ Agency Profile API: User not authorized for this agency')
       return NextResponse.json(
         { success: false, error: 'User not authorized for this agency' },
@@ -195,10 +195,10 @@ export async function PUT(request: NextRequest) {
         email: contactEmail,
         phone: phone,
         address: address,
-        updatedAt: new Date().toISOString()
+        updated_at: new Date().toISOString()
       })
       .eq('id', agencyId)
-      .eq('isActive', true)
+      .eq('is_active', true)
 
     if (error) {
       console.error('❌ Agency Profile API: Database update error:', error)

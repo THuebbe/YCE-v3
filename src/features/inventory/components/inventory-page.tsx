@@ -270,7 +270,7 @@ export function InventoryPage({ initialTab = 'library' }: InventoryPageProps) {
                       {bundle.signs?.slice(0, 4).map((sign: Sign) => (
                         <div key={sign.id} className="relative aspect-square bg-neutral-100 rounded-lg overflow-hidden">
                           <img
-                            src={sign.thumbnailUrl || sign.imageUrl}
+                            src={sign.thumbnail_url || sign.image_url}
                             alt={sign.name}
                             className="w-full h-full object-cover"
                           />

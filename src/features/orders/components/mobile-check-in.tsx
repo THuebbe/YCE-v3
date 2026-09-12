@@ -34,7 +34,7 @@ interface SignCheckInState {
 
 export function MobileCheckIn({ order }: MobileCheckInProps) {
   const [checkIns, setCheckIns] = useState<SignCheckInState[]>(
-    order.orderItems?.map((item: any) => ({
+    order.order_items?.map((item: any) => ({
       signId: item.signId,
       condition: 'good' as const,
       notes: '',
@@ -136,7 +136,7 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
     }
   };
 
-  const totalSigns = order.orderItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const totalSigns = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
   const goodSigns = checkIns.filter(c => c.condition === 'good').length;
   const damagedSigns = checkIns.filter(c => c.condition === 'damaged').length;
   const missingSigns = checkIns.filter(c => c.condition === 'missing').length;
@@ -157,7 +157,7 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
             <h1 className="text-lg font-semibold text-gray-900">
               Check In Signs
             </h1>
-            <p className="text-sm text-gray-600">Order #{order.orderNumber}</p>
+            <p className="text-sm text-gray-600">Order #{order.order_number}</p>
           </div>
           <div className="w-10" /> {/* Spacer */}
         </div>
@@ -177,15 +177,15 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
             <div className="grid grid-cols-1 gap-3 text-sm">
               <div className="flex items-center">
                 <User className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-900">{order.customerName}</span>
+                <span className="text-gray-900">{order.customer_name}</span>
               </div>
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-900">{formatEventDate(new Date(order.eventDate))}</span>
+                <span className="text-gray-900">{formatEventDate(new Date(order.event_date))}</span>
               </div>
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-900">{order.eventAddress}</span>
+                <span className="text-gray-900">{order.event_address}</span>
               </div>
               <div className="flex items-center">
                 <Package className="h-4 w-4 mr-2 text-gray-400" />
@@ -218,7 +218,7 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
         <div className="space-y-4">
           <h3 className="font-semibold text-gray-900">Sign Check-In</h3>
           
-          {order.orderItems?.map((item: any) => {
+          {order.order_items?.map((item: any) => {
             const checkIn = checkIns.find(c => c.signId === item.signId);
             if (!checkIn) return null;
 
@@ -228,9 +228,9 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
                   {/* Sign Header */}
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      {item.sign.imageUrl && (
+                      {item.sign.image_url && (
                         <img
-                          src={item.sign.imageUrl}
+                          src={item.sign.image_url}
                           alt={item.sign.name}
                           className="w-12 h-12 object-cover rounded"
                         />

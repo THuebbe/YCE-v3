@@ -61,7 +61,7 @@ export function OrderCard({ order }: OrderCardProps) {
   const agencySlug = useAgencySlug();
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
-  const signCount = order.orderItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
   const statusColor = getOrderStatusBadgeColor(order.status);
 
   const handleAction = async (action: OrderAction) => {
@@ -114,7 +114,7 @@ export function OrderCard({ order }: OrderCardProps) {
         <div className="flex items-start justify-between">
           <div>
             <h4 className="font-semibold text-neutral-900">
-              #{order.orderNumber}
+              #{order.order_number}
             </h4>
             <Badge className={`${statusColor} text-xs mt-1`}>
               {order.status}
@@ -155,15 +155,15 @@ export function OrderCard({ order }: OrderCardProps) {
         <div className="space-y-2">
           <div className="flex items-center text-sm text-neutral-600">
             <User className="h-4 w-4 mr-2" />
-            <span>{order.customerName}</span>
+            <span>{order.customer_name}</span>
           </div>
           <div className="flex items-center text-sm text-neutral-600">
             <Calendar className="h-4 w-4 mr-2" />
-            <span>{formatEventDate(new Date(order.eventDate))}</span>
+            <span>{formatEventDate(new Date(order.event_date))}</span>
           </div>
           <div className="flex items-center text-sm text-neutral-600">
             <MapPin className="h-4 w-4 mr-2" />
-            <span className="truncate">{formatAddress(order.eventAddress)}</span>
+            <span className="truncate">{formatAddress(order.event_address)}</span>
           </div>
         </div>
 

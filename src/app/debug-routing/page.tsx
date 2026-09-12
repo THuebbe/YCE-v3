@@ -33,7 +33,7 @@ export default async function DebugRoutingPage() {
               <p><strong>User Data:</strong> {user ? 'Found' : 'Not found'}</p>
               {user && (
                 <>
-                  <p><strong>User Name:</strong> {user.firstName} {user.lastName}</p>
+                  <p><strong>User Name:</strong> {user.first_name} {user.last_name}</p>
                   <p><strong>User Email:</strong> {user.email}</p>
                 </>
               )}
@@ -50,7 +50,7 @@ export default async function DebugRoutingPage() {
                   <p><strong>Agency Name:</strong> {agency.name}</p>
                   <p><strong>Agency Slug:</strong> {agency.slug}</p>
                   <p><strong>Agency ID:</strong> {agency.id}</p>
-                  <p><strong>Agency Active:</strong> {agency.isActive ? 'Yes' : 'No'}</p>
+                  <p><strong>Agency Active:</strong> {agency.is_active ? 'Yes' : 'No'}</p>
                 </>
               )}
             </div>

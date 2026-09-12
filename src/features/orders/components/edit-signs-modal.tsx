@@ -54,14 +54,14 @@ export function EditSignsModal({ isOpen, onClose, order }: EditSignsModalProps) 
 
   // Initialize sign edits from order items
   useEffect(() => {
-    if (order?.orderItems) {
-      const edits: SignEdit[] = order.orderItems.map((item: any) => ({
+    if (order?.order_items) {
+      const edits: SignEdit[] = order.order_items.map((item: any) => ({
         signId: item.signId,
         name: item.sign.name,
         currentQuantity: item.quantity,
         newQuantity: item.quantity,
         unitPrice: item.unitPrice,
-        imageUrl: item.sign.imageUrl,
+        imageUrl: item.sign.image_url,
         category: item.sign.category
       }));
       setSignEdits(edits);
@@ -209,7 +209,7 @@ export function EditSignsModal({ isOpen, onClose, order }: EditSignsModalProps) 
       <ModalHeader>
         <ModalTitle className="flex items-center">
           <Package className="h-5 w-5 mr-2" />
-          Edit Signs - Order #{order.orderNumber}
+          Edit Signs - Order #{order.order_number}
         </ModalTitle>
         <ModalDescription>
           Modify the signs in this order. Changes will update the order total and create an activity log.

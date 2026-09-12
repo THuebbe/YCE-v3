@@ -76,7 +76,7 @@ export default async function TestDB() {
             agencyFound: !!agencyTest,
             agencyId: agencyTest?.id,
             agencyName: agencyTest?.name,
-            isActive: agencyTest?.isActive,
+            isActive: agencyTest?.is_active,
             error: agencyError instanceof Error ? agencyError.message : null
           }, null, 2)}</pre>
         </div>
