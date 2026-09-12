@@ -4,7 +4,11 @@ import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { Package, Plus, ArrowRight } from 'lucide-react';
 
-export function EmptyOrdersState() {
+interface EmptyOrdersStateProps {
+  agencySlug: string;
+}
+
+export function EmptyOrdersState({ agencySlug }: EmptyOrdersStateProps) {
   return (
     <Card className="text-center py-16">
       <div className="space-y-6">
@@ -49,14 +53,14 @@ export function EmptyOrdersState() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button 
               variant="primary"
-              onClick={() => window.open('/booking-site', '_blank')}
+              onClick={() => window.open(`/${agencySlug}/booking`, '_blank')}
             >
               <Plus className="h-4 w-4 mr-2" />
               View Booking Site
             </Button>
-            <Button 
+            <Button
               variant="secondary"
-              onClick={() => window.open('/routing', '_self')}
+              onClick={() => window.open(`/${agencySlug}/settings`, '_self')}
             >
               <ArrowRight className="h-4 w-4 mr-2" />
               Configure Settings

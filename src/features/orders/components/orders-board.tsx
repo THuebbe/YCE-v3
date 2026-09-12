@@ -26,7 +26,11 @@ const ORDER_COLUMNS: { status: OrderStatus; title: string; description: string }
   }
 ];
 
-export async function OrdersBoard() {
+interface OrdersBoardProps {
+  agencySlug: string;
+}
+
+export async function OrdersBoard({ agencySlug }: OrdersBoardProps) {
   // Fetch real orders from Supabase
   const orders = await getOrdersByAgency();
 
@@ -40,7 +44,7 @@ export async function OrdersBoard() {
 
   // Show empty state if no orders
   if (allOrders.length === 0) {
-    return <EmptyOrdersState />;
+    return <EmptyOrdersState agencySlug={agencySlug} />;
   }
 
   return (

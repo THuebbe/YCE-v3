@@ -1,12 +1,1 @@
-{
-  "build": {
-    "env": {
-      "PRISMA_GENERATE_DATAPROXY": "false"
-    }
-  },
-  "functions": {
-    "app/**": {
-      "includeFiles": "node_modules/.prisma/**"
-    }
-  }
-}
+{}

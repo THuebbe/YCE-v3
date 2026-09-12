@@ -111,9 +111,11 @@ bundles · inventory_holds · inventory_hold_items · sign_check_ins ·
 activity_log · transactions
 ```
 IDs are cuids (`cmcpperej000fq8br24m5cd06`) — a Prisma legacy. Prisma
-itself was removed early in the project's life; any remaining reference
-to it is a deprecated relic (`vercel.json`, `scripts/fix-prisma-lock.bat`,
-`scripts/create-test-users.ts`). Column casing varies BY TABLE:
+itself was removed early in the project's life; the file-level relics
+(`vercel.json` dataproxy config, `scripts/fix-prisma-lock.bat`,
+`scripts/create-test-users.ts`) were deleted in the 2026-09-12 cleanup
+(see STATE.md) — cuids are the only Prisma trace left, and that's a
+data-format fact, not a dead file. Column casing varies BY TABLE:
 `orders.agency_id` and `agency_inventory.agency_id` (verified against live
 app code and the database; this previously said `orders."agencyId"`,
 which was wrong). Always check.

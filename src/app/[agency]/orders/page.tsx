@@ -68,7 +68,7 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
 
         {/* Orders Board with Suspense */}
         <Suspense fallback={<OrdersBoardSkeleton />}>
-          <OrdersBoard />
+          <OrdersBoard agencySlug={agencySlug} />
         </Suspense>
       </main>
     </div>

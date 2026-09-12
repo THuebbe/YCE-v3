@@ -1,7 +1,12 @@
 # Where This Stands
 
-Last verified: 2026-09-11 (app booted and clicked through end to end).
-Last commit: 2025-09-06. Dormant ~12 months.
+Last verified: 2026-09-12. Housekeeping pass: confirmed the three
+migrations applied last night (2026-09-12, commit `80cb846`) actually
+landed in the live database, and removed the dead code listed below.
+No functional/product code changed other than the two dangling links
+into a route that got deleted (see Dead code section).
+Last commit before this session: 2025-09-06 → dormant ~12 months, woken
+2026-09-10.
 Supabase project was PAUSED; restored 2026-09-10. Free tier re-pauses
 after ~7 days idle.
 
@@ -14,14 +19,18 @@ after ~7 days idle.
   reported 69%. This is the part that was believed broken. It isn't.
 - Agency lookup by slug works (`elite-denver` → cmcpperej000fq8br24m5cd06).
 - Clerk middleware runs; subdomain parsing works on `.localhost`.
+- **All three `migrations/` files are applied to the live database** —
+  verified directly against Supabase this session (queried each column
+  the three migrations add: `agencies.braintree_environment` /
+  `braintree_merchant_id` / `venmo_enabled`, `agencies.paypalAccountId` /
+  `paypalAccountStatus` / `paypalOnboardingUrl`, and the `orders` booking
+  columns including `confirmationCode`, `holdId`, `paymentIntentId`,
+  `eventMessage`, `hobbies`). This closes the "payment step 500s" defect
+  that used to be listed below — schema-level only, the booking flow
+  itself was not re-clicked-through this session.
 
 ## VERIFIED BROKEN
-1. **Payment step 500s.** `column agencies.braintree_environment does
-   not exist`. The three files in `migrations/` were written but NEVER
-   APPLIED to the database. Fix = paste each into the Supabase SQL
-   editor, in filename order. `20250806_add_booking_columns_to_orders`
-   is the critical one — without it no order can be saved at all.
-2. **Inventory holds are `localStorage`.** The UI says so out loud:
+1. **Inventory holds are `localStorage`.** The UI says so out loud:
    "Using mock inventory hold for testing." Real `inventory_holds` /
    `inventory_hold_items` tables exist and are used by the AGENCY side
    (`features/inventory/actions.ts`). The booking side never got wired.
@@ -29,19 +38,19 @@ after ~7 days idle.
    holds die on device switch; the `holdId` gating payment is fiction.
    `api/cron/clear-expired-holds` imports this service server-side,
    where `localStorage` is undefined — that endpoint cannot run.
-3. **Subdomain URLs 404 in dev.** `elite-denver.localhost:3000/booking`
+2. **Subdomain URLs 404 in dev.** `elite-denver.localhost:3000/booking`
    returns 404; middleware detects the subdomain but never rewrites the
    path to `/elite-denver/booking`. Path-based URLs work. Use those.
-4. **Every `.vercel.app` deploy is broken the same way.** `getSubdomain`
+3. **Every `.vercel.app` deploy is broken the same way.** `getSubdomain`
    returns `parts[0]` for any host with >2 parts, so it reads
    `yce-v3-git-main-...` as an agency slug and finds nothing. Needs an
    early `if (host.endsWith('.vercel.app')) return null`.
-5. **`getAvailableSigns()` returns hardcoded mock data.** Its Supabase
+4. **`getAvailableSigns()` returns hardcoded mock data.** Its Supabase
    import is commented out. Not connected to `sign_library`.
-6. **`layout-calculator.ts` never consults inventory.** It builds the
+5. **`layout-calculator.ts` never consults inventory.** It builds the
    display from the message string alone, so the preview can promise
    letters the agency doesn't own.
-7. **The wizard ignores per-agency pricing.** `basePrice = 95` and
+6. **The wizard ignores per-agency pricing.** `basePrice = 95` and
    `extraDayPrice = 10` are hardcoded in FOUR step components
    (display-customization, review, payment, confirmation). Those are
    elite-denver's real config values, copied in as a stopgap.
@@ -51,9 +60,9 @@ after ~7 days idle.
    correctly. The booking side has zero references to it. Fix: fetch
    config on wizard load (same pattern as the payment-methods call) and
    read from context in all four files.
-8. Decoration signs render as truncated text ("DE DE DE") — Zone 3 is
+7. Decoration signs render as truncated text ("DE DE DE") — Zone 3 is
    emitting labels, not looking up inventory. See the Zone 3 note below.
-9. **`sign_library` CONTAINS NO LETTERS.** All rows are whole pre-made
+8. **`sign_library` CONTAINS NO LETTERS.** All rows are whole pre-made
    message boards ("Happy Birthday - Classic", "Congratulations
    Graduate") plus some generic real-estate seed data that doesn't
    belong in a yard-card product at all. `rental_price` is 0 on every
@@ -73,15 +82,28 @@ Resolver written: `src/features/booking/services/sign-assets.ts`.
 NOTE: the 4 font styles (classic/block/tall/rounded) map directly to the
 existing Message Style / Name Style radios (Classic/Bold/Script/Fun).
 
-## Dead code — delete on sight
-`src/temp-inventory/` (orphaned, grep-verified) ·
-`src/app/booking-site/` (duplicate of `[agency]/booking`) ·
+## Dead code — REMOVED 2026-09-12
+Everything previously listed here is deleted from the repo:
+`src/temp-inventory/` (already gone before this pass) ·
+`src/app/booking-site/` (had two live dangling links from the empty-orders
+dashboard state — `View Booking Site` / `Configure Settings` — repointed to
+`/${agencySlug}/booking` and `/${agencySlug}/settings` before deletion; see
+`empty-orders-state.tsx`, `orders-board.tsx`, `[agency]/orders/page.tsx`) ·
 `src/app/debug/`, `debug-auth/`, `debug-routing/`, `test-db/` ·
-`makeAgencyIdNullable()` + the `exec_sql` RPC it calls (arbitrary SQL
-execution function sitting in the database — drop it) ·
-`scripts/create-test-users.ts` imports PrismaClient and can no longer run ·
-`vercel.json` still configures Prisma dataproxy + `.prisma` includeFiles ·
-`@anthropic-ai/claude-code` is in prod `dependencies`
+`makeAgencyIdNullable()` (app-code function removed from `supabase-client.ts`) ·
+`scripts/create-test-users.ts`, `scripts/fix-prisma-lock.bat` (Prisma-era) ·
+`vercel.json` Prisma dataproxy config (file now `{}`) ·
+`@anthropic-ai/claude-code` prod dependency (removed, lockfile resynced)
+
+**NOT done — needs a deliberate decision, not a sweep:** the `exec_sql`
+Postgres RPC (arbitrary raw-SQL execution) that `makeAgencyIdNullable()`
+called still exists in the live, shared database and is also still called by
+three one-off scripts (`scripts/apply-migration.mjs`,
+`scripts/apply-booking-migration.ts`, `scripts/add-confirmation-code.mjs`) —
+all now obsolete since the migrations they applied are confirmed live (see
+above). Dropping a DB-side function on a database shared with PantryPro is
+irreversible and out of scope for this pass; flagging for an explicit
+decision rather than doing it silently.
 
 ## Known, deliberately deferred
 - RLS off on all YCE tables. Hardening task — before the first PAYING
@@ -132,7 +154,10 @@ green font, or 12 sports characters) and it auto-adds N signs to
 inventory. Do not model bundles as a customer product.
 
 ## Next steps, in order
-1. Apply the three migrations by hand (unblocks payment)
+1. ~~Apply the three migrations by hand~~ — done 2026-09-12 (commit
+   `80cb846`), columns verified live. Re-test the payment step
+   end-to-end to confirm the 500 is actually gone — not done this
+   session, only the schema was checked.
 2. Move holds server-side onto the real `inventory_holds` tables
 3. Seed letters into `sign_library`, THEN connect `getAvailableSigns()`
    to `sign_library` / `agency_inventory` (see below — there are no
