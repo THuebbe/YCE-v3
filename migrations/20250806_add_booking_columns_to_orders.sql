@@ -118,49 +118,35 @@ BEGIN
     END IF;
 END $$;
 
--- Add timestamps for better tracking (if not already present)
+-- NOTE: createdAt/updatedAt (camelCase) were dropped from this migration.
+-- The orders table already has created_at/updated_at (snake_case), which is
+-- what every application code path actually reads and writes (verified against
+-- src/features/orders/*, src/app/api/orders/create/route.ts,
+-- src/lib/db/supabase-client.ts). Adding parallel camelCase columns would just
+-- be unused duplication.
+
+-- Add index for performance (created_at is the real column app code sorts by;
+-- this index did not previously exist)
+CREATE INDEX IF NOT EXISTS "orders_created_at_idx" ON "orders"("created_at");
+
+-- NOTE: indexes on (agencyId, status), (eventDate), and (customerEmail) were
+-- dropped from this migration. Those column names don't exist on this table
+-- (app code uses agency_id, event_date, customer_email) and equivalent
+-- indexes already exist: orders_agencyId_status_idx (agency_id, status),
+-- orders_agencyId_eventDate_idx (agency_id, event_date), and
+-- orders_customerEmail_idx (customer_email) -- historically camelCase-named
+-- but built on the correct snake_case columns.
+
+-- Update RLS policies if they exist (currently a no-op: no policies exist yet
+-- on orders and RLS is off project-wide, see CLAUDE.md; column name corrected
+-- to the real agency_id in case a policy is added later)
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'createdAt') THEN
-        ALTER TABLE "orders" ADD COLUMN "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-    END IF;
-    
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'updatedAt') THEN
-        ALTER TABLE "orders" ADD COLUMN "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-    END IF;
-    
-    -- Add trigger to update updatedAt automatically
-    CREATE OR REPLACE FUNCTION update_orders_updated_at()
-    RETURNS TRIGGER AS $$
-    BEGIN
-        NEW."updatedAt" = CURRENT_TIMESTAMP;
-        RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
-    
-    DROP TRIGGER IF EXISTS update_orders_updated_at_trigger ON "orders";
-    CREATE TRIGGER update_orders_updated_at_trigger
-        BEFORE UPDATE ON "orders"
-        FOR EACH ROW
-        EXECUTE FUNCTION update_orders_updated_at();
-END $$;
-
--- Add indexes for performance
-CREATE INDEX IF NOT EXISTS "orders_agency_id_status_idx" ON "orders"("agencyId", "status");
-CREATE INDEX IF NOT EXISTS "orders_event_date_idx" ON "orders"("eventDate");
-CREATE INDEX IF NOT EXISTS "orders_customer_email_idx" ON "orders"("customerEmail");
-CREATE INDEX IF NOT EXISTS "orders_created_at_idx" ON "orders"("createdAt");
-
--- Update RLS policies if they exist
-DO $$
-BEGIN
-    -- Only update RLS if the policy exists
     IF EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'orders') THEN
-        -- Ensure orders are isolated by agency
         DROP POLICY IF EXISTS "orders_isolation" ON "orders";
         CREATE POLICY "orders_isolation" ON "orders"
         FOR ALL
-        USING ("agencyId" = get_current_agency_id());
+        USING (agency_id = get_current_agency_id());
     END IF;
 END $$;
 
