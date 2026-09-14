@@ -72,14 +72,19 @@ export async function getAgencyByDomain(domain: string): Promise<any | null> {
 export async function getUserById(userId: string): Promise<any | null> {
   try {
     console.log('🔍 Supabase: Looking up user by ID:', userId)
-    
+
+    // userId is the Clerk auth ID. Users created via the Clerk webhook have
+    // it stored directly as `id` (see api/webhooks/clerk/route.ts), but
+    // manually-seeded users (e.g. scripts/sync-clerk-users.ts) keep their
+    // original cuid `id` and link to Clerk only via `clerk_user_id`. Match
+    // either so both paths resolve.
     const { data, error } = await supabase
       .from('users')
       .select(`
         *,
         agency:agencies(*)
       `)
-      .eq('id', userId)
+      .or(`id.eq.${userId},clerk_user_id.eq.${userId}`)
       .single()
     
     if (error) {

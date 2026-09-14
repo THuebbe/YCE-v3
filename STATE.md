@@ -27,6 +27,28 @@ since this session has no Vercel API/CLI access.
   reported 69%. This is the part that was believed broken. It isn't.
 - Agency lookup by slug works (`elite-denver` → cmcpperej000fq8br24m5cd06).
 - Clerk middleware runs; subdomain parsing works on `.localhost`.
+- **Fixed 2026-09-14: authenticated dashboard login never worked for any
+  manually-seeded user (only for users created through the live Clerk
+  signup webhook).** `getUserById()` looked up `users` by `.eq('id',
+  userId)`, where `userId` is the Clerk auth ID. That only matches because
+  `api/webhooks/clerk/route.ts` happens to insert new users with
+  `id = <clerk id>` directly. Users seeded another way (e.g.
+  `scripts/sync-clerk-users.ts`) keep their original cuid `id` and store
+  the Clerk id separately in `clerk_user_id` — a column `getUserById` never
+  queried. Confirmed live: `admin@elite-denver.com` has
+  `id: cmcpq8c3y0001q800gn59kfio` but `clerk_user_id:
+  user_2zRKzusknd0Eko93RaAnYaNm72E`; signing in returned the Clerk id, the
+  lookup missed, and `/routing` fell through its "user not found" branch to
+  `/onboarding` instead of the dashboard. This has been broken since Prisma
+  was removed (`git log`: introduced in "Nuclear option: Replace Prisma
+  with direct Supabase queries"), so it predates this dormancy — not a
+  regression from anything done this week. Fixed by matching
+  `.or('id.eq.<id>,clerk_user_id.eq.<id>')`; this one function is called
+  from 18 files (every `[agency]/*` page, most `api/agency/*` routes,
+  `api/dashboard`, `/routing`), so the fix applies everywhere at once.
+  Verified the corrected query resolves admin@elite-denver.com to its
+  agency; not yet re-tested by actually clicking through Clerk sign-in to
+  dashboard in a browser.
 - **Payment step actually works now — clicked through, not just schema-checked.**
   The 2026-09-12 migrations fixed two of the three payment-blocking columns
   (Braintree/Venmo, orders booking columns) but missed one: the PayPal
@@ -212,7 +234,12 @@ Zone 3 fill requirement: the spec says 75%, `layout-calculator.ts` uses
 `0.6`, and its own docstring says 75% while the code says 0.6. Pick one.
 
 ## NOT VERIFIED — check before trusting
-- Whether the other 5 test users still exist in Clerk.
+- Whether the manager@elite-denver.com / sunny-signs-ca / texas-signs /
+  yardcard-elite-west-branch test users from `sync-clerk-users.ts` still
+  work in Clerk (admin@elite-denver.com is now confirmed live — see
+  `getUserById` fix above — but its password had been silently reset:
+  Clerk flagged the old shared `TestPass123!` as a compromised/leaked
+  password and forced a reset on next login).
 - Whether every tenant query truly filters on `agencyId` (unaudited).
 - Whether Node 23 (non-LTS, untested against Next 15.3.4) causes
   issues. It booted fine; unknown beyond that.
