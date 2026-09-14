@@ -7,6 +7,16 @@ is the first time that's been confirmed since the 2025-09-06 dormancy,
 not just schema-checked.
 Supabase project was PAUSED; restored 2026-09-10. Free tier re-pauses
 after ~7 days idle.
+**Vercel deployments were failing — fixed 2026-09-14.** `next build`
+(same command Vercel runs) was failing at the type-check stage on four
+unrelated camelCase-vs-snake_case mismatches between local TS interfaces
+and the real Supabase data shape, in `DashboardOverview.tsx`,
+`payment-step.tsx`, `custom-sign-upload-form.tsx`, and
+`my-inventory-list.tsx`. Not a Node 23 or dependency issue — a genuine,
+deterministic compile error, reproduced locally with a full `pnpm build`
+(27/27 routes). Fixed and pushed; Vercel should build clean on the next
+deploy from `main` — not yet confirmed against the actual Vercel dashboard
+since this session has no Vercel API/CLI access.
 
 ## VERIFIED WORKING (seen running, not inferred)
 - `pnpm install` + `pnpm dev` boots clean. Ready in ~6s.
