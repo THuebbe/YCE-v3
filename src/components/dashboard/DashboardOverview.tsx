@@ -7,8 +7,8 @@ interface DashboardData {
 	openOrders: number;
 	upcomingOrders: Array<{
 		id: string;
-		customerName: string;
-		eventDate: string;
+		customer_name: string;
+		event_date: string;
 		status: "pending" | "processing" | "deployed";
 		signCount: number;
 	}>;

@@ -72,8 +72,7 @@ export function PaymentStep() {
         setLocalData(prev => ({
           ...prev,
           billingAddress: {
-            ...(prev.billingAddress || {}),
-            [child]: value,
+            zipCode: child === 'zipCode' ? value : (prev.billingAddress?.zipCode || ''),
           },
         }));
       } else {

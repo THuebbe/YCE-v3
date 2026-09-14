@@ -190,11 +190,11 @@ export function CustomSignUploadForm({ onSuccess, onCancel }: CustomSignUploadFo
       submitFormData.append('holidays', JSON.stringify(formData.holidays))
       submitFormData.append('keywords', JSON.stringify(formData.keywords))
       
-      if (formData.sizeWidth) {
-        submitFormData.append('sizeWidth', formData.sizeWidth.toString())
+      if (formData.size_width) {
+        submitFormData.append('size_width', formData.size_width.toString())
       }
-      if (formData.sizeHeight) {
-        submitFormData.append('sizeHeight', formData.sizeHeight.toString())
+      if (formData.size_height) {
+        submitFormData.append('size_height', formData.size_height.toString())
       }
 
       // Simulate progress for better UX
@@ -395,8 +395,8 @@ export function CustomSignUploadForm({ onSuccess, onCancel }: CustomSignUploadFo
             </label>
             <Input
               type="number"
-              value={formData.sizeWidth || ''}
-              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, sizeWidth: parseInt(e.target.value) || undefined }))}
+              value={formData.size_width || ''}
+              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, size_width: parseInt(e.target.value) || undefined }))}
               placeholder="24"
               min="1"
             />
@@ -408,8 +408,8 @@ export function CustomSignUploadForm({ onSuccess, onCancel }: CustomSignUploadFo
             </label>
             <Input
               type="number"
-              value={formData.sizeHeight || ''}
-              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, sizeHeight: parseInt(e.target.value) || undefined }))}
+              value={formData.size_height || ''}
+              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, size_height: parseInt(e.target.value) || undefined }))}
               placeholder="18"
               min="1"
             />

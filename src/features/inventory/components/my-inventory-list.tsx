@@ -74,11 +74,11 @@ export function MyInventoryList({ initialInventory = [] }: MyInventoryListProps)
 
     // Stock status filters
     if (filters.lowStock) {
-      filtered = filtered.filter(item => item.availableQuantity <= 5 && item.availableQuantity > 0)
+      filtered = filtered.filter(item => item.available_quantity <= 5 && item.available_quantity > 0)
     }
 
     if (filters.outOfStock) {
-      filtered = filtered.filter(item => item.availableQuantity === 0)
+      filtered = filtered.filter(item => item.available_quantity === 0)
     }
 
     // Custom signs only
@@ -97,9 +97,9 @@ export function MyInventoryList({ initialInventory = [] }: MyInventoryListProps)
   const stats = useMemo(() => {
     const totalItems = inventory.length
     const totalQuantity = inventory.reduce((sum, item) => sum + item.quantity, 0)
-    const availableQuantity = inventory.reduce((sum, item) => sum + item.availableQuantity, 0)
-    const lowStockItems = inventory.filter(item => item.availableQuantity <= 5 && item.availableQuantity > 0).length
-    const outOfStockItems = inventory.filter(item => item.availableQuantity === 0).length
+    const availableQuantity = inventory.reduce((sum, item) => sum + item.available_quantity, 0)
+    const lowStockItems = inventory.filter(item => item.available_quantity <= 5 && item.available_quantity > 0).length
+    const outOfStockItems = inventory.filter(item => item.available_quantity === 0).length
 
     return [
       {
@@ -140,8 +140,8 @@ export function MyInventoryList({ initialInventory = [] }: MyInventoryListProps)
             ? { 
                 ...item, 
                 quantity,
-                availableQuantity: quantity - item.allocatedQuantity - item.deployedQuantity,
-                updatedAt: new Date().toISOString()
+                available_quantity: quantity - item.allocated_quantity - item.deployed_quantity,
+                updated_at: new Date().toISOString()
               }
             : item
         ))
