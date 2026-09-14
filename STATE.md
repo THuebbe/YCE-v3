@@ -4,7 +4,9 @@ Last verified: 2026-09-14. The booking wizard was clicked through live,
 end to end, from Contact Information through a fully-rendered Payment
 Information step (card fields, order summary, no error banner) — this
 is the first time that's been confirmed since the 2025-09-06 dormancy,
-not just schema-checked.
+not just schema-checked. Same day: authenticated login was clicked
+through live too, for the first time this dormancy — admin@elite-denver.com
+signed in via Clerk and reached the real agency dashboard.
 Supabase project was PAUSED; restored 2026-09-10. Free tier re-pauses
 after ~7 days idle.
 **Vercel deployments were failing — fixed 2026-09-14.** `next build`
@@ -47,8 +49,35 @@ since this session has no Vercel API/CLI access.
   from 18 files (every `[agency]/*` page, most `api/agency/*` routes,
   `api/dashboard`, `/routing`), so the fix applies everywhere at once.
   Verified the corrected query resolves admin@elite-denver.com to its
-  agency; not yet re-tested by actually clicking through Clerk sign-in to
-  dashboard in a browser.
+  agency, AND confirmed 2026-09-14 by actually signing in through Clerk in
+  a browser and landing on the real dashboard — first confirmed real login
+  since the dormancy.
+- **The /routing → sign-in loop that showed up while testing the above was
+  not a code bug — it was the dev machine's system clock running ~45-60s
+  behind real time**, confirmed via a HAR capture: every fresh Clerk
+  session token carried an `nbf` (not-before) claim pinned to Clerk's
+  (correct) clock, which the Next.js server's local JWT verification
+  always saw as "not valid yet" against the skewed local clock, so
+  `auth()` kept reporting signed-out and the client kept retrying,
+  self-sustaining the loop indefinitely. Fixed by resyncing Windows' clock
+  (Settings → Date & Time → Sync now). Nothing in the repo needed to
+  change for this one. Residual rough edge, not new: `/routing`'s
+  auto-redirect (a raw `<script>` with staggered `setTimeout` +
+  `window.location.replace`, see the TODO already in that file) didn't
+  fire reliably even post-fix and needed a manual click on its fallback
+  link — this is the file's own documented workaround for "Next.js dev
+  server Fast Refresh interference," not something this session introduced.
+  Worth replacing with a real client-side redirect at some point, but low
+  priority.
+- **Open, unresolved from this session:** while chasing the above,
+  `NEXT_PUBLIC_CLERK_DOMAIN=localhost:3000` was commented out in
+  `.env.local` as a diagnostic step (Clerk's SDK auto-reads it as a
+  `domain` default with no satellite/proxy wiring elsewhere in the app to
+  support it). The clock turned out to be the actual cause, so this env
+  var was never confirmed to matter either way — it's currently disabled
+  and everything works, but nobody's tested restoring it. Local-only
+  (`.env.local` is gitignored), zero risk either way; revisit if curious,
+  not urgent.
 - **Payment step actually works now — clicked through, not just schema-checked.**
   The 2026-09-12 migrations fixed two of the three payment-blocking columns
   (Braintree/Venmo, orders booking columns) but missed one: the PayPal
