@@ -1,12 +1,10 @@
 # Where This Stands
 
-Last verified: 2026-09-12. Housekeeping pass: confirmed the three
-migrations applied last night (2026-09-12, commit `80cb846`) actually
-landed in the live database, and removed the dead code listed below.
-No functional/product code changed other than the two dangling links
-into a route that got deleted (see Dead code section).
-Last commit before this session: 2025-09-06 → dormant ~12 months, woken
-2026-09-10.
+Last verified: 2026-09-14. The booking wizard was clicked through live,
+end to end, from Contact Information through a fully-rendered Payment
+Information step (card fields, order summary, no error banner) — this
+is the first time that's been confirmed since the 2025-09-06 dormancy,
+not just schema-checked.
 Supabase project was PAUSED; restored 2026-09-10. Free tier re-pauses
 after ~7 days idle.
 
@@ -19,15 +17,23 @@ after ~7 days idle.
   reported 69%. This is the part that was believed broken. It isn't.
 - Agency lookup by slug works (`elite-denver` → cmcpperej000fq8br24m5cd06).
 - Clerk middleware runs; subdomain parsing works on `.localhost`.
-- **All three `migrations/` files are applied to the live database** —
-  verified directly against Supabase this session (queried each column
-  the three migrations add: `agencies.braintree_environment` /
-  `braintree_merchant_id` / `venmo_enabled`, `agencies.paypalAccountId` /
-  `paypalAccountStatus` / `paypalOnboardingUrl`, and the `orders` booking
-  columns including `confirmationCode`, `holdId`, `paymentIntentId`,
-  `eventMessage`, `hobbies`). This closes the "payment step 500s" defect
-  that used to be listed below — schema-level only, the booking flow
-  itself was not re-clicked-through this session.
+- **Payment step actually works now — clicked through, not just schema-checked.**
+  The 2026-09-12 migrations fixed two of the three payment-blocking columns
+  (Braintree/Venmo, orders booking columns) but missed one: the PayPal
+  migration added its 11 columns in camelCase (`paypalAccountId`, ...) while
+  every app file that reads them (`paypal-actions.ts`, the PayPal webhook,
+  `payment-methods/route.ts`) uses snake_case (`paypal_account_id`, ...) —
+  same failure mode, different column, still a 500. Fixed 2026-09-14 with
+  `migrations/20260912_rename_paypal_columns_to_snake_case.sql` (a rename,
+  applied by hand in the Supabase SQL editor per the rule above; no app code
+  changed). Re-walked the wizard afterward: Payment Information now renders
+  the card form and order summary with no error. `agencies` has no
+  relationship to PantryPro's `businesses`/`restaurants` tables (only
+  `users.business_id` bridges that), so this had zero shared-DB blast radius.
+- Minor, not yet fixed: the event-date field only carries a date, no time,
+  so "must be 48 hours from now" can reject a date exactly 2 calendar days
+  out if it's not yet midnight on the start day. Pick 3+ days out when
+  testing manually.
 
 ## VERIFIED BROKEN
 1. **Inventory holds are `localStorage`.** The UI says so out loud:
@@ -60,8 +66,17 @@ after ~7 days idle.
    correctly. The booking side has zero references to it. Fix: fetch
    config on wizard load (same pattern as the payment-methods call) and
    read from context in all four files.
-7. Decoration signs render as truncated text ("DE DE DE") — Zone 3 is
-   emitting labels, not looking up inventory. See the Zone 3 note below.
+7. **Zone 3's 60% fill minimum blocks checkout outright for ordinary inputs,
+   not just a cosmetic issue.** Tried "Happy Birthday" / "Test Recipient"
+   (a perfectly normal booking) and got permanently stuck on step 3: fill
+   comes back 0%, no inventory hold gets created (the hold-creation code
+   path is only reached when `meetsMinimumFill` is true), and
+   "Continue to Payment" never enables — with no indication to the customer
+   why. Only got past it by reusing the exact known-good STATE.md example
+   ("Happy Birthday" age 33 / "Brandon"). Decoration signs also render as
+   truncated text ("DE DE DE") on the inputs that do clear the gate — Zone 3
+   is emitting labels, not looking up inventory. See the Zone 3 note below.
+   This is very likely blocking most real customers today, not an edge case.
 8. **`sign_library` CONTAINS NO LETTERS.** All rows are whole pre-made
    message boards ("Happy Birthday - Classic", "Congratulations
    Graduate") plus some generic real-estate seed data that doesn't
@@ -155,17 +170,22 @@ inventory. Do not model bundles as a customer product.
 
 ## Next steps, in order
 1. ~~Apply the three migrations by hand~~ — done 2026-09-12 (commit
-   `80cb846`), columns verified live. Re-test the payment step
-   end-to-end to confirm the 500 is actually gone — not done this
-   session, only the schema was checked.
-2. Move holds server-side onto the real `inventory_holds` tables
-3. Seed letters into `sign_library`, THEN connect `getAvailableSigns()`
+   `80cb846`). ~~Re-test the payment step end-to-end~~ — done 2026-09-14,
+   found and fixed a second, unrelated payment-blocking column-casing bug
+   (PayPal, see VERIFIED WORKING above). Payment step confirmed rendering.
+2. **Fix the Zone 3 60% fill gate blocking checkout for ordinary inputs**
+   (see VERIFIED BROKEN #7) — either lower/fix the fill calculation or stop
+   silently gating hold-creation on it. This is now believed to be a bigger
+   blocker to a usable demo than the holds/localStorage issue below, since
+   it can stop a customer before they ever reach payment.
+3. Move holds server-side onto the real `inventory_holds` tables
+4. Seed letters into `sign_library`, THEN connect `getAvailableSigns()`
    to `sign_library` / `agency_inventory` (see below — there are no
    letters in the library today)
-4. Fix the renderer (per-asset width, `object-fit: contain`, baseline
+5. Fix the renderer (per-asset width, `object-fit: contain`, baseline
    alignment via the sign-assets resolver), install the PNG set
-5. Resolve the design fork above
-6. Vendor conversation, demo in hand
+6. Resolve the design fork above
+7. Vendor conversation, demo in hand
 
 ## Reference docs and their status
 - `PRODUCT.md` (repo root) — business rules and model, distilled from
