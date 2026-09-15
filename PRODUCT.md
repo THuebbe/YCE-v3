@@ -20,8 +20,8 @@ the model is profitable from roughly the second agency.
 - **Alternative suggestions on inventory conflict.** If the requested
   signs aren't available, offer substitutes rather than failing.
   `sign-selection.ts` has `getAlternatives()` for this; unused.
-- **Zone 3 fill target: 75%.** NOTE: code uses `0.6`. Spec says 75%.
-  Unresolved — pick one and make both agree.
+- **Zone 3 fill target: 75%.** `layout-calculator.ts` now enforces 75%
+  (fixed 2026-09-14; previously hardcoded `0.6`, contradicting this spec).
 - **24-hour cancellation cutoff** with auto-refund logic. Not built.
 - **3-year customer data retention.** The booking form already tells
   customers this, so it is a promise already being made.

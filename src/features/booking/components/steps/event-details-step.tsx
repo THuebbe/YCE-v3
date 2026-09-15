@@ -11,7 +11,11 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
   const { formData, updateFormData, nextStep, prevStep } = useWizard();
   const [localData, setLocalData] = useState<EventFormData>(
     formData.event || {
-      eventDate: new Date(Date.now() + 48 * 60 * 60 * 1000), // Default to 2 days from now
+      // 72h, not the 48h minimum: eventSchema re-checks "now + 48h" at
+      // validation time, so a default with zero margin goes invalid the
+      // instant any time passes after mount. The extra day of slack keeps
+      // it valid for the length of a normal checkout session.
+      eventDate: new Date(Date.now() + 72 * 60 * 60 * 1000),
       deliveryAddress: {
         street: '',
         city: '',

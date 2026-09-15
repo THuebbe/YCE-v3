@@ -207,7 +207,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
           setPreviewError('No signs selected for layout');
         }
       } else {
-        setPreviewError(`Zone 3 fill requirement not met (${Math.round((layoutResult.zone3.fillPercentage || 0) * 100)}% < 60% minimum)`);
+        setPreviewError(`Zone 3 fill requirement not met (${Math.round((layoutResult.zone3.fillPercentage || 0) * 100)}% < 75% minimum)`);
         setLayoutCalculation(layoutResult); // Still show the layout for debugging
       }
     } catch (error) {

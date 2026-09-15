@@ -27,19 +27,18 @@ export class LayoutCalculatorService {
     const availableSpace = Math.max(0, zone1.totalWidth - zone2.totalWidth);
     const sideSpace = availableSpace / 2;
     
-    // Calculate Zone 3: Decorative fill with 75% requirement
-    const zone3 = await this.calculateZone3(sideSpace, theme, hobbies);
-    
-    // Calculate Zone 4: Backdrop elements
-    const zone4 = this.calculateZone4(zone3.signs.length);
-    
+    // Calculate Zone 3 (decorations) + Zone 4 (backgrounds) together: each
+    // side gets a guaranteed minimum, then grows until 75% of the margin
+    // is filled
+    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies);
+
     // Calculate Zone 5: Bookend signs
     const zone5 = this.calculateZone5();
     
     // Calculate overall metrics
     const totalWidth = Math.max(zone1.totalWidth, zone2.totalWidth + zone3.totalWidth);
     const gridColumns = Math.max(zone1.signs.length, zone2.signs.length + zone3.signs.length);
-    const meetsMinimumFill = (zone3.fillPercentage || 0) >= 0.6; // 60% minimum
+    const meetsMinimumFill = (zone3.fillPercentage || 0) >= 0.75; // 75% minimum
     
     return {
       zone1,
@@ -151,76 +150,82 @@ export class LayoutCalculatorService {
   }
   
   /**
-   * Calculate Zone 3: Decorative fill with 75% requirement
+   * Calculate Zone 3 (decorations) and Zone 4 (backgrounds) together.
+   *
+   * Each side always gets a minimum of one background sign and two
+   * decoration signs, even when the calculated margin is 0 - a bare
+   * letters-only display looks wrong regardless of available space, and
+   * these minimums are themselves allowed to overflow that margin.
+   * From there, one more background + one more decoration are added at
+   * a time until the side's signs cover at least 75% of its margin.
+   * Overshoot on the qualifying step is accepted, not trimmed back.
    */
-  private async calculateZone3(availableSpacePerSide: number, theme?: string, hobbies?: string[]): Promise<DisplayZone> {
-    const signs: ZoneSign[] = [];
-    let totalWidth = 0;
-    let position = 0;
-    
-    // Minimum 60% fill requirement for each side
-    const minFillWidth = availableSpacePerSide * 0.6;
-    const targetFillWidth = availableSpacePerSide * 0.9; // Aim for 90% but accept 60%
-    
-    // Add decorations for each side
+  private async calculateZone3AndZone4(
+    availableSpacePerSide: number,
+    theme?: string,
+    hobbies?: string[]
+  ): Promise<{ zone3: DisplayZone; zone4: DisplayZone }> {
+    const DECORATION_WIDTH = 2;
+    const BACKGROUND_WIDTH = 1;
+    const MAX_ITEMS_PER_SIDE = 24; // safety cap against runaway loops
+
+    const decorationSigns: ZoneSign[] = [];
+    const backgroundSigns: ZoneSign[] = [];
+    let decorationTotalWidth = 0;
+    let backgroundTotalWidth = 0;
+
+    const targetFillWidth = availableSpacePerSide * 0.75;
+
     for (let side = 0; side < 2; side++) {
+      const nextDecoration = this.getDecorationSource(theme, hobbies);
+      const nextBackground = this.getBackgroundSource();
+      let sidePosition = side === 0 ? 0 : 10; // Offset right side positions
       let sideWidth = 0;
-      let sidePosition = side === 0 ? position : position + 10; // Offset right side positions
-      
-      // Add hobby-based decorations
-      if (hobbies && hobbies.length > 0) {
-        for (const hobby of hobbies.slice(0, 2)) { // Max 2 hobbies per side
-          if (sideWidth < targetFillWidth) {
-            signs.push(this.createDecorationSign(hobby, sidePosition++, 2));
-            sideWidth += 2;
-            totalWidth += 2;
-          }
-        }
+      let itemsAdded = 0;
+
+      const addBackground = () => {
+        backgroundSigns.push(this.createBackdropSign(nextBackground(), sidePosition++, BACKGROUND_WIDTH));
+        backgroundTotalWidth += BACKGROUND_WIDTH;
+        sideWidth += BACKGROUND_WIDTH;
+      };
+      const addDecoration = () => {
+        decorationSigns.push(this.createDecorationSign(nextDecoration(), sidePosition++, DECORATION_WIDTH));
+        decorationTotalWidth += DECORATION_WIDTH;
+        sideWidth += DECORATION_WIDTH;
+      };
+
+      // Guaranteed minimum per side
+      addBackground();
+      addDecoration();
+      addDecoration();
+      itemsAdded = 3;
+
+      // Grow until the side clears 75% fill, accepting the overshoot
+      while (sideWidth < targetFillWidth && itemsAdded < MAX_ITEMS_PER_SIDE) {
+        addBackground();
+        addDecoration();
+        itemsAdded += 2;
       }
-      
-      // Add theme-based decorations to fill remaining space
-      while (sideWidth < minFillWidth) {
-        const decorationType = this.getThemeDecoration(theme);
-        signs.push(this.createDecorationSign(decorationType, sidePosition++, 2));
-        sideWidth += 2;
-        totalWidth += 2;
-        
-        // Prevent infinite loop
-        if (sidePosition > position + 20) break;
+    }
+
+    const totalWidth = decorationTotalWidth + backgroundTotalWidth;
+    // When zone1/zone2 leave no calculated margin, the guaranteed minimum
+    // signs above still cover it - treat that as a full 100% rather than
+    // dividing by zero.
+    const fillPercentage = availableSpacePerSide > 0 ? totalWidth / (availableSpacePerSide * 2) : 1;
+
+    return {
+      zone3: {
+        zone: 'zone3',
+        signs: decorationSigns,
+        totalWidth: decorationTotalWidth,
+        fillPercentage
+      },
+      zone4: {
+        zone: 'zone4',
+        signs: backgroundSigns,
+        totalWidth: backgroundTotalWidth
       }
-      
-      position = sidePosition + 1;
-    }
-    
-    const fillPercentage = totalWidth / (availableSpacePerSide * 2);
-    
-    return {
-      zone: 'zone3',
-      signs,
-      totalWidth,
-      fillPercentage
-    };
-  }
-  
-  /**
-   * Calculate Zone 4: Backdrop elements
-   */
-  private calculateZone4(decorationCount: number): DisplayZone {
-    const signs: ZoneSign[] = [];
-    let totalWidth = 0;
-    
-    // Add backdrop elements based on decoration density
-    const backdropCount = Math.ceil(decorationCount / 3); // One backdrop per 3 decorations
-    
-    for (let i = 0; i < backdropCount; i++) {
-      signs.push(this.createBackdropSign('Balloon Cluster', i, 1));
-      totalWidth += 1;
-    }
-    
-    return {
-      zone: 'zone4',
-      signs,
-      totalWidth
     };
   }
   
@@ -438,7 +443,7 @@ export class LayoutCalculatorService {
     }
   }
   
-  private getThemeDecoration(theme?: string): string {
+  private getThemeDecorationPool(theme?: string): string[] {
     const themeDecorations: Record<string, string[]> = {
       'colorful': ['Stars', 'Rainbow', 'Flowers'],
       'sports': ['Soccer Ball', 'Basketball', 'Baseball'],
@@ -446,8 +451,74 @@ export class LayoutCalculatorService {
       'superhero': ['Shield', 'Cape', 'Mask'],
       'classic': ['Balloon', 'Gift', 'Bow']
     };
-    
-    const decorations = themeDecorations[theme?.toLowerCase() || 'classic'] || themeDecorations.classic;
+
+    return themeDecorations[theme?.toLowerCase() || 'classic'] || themeDecorations.classic;
+  }
+
+  private getThemeDecoration(theme?: string): string {
+    const decorations = this.getThemeDecorationPool(theme);
     return decorations[Math.floor(Math.random() * decorations.length)];
+  }
+
+  // Keyword-tagged decoration pool used to weight-match against customer
+  // hobbies/interests. Names mirror the theme pool above plus the wider
+  // catalog InventoryService mocks, just with keywords attached for scoring.
+  private readonly decorationCatalog: { name: string; keywords: string[] }[] = [
+    { name: 'Baseball', keywords: ['sports', 'baseball', 'ball'] },
+    { name: 'Soccer Ball', keywords: ['sports', 'soccer', 'football'] },
+    { name: 'Basketball', keywords: ['sports', 'basketball'] },
+    { name: 'Gaming Controller', keywords: ['gaming', 'games', 'video games', 'videogames'] },
+    { name: 'Music Notes', keywords: ['music', 'songs', 'singing'] },
+    { name: 'Art Palette', keywords: ['art', 'painting', 'drawing'] },
+    { name: 'Crown', keywords: ['princess', 'royal'] },
+    { name: 'Castle', keywords: ['princess', 'castle', 'fairy tale', 'fairytale'] },
+    { name: 'Superhero Shield', keywords: ['superhero', 'hero'] },
+    { name: 'Stars', keywords: ['stars', 'space'] },
+    { name: 'Rainbow', keywords: ['rainbow', 'colors'] },
+    { name: 'Flowers', keywords: ['flowers', 'garden', 'nature'] }
+  ];
+
+  /**
+   * Rank the decoration catalog by keyword overlap against the customer's
+   * hobbies/interests, best match first. Entries with no keyword match at
+   * all are dropped rather than ranked last.
+   */
+  private rankDecorationsByHobbies(hobbies: string[]): string[] {
+    const hobbyText = hobbies.join(' ').toLowerCase();
+
+    return this.decorationCatalog
+      .map(entry => ({
+        name: entry.name,
+        score: entry.keywords.filter(keyword => hobbyText.includes(keyword)).length
+      }))
+      .filter(entry => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(entry => entry.name);
+  }
+
+  /**
+   * Returns a function that yields the next decoration name for one side.
+   * With hobbies, draws from the keyword-ranked list (best matches first,
+   * cycling once exhausted). Without a match - or without hobbies at all -
+   * falls back to a random pick from the selected Character Theme's pool,
+   * same as before hobbies existed.
+   */
+  private getDecorationSource(theme: string | undefined, hobbies?: string[]): () => string {
+    if (hobbies && hobbies.length > 0) {
+      const ranked = this.rankDecorationsByHobbies(hobbies);
+      if (ranked.length > 0) {
+        let index = 0;
+        return () => ranked[index++ % ranked.length];
+      }
+    }
+
+    return () => this.getThemeDecoration(theme);
+  }
+
+  private readonly backgroundPool = ['Balloon Cluster', 'Confetti', 'Streamers'];
+
+  private getBackgroundSource(): () => string {
+    let index = 0;
+    return () => this.backgroundPool[index++ % this.backgroundPool.length];
   }
 }
