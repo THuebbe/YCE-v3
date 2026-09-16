@@ -1,6 +1,14 @@
 import { LayoutCalculation, DisplayZone, ZoneSign, SignStyle } from '../types';
 import { loadManifest, indexManifest, resolveAsset, assetUrl, SignAsset } from './sign-assets';
 
+// Decoration display names that resolve to a real manifest shape asset.
+// Everything else (Baseball, Crown, Confetti, ...) has no generated art and
+// stays on the dev colored-circle fallback - this is the full set we have.
+const DECORATION_SHAPE_KEYS: Record<string, string> = {
+  'Stars': 'star',
+  'Heart': 'heart',
+};
+
 export interface LayoutInput {
   message: string;
   recipientName: string;
@@ -42,7 +50,7 @@ export class LayoutCalculatorService {
     // Calculate Zone 3 (decorations) + Zone 4 (backgrounds) together: each
     // side gets a guaranteed minimum, then grows until 75% of the margin
     // is filled
-    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies);
+    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies, assetIndex, style, colorway);
 
     // Calculate Zone 5: Bookend signs
     const zone5 = this.calculateZone5();
@@ -200,8 +208,11 @@ export class LayoutCalculatorService {
    */
   private async calculateZone3AndZone4(
     availableSpacePerSide: number,
-    theme?: string,
-    hobbies?: string[]
+    theme: string | undefined,
+    hobbies: string[] | undefined,
+    assetIndex: Map<string, SignAsset> | null,
+    style: string,
+    colorway: string
   ): Promise<{ zone3: DisplayZone; zone4: DisplayZone }> {
     const DECORATION_WIDTH = 2;
     const BACKGROUND_WIDTH = 1;
@@ -227,7 +238,7 @@ export class LayoutCalculatorService {
         sideWidth += BACKGROUND_WIDTH;
       };
       const addDecoration = () => {
-        decorationSigns.push(this.createDecorationSign(nextDecoration(), sidePosition++, DECORATION_WIDTH));
+        decorationSigns.push(this.createDecorationSign(nextDecoration(), sidePosition++, DECORATION_WIDTH, assetIndex, style, colorway));
         decorationTotalWidth += DECORATION_WIDTH;
         sideWidth += DECORATION_WIDTH;
       };
@@ -359,7 +370,18 @@ export class LayoutCalculatorService {
     };
   }
   
-  private createDecorationSign(name: string, position: number, width: number): ZoneSign {
+  private createDecorationSign(
+    name: string,
+    position: number,
+    width: number,
+    assetIndex: Map<string, SignAsset> | null = null,
+    style?: string,
+    colorway?: string
+  ): ZoneSign {
+    const shapeKey = DECORATION_SHAPE_KEYS[name];
+    const asset = shapeKey && assetIndex && style && colorway
+      ? resolveAsset(assetIndex, shapeKey, style, colorway)
+      : null;
     return {
       signId: `decoration-${name}-${position}`,
       zone: 'zone3',
@@ -371,7 +393,8 @@ export class LayoutCalculatorService {
           borderRadius: '50%',
           width: `${width}rem`,
           height: `${width}rem`
-        }
+        },
+        ...(asset && { prod: { imageUrl: assetUrl(asset) } })
       }
     };
   }
@@ -506,7 +529,7 @@ export class LayoutCalculatorService {
       'sports': ['Soccer Ball', 'Basketball', 'Baseball'],
       'princess': ['Crown', 'Castle', 'Wand'],
       'superhero': ['Shield', 'Cape', 'Mask'],
-      'classic': ['Balloon', 'Gift', 'Bow']
+      'classic': ['Balloon', 'Gift', 'Bow', 'Stars', 'Heart']
     };
 
     return themeDecorations[theme?.toLowerCase() || 'classic'] || themeDecorations.classic;
@@ -532,13 +555,17 @@ export class LayoutCalculatorService {
     { name: 'Superhero Shield', keywords: ['superhero', 'hero'] },
     { name: 'Stars', keywords: ['stars', 'space'] },
     { name: 'Rainbow', keywords: ['rainbow', 'colors'] },
-    { name: 'Flowers', keywords: ['flowers', 'garden', 'nature'] }
+    { name: 'Flowers', keywords: ['flowers', 'garden', 'nature'] },
+    { name: 'Heart', keywords: ['love', 'romance', 'anniversary', 'valentine'] }
   ];
 
   /**
-   * Rank the decoration catalog by keyword overlap against the customer's
-   * hobbies/interests, best match first. Entries with no keyword match at
-   * all are dropped rather than ranked last.
+   * Rank the entire decoration catalog by keyword overlap against the
+   * customer's hobbies/interests, best match first. Zero-score entries are
+   * kept (ranked last, ties in catalog order) rather than dropped, so a
+   * hobby that only matches art-less decorations - or matches nothing at
+   * all - still leaves every candidate (including Stars/Heart, which do
+   * have real art) reachable instead of excluded outright.
    */
   private rankDecorationsByHobbies(hobbies: string[]): string[] {
     const hobbyText = hobbies.join(' ').toLowerCase();
@@ -548,25 +575,23 @@ export class LayoutCalculatorService {
         name: entry.name,
         score: entry.keywords.filter(keyword => hobbyText.includes(keyword)).length
       }))
-      .filter(entry => entry.score > 0)
       .sort((a, b) => b.score - a.score)
       .map(entry => entry.name);
   }
 
   /**
    * Returns a function that yields the next decoration name for one side.
-   * With hobbies, draws from the keyword-ranked list (best matches first,
-   * cycling once exhausted). Without a match - or without hobbies at all -
-   * falls back to a random pick from the selected Character Theme's pool,
-   * same as before hobbies existed.
+   * With hobbies picked, draws from the full keyword-ranked catalog (best
+   * matches first, then zero-score entries, cycling once exhausted) - so
+   * even a hobby that matches nothing still lands on a real candidate list
+   * rather than falling through to theme. Without hobbies, falls back to a
+   * random pick from the selected Character Theme's pool.
    */
   private getDecorationSource(theme: string | undefined, hobbies?: string[]): () => string {
     if (hobbies && hobbies.length > 0) {
       const ranked = this.rankDecorationsByHobbies(hobbies);
-      if (ranked.length > 0) {
-        let index = 0;
-        return () => ranked[index++ % ranked.length];
-      }
+      let index = 0;
+      return () => ranked[index++ % ranked.length];
     }
 
     return () => this.getThemeDecoration(theme);
