@@ -44,6 +44,7 @@ export const displaySchema = z.object({
   messageStyle: z.string().min(1, 'Please select a message style'),
   recipientName: z.string().min(1, 'Recipient name is required'),
   nameStyle: z.string().min(1, 'Please select a name style'),
+  colorway: z.string().min(1, 'Please select a color'),
   characterTheme: z.string().optional(),
   hobbies: z.array(z.string()).optional(),
   extraDaysBefore: z.number().min(0).max(7).default(0),

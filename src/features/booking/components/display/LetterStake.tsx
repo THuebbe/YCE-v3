@@ -28,8 +28,8 @@ export function LetterStake({ character, style, isOrdinal = false, className = '
   `.trim();
   
   const containerStyle: React.CSSProperties = {
-    width: isDevelopment ? (devStyle?.width || '2rem') : (prodStyle?.width || '2rem'),
-    height: isDevelopment ? (devStyle?.height || '2rem') : (prodStyle?.height || '2rem'),
+    width: isDevelopment ? (devStyle?.width || '2rem') : (prodStyle?.width || devStyle?.width || '2rem'),
+    height: isDevelopment ? (devStyle?.height || '2rem') : (prodStyle?.height || devStyle?.height || '2rem'),
     backgroundColor: isDevelopment ? (devStyle?.backgroundColor || '#1e40af') : undefined,
     borderRadius: isDevelopment ? (devStyle?.borderRadius || '4px') : undefined,
     backgroundImage: !isDevelopment ? `url(${prodStyle?.imageUrl})` : undefined,

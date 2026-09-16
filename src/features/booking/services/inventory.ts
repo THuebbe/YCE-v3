@@ -7,10 +7,65 @@ import {
   BulkAvailabilityResult,
   SignSelectionCriteria
 } from '../types';
+import { loadManifest, assetUrl, SignAsset } from './sign-assets';
 
 const HOLD_DURATION_HOURS = 1;
 const MINIMUM_FILL_PERCENTAGE = 0.60;
 const YARD_WIDTH_FEET = 30; // Standard yard width
+
+/**
+ * Where getAvailableSigns() pulls its catalog from. manifestSignSource is
+ * the only implementation today, backed by the generated placeholder PNGs
+ * (public/sign-assets/manifest.json) - real vendor inventory has no letter
+ * rows yet (sign_library has no character/style/colorway columns). Once
+ * that schema exists, swap the default below for a Supabase-backed
+ * SignSource; getAvailableSigns()'s callers don't change.
+ */
+export interface SignSource {
+  getSigns(agencyId: string): Promise<Sign[]>;
+  getStyles(): Promise<string[]>;
+  getColorways(): Promise<string[]>;
+}
+
+const CHARACTER_ASSET_TYPES: SignAsset['type'][] = ['letter', 'number', 'punctuation'];
+
+function characterAssetToSign(asset: SignAsset, agencyId: string): Sign {
+  return {
+    id: asset.id,
+    name: `${asset.character} (${asset.style}/${asset.colorway})`,
+    category: asset.type === 'number' ? 'numbers' : 'letters',
+    theme: asset.style,
+    dimensions: { width: asset.widthIn / 12, height: asset.heightIn / 12 },
+    imageUrl: assetUrl(asset),
+    keywords: [asset.character!.toLowerCase()],
+    available: true,
+    totalQuantity: 99,
+    availableQuantity: 99,
+    agencyId,
+    isPlatformSign: true,
+    zone: 'zone1',
+    type: asset.type === 'number' ? 'number' : 'letter',
+    character: asset.character!,
+    style: { prod: { imageUrl: assetUrl(asset) } },
+  };
+}
+
+export const manifestSignSource: SignSource = {
+  async getSigns(agencyId: string): Promise<Sign[]> {
+    const manifest = await loadManifest();
+    return manifest.assets
+      .filter(asset => CHARACTER_ASSET_TYPES.includes(asset.type))
+      .map(asset => characterAssetToSign(asset, agencyId));
+  },
+  async getStyles(): Promise<string[]> {
+    const manifest = await loadManifest();
+    return manifest.styles;
+  },
+  async getColorways(): Promise<string[]> {
+    const manifest = await loadManifest();
+    return manifest.colorways;
+  },
+};
 
 export class InventoryService {
   // private supabase = createClient();
@@ -213,26 +268,35 @@ export class InventoryService {
   }
 
   /**
-   * Get all signs available to an agency with zone classifications
+   * Get all signs available to an agency with zone classifications.
+   * Letters/numbers/punctuation come from `source` (manifestSignSource by
+   * default - the generated placeholder PNGs). Decorations/backdrops/
+   * bookends have no generated art yet, so they stay mock until they do.
    */
-  async getAvailableSigns(agencyId: string): Promise<Sign[]> {
-    // Mock data with zone classifications - in real app, this would query Supabase
-    const mockSigns: Sign[] = [
-      // Zone 1 & 2: Letter stakes (A-Z)
-      ...this.generateLetterStakes(),
-      // Zone 1: Number stakes (0-9) 
-      ...this.generateNumberStakes(),
-      // Zone 1: Ordinal stakes (ST, ND, RD, TH)
+  async getAvailableSigns(agencyId: string, source: SignSource = manifestSignSource): Promise<Sign[]> {
+    const characterSigns = await source.getSigns(agencyId);
+    return [
+      ...characterSigns,
+      // Zone 1: Ordinal stakes (ST, ND, RD, TH) - no generated art
       ...this.generateOrdinalStakes(),
-      // Zone 3: Decoration signs (hobbies, themes)
+      // Zone 3: Decoration signs (hobbies, themes) - no generated art
       ...this.generateDecorationSigns(),
-      // Zone 4: Backdrop elements
+      // Zone 4: Backdrop elements - no generated art
       ...this.generateBackdropElements(),
-      // Zone 5: Bookend signs
+      // Zone 5: Bookend signs - no generated art
       ...this.generateBookendSigns(),
     ];
+  }
 
-    return mockSigns;
+  /**
+   * Available letter/number styles and colorways for the customization UI.
+   */
+  async getAvailableStyles(source: SignSource = manifestSignSource): Promise<string[]> {
+    return source.getStyles();
+  }
+
+  async getAvailableColorways(source: SignSource = manifestSignSource): Promise<string[]> {
+    return source.getColorways();
   }
 
   /**
@@ -337,80 +401,6 @@ export class InventoryService {
   }
 
   // Zone-specific sign generators
-
-  /**
-   * Generate letter stakes A-Z for zones 1 and 2
-   */
-  private generateLetterStakes(): Sign[] {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const signs: Sign[] = [];
-
-    for (const letter of letters) {
-      signs.push({
-        id: `letter-${letter}`,
-        name: `Letter ${letter}`,
-        category: 'letters',
-        theme: 'classic',
-        dimensions: { width: 2, height: 2 },
-        imageUrl: `/placeholder/letter-${letter.toLowerCase()}.jpg`,
-        keywords: [letter.toLowerCase()],
-        available: true,
-        totalQuantity: 20,
-        availableQuantity: 18,
-        isPlatformSign: true,
-        zone: 'zone1',
-        type: 'letter',
-        character: letter,
-        style: {
-          dev: {
-            backgroundColor: '#1e40af',
-            borderRadius: '4px',
-            width: '2rem',
-            height: '2rem'
-          }
-        }
-      });
-    }
-
-    return signs;
-  }
-
-  /**
-   * Generate number stakes 0-9 for zone 1
-   */
-  private generateNumberStakes(): Sign[] {
-    const numbers = '0123456789';
-    const signs: Sign[] = [];
-
-    for (const number of numbers) {
-      signs.push({
-        id: `number-${number}`,
-        name: `Number ${number}`,
-        category: 'numbers',
-        theme: 'classic',
-        dimensions: { width: 2, height: 2 },
-        imageUrl: `/placeholder/number-${number}.jpg`,
-        keywords: [number],
-        available: true,
-        totalQuantity: 15,
-        availableQuantity: 12,
-        isPlatformSign: true,
-        zone: 'zone1',
-        type: 'number',
-        character: number,
-        style: {
-          dev: {
-            backgroundColor: '#059669',
-            borderRadius: '4px',
-            width: '2rem',
-            height: '2rem'
-          }
-        }
-      });
-    }
-
-    return signs;
-  }
 
   /**
    * Generate ordinal stakes (ST, ND, RD, TH) for zone 1

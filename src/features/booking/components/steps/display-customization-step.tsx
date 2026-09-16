@@ -99,6 +99,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       messageStyle: 'Classic',
       recipientName: '',
       nameStyle: 'Classic',
+      colorway: 'Red',
       characterTheme: '',
       hobbies: [],
       extraDaysBefore: 0,
@@ -111,10 +112,23 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [holdId, setHoldId] = useState<string | null>(null);
-  
+  const [availableStyles, setAvailableStyles] = useState<string[]>(['Classic']);
+  const [availableColorways, setAvailableColorways] = useState<string[]>(['Red']);
+
   const inventoryService = new InventoryService();
   const signSelectionService = new SignSelectionService();
   const layoutCalculatorService = new LayoutCalculatorService();
+
+  const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+
+  useEffect(() => {
+    inventoryService.getAvailableStyles().then(styles => {
+      if (styles.length > 0) setAvailableStyles(styles.map(capitalize));
+    });
+    inventoryService.getAvailableColorways().then(colorways => {
+      if (colorways.length > 0) setAvailableColorways(colorways.map(capitalize));
+    });
+  }, []);
 
   const handleInputChange = (field: keyof DisplayFormData, value: any) => {
     setLocalData(prev => ({ ...prev, [field]: value }));
@@ -161,7 +175,9 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         eventNumber: localData.eventNumber,
         theme: localData.characterTheme,
         hobbies: localData.hobbies,
-        agencyId: 'yardcard-elite-west-branch' // TODO: Get from route params
+        agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
+        style: localData.messageStyle,
+        colorway: localData.colorway
       });
       
       
@@ -567,7 +583,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 Message Style
               </label>
               <div className="space-y-2">
-                {['Classic', 'Bold', 'Script', 'Fun'].map((style) => (
+                {availableStyles.map((style) => (
                   <label
                     key={style}
                     className={`
@@ -601,7 +617,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 Name Style
               </label>
               <div className="space-y-2">
-                {['Classic', 'Bold', 'Script', 'Fun'].map((style) => (
+                {availableStyles.map((style) => (
                   <label
                     key={style}
                     className={`
@@ -629,6 +645,45 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 <p className="text-body-small text-error-red mt-1">{errors.nameStyle}</p>
               )}
             </div>
+          </div>
+
+          {/* Colorway */}
+          <div>
+            <label className="text-label text-neutral-700 mb-3 block">
+              Letter Color
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {availableColorways.map((colorway) => (
+                <label
+                  key={colorway}
+                  className={`
+                    flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                    ${
+                      localData.colorway === colorway
+                        ? 'border-primary bg-secondary-pale'
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }
+                  `}
+                >
+                  <input
+                    type="radio"
+                    name="colorway"
+                    value={colorway}
+                    checked={localData.colorway === colorway}
+                    onChange={(e) => handleInputChange('colorway', e.target.value)}
+                    className="sr-only"
+                  />
+                  <span
+                    className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
+                    style={{ backgroundColor: colorway.toLowerCase() }}
+                  />
+                  <span className="text-body-small font-medium">{colorway}</span>
+                </label>
+              ))}
+            </div>
+            {errors.colorway && (
+              <p className="text-body-small text-error-red mt-1">{errors.colorway}</p>
+            )}
           </div>
           </div>
         </div>

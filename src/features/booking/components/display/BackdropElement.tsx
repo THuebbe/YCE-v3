@@ -23,8 +23,8 @@ export function BackdropElement({ name, style, className = '' }: BackdropElement
   `.trim();
   
   const containerStyle: React.CSSProperties = {
-    width: isDevelopment ? (devStyle?.width || '1rem') : (prodStyle?.width || '1rem'),
-    height: isDevelopment ? (devStyle?.height || '1rem') : (prodStyle?.height || '1rem'),
+    width: isDevelopment ? (devStyle?.width || '1rem') : (prodStyle?.width || devStyle?.width || '1rem'),
+    height: isDevelopment ? (devStyle?.height || '1rem') : (prodStyle?.height || devStyle?.height || '1rem'),
     backgroundColor: isDevelopment ? (devStyle?.backgroundColor || '#3b82f6') : undefined,
     borderRadius: isDevelopment ? (devStyle?.borderRadius || '2px') : undefined,
     backgroundImage: !isDevelopment ? `url(${prodStyle?.imageUrl})` : undefined,

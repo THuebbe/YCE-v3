@@ -33,6 +33,7 @@ const createOrderInputSchema = z.object({
 				messageStyle: z.string().min(1).optional(),
 				recipientName: z.string().min(1).optional(),
 				nameStyle: z.string().min(1).optional(),
+				colorway: z.string().min(1).optional(),
 				characterTheme: z.string().optional(),
 				hobbies: z.array(z.string()).optional(),
 				extraDaysBefore: z.number().min(0).max(7).default(0),

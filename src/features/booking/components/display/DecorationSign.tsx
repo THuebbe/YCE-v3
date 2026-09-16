@@ -23,8 +23,8 @@ export function DecorationSign({ name, style, className = '' }: DecorationSignPr
   `.trim();
   
   const containerStyle: React.CSSProperties = {
-    width: isDevelopment ? (devStyle?.width || '2rem') : (prodStyle?.width || '2rem'),
-    height: isDevelopment ? (devStyle?.height || '2rem') : (prodStyle?.height || '2rem'),
+    width: isDevelopment ? (devStyle?.width || '2rem') : (prodStyle?.width || devStyle?.width || '2rem'),
+    height: isDevelopment ? (devStyle?.height || '2rem') : (prodStyle?.height || devStyle?.height || '2rem'),
     backgroundColor: isDevelopment ? (devStyle?.backgroundColor || '#7c3aed') : undefined,
     borderRadius: isDevelopment ? (devStyle?.borderRadius || '50%') : undefined,
     backgroundImage: !isDevelopment ? `url(${prodStyle?.imageUrl})` : undefined,

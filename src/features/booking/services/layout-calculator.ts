@@ -1,4 +1,5 @@
 import { LayoutCalculation, DisplayZone, ZoneSign, SignStyle } from '../types';
+import { loadManifest, indexManifest, resolveAsset, assetUrl, SignAsset } from './sign-assets';
 
 export interface LayoutInput {
   message: string;
@@ -7,21 +8,32 @@ export interface LayoutInput {
   theme?: string;
   hobbies?: string[];
   agencyId: string;
+  /** Letter/number style and colorway, e.g. "classic"/"red". Defaults to the manifest's first of each. */
+  style?: string;
+  colorway?: string;
 }
 
 export class LayoutCalculatorService {
-  
+
   /**
    * Calculate the complete 5-zone layout for a yard display
    */
   async calculateLayout(input: LayoutInput): Promise<LayoutCalculation> {
     const { message, recipientName, eventNumber, theme, hobbies } = input;
-    
+
+    // Resolve real letter/number PNGs for zone1/zone2 via the sign-asset
+    // manifest. A failed/partial manifest load just means no signs resolve
+    // below - createLetterSign/createNumberSign fall back to the existing
+    // dev colored-box rendering, so this never blocks layout generation.
+    const assetIndex = await this.loadAssetIndex();
+    const style = (input.style || 'classic').toLowerCase();
+    const colorway = (input.colorway || 'red').toLowerCase();
+
     // Calculate Zone 1: Event message + numbers
-    const zone1 = this.calculateZone1(message, eventNumber);
-    
+    const zone1 = this.calculateZone1(message, eventNumber, assetIndex, style, colorway);
+
     // Calculate Zone 2: Recipient name
-    const zone2 = this.calculateZone2(recipientName);
+    const zone2 = this.calculateZone2(recipientName, assetIndex, style, colorway);
     
     // Calculate available space for Zone 3
     const availableSpace = Math.max(0, zone1.totalWidth - zone2.totalWidth);
@@ -53,59 +65,80 @@ export class LayoutCalculatorService {
   }
   
   /**
+   * Load and index the sign-asset manifest once per layout calculation.
+   * Never throws - a missing/unreachable manifest just means every
+   * resolveAsset() lookup below misses, and callers fall back to dev boxes.
+   */
+  private async loadAssetIndex(): Promise<Map<string, SignAsset> | null> {
+    try {
+      const manifest = await loadManifest();
+      return indexManifest(manifest);
+    } catch (error) {
+      console.error('Error loading sign-asset manifest:', error);
+      return null;
+    }
+  }
+
+  /**
    * Calculate Zone 1: Event message + numbers with ordinals
    */
-  private calculateZone1(message: string, eventNumber?: number): DisplayZone {
+  private calculateZone1(
+    message: string,
+    eventNumber: number | undefined,
+    assetIndex: Map<string, SignAsset> | null,
+    style: string,
+    colorway: string
+  ): DisplayZone {
     const signs: ZoneSign[] = [];
     let position = 0;
     let totalWidth = 0;
-    
+
     // Handle message with potential numbers and ordinals
     const cleanMessage = message.replace(/\s+/g, '').toUpperCase();
-    
+
     // Check for existing numbers in message
     const numberMatch = cleanMessage.match(/(\d+)(ST|ND|RD|TH)?/);
-    
+
     if (numberMatch && !eventNumber) {
       // Number already in message - use as is
       const beforeNumber = cleanMessage.substring(0, numberMatch.index || 0);
       const number = numberMatch[1];
       const ordinal = numberMatch[2] || this.getOrdinalSuffix(parseInt(number));
       const afterNumber = cleanMessage.substring((numberMatch.index || 0) + numberMatch[0].length);
-      
+
       // Add letters before number
       for (const char of beforeNumber) {
-        signs.push(this.createLetterSign(char, position++, 2));
+        signs.push(this.createLetterSign(char, position++, 2, 'zone1', assetIndex, style, colorway));
         totalWidth += 2;
       }
-      
+
       // Add number digits
       for (const digit of number) {
-        signs.push(this.createNumberSign(digit, position++, 2));
+        signs.push(this.createNumberSign(digit, position++, 2, assetIndex, style, colorway));
         totalWidth += 2;
       }
-      
+
       // Add ordinal suffix
       if (ordinal) {
         signs.push(this.createOrdinalSign(ordinal, position++, 1.5));
         totalWidth += 1.5;
       }
-      
+
       // Add letters after number
       for (const char of afterNumber) {
-        signs.push(this.createLetterSign(char, position++, 2));
+        signs.push(this.createLetterSign(char, position++, 2, 'zone1', assetIndex, style, colorway));
         totalWidth += 2;
       }
     } else if (eventNumber) {
       // Insert number into message at appropriate position
       const insertionResult = this.insertNumberIntoMessage(cleanMessage, eventNumber);
-      
+
       for (const element of insertionResult.elements) {
         if (element.type === 'letter') {
-          signs.push(this.createLetterSign(element.value, position++, 2));
+          signs.push(this.createLetterSign(element.value, position++, 2, 'zone1', assetIndex, style, colorway));
           totalWidth += 2;
         } else if (element.type === 'number') {
-          signs.push(this.createNumberSign(element.value, position++, 2));
+          signs.push(this.createNumberSign(element.value, position++, 2, assetIndex, style, colorway));
           totalWidth += 2;
         } else if (element.type === 'ordinal') {
           signs.push(this.createOrdinalSign(element.value, position++, 1.5));
@@ -115,33 +148,38 @@ export class LayoutCalculatorService {
     } else {
       // Just the message without numbers
       for (const char of cleanMessage) {
-        signs.push(this.createLetterSign(char, position++, 2));
+        signs.push(this.createLetterSign(char, position++, 2, 'zone1', assetIndex, style, colorway));
         totalWidth += 2;
       }
     }
-    
+
     return {
       zone: 'zone1',
       signs,
       totalWidth
     };
   }
-  
+
   /**
    * Calculate Zone 2: Recipient name(s)
    */
-  private calculateZone2(recipientName: string): DisplayZone {
+  private calculateZone2(
+    recipientName: string,
+    assetIndex: Map<string, SignAsset> | null,
+    style: string,
+    colorway: string
+  ): DisplayZone {
     const signs: ZoneSign[] = [];
     let position = 0;
     let totalWidth = 0;
-    
+
     const cleanName = recipientName.replace(/\s+/g, '').toUpperCase();
-    
+
     for (const char of cleanName) {
-      signs.push(this.createLetterSign(char, position++, 2, 'zone2'));
+      signs.push(this.createLetterSign(char, position++, 2, 'zone2', assetIndex, style, colorway));
       totalWidth += 2;
     }
-    
+
     return {
       zone: 'zone2',
       signs,
@@ -247,7 +285,16 @@ export class LayoutCalculatorService {
   
   // Helper methods for creating different sign types
   
-  private createLetterSign(char: string, position: number, width: number, zone: 'zone1' | 'zone2' = 'zone1'): ZoneSign {
+  private createLetterSign(
+    char: string,
+    position: number,
+    width: number,
+    zone: 'zone1' | 'zone2' = 'zone1',
+    assetIndex: Map<string, SignAsset> | null = null,
+    style?: string,
+    colorway?: string
+  ): ZoneSign {
+    const asset = assetIndex && style && colorway ? resolveAsset(assetIndex, char, style, colorway) : null;
     return {
       signId: `letter-${char}-${position}`,
       zone,
@@ -260,12 +307,21 @@ export class LayoutCalculatorService {
           borderRadius: '4px',
           width: `${width}rem`,
           height: '2rem'
-        }
+        },
+        ...(asset && { prod: { imageUrl: assetUrl(asset) } })
       }
     };
   }
-  
-  private createNumberSign(digit: string, position: number, width: number): ZoneSign {
+
+  private createNumberSign(
+    digit: string,
+    position: number,
+    width: number,
+    assetIndex: Map<string, SignAsset> | null = null,
+    style?: string,
+    colorway?: string
+  ): ZoneSign {
+    const asset = assetIndex && style && colorway ? resolveAsset(assetIndex, digit, style, colorway) : null;
     return {
       signId: `number-${digit}-${position}`,
       zone: 'zone1',
@@ -278,7 +334,8 @@ export class LayoutCalculatorService {
           borderRadius: '4px',
           width: `${width}rem`,
           height: '2rem'
-        }
+        },
+        ...(asset && { prod: { imageUrl: assetUrl(asset) } })
       }
     };
   }

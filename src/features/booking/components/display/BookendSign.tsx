@@ -24,8 +24,8 @@ export function BookendSign({ name, style, position, className = '' }: BookendSi
   `.trim();
   
   const containerStyle: React.CSSProperties = {
-    width: isDevelopment ? (devStyle?.width || '1.5rem') : (prodStyle?.width || '1.5rem'),
-    height: isDevelopment ? (devStyle?.height || '4rem') : (prodStyle?.height || '4rem'), // Spans both rows
+    width: isDevelopment ? (devStyle?.width || '1.5rem') : (prodStyle?.width || devStyle?.width || '1.5rem'),
+    height: isDevelopment ? (devStyle?.height || '4rem') : (prodStyle?.height || devStyle?.height || '4rem'), // Spans both rows
     backgroundColor: isDevelopment ? (devStyle?.backgroundColor || '#22c55e') : undefined,
     borderRadius: isDevelopment ? (devStyle?.borderRadius || '4px') : undefined,
     backgroundImage: !isDevelopment ? `url(${prodStyle?.imageUrl})` : undefined,
