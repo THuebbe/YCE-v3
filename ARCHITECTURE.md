@@ -8,7 +8,7 @@ src/features/booking/
   components/display/DisplayGrid.tsx                renders 5 zones over lawn photo
   components/display/LetterStake.tsx                one character; dev/prod branch
   services/layout-calculator.ts                     message text -> ZoneSign[]
-  services/inventory.ts                             holds + availability (MOCKED)
+  services/inventory.ts                             holds + availability (letters manifest-backed, decorations/quantities still MOCKED)
 ```
 
 ## The five-zone display model — VERIFIED WORKING, do not redesign
@@ -24,10 +24,20 @@ Zone 5  bookends                             absolute left/right edges
 ## Data flow AS BUILT
 ```
 wizard step -> LayoutCalculatorService.calculateLayout()
-            -> LayoutCalculation { zone1..zone5 }
+            -> loadAssetIndex() (sign-assets manifest, cached per call)
+            -> LayoutCalculation { zone1..zone5 }, with style.prod.imageUrl
+               set for letters/numbers/punctuation and Zone 3 Stars/Heart
             -> DisplayGrid -> LetterStake / DecorationSign / BackdropElement
 ```
-Inventory is NOT in this path. That is defect #6 in STATE.md.
+The manifest lookup is asset *resolution* (which PNG for this character +
+style + colorway) — a static, agency-agnostic catalog. It is NOT
+inventory (ownership/quantity per agency), and real inventory is still
+not in this path at all: `manifestSignSource` in `inventory.ts` reports
+the same 315 assets with the same fake `availableQuantity: 99` for every
+agency, so nothing here can reject a combo an agency doesn't own or
+confirm there's enough of a letter to spell the message. That is defect
+#5 in STATE.md (the file previously mislabeled this as #6, which is
+actually the pricing defect — corrected here).
 
 ## Data flow INTENDED
 ```
@@ -40,9 +50,12 @@ wizard step -> availability check (sign_library + agency_inventory)
 ## SignStyle: the dev/prod split
 `SignStyle.dev` = colored blocks keyed by sign type. **Deliberate
 placeholder for distinguishing sign types visually, not unfinished
-work.** `SignStyle.prod.imageUrl` = real image. `LetterStake` branches
-on whether `prod.imageUrl` is set. The PNG manifest populates `prod`.
-No new field is needed — this was designed in from the start.
+work.** `SignStyle.prod.imageUrl` = real image. `LetterStake` (and
+`DecorationSign`/`BackdropElement`/`BookendSign`) branch on whether
+`prod.imageUrl` is set. **Live since commits `742320c`/`e41f821`**: the
+PNG manifest populates `prod.imageUrl` for zone1/zone2 letters and Zone 3
+Stars/Heart via `resolveAsset()` calls in `layout-calculator.ts`. No new
+field was needed — this was designed in from the start.
 
 ## Known renderer bug: stakes escape the preview box
 `DisplayGrid` wraps each character in `flex-shrink-0`, and
@@ -55,13 +68,65 @@ character count drives size. Same code path that makes real PNGs render
 at correct relative widths and align on baseline rather than image
 bottom.
 
-## Zone 3/4 decorations — designed, half-wired
-`sign-selection.ts` (~300 LOC) is the intended engine: it weight-scores
-inventory against the customer's message keywords, Theme, and
-Hobbies/Interests, then fills Zone 3 to a target percentage. NOTHING
-CALLS IT. `calculateZone3` currently emits the raw hobby string as a
-label and `getThemeDecoration()` returns a random pick from a hardcoded
-array. Connecting `sign-selection` to `calculateZone3` is the fix.
+## Zone 3/4 decorations — real selection, still no real art or inventory
+`calculateZone3AndZone4()` in `layout-calculator.ts` does real
+keyword-weighted selection today: `rankDecorationsByHobbies()` scores the
+full `decorationCatalog` against the customer's Hobbies (ties keep
+catalog order; zero-score entries are kept, not dropped, so nothing is
+ever excluded outright), falling back to a random pick from
+`getThemeDecorationPool()` only when no hobbies are picked. Of that
+catalog, only `Stars`/`Heart` resolve to real art (`shape-star`/
+`shape-heart` in the manifest, all 7 colorways) via
+`DECORATION_SHAPE_KEYS` + `resolveAsset()` — everything else (Baseball,
+Crown, Rainbow, ...) still renders as a colored `dev` circle because no
+art exists for it. Selection here is NOT constrained by real inventory
+(see Data flow AS BUILT above), and today's "Theme" input is the
+decoration-picker's `characterTheme` field only — it has no relationship
+to the customer's message and no representation in scoring beyond the
+random-pick fallback. See the new configurator section below for the
+intended fix.
+
+`sign-selection.ts` (~300 LOC) remains unused dead code — a separate,
+more ambitious weighted-search engine that predates the logic above and
+was never wired up. Candidate for deletion (see STATE.md).
+
+## Smart configurator (Theme/Style/Color/Hobby) — DESIGNED, NOT BUILT
+Design conversation from 2026-09-16 (pointer in STATE.md). The intended
+model, once the DB work below exists:
+- **Message / recipient name**: free text, decoupled from style/colorway
+  — any words render in any style/colorway the agency has.
+- **Style + Colorway**: hard constraints sourced from `agency_inventory`
+  — a customer can only pick combos the agency actually owns (e.g. one
+  agency has red/green/gold letters, another has purple/green/blue).
+  These determine which letter assets get used for zone1/zone2, plus a
+  real sufficiency check: enough of each needed character, in that
+  style/colorway, to spell the whole message + name.
+- **Theme**: derived from the selected message itself (one message may
+  carry one or more theme tags, e.g. "Happy Birthday" -> birthday-ish).
+  A *weight*, never a filter — it never removes options, only biases
+  scoring.
+- **Hobbies**: a second, independent weight, additive to Theme.
+- **Zone 3/4/5**: selected by weighted search combining Theme-weight +
+  Hobby-weight against the agency's actual inventory for those
+  categories — generalizing the rank-everything/never-exclude pattern
+  already shipped for Zone 3 decorations (above) to also cover
+  backgrounds/bookends, with Theme folded into the score instead of
+  today's hobby-only weighting.
+
+Blocked on, in order:
+1. `sign_library` schema for letters — `character`/`colorway`/
+   style-family columns, additive/nullable so existing pre-made-board
+   rows are unaffected.
+2. Per-agency inventory seed data — which agency owns which
+   style/colorway combos. A business decision, not something to invent.
+3. Message -> theme taxonomy — one theme per message or several, and
+   where the mapping lives (hardcoded next to `eventMessages` in
+   `display-customization-step.tsx`, or DB-driven).
+4. Scoring formula for combining Theme-weight + Hobby-weight — not
+   specified yet (additive sum vs. weighted, tie-breaking rules).
+
+None of this is buildable without (1)-(3) being decided first — they're
+data/business decisions, not implementation details.
 
 ## Inventory soft-hold — SPEC EXISTS, implementation stubbed
 From the original architecture spec. This is the intended behavior and

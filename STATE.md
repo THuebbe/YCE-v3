@@ -55,6 +55,19 @@ re-pauses after ~7 days idle.
 - Minor: the event-date field is date-only (no time), so "48 hours from
   now" can reject a date exactly 2 calendar days out before midnight.
   Pick 3+ days out when testing manually.
+- **Fixed 2026-09-16 (`742320c`): real letter/number/punctuation PNGs
+  render in Zone 1/2**, not colored boxes — `layout-calculator.ts`
+  resolves each character against the manifest for the chosen
+  style/colorway; a new colorway picker and a manifest-driven Style radio
+  replaced the old hardcoded/mismatched options.
+  **Fixed 2026-09-16 (`e41f821`): Zone 3 renders real heart/star art**
+  when the decoration ranking picks them — `rankDecorationsByHobbies` no
+  longer drops zero-score candidates, so real-art decorations stay
+  reachable instead of excluded outright. Design details, and the larger
+  "smart configurator" (Theme/Style/Color/Hobby) design this led into,
+  are in `ARCHITECTURE.md` (`Smart configurator ... — DESIGNED, NOT
+  BUILT`) — DB work (sign_library schema for letters, per-agency
+  inventory seed) is the explicit blocker, not yet started.
 - **Dead end, recorded so it isn't repeated:** a `/routing` ↔ `/auth/sign-in`
   redirect loop hit while testing the login fix was NOT a code bug — the
   dev machine's clock was ~45-60s behind real time, so every fresh Clerk
@@ -83,8 +96,12 @@ re-pauses after ~7 days idle.
 3. **Every `.vercel.app` deploy breaks the same way** — `getSubdomain`
    misreads the deploy hostname as an agency slug. Needs an early
    `if (host.endsWith('.vercel.app')) return null`.
-4. **`getAvailableSigns()` returns hardcoded mock data**; its Supabase
-   import is commented out.
+4. **`getAvailableSigns()` is manifest-backed, not Supabase-backed.**
+   Fixed 2026-09-16 to read from `manifestSignSource` (real PNG assets)
+   instead of pure hardcoded mock letters, via an injectable `SignSource`
+   default — but it's still not real per-agency inventory: every agency
+   gets the same 315 assets with the same fake `availableQuantity: 99`.
+   Supabase import is still commented out.
 5. **`layout-calculator.ts` never consults inventory** — can promise
    letters the agency doesn't own.
 6. **Wizard ignores per-agency pricing.** `basePrice = 95` hardcoded in
@@ -97,13 +114,15 @@ re-pauses after ~7 days idle.
    for letters. Seed from the sign-assets manifest before wiring
    `getAvailableSigns()` to real inventory.
 
-## Placeholder assets — generated, ready to install
+## Placeholder assets — installed and wired
 315 transparent PNGs (A-Z, 0-9, punctuation, heart, star × 7 colorways),
-OFL/Apache fonts, nothing derived from vendor imagery. `manifest.json`
-carries `widthIn`/`heightIn`/`baselineYPct`. Install at `public/sign-assets/`
-(generator stays in `tools/sign-generator/`). Resolver written:
-`src/features/booking/services/sign-assets.ts`. The 4 font styles map
-directly to the existing Message/Name Style radios.
+OFL/Apache fonts, nothing derived from vendor imagery, at
+`public/sign-assets/` (generator: `tools/sign-generator/`). Resolver
+(`sign-assets.ts`) is wired into `layout-calculator.ts` as of 2026-09-16
+(see VERIFIED WORKING) — no longer just generated-and-waiting. Only 1 of
+the generator's 4 font styles (`classic`) was ever actually rendered to
+PNGs; the Style radio reflects that (one real option) rather than the
+stale 4-option list it used to show.
 
 ## Known, deliberately deferred
 - RLS off on all YCE tables — before first paying agency, not before demo.
@@ -137,10 +156,14 @@ inventory-purchasing concept for agencies, not a customer product.
 2. Fix the typing-crash bug on Event Date (VERIFIED BROKEN #0) — low
    priority, real users unlikely to hit it via the calendar picker.
 3. Move holds server-side onto the real `inventory_holds` tables.
-4. Seed letters into `sign_library`, then connect `getAvailableSigns()` to
-   real inventory.
-5. Fix the renderer (per-asset width, baseline alignment via sign-assets
-   resolver), install the PNG set.
+4. **Seed letters into `sign_library`, then connect `getAvailableSigns()`
+   to real per-agency inventory** — now the specific, well-defined
+   blocker for the "smart configurator" design in `ARCHITECTURE.md`
+   (`Smart configurator ... — DESIGNED, NOT BUILT`), not just a nice-to-
+   have. Needs the message→theme taxonomy and per-agency seed-data
+   decisions listed there before it can be built, not just the schema.
+5. ~~Fix the renderer... install the PNG set~~ — done 2026-09-16, see
+   VERIFIED WORKING.
 6. Vendor conversation, demo in hand.
 
 ## Reference docs
