@@ -1,5 +1,21 @@
 # Where This Stands
 
+**2026-09-18: production has been down since commit `dc1c4c8`** (several
+sessions back) — every deploy since then, including ones that claimed to
+"fix the Vercel build," actually failed on a *different*, later problem:
+Vercel's platform blocking deploys of `next@15.3.4` as a known CVE
+(`VULNERABLE_NEXTJS_VERSION`, CVE-2025-66478) — confirmed via the Vercel
+API against both `main`'s and this branch's latest deployments, same
+error on both. The build itself always succeeded; this was a
+platform-level security gate, not a code bug. Fixed by bumping to
+`15.3.9` (same 15.3.x line, smallest possible patch) — verified via a
+real Vercel deployment reaching `READY`. **Sitting in PR #3
+(THuebbe/YCE-v3), not yet merged** — pushing directly to `main` is
+blocked by a safety guardrail requiring a persistent permission rule, not
+just in-chat authorization, so this needs a human to merge the PR (or hit
+Vercel's "Promote to Production" on the already-`READY` deployment) to
+actually bring the site back up. See VERIFIED WORKING for detail.
+
 Last verified live-in-browser: 2026-09-14 (booking wizard Contact Info →
 Payment; dashboard login). 2026-09-16 session wired real PNGs into the
 configurator and verified via dev-server + script (this container has no
@@ -21,6 +37,21 @@ here — see VERIFIED WORKING). Supabase project was PAUSED; restored
   added camelCase columns against snake_case app code (same shape as the
   original braintree bug). Fixed via
   `migrations/20260912_rename_paypal_columns_to_snake_case.sql`.
+- **Fixed 2026-09-18 (PR #3, not yet merged): found and fixed the real
+  reason every Vercel deploy has failed since `dc1c4c8`.** Not a code
+  error — `next build` always succeeded (compiles, type-checks, all 27
+  routes generate). Vercel's platform was blocking deployment of the
+  *output* because `next@15.3.4` is flagged `VULNERABLE_NEXTJS_VERSION`
+  (CVE-2025-66478); confirmed via the Vercel API on both `main`'s and
+  this branch's latest deployments — same error on both, so this has
+  been a production outage the whole time, not just broken previews.
+  Bumped `next`/`eslint-config-next` to `15.3.9` (smallest possible
+  patch, same 15.3.x line). Verified by pushing and watching a real
+  Vercel deployment (`dpl_51BrypW27jMgrkekyBwtJFWUimCj`) reach `READY`.
+  Merging PR #3 (or promoting that deployment to production in the
+  Vercel dashboard) is the one remaining step — a git push to `main` is
+  blocked here by a safety guardrail that needs a persistent permission
+  rule, not just chat authorization.
 - **Fixed 2026-09-14: Zone 3/4 fill gate blocked ordinary checkout
   inputs.** Real bug: zone3's margin (`zone1.totalWidth -
   zone2.totalWidth`) hit 0 whenever message/name were similar lengths →
@@ -120,6 +151,9 @@ after the demo, needs `pricing_config.singleStakePrice`. `bundles` is an
 inventory-purchasing concept for agencies, not a customer product.
 
 ## Next steps, in order
+0. **Merge PR #3 (or promote its verified Vercel deployment to
+   production)** — this is the only thing standing between the app and
+   working again. Everything else below assumes production is reachable.
 1. ~~Migrations / payment retest / Zone 3 fill gate / Event Details
    date-staleness / render real PNGs~~ — all done, see VERIFIED WORKING.
 2. Fix the typing-crash bug on Event Date (VERIFIED BROKEN #0) — low
