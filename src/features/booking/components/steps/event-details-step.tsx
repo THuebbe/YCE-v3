@@ -74,7 +74,14 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
 
   // Handle date change
   const handleDateChange = (dateString: string) => {
+    // Typing digits directly into <input type="date"> fires onChange with
+    // incomplete/empty values while mid-entry (e.g. "" or a partial year).
+    // Constructing a Date from those yields an Invalid Date that later
+    // crashes formatDateForInput()'s toISOString() call during render, so
+    // only commit a value that actually parses.
+    if (!dateString) return;
     const date = new Date(dateString + 'T12:00:00'); // Set to noon to avoid timezone issues
+    if (isNaN(date.getTime())) return;
     handleInputChange('eventDate', date);
   };
 
