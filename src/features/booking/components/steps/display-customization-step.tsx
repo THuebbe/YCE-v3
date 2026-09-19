@@ -99,7 +99,8 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       messageStyle: 'Classic',
       recipientName: '',
       nameStyle: 'Classic',
-      colorway: 'Red',
+      messageColorway: 'Red',
+      nameColorway: 'Red',
       characterTheme: '',
       hobbies: [],
       extraDaysBefore: 0,
@@ -177,7 +178,8 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         hobbies: localData.hobbies,
         agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
         style: localData.messageStyle,
-        colorway: localData.colorway
+        messageColorway: localData.messageColorway,
+        nameColorway: localData.nameColorway
       });
       
       
@@ -346,7 +348,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 {/* Static Placeholder Display */}
                 <div className="flex flex-col items-center justify-end w-full h-full px-6 pb-8 pt-4">
                   {/* Top Row: "YOUR MESSAGE" */}
-                  <div className="flex items-center justify-center gap-1 mb-3">
+                  <div className="flex items-center justify-center gap-0 mb-3">
                     {['Y', 'O', 'U', 'R', ' ', 'M', 'E', 'S', 'S', 'A', 'G', 'E'].map((char, index) => (
                       char === ' ' ? (
                         <div key={index} className="w-2"></div>
@@ -367,7 +369,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                   </div>
                   
                   {/* Bottom Row: "HERE" */}
-                  <div className="flex items-center justify-center gap-1">
+                  <div className="flex items-center justify-center gap-0">
                     {['H', 'E', 'R', 'E'].map((char, index) => (
                       <LetterStake
                         key={index}
@@ -647,43 +649,83 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
             </div>
           </div>
 
-          {/* Colorway */}
-          <div>
-            <label className="text-label text-neutral-700 mb-3 block">
-              Letter Color
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {availableColorways.map((colorway) => (
-                <label
-                  key={colorway}
-                  className={`
-                    flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                    ${
-                      localData.colorway === colorway
-                        ? 'border-primary bg-secondary-pale'
-                        : 'border-neutral-200 hover:border-neutral-300'
-                    }
-                  `}
-                >
-                  <input
-                    type="radio"
-                    name="colorway"
-                    value={colorway}
-                    checked={localData.colorway === colorway}
-                    onChange={(e) => handleInputChange('colorway', e.target.value)}
-                    className="sr-only"
-                  />
-                  <span
-                    className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
-                    style={{ backgroundColor: colorway.toLowerCase() }}
-                  />
-                  <span className="text-body-small font-medium">{colorway}</span>
-                </label>
-              ))}
+          {/* Message & Name Colorways */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="text-label text-neutral-700 mb-3 block">
+                Message Color
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availableColorways.map((colorway) => (
+                  <label
+                    key={colorway}
+                    className={`
+                      flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                      ${
+                        localData.messageColorway === colorway
+                          ? 'border-primary bg-secondary-pale'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="messageColorway"
+                      value={colorway}
+                      checked={localData.messageColorway === colorway}
+                      onChange={(e) => handleInputChange('messageColorway', e.target.value)}
+                      className="sr-only"
+                    />
+                    <span
+                      className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
+                      style={{ backgroundColor: colorway.toLowerCase() }}
+                    />
+                    <span className="text-body-small font-medium">{colorway}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.messageColorway && (
+                <p className="text-body-small text-error-red mt-1">{errors.messageColorway}</p>
+              )}
             </div>
-            {errors.colorway && (
-              <p className="text-body-small text-error-red mt-1">{errors.colorway}</p>
-            )}
+
+            <div>
+              <label className="text-label text-neutral-700 mb-3 block">
+                Name Color
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {availableColorways.map((colorway) => (
+                  <label
+                    key={colorway}
+                    className={`
+                      flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
+                      ${
+                        localData.nameColorway === colorway
+                          ? 'border-primary bg-secondary-pale'
+                          : 'border-neutral-200 hover:border-neutral-300'
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="nameColorway"
+                      value={colorway}
+                      checked={localData.nameColorway === colorway}
+                      onChange={(e) => handleInputChange('nameColorway', e.target.value)}
+                      className="sr-only"
+                    />
+                    <span
+                      className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
+                      style={{ backgroundColor: colorway.toLowerCase() }}
+                    />
+                    <span className="text-body-small font-medium">{colorway}</span>
+                  </label>
+                ))}
+              </div>
+              {errors.nameColorway && (
+                <p className="text-body-small text-error-red mt-1">{errors.nameColorway}</p>
+              )}
+            </div>
           </div>
           </div>
         </div>

@@ -107,7 +107,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
       {/* Main Display Area */}
       <div className={`flex flex-col items-center justify-end w-full h-full ${isMobile ? 'px-2 pb-4 pt-2' : 'px-6 pb-8 pt-4'}`}>
         {/* Zone 1: Event Message (Top Row) */}
-        <div className={`flex items-center justify-center max-w-full overflow-hidden ${isMobile ? 'gap-0 mb-2' : 'gap-1 mb-3'}`}>
+        <div className={`flex items-center justify-center max-w-full overflow-hidden gap-0 ${isMobile ? 'mb-2' : 'mb-3'}`}>
           {zone1.signs.map((sign, index) => (
             <div key={`zone1-${index}`} className="flex-shrink-0">
               <LetterStake
@@ -159,7 +159,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
           
           {/* Zone 3: Left Side Decorations */}
           <div className={`flex items-center ${isMobile ? 'gap-0 mr-0.5' : 'gap-1 mr-2'}`}>
-            {zone3.signs.filter(sign => sign.position < zone3.signs.length / 2).map((sign, index) => (
+            {zone3.signs.filter(sign => sign.side === 'left').map((sign, index) => (
               <DecorationSign
                 key={`zone3-left-${index}`}
                 name={sign.signId}
@@ -177,7 +177,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
           </div>
           
           {/* Zone 2: Recipient Name (Center) */}
-          <div className={`flex items-center justify-center relative z-10 max-w-full overflow-hidden ${isMobile ? 'gap-0' : 'gap-1'}`}>
+          <div className="flex items-center justify-center relative z-10 max-w-full overflow-hidden gap-0">
             {zone2.signs.map((sign, index) => (
               <div key={`zone2-${index}`} className="flex-shrink-0">
                 <LetterStake
@@ -198,7 +198,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
           
           {/* Zone 3: Right Side Decorations */}
           <div className={`flex items-center ${isMobile ? 'gap-0 ml-0.5' : 'gap-1 ml-2'}`}>
-            {zone3.signs.filter(sign => sign.position >= zone3.signs.length / 2).map((sign, index) => (
+            {zone3.signs.filter(sign => sign.side === 'right').map((sign, index) => (
               <DecorationSign
                 key={`zone3-right-${index}`}
                 name={sign.signId}

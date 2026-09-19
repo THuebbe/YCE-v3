@@ -44,7 +44,8 @@ export const displaySchema = z.object({
   messageStyle: z.string().min(1, 'Please select a message style'),
   recipientName: z.string().min(1, 'Recipient name is required'),
   nameStyle: z.string().min(1, 'Please select a name style'),
-  colorway: z.string().min(1, 'Please select a color'),
+  messageColorway: z.string().min(1, 'Please select a message color'),
+  nameColorway: z.string().min(1, 'Please select a name color'),
   characterTheme: z.string().optional(),
   hobbies: z.array(z.string()).optional(),
   extraDaysBefore: z.number().min(0).max(7).default(0),
@@ -165,6 +166,7 @@ export interface ZoneSign {
   position: number; // Order within the zone
   character?: string; // For letters/numbers
   isOrdinal?: boolean; // For ordinal indicators (st, nd, rd, th)
+  side?: 'left' | 'right'; // For zone3 decorations, which side of the name they sit on
   style: SignStyle;
 }
 

@@ -16,9 +16,12 @@ export interface LayoutInput {
   theme?: string;
   hobbies?: string[];
   agencyId: string;
-  /** Letter/number style and colorway, e.g. "classic"/"red". Defaults to the manifest's first of each. */
+  /** Letter/number style, e.g. "classic". Defaults to the manifest's first. */
   style?: string;
-  colorway?: string;
+  /** Colorway for the message (zone1) and decorations, e.g. "red". Defaults to the manifest's first. */
+  messageColorway?: string;
+  /** Colorway for the recipient name (zone2), e.g. "red". Defaults to the manifest's first. */
+  nameColorway?: string;
 }
 
 export class LayoutCalculatorService {
@@ -35,22 +38,24 @@ export class LayoutCalculatorService {
     // dev colored-box rendering, so this never blocks layout generation.
     const assetIndex = await this.loadAssetIndex();
     const style = (input.style || 'classic').toLowerCase();
-    const colorway = (input.colorway || 'red').toLowerCase();
+    const messageColorway = (input.messageColorway || 'red').toLowerCase();
+    const nameColorway = (input.nameColorway || 'red').toLowerCase();
 
     // Calculate Zone 1: Event message + numbers
-    const zone1 = this.calculateZone1(message, eventNumber, assetIndex, style, colorway);
+    const zone1 = this.calculateZone1(message, eventNumber, assetIndex, style, messageColorway);
 
     // Calculate Zone 2: Recipient name
-    const zone2 = this.calculateZone2(recipientName, assetIndex, style, colorway);
-    
+    const zone2 = this.calculateZone2(recipientName, assetIndex, style, nameColorway);
+
     // Calculate available space for Zone 3
     const availableSpace = Math.max(0, zone1.totalWidth - zone2.totalWidth);
     const sideSpace = availableSpace / 2;
-    
+
     // Calculate Zone 3 (decorations) + Zone 4 (backgrounds) together: each
     // side gets a guaranteed minimum, then grows until 75% of the margin
-    // is filled
-    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies, assetIndex, style, colorway);
+    // is filled. Decorations use the message colorway - they aren't part
+    // of either lettered zone, so there's no separate "name" concept for them.
+    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies, assetIndex, style, messageColorway);
 
     // Calculate Zone 5: Bookend signs
     const zone5 = this.calculateZone5();
@@ -226,6 +231,7 @@ export class LayoutCalculatorService {
     const targetFillWidth = availableSpacePerSide * 0.75;
 
     for (let side = 0; side < 2; side++) {
+      const sideLabel: 'left' | 'right' = side === 0 ? 'left' : 'right';
       const nextDecoration = this.getDecorationSource(theme, hobbies);
       const nextBackground = this.getBackgroundSource();
       let sidePosition = side === 0 ? 0 : 10; // Offset right side positions
@@ -238,7 +244,7 @@ export class LayoutCalculatorService {
         sideWidth += BACKGROUND_WIDTH;
       };
       const addDecoration = () => {
-        decorationSigns.push(this.createDecorationSign(nextDecoration(), sidePosition++, DECORATION_WIDTH, assetIndex, style, colorway));
+        decorationSigns.push(this.createDecorationSign(nextDecoration(), sidePosition++, DECORATION_WIDTH, assetIndex, style, colorway, sideLabel));
         decorationTotalWidth += DECORATION_WIDTH;
         sideWidth += DECORATION_WIDTH;
       };
@@ -376,7 +382,8 @@ export class LayoutCalculatorService {
     width: number,
     assetIndex: Map<string, SignAsset> | null = null,
     style?: string,
-    colorway?: string
+    colorway?: string,
+    side?: 'left' | 'right'
   ): ZoneSign {
     const shapeKey = DECORATION_SHAPE_KEYS[name];
     const asset = shapeKey && assetIndex && style && colorway
@@ -387,6 +394,7 @@ export class LayoutCalculatorService {
       zone: 'zone3',
       type: 'decoration',
       position,
+      side,
       style: {
         dev: {
           backgroundColor: '#7c3aed', // Purple for decorations
