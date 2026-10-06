@@ -73,6 +73,14 @@ export async function getUserById(userId: string): Promise<any | null> {
   try {
     console.log('🔍 Supabase: Looking up user by ID:', userId)
 
+    // userId is interpolated into a PostgREST .or() filter below, so reject
+    // anything that isn't a plain Clerk id / cuid ("user_2abc...", "cmc...")
+    // to rule out filter injection (e.g. "x,email.ilike.*").
+    if (!/^[A-Za-z0-9_-]+$/.test(userId)) {
+      console.error('❌ Supabase: Rejected malformed user id')
+      return null
+    }
+
     // userId is the Clerk auth ID. Users created via the Clerk webhook have
     // it stored directly as `id` (see api/webhooks/clerk/route.ts), but
     // manually-seeded users (e.g. scripts/sync-clerk-users.ts) keep their

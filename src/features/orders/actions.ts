@@ -3,9 +3,15 @@
 import { generateOrderDocument, DocumentType } from './documents/generator';
 import { getOrderWithDetails, updateOrderDocuments } from './utils';
 import { revalidatePath } from 'next/cache';
+import { getCurrentTenant } from '@/lib/tenant-context-supabase';
+import { requireAgencyMember } from '@/features/auth/guards';
 
 export async function generateDocument(orderId: string, type: DocumentType) {
   try {
+    // Downstream lookups scope by the URL's agency; make sure the caller
+    // actually belongs to it (this action is callable from the browser)
+    await requireAgencyMember(await getCurrentTenant());
+
     // Generate the document
     const result = await generateOrderDocument(orderId, type);
     
