@@ -51,7 +51,10 @@ export function ReviewStep() {
         eventNumber: formData.display.eventNumber,
         theme: formData.display.characterTheme,
         hobbies: formData.display.hobbies,
-        agencyId
+        agencyId,
+        style: formData.display.messageStyle,
+        messageColorway: formData.display.messageColorway,
+        nameColorway: formData.display.nameColorway
       });
       
       if (layoutResult.meetsMinimumFill) {
@@ -108,11 +111,7 @@ export function ReviewStep() {
         totalAmount: calculateTotal()
       };
 
-      console.log('🚀 Sending order data:', {
-        eventDateType: typeof orderData.formData.event?.eventDate,
-        eventDateValue: orderData.formData.event?.eventDate,
-        fullOrderData: JSON.stringify(orderData, null, 2)
-      });
+      console.log('🚀 Sending order for', agencySlug);
 
       const response = await fetch('/api/orders/create', {
         method: 'POST',

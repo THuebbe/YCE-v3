@@ -15,6 +15,13 @@ import { PayPalForm } from '../payment-methods/PayPalForm';
 import { ApplePayForm } from '../payment-methods/ApplePayForm';
 import { VenmoPaymentForm } from '@/components/payments/VenmoPaymentForm';
 
+// Raw card data must never enter wizard state: everything in formData is
+// POSTed to /api/orders/create. Real card capture belongs in Stripe Elements.
+function withoutCardData(fields: Record<string, any>) {
+  const { cardNumber, expiryDate, cvv, ...rest } = fields;
+  return rest;
+}
+
 export function PaymentStep() {
   const { 
     formData, 
@@ -103,7 +110,7 @@ export function PaymentStep() {
     const updatedData = {
       ...localData,
       paymentMethodId: paymentData.paymentId,
-      ...selectedPaymentFields,
+      ...withoutCardData(selectedPaymentFields),
     };
     
     updateFormData({ payment: updatedData });
@@ -159,7 +166,7 @@ export function PaymentStep() {
     updateFormData({ 
       payment: { 
         ...localData, 
-        ...selectedPaymentFields 
+        ...withoutCardData(selectedPaymentFields)
       } 
     });
     nextStep();

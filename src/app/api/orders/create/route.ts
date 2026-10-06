@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
 import { sendOrderNotificationEmail } from "@/lib/email";
+import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
 import { z } from "zod";
 
 // Relaxed input validation schema - only validate essential fields
@@ -71,15 +72,13 @@ export async function POST(
 
 		// Parse and validate request body
 		const body = await request.json();
+		// Never log the raw body: it is customer PII and, from older clients,
+		// may contain card fields.
 		console.log("📝 Received order data:", {
 			hasFormData: !!body.formData,
 			holdId: body.holdId,
-			paymentIntentId: body.paymentIntentId,
 			agencySlug: body.agencySlug,
 			totalAmount: body.totalAmount,
-			eventDateType: typeof body.formData?.event?.eventDate,
-			eventDateValue: body.formData?.event?.eventDate,
-			fullFormData: JSON.stringify(body.formData, null, 2),
 		});
 
 		console.log("🔍 About to validate with createOrderInputSchema...");
@@ -120,6 +119,28 @@ export async function POST(
 		}
 		const actualAgencyId = agency.id;
 		console.log('✅ Agency UUID found:', actualAgencyId);
+
+		// The price is the agency's, not the browser's: recompute it and refuse
+		// an order whose quoted total doesn't match (tampering or a stale page)
+		const pricing = parseBookingPricing(agency.pricing_config);
+		if (!pricing) {
+			return NextResponse.json({
+				success: false,
+				error: 'This agency has not set up pricing yet'
+			}, { status: 400 });
+		}
+		const serverTotal = calculateBookingTotal(
+			pricing,
+			formData.display?.extraDaysBefore ?? 0,
+			formData.display?.extraDaysAfter ?? 0
+		);
+		if (Math.abs(serverTotal - totalAmount) > 0.005) {
+			console.warn('⚠️ Order total mismatch:', { agencySlug, client: totalAmount, server: serverTotal });
+			return NextResponse.json({
+				success: false,
+				error: 'The price has changed. Please review your order and try again.'
+			}, { status: 400 });
+		}
 
 		// Convert eventDate string to Date object manually
 		const eventDate = new Date(formData.event.eventDate);
@@ -166,9 +187,9 @@ export async function POST(
 			agency_id: actualAgencyId, // Use the UUID, not the slug
 			status: "pending",
 
-			// Map totalAmount to existing 'total' and 'subtotal' columns
-			total: totalAmount,
-			subtotal: totalAmount, // Set subtotal equal to total for now (no extra fees)
+			// Map the server-computed total to existing 'total' and 'subtotal' columns
+			total: serverTotal,
+			subtotal: serverTotal, // Set subtotal equal to total for now (no extra fees)
 
 			// Customer information (essential) - using existing column names
 			customer_name: formData.contact.fullName,
@@ -232,7 +253,7 @@ export async function POST(
 				orderNumber: orderRecord.order_number,
 				customerName: formData.contact.fullName,
 				eventDate: eventDate.toISOString(),
-				totalAmount: totalAmount,
+				totalAmount: serverTotal,
 				agencyName: agency.name,
 				agencyEmail: agency.contactEmail || agency.email || 'no-email@agency.com',
 			});
