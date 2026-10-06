@@ -6,9 +6,10 @@ a sellable product** — see "Go-live blockers" below: checkout never
 charges, dashboard order actions are fake, inventory isn't real.
 
 **Unmerged:** branch `claude/vercel-host-and-pricing` (`e376b55`,
-`c6875e4`, `cbbd63d`) — per-agency pricing, real agency id/slug in the
-wizard, `.vercel.app` hostname fix, card data kept off the server,
-server-side total check. Verified on its Vercel preview (see VERIFIED
+`c6875e4`, `cbbd63d`, `4724f90`, `a29daab`) — per-agency pricing, real
+agency id/slug in the wizard, `.vercel.app` hostname fix, card data kept
+off the server, server-side total check, Supabase keep-alive cron,
+tenant-isolation fixes from the 2026-10-06 audit. Verified on its Vercel preview (see VERIFIED
 WORKING); full click-through to an order still not done. Close PRs #1/#2.
 
 Last browser click-through: 2026-09-14. Supabase free tier re-pauses
@@ -136,6 +137,44 @@ first (already works); Single Stake (pre-made signs, no letters) comes
 after the demo, needs `pricing_config.singleStakePrice`. `bundles` is an
 inventory-purchasing concept for agencies, not a customer product.
 
+## Tenant-isolation audit (2026-10-06, code-read)
+Fixed on branch (`a29daab`):
+- Deleted 5 unused unauthenticated routes. `/api/agency/by-slug`,
+  `/by-domain` and `/api/user/agency` returned full `agencies` rows,
+  incl. `braintree_private_key` (0 of 6 agencies have one stored, so
+  nothing leaked); `/api/test-email` was an open email relay;
+  `/api/send` a hello-world.
+- `getUserById` rejects non-`[A-Za-z0-9_-]` ids (PostgREST `.or()`
+  filter injection — reachable only via the deleted `/api/user/agency`).
+- `requireAgencyMember()` guard (`features/auth/guards.ts`) on the
+  browser-callable `generateDocument` action (was URL-tenant-only, no
+  auth) and the dashboard data functions.
+Checked and OK: every `/api/agency/*` route checks `user.agency_id`;
+inventory actions derive agency from the user; all 7 dashboard pages
+check membership; payment-methods route selects only public columns.
+Remaining, not urgent:
+- `orders/utils.ts` + `orders/data.ts` scope by URL tenant only; safe
+  while called from guarded pages / guarded actions. Guard any new
+  caller.
+- `pollPayPalAccountsForStatusUpdates` is `'use server'` with no auth;
+  unreferenced, so not exposed. Move to a cron route if it's ever used.
+- `updateUserRole` / `removeUserFromTenant` are unimplemented stubs —
+  scope them to the tenant when built.
+- The guards are type-checked, not seen running (no browser here).
+
+## Decisions needed before the next big build
+- **Stripe:** Connect (agency paid directly; webhook already tracks
+  `stripe_account_id`) vs. one platform account? Full charge vs. deposit
+  at booking? Are the `STRIPE_*` keys in Vercel test or live? (They're
+  set; values not read.)
+- **Dashboard order actions:** `stateMachine.ts` defines the flow; open
+  question is only what "check-in" and "edit signs" do to inventory
+  counts. Build when a browser click-through is possible.
+- **Cloud-session E2E is blocked:** the environment's network policy
+  denies `*.vercel.app` and `*.supabase.co`, so a Claude session can't
+  click through previews or run the app against the DB. Add both under
+  Allowed domains (environment settings → Network access) to unblock.
+
 ## Next steps, in order
 1. Click through to a placed order on the branch preview; merge; close
    PRs #1/#2.
@@ -193,5 +232,4 @@ inventory-purchasing concept for agencies, not a customer product.
   yardcard-elite-west-branch test users still work in Clerk.
   admin@elite-denver.com is confirmed; its password was silently reset
   (Clerk flagged the old shared `TestPass123!` as compromised).
-- Whether every tenant query truly filters on `agencyId` (unaudited).
 - Whether Node 23 (non-LTS) causes issues beyond booting fine.
