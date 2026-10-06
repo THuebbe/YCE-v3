@@ -164,9 +164,12 @@ JWT reaches Postgres. Do NOT write policies against `auth.uid()`.
 ## Pricing path
 `agencies.pricing_config` (JSONB) -> `/api/agency/financial-settings`
 -> `FinancialManagementSection.tsx` (agency settings UI). Complete.
-The booking wizard does not touch any of it and hardcodes $95/$10 in
-four step components. Wire it the same way payment-methods is fetched:
-`/api/agency/[agencyId]/...` on wizard load, into wizard context.
+Booking side: `[agency]/booking/[[...path]]/page.tsx` reads
+`pricing_config` server-side via `parseBookingPricing()` and passes
+`agencyId` + `pricing` into wizard context; every step totals with
+`calculateBookingTotal()` (`features/booking/pricing.ts`). No valid
+`basePrice` -> the page refuses to quote. Gap: `/api/orders/create`
+still trusts the client's `totalAmount` instead of recomputing.
 
 ## Tables — YCE only (25 more in this database belong to PantryPro)
 ```
@@ -195,8 +198,10 @@ api/cron/clear-expired-holds        currently non-functional
 ```
 
 ## Middleware
-`src/middleware.ts` wraps `clerkMiddleware`. `getSubdomain()` handles
-`.localhost` correctly but treats ANY production host with >2 dot-parts
-as having a subdomain — which breaks all `.vercel.app` deploys. Real
+`src/middleware.ts` wraps `clerkMiddleware`. `getSubdomain()` (duplicated
+in `tenant-context-supabase.ts`) handles `.localhost`, returns null for
+`.vercel.app`, and otherwise treats any host with >2 dot-parts as
+having a subdomain. It only sets `x-subdomain`/`x-is-main-domain`
+headers; booking resolves the agency from route params. Real
 subdomain routing requires a custom domain with a wildcard DNS record;
 the expired domain is why none exists today.

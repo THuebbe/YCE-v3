@@ -46,8 +46,9 @@ booking wizard scoped to the agency.
 6. **Pricing is per-agency and lives in `agencies.pricing_config`**
    (JSONB: `basePrice`, `extraDayPrice`, `lateFee`). The agency settings
    UI and `/api/agency/financial-settings` read and write it correctly.
-   The BOOKING WIZARD DOES NOT — it hardcodes `basePrice = 95` in four
-   step components. Never add another hardcoded price.
+   The booking wizard gets it from wizard context (`pricing`) and totals
+   with `calculateBookingTotal()` in `features/booking/pricing.ts`.
+   Never hardcode a price.
 7. Do not add a fourth payment provider.
 
 ## Two `Sign` types exist. This is deliberate.
