@@ -56,7 +56,12 @@ after ~7 idle days — it has now caused two outages.
 
 ## VERIFIED BROKEN
 0. ~~Production 404s~~ — Supabase was paused; restored by the user
-   2026-10-06. Will recur without a keep-alive or paid tier.
+   2026-10-06. **DECISION (user, 2026-10-06): no paid tier while ~6
+   months from launch — keep-alive instead.** Daily Vercel Cron →
+   `/api/cron/keep-alive` (one `agencies` read), scheduled in
+   `vercel.json` at 15:17 UTC. Crons only run on **production**, so it
+   does nothing until this branch is merged to `main`. Remove it when
+   moving to a paid tier.
 1. **Inventory holds are `localStorage`**, not the real `inventory_holds`
    tables the agency side already uses. Two customers can reserve the
    same letters; holds die on device switch; the cron cleanup can't run.
@@ -107,6 +112,9 @@ after ~7 idle days — it has now caused two outages.
 - Plus BROKEN #1/#4/#5/#6 (holds, inventory, client-trusted totals).
 
 ## Known, deliberately deferred
+- **No `CRON_SECRET` in Vercel.** Keep-alive is open without it (by
+  design, harmless read); `/api/cron/clear-expired-holds` falls back to
+  the guessable `'dev-secret'`. Set `CRON_SECRET` in Vercel to lock both.
 - RLS off on all YCE tables — before first paying agency, not before demo.
 - PantryPro's `pos_*`/`inventory_deductions` tables have RLS on with no
   working policies (key off `auth.uid()`, null under Clerk) — locked, but
