@@ -1,28 +1,25 @@
 # Where This Stands
 
-**2026-10-06: production deploys fine but serves 404 — Supabase is
-paused again.** PR #3 (Next.js 15.3.4 → 15.3.9, the CVE deploy block)
-merged 2026-09-19; `main` deployments are `READY` on Vercel through
-`0af5f32` (checked via the Vercel API). But
-`/elite-denver/booking` on production returned 404 on 2026-10-06: the
-route matched (`x-matched-path: /[agency]/booking/[[...path]]`), the
-agency lookup came back empty, and all four Supabase projects in the org
-(incl. `YCEv3`, `uwgrpcuqakuxulgnbcpd`) report `INACTIVE`. Claude's
-attempt to restore it was blocked by a permission guardrail — **a human
-must hit Restore in the Supabase dashboard.** Second time this has
-taken the app down (first: restored 2026-09-10); free tier re-pauses
-after ~7 days idle.
+**2026-10-06: production is up** (`/elite-denver/booking` → 200) after
+the user restored the paused Supabase project. **But this is a demo, not
+a sellable product** — see "Go-live blockers" below: checkout never
+charges, dashboard order actions are fake, inventory isn't real.
 
-**Unmerged work:** branch `claude/vercel-host-and-pricing` (commit
-`e376b55`) — per-agency pricing + real agency ID in the wizard, and the
-`.vercel.app` hostname fix. Type-checked and linted, NOT seen running
-(DB paused). See NOT VERIFIED.
+**Unmerged:** branch `claude/vercel-host-and-pricing` (`e376b55`,
+`c6875e4`) — per-agency pricing, real agency id/slug in the wizard,
+`.vercel.app` hostname fix. Verified on its Vercel preview (see VERIFIED
+WORKING); full click-through to an order still not done. Close PRs #1/#2.
 
-Last verified live-in-browser: 2026-09-14 (booking wizard Contact Info →
-Payment; dashboard login). Nothing since has been browser-verified by a
-Claude session.
+Last browser click-through: 2026-09-14. Supabase free tier re-pauses
+after ~7 idle days — it has now caused two outages.
 
 ## VERIFIED WORKING (seen running, not inferred)
+- **2026-10-06, branch preview `dpl_AcVAANwgNwMeHbBaiVGGXDvjFrp8`:**
+  server-rendered wizard props carry the real agency —
+  elite-denver `{basePrice:81, extraDayPrice:13}`, texas-signs
+  `{111, 15}`, correct `agencyId` + `agencySlug`; `x-subdomain` no
+  longer set on `.vercel.app`. All 6 agencies have both prices set.
+  (Client-side totals and order placement: not clicked through.)
 - `pnpm install` + `pnpm dev` boots clean. Ready in ~6s.
 - Booking wizard steps 1-3 work end to end.
 - **The five-zone layout engine works.** Ordinal insertion works.
@@ -57,9 +54,8 @@ Claude session.
   machine clock skew (Clerk token `nbf` "not valid yet"), not code.
 
 ## VERIFIED BROKEN
-0. **Production 404s — Supabase project paused** (see top). Fix: Restore
-   in the Supabase dashboard. Longer term: a keep-alive ping or a paid
-   tier, or this recurs every ~7 idle days.
+0. ~~Production 404s~~ — Supabase was paused; restored by the user
+   2026-10-06. Will recur without a keep-alive or paid tier.
 1. **Inventory holds are `localStorage`**, not the real `inventory_holds`
    tables the agency side already uses. Two customers can reserve the
    same letters; holds die on device switch; the cron cleanup can't run.
@@ -92,6 +88,22 @@ Claude session.
    design, not just a nice-to-have — see that doc for what schema/seed
    decisions are needed first.
 
+## Go-live blockers (code-read 2026-10-06, not yet fixed)
+- **Checkout never charges.** `review-step.tsx` fabricates
+  `paymentIntentId = 'pi_mock_' + Date.now()`; no route creates a Stripe
+  PaymentIntent; card form is plain inputs, not Stripe Elements.
+  Venmo/PayPal components exist, end-to-end capture unverified.
+- **Raw card number + CVV are POSTed to `/api/orders/create` and
+  logged** (`fullFormData` console.log). Zod strips them before the DB
+  insert, but they land in Vercel logs. PCI problem; goes away with
+  Stripe Elements, remove the log regardless.
+- **Dashboard order actions are demo stubs** — advance status, cancel,
+  check-in, edit signs show a "Demo Mode" toast. Real versions were
+  stubbed when Prisma was removed (`orders/actions-disabled.ts` throws).
+  Only document generation is real.
+- **Clerk runs a development instance in production** (`pk_test_` key).
+- Plus BROKEN #1/#4/#5/#6 (holds, inventory, client-trusted totals).
+
 ## Known, deliberately deferred
 - RLS off on all YCE tables — before first paying agency, not before demo.
 - PantryPro's `pos_*`/`inventory_deductions` tables have RLS on with no
@@ -115,18 +127,18 @@ after the demo, needs `pricing_config.singleStakePrice`. `bundles` is an
 inventory-purchasing concept for agencies, not a customer product.
 
 ## Next steps, in order
-0. **Restore the Supabase project** (dashboard, `YCEv3`). Then confirm
-   `/elite-denver/booking` loads on production.
-1. **Merge `claude/vercel-host-and-pricing`** after clicking through the
-   wizard on its Vercel preview — check the NOT VERIFIED items below.
-   Close PRs #1/#2.
-2. Recompute order totals server-side (VERIFIED BROKEN #6).
-3. Move holds server-side onto the real `inventory_holds` tables.
-4. **Seed letters into `sign_library`, connect `getAvailableSigns()` to
-   real per-agency inventory** — the defined blocker for the smart
-   configurator (`ARCHITECTURE.md`). Needs schema + per-agency seed data
-   + message→theme taxonomy decided first, not just code.
-5. Vendor conversation, demo in hand.
+1. Click through to a placed order on the branch preview; merge; close
+   PRs #1/#2.
+2. **Real payments, Stripe first** (Elements + server-created
+   PaymentIntent on the agency's connected account, order created on
+   payment confirmation, total recomputed server-side). Then Venmo, then
+   PayPal — all three stay, shipped in sequence.
+3. Rebuild dashboard order actions on Supabase (`actions-disabled.ts`).
+4. Server-side holds on `inventory_holds`; real per-agency inventory
+   (needs the sign_library letters decisions in `ARCHITECTURE.md`).
+5. Production Clerk instance + domain; Supabase paid tier; tenant-filter
+   audit.
+6. Smart configurator theming — after the above, not before.
 
 ## Reference docs
 - `PRODUCT.md` — business rules, authoritative for WHY.
@@ -143,16 +155,21 @@ inventory-purchasing concept for agencies, not a customer product.
   query the DOM for `disabled` state rather than trusting one snapshot.
 
 ## NOT VERIFIED — check before trusting
-- **Per-agency pricing in the wizard (branch, `e376b55`).** Booking page
+- **Per-agency pricing in the wizard (branch, `e376b55` + `c6875e4`).**
+  Server props verified (above); still unverified end to end. Booking page
   reads `pricing_config` server-side → wizard context →
   `calculateBookingTotal()` (`features/booking/pricing.ts`), replacing
   four $95/$10 copies. Also removes hardcoded
   `agencyId: 'yardcard-elite-west-branch'` (a slug!) from order creation,
-  layout generation and soft holds. Check: book on two
+  layout generation and soft holds. `c6875e4`: the order API resolves a
+  *slug* (`getAgencyBySlug`), so the wizard sends `agencySlug` (API field
+  renamed `agencyId` → `agencySlug`); the first commit alone would have
+  failed every order. 2 test orders (Sep 14-19) were misfiled under
+  west-branch by the old hardcode. Check: book on two
   agencies with different prices; totals should differ and the new
   `orders.agency_id` should be the real cuid. No valid `basePrice` →
   "not taking online bookings" message; missing `extraDayPrice` → 0
-  (a guess — confirm every agency has it set).
+  (moot today: all 6 agencies set it).
 - **Sep 19 commits made outside a Claude wrapup** — `4cf60ac` (letters
   touch, recipient name re-centered, separate Message/Name color
   pickers) and `0af5f32` (Event Date typing crash; was VERIFIED BROKEN
