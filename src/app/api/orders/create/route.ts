@@ -138,7 +138,7 @@ export async function POST(
 			console.warn('⚠️ Order total mismatch:', { agencySlug, client: totalAmount, server: serverTotal });
 			return NextResponse.json({
 				success: false,
-				error: 'The price has changed. Please review your order and try again.'
+				error: 'This agency\'s prices were updated while you were booking. Please refresh the page to see current pricing.'
 			}, { status: 400 });
 		}
 

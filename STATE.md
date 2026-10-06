@@ -110,7 +110,7 @@ after ~7 idle days — it has now caused two outages.
   stubbed when Prisma was removed (`orders/actions-disabled.ts` throws).
   Only document generation is real.
 - **Clerk runs a development instance in production** (`pk_test_` key).
-- Plus BROKEN #1/#4/#5/#6 (holds, inventory, client-trusted totals).
+- Plus BROKEN #1/#4/#5 (holds, inventory).
 
 ## Known, deliberately deferred
 - **No `CRON_SECRET` in Vercel.** Keep-alive is open without it (by
@@ -152,6 +152,22 @@ Fixed on branch (`a29daab`):
 Checked and OK: every `/api/agency/*` route checks `user.agency_id`;
 inventory actions derive agency from the user; all 7 dashboard pages
 check membership; payment-methods route selects only public columns.
+Branch self-review (`/code-review`, 2026-10-06) — fixed: price
+*breakdown* lines in all four steps still showed hardcoded $95/$10 (only
+totals had been switched); stray "0" in review summary; document guard
+now checks the **order's** agency; clearer price-mismatch message (a
+retry can't succeed without reload — wizard pricing is fixed at load).
+Deliberately not changed: no `agencyId` fallback for pre-deploy clients
+(old bundles send the bogus west-branch slug, so failing is better than
+misfiling); `getUserById` now runs 3x per dashboard render (wrap in
+React `cache()` if it matters); `getSubdomain` duplicated in two files.
+**Big finding, NOT fixed:** middleware sets `x-url` on the *response*
+(`response.headers.set`), not the request, so `getCurrentTenant()`'s
+path-based resolution can never fire — it likely returns null on every
+host. Everything in `orders/utils.ts` + `orders/data.ts` (incl.
+document generation) would then throw "No tenant context". Fix:
+`NextResponse.next({ request: { headers } })`. Needs a browser to
+verify, and makes URL-tenant lookups live — keep the guards.
 Remaining, not urgent:
 - `orders/utils.ts` + `orders/data.ts` scope by URL tenant only; safe
   while called from guarded pages / guarded actions. Guard any new

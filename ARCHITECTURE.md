@@ -177,8 +177,10 @@ Booking side: `[agency]/booking/[[...path]]/page.tsx` reads
 `pricing_config` server-side via `parseBookingPricing()` and passes
 `agencyId` + `pricing` into wizard context; every step totals with
 `calculateBookingTotal()` (`features/booking/pricing.ts`). No valid
-`basePrice` -> the page refuses to quote. Gap: `/api/orders/create`
-still trusts the client's `totalAmount` instead of recomputing.
+`basePrice` -> the page refuses to quote. `/api/orders/create`
+recomputes the total from `pricing_config` and rejects a mismatch.
+Known inconsistency: the settings API fills missing/zero values with
+`|| 50` / `|| 10`, so settings can display a price the wizard won't use.
 
 ## Tables — YCE only (25 more in this database belong to PantryPro)
 ```

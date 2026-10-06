@@ -420,7 +420,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-body">Base Package</span>
-                <span className="text-body font-medium">$95</span>
+                <span className="text-body font-medium">${pricing.basePrice.toFixed(2)}</span>
               </div>
               
               {/* Extra Days Controls */}
@@ -469,8 +469,8 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 
                 {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
                   <div className="flex justify-between mt-2 text-body-small">
-                    <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × $10)</span>
-                    <span>${(localData.extraDaysBefore + localData.extraDaysAfter) * 10}</span>
+                    <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × ${pricing.extraDayPrice.toFixed(2)})</span>
+                    <span>${((localData.extraDaysBefore + localData.extraDaysAfter) * pricing.extraDayPrice).toFixed(2)}</span>
                   </div>
                 )}
               </div>

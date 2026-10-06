@@ -3,14 +3,20 @@
 import { generateOrderDocument, DocumentType } from './documents/generator';
 import { getOrderWithDetails, updateOrderDocuments } from './utils';
 import { revalidatePath } from 'next/cache';
-import { getCurrentTenant } from '@/lib/tenant-context-supabase';
+import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
 
 export async function generateDocument(orderId: string, type: DocumentType) {
   try {
-    // Downstream lookups scope by the URL's agency; make sure the caller
-    // actually belongs to it (this action is callable from the browser)
-    await requireAgencyMember(await getCurrentTenant());
+    // Browser-callable: check the caller belongs to the order's own agency.
+    // (Not getCurrentTenant(): it resolves from the URL, proves nothing about
+    // the caller, and currently can't resolve at all - see STATE.md.)
+    const { data: owner } = await supabase
+      .from('orders')
+      .select('agency_id')
+      .eq('id', orderId)
+      .single();
+    await requireAgencyMember(owner?.agency_id);
 
     // Generate the document
     const result = await generateOrderDocument(orderId, type);

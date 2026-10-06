@@ -159,7 +159,7 @@ export function ConfirmationStep() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-body">Base Package</span>
-              <span className="text-body">$95.00</span>
+              <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
             </div>
             
             {((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) > 0 && (
@@ -168,7 +168,7 @@ export function ConfirmationStep() {
                   Extra Days ({(formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)})
                 </span>
                 <span className="text-neutral-900">
-                  ${((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) * 10}.00
+                  ${(((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
                 </span>
               </div>
             )}
