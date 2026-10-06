@@ -10,6 +10,7 @@ const WizardContext = createContext<WizardContextType | undefined>(undefined);
 interface WizardProviderProps {
   children: React.ReactNode;
   agencyId: string;
+  agencySlug: string;
   pricing: BookingPricing;
   totalSteps: number;
   initialStep?: number;
@@ -19,6 +20,7 @@ interface WizardProviderProps {
 export function WizardProvider({ 
   children, 
   agencyId,
+  agencySlug,
   pricing,
   totalSteps, 
   initialStep = 1,
@@ -79,6 +81,7 @@ export function WizardProvider({
 
   const value: WizardContextType = {
     agencyId,
+    agencySlug,
     pricing,
     currentStep,
     totalSteps,

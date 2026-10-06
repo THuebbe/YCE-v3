@@ -105,6 +105,7 @@ export interface WizardStep {
 
 export interface WizardContextType {
   agencyId: string;
+  agencySlug: string;
   pricing: BookingPricing;
   currentStep: number;
   totalSteps: number;

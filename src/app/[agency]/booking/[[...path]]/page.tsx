@@ -42,6 +42,7 @@ export default async function AgencyBookingPage({ params, searchParams }: Bookin
     <div className="min-h-screen">
       <BookingWizard 
         agencyId={agency.id}
+        agencySlug={agency.slug}
         pricing={pricing}
         initialStep={step}
       />

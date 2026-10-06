@@ -131,13 +131,14 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
 
 interface BookingWizardProps {
   agencyId: string;
+  agencySlug: string;
   pricing: BookingPricing;
   initialStep?: number;
 }
 
-export function BookingWizard({ agencyId, pricing, initialStep = 1 }: BookingWizardProps) {
+export function BookingWizard({ agencyId, agencySlug, pricing, initialStep = 1 }: BookingWizardProps) {
   return (
-    <WizardProvider agencyId={agencyId} pricing={pricing} totalSteps={wizardSteps.length} initialStep={initialStep}>
+    <WizardProvider agencyId={agencyId} agencySlug={agencySlug} pricing={pricing} totalSteps={wizardSteps.length} initialStep={initialStep}>
       <BookingWizardContent agencyId={agencyId} />
     </WizardProvider>
   );

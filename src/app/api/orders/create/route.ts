@@ -59,7 +59,7 @@ const createOrderInputSchema = z.object({
 	}),
 	holdId: z.string().min(1, "Hold ID is required"),
 	paymentIntentId: z.string().min(1, "Payment Intent ID is required"),
-	agencyId: z.string().min(1, "Agency ID is required"),
+	agencySlug: z.string().min(1, "Agency slug is required"),
 	totalAmount: z.number().positive("Total amount must be positive"),
 });
 
@@ -75,7 +75,7 @@ export async function POST(
 			hasFormData: !!body.formData,
 			holdId: body.holdId,
 			paymentIntentId: body.paymentIntentId,
-			agencyId: body.agencyId,
+			agencySlug: body.agencySlug,
 			totalAmount: body.totalAmount,
 			eventDateType: typeof body.formData?.event?.eventDate,
 			eventDateValue: body.formData?.event?.eventDate,
@@ -106,16 +106,16 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, paymentIntentId, agencyId, totalAmount } =
+		const { formData, holdId, paymentIntentId, agencySlug, totalAmount } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
-		console.log('🔍 Looking up agency by slug:', agencyId);
-		const agency = await getAgencyBySlug(agencyId);
+		console.log('🔍 Looking up agency by slug:', agencySlug);
+		const agency = await getAgencyBySlug(agencySlug);
 		if (!agency) {
 			return NextResponse.json({
 				success: false,
-				error: 'Agency not found: ' + agencyId
+				error: 'Agency not found: ' + agencySlug
 			}, { status: 400 });
 		}
 		const actualAgencyId = agency.id;
