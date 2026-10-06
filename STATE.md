@@ -6,8 +6,9 @@ a sellable product** — see "Go-live blockers" below: checkout never
 charges, dashboard order actions are fake, inventory isn't real.
 
 **Unmerged:** branch `claude/vercel-host-and-pricing` (`e376b55`,
-`c6875e4`) — per-agency pricing, real agency id/slug in the wizard,
-`.vercel.app` hostname fix. Verified on its Vercel preview (see VERIFIED
+`c6875e4`, `cbbd63d`) — per-agency pricing, real agency id/slug in the
+wizard, `.vercel.app` hostname fix, card data kept off the server,
+server-side total check. Verified on its Vercel preview (see VERIFIED
 WORKING); full click-through to an order still not done. Close PRs #1/#2.
 
 Last browser click-through: 2026-09-14. Supabase free tier re-pauses
@@ -76,11 +77,11 @@ after ~7 idle days — it has now caused two outages.
    *lookup* (which PNG) is wired now, but ownership/quantity per agency
    isn't, so it can still promise letters an agency doesn't own or
    doesn't have enough of.
-6. **Order totals are trusted from the client.** `/api/orders/create`
-   stores whatever `totalAmount` the browser sends, and the payment step
-   charges the client-computed total. Anyone can edit the price. Fix:
-   recompute from `pricing_config` server-side. (The wizard *display*
-   price itself is fixed on branch — see NOT VERIFIED.)
+6. ~~Order totals trusted from the client~~ — **fixed on branch
+   (`cbbd63d`)**: server recomputes from `pricing_config`, rejects a
+   mismatch (400 "price has changed"), stores the server total. When
+   real Stripe lands, create the PaymentIntent from the same server
+   total — never from the client's number.
 7. **`sign_library` has no letters** — pre-made message boards + unrelated
    real-estate seed data only, `rental_price` 0 everywhere.
    `agency_inventory` populated for elite-denver, not for letters. This
@@ -93,10 +94,11 @@ after ~7 idle days — it has now caused two outages.
   `paymentIntentId = 'pi_mock_' + Date.now()`; no route creates a Stripe
   PaymentIntent; card form is plain inputs, not Stripe Elements.
   Venmo/PayPal components exist, end-to-end capture unverified.
-- **Raw card number + CVV are POSTed to `/api/orders/create` and
-  logged** (`fullFormData` console.log). Zod strips them before the DB
-  insert, but they land in Vercel logs. PCI problem; goes away with
-  Stripe Elements, remove the log regardless.
+- ~~Raw card number + CVV POSTed to `/api/orders/create` and logged~~ —
+  **fixed on branch (`cbbd63d`)**: payment step strips card fields before
+  wizard state; full-payload logs removed both sides. Card digits still
+  live in the browser form until Stripe Elements replaces it. Vercel logs
+  from before the fix may hold test card data — consider purging.
 - **Dashboard order actions are demo stubs** — advance status, cancel,
   check-in, edit signs show a "Demo Mode" toast. Real versions were
   stubbed when Prisma was removed (`orders/actions-disabled.ts` throws).
@@ -129,7 +131,10 @@ inventory-purchasing concept for agencies, not a customer product.
 ## Next steps, in order
 1. Click through to a placed order on the branch preview; merge; close
    PRs #1/#2.
-2. **Real payments, Stripe first** (Elements + server-created
+2. **Real payments, Stripe first** — decisions needed first: Stripe
+   Connect (money goes to the agency; the Stripe webhook already tracks
+   `stripe_account_id`) vs. one platform account; who pays fees; deposit
+   vs. full charge at booking. (Elements + server-created
    PaymentIntent on the agency's connected account, order created on
    payment confirmation, total recomputed server-side). Then Venmo, then
    PayPal — all three stay, shipped in sequence.
@@ -174,9 +179,8 @@ inventory-purchasing concept for agencies, not a customer product.
   touch, recipient name re-centered, separate Message/Name color
   pickers) and `0af5f32` (Event Date typing crash; was VERIFIED BROKEN
   #0). Read in diff, not seen running.
-- Review step's layout preview calls `calculateLayout` without
-  style/colorways, so it likely renders default red, not the customer's
-  picks. Seen in code only.
+- Review step's layout preview now passes style/colorways (`cbbd63d`);
+  before, it likely rendered default red. Not seen running either way.
 - Whether manager@elite-denver.com / sunny-signs-ca / texas-signs /
   yardcard-elite-west-branch test users still work in Clerk.
   admin@elite-denver.com is confirmed; its password was silently reset
