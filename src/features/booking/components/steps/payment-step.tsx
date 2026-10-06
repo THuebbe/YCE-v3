@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
+import { calculateBookingTotal } from '../../pricing';
 import { createPaymentSchema, PaymentFormData } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -20,7 +21,8 @@ export function PaymentStep() {
     updateFormData, 
     nextStep, 
     prevStep, 
-    paymentMethods 
+    paymentMethods,
+    pricing
   } = useWizard();
   
   const [localData, setLocalData] = useState<PaymentFormData>(
@@ -164,10 +166,7 @@ export function PaymentStep() {
   };
 
   const calculateTotal = () => {
-    const basePrice = 95;
-    const extraDayPrice = 10;
-    const extraDays = (formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0);
-    return basePrice + (extraDays * extraDayPrice);
+    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
   };
 
   const selectedMethod = paymentMethods.availablePaymentMethods.find(
@@ -473,7 +472,7 @@ export function PaymentStep() {
               
               <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
                 <span>Total</span>
-                <span className="text-primary">${calculateTotal()}.00</span>
+                <span className="text-primary">${calculateTotal().toFixed(2)}</span>
               </div>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { BookingPricing } from './pricing';
 
 // Contact Information Step
 export const contactSchema = z.object({
@@ -103,6 +104,8 @@ export interface WizardStep {
 }
 
 export interface WizardContextType {
+  agencyId: string;
+  pricing: BookingPricing;
   currentStep: number;
   totalSteps: number;
   furthestStep: number;

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
+import { calculateBookingTotal } from '../../pricing';
 import { Button } from '@/shared/components/ui/button';
 import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2, AlertCircle } from 'lucide-react';
 import { DisplayGrid } from '../display/DisplayGrid';
@@ -10,7 +11,7 @@ import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, pricing } = useWizard();
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [orderProcessing, setOrderProcessing] = useState(false);
@@ -50,7 +51,7 @@ export function ReviewStep() {
         eventNumber: formData.display.eventNumber,
         theme: formData.display.characterTheme,
         hobbies: formData.display.hobbies,
-        agencyId: 'yardcard-elite-west-branch' // TODO: Get from route params
+        agencyId
       });
       
       if (layoutResult.meetsMinimumFill) {
@@ -73,10 +74,7 @@ export function ReviewStep() {
   }, [hasValidLayout]);
 
   const calculateTotal = () => {
-    const basePrice = 95;
-    const extraDayPrice = 10;
-    const extraDays = (formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0);
-    return basePrice + (extraDays * extraDayPrice);
+    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
   };
 
   const handlePlaceOrder = async () => {
@@ -106,7 +104,7 @@ export function ReviewStep() {
         },
         holdId: formData.display.holdId,
         paymentIntentId,
-        agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
+        agencyId,
         totalAmount: calculateTotal()
       };
 
@@ -417,7 +415,7 @@ export function ReviewStep() {
             
             <div className="border-t pt-3 flex justify-between text-h4 font-bold">
               <span>Total</span>
-              <span className="text-primary">${calculateTotal()}.00</span>
+              <span className="text-primary">${calculateTotal().toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -476,7 +474,7 @@ export function ReviewStep() {
           ) : !hasValidLayout ? (
             'Complete Step 3 First'
           ) : (
-            `Place Order - $${calculateTotal()}.00`
+            `Place Order - $${calculateTotal().toFixed(2)}`
           )}
         </Button>
       </div>

@@ -1,4 +1,5 @@
 import { BookingWizard } from '@/features/booking/components/booking-wizard';
+import { parseBookingPricing } from '@/features/booking/pricing';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
 
@@ -25,10 +26,23 @@ export default async function AgencyBookingPage({ params, searchParams }: Bookin
     notFound();
   }
 
+  // Refuse to quote rather than invent a price when the agency hasn't set one
+  const pricing = parseBookingPricing(agency.pricing_config);
+  if (!pricing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-8 text-center">
+        <p className="text-neutral-700">
+          This agency isn&apos;t taking online bookings yet. Please contact them directly.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <BookingWizard 
         agencyId={agency.id}
+        pricing={pricing}
         initialStep={step}
       />
     </div>

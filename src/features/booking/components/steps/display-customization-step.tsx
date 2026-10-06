@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
+import { calculateBookingTotal } from '../../pricing';
 import { displaySchema, DisplayFormData, Sign } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -90,7 +91,7 @@ const hobbies = [
 ];
 
 export function DisplayCustomizationStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep, agencyId, pricing } = useWizard();
   const [localData, setLocalData] = useState<DisplayFormData>(
     formData.display || {
       eventMessage: '',
@@ -176,7 +177,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         eventNumber: localData.eventNumber,
         theme: localData.characterTheme,
         hobbies: localData.hobbies,
-        agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
+        agencyId,
         style: localData.messageStyle,
         messageColorway: localData.messageColorway,
         nameColorway: localData.nameColorway
@@ -200,7 +201,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
           // Try to create real hold first
           const holdResult = await inventoryService.createSoftHold(
             allSignAllocations,
-            'yardcard-elite-west-branch',
+            agencyId,
             'session_' + Date.now().toString()
           );
           
@@ -259,10 +260,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   // Auto-generation removed - users now manually generate layout with button
 
   const calculateTotal = () => {
-    const basePrice = 95;
-    const extraDayPrice = 10;
-    const extraDays = localData.extraDaysBefore + localData.extraDaysAfter;
-    return basePrice + (extraDays * extraDayPrice);
+    return calculateBookingTotal(pricing, localData.extraDaysBefore, localData.extraDaysAfter);
   };
 
   const validationData = { ...localData };
@@ -479,7 +477,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
               
               <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
                 <span>Total</span>
-                <span className="text-primary">${calculateTotal()}</span>
+                <span className="text-primary">${calculateTotal().toFixed(2)}</span>
               </div>
             </div>
           </div>

@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
+import { calculateBookingTotal } from '../../pricing';
 import { Button } from '@/shared/components/ui/button';
 import { Check, Calendar, MapPin, Mail, Phone, Download, Home } from 'lucide-react';
 
 export function ConfirmationStep() {
-  const { formData } = useWizard();
+  const { formData, pricing } = useWizard();
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Get order details from the form data
@@ -23,10 +24,7 @@ export function ConfirmationStep() {
   }, []);
 
   const calculateTotal = () => {
-    const basePrice = 95;
-    const extraDayPrice = 10;
-    const extraDays = (formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0);
-    return basePrice + (extraDays * extraDayPrice);
+    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
   };
 
   const getDeliveryDate = () => {
@@ -177,7 +175,7 @@ export function ConfirmationStep() {
             
             <div className="border-t pt-3 flex justify-between text-h5 font-bold">
               <span>Total Paid</span>
-              <span className="text-success-green">${calculateTotal()}.00</span>
+              <span className="text-success-green">${calculateTotal().toFixed(2)}</span>
             </div>
 
             <div className="bg-neutral-50 p-3 rounded-lg mt-4">

@@ -103,6 +103,12 @@ function getSubdomain(hostname: string): string | null {
     return null
   }
   
+  // Vercel deploy hostnames (<project>-<hash>-<team>.vercel.app) are not
+  // agency subdomains - agencies resolve by path there
+  if (hostWithoutPort.endsWith('.vercel.app')) {
+    return null
+  }
+
   // For production domains like subdomain.yardcardelite.com
   const parts = hostWithoutPort.split('.')
   if (parts.length > 2) {
