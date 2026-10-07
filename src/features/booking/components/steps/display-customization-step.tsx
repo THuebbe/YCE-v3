@@ -105,7 +105,8 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       characterTheme: '',
       hobbies: [],
       extraDaysBefore: 0,
-      extraDaysAfter: 0,
+      // Start at the agency's minimum rental length (the event day counts as one)
+      extraDaysAfter: Math.max(0, bookingRules.minimumRentalDays - 1),
       holdId: '',
     }
   );
