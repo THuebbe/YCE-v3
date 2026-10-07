@@ -1,5 +1,13 @@
 # Where This Stands
 
+Last verified: 2026-10-07
+
+**2026-10-07: milestone 1 (real inventory + server-side holds + booking
+rules) built on branch `claude/m1-inventory-holds`, browser-tested on its
+preview, PR open - NOT merged.** The DB side is already live (migrations
+applied 2026-10-07 via Supabase MCP), so production's sign_library now
+has the letter rows even though production code doesn't use them yet.
+
 **2026-10-06: production is up** (`/elite-denver/booking` → 200) after
 the user restored the paused Supabase project. **But this is a demo, not
 a sellable product** — see "Go-live blockers" below: checkout never
@@ -35,6 +43,25 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
 (live since PR #4) should prevent a third outage.
 
 ## VERIFIED WORKING (seen running, not inferred)
+- **2026-10-07, milestone 1 on preview `81e0c8a`** (headless Chromium
+  scripts, DB checked after each):
+  - Full booking on elite-denver (`37c9855`) and texas-signs (`81e0c8a`):
+    Generate Layout creates a `temporary` hold (30 / 28 signs), placing
+    the order converts it to an `order` hold with no expiry and writes
+    `order_signs`. Orders YCE-2026-101575, YCE-2026-938350; both holds
+    then released by hand (`yce_release_order_hold`).
+  - Race: my-business red Z set to 1, two browsers generated "ZED" at
+    once - one reserved, the other got "Z (classic/red): need 1, 0 free".
+    Stock restored to 20.
+  - Booking rules: lederman-bonds temporarily set to 120h lead / 3-day
+    minimum - date `min` and hint followed it, a 3-day-out date kept
+    Continue disabled, extra days defaulted to 2, adding a day re-held
+    (old hold `replaced`, end date moved). Rules restored to 48h / 1 day.
+  - SQL functions exercised directly: overlap vs non-overlap, replacing
+    only your own session's hold, unknown sign, wrong session / changed
+    dates refused, order hold blocks dates after its start but not before.
+  - Seed checksum matches the manifest exactly (344 signs = 45 glyphs x 7
+    colorways + 29 mock; 2064 inventory rows, 20 each, 6 agencies).
 - **2026-10-07, user click-through to a placed order** on preview
   `c6875e4` (elite-denver, 2 extra days): order `YCE-2026-647960` saved
   with the real agency id, total $107 (= $81 + 2×$13) matching the
@@ -92,9 +119,9 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
    `vercel.json` at 15:17 UTC. Crons only run on **production**, so it
    does nothing until this branch is merged to `main`. Remove it when
    moving to a paid tier.
-1. **Inventory holds are `localStorage`**, not the real `inventory_holds`
-   tables the agency side already uses. Two customers can reserve the
-   same letters; holds die on device switch; the cron cleanup can't run.
+1. ~~Inventory holds are `localStorage`~~ — **fixed on branch (M1)**:
+   server-side holds in `inventory_holds` via `yce_*` SQL functions under
+   a per-agency advisory lock; see ARCHITECTURE.md "Data flow AS BUILT".
 2. **Subdomain URLs 404 in dev**; middleware detects the subdomain but
    never rewrites the path. Use path-based URLs (`/elite-denver/booking`).
 3. ~~`.vercel.app` breaks deploys~~ — **overstated; fixed on branch.**
@@ -103,12 +130,16 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
    wasted agency lookup on non-dashboard routes. Booking resolves the
    agency from route params, dashboard routes from the path first —
    neither was broken by it. `.vercel.app` now returns null (`e376b55`).
-4. **`getAvailableSigns()` is manifest-backed, not Supabase-backed.**
+4. ~~`getAvailableSigns()` is manifest-backed~~ — **fixed on branch (M1)**:
+   `InventoryService` deleted; stock is `agency_inventory`. Old note:
    Fixed 2026-09-16 to read real PNG assets via `manifestSignSource`
    instead of pure mock data — but still not real per-agency inventory:
    every agency gets the same 315 assets, same fake `availableQuantity:
    99`. Supabase import still commented out.
-5. **`layout-calculator.ts` never consults real inventory** — asset
+5. **`layout-calculator.ts` still doesn't consult stock while laying out**
+   — partly fixed (M1): every placed sign carries a `catalogKey` and the
+   hold refuses shortages by name, so nothing un-owned can be booked. It
+   still won't pick a different colorway for you. Old note: — asset
    *lookup* (which PNG) is wired now, but ownership/quantity per agency
    isn't, so it can still promise letters an agency doesn't own or
    doesn't have enough of.
@@ -117,7 +148,8 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
    mismatch (400 "price has changed"), stores the server total. When
    real Stripe lands, create the PaymentIntent from the same server
    total — never from the client's number.
-7. **`sign_library` has no letters** — pre-made message boards + unrelated
+7. ~~`sign_library` has no letters~~ — **seeded 2026-10-07** (placeholder
+   rows from the manifest; real library = data swap). Old note: no letters — pre-made message boards + unrelated
    real-estate seed data only, `rental_price` 0 everywhere.
    `agency_inventory` populated for elite-denver, not for letters. This
    is now the specific blocker for the ARCHITECTURE.md configurator
@@ -142,12 +174,13 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
 - **Agency subscription billing (main revenue) isn't built** — settings
   shows mock subscription data. Needs Stripe Billing, separate from
   Connect.
-- Plus BROKEN #1/#4/#5 (holds, inventory).
+- ~~BROKEN #1/#4~~ fixed on branch; #5 partly.
 
 ## Known, deliberately deferred
 - `CRON_SECRET` set in Vercel 2026-10-07 (production + preview); live
   from the next production deploy. `/api/cron/clear-expired-holds`
-  still has a `'dev-secret'` fallback in code — remove it.
+  `'dev-secret'` fallback and open `ADMIN_SECRET` POST removed on branch
+  (M1); it now fails closed and runs daily.
 - RLS off on all YCE tables — before first paying agency, not before demo.
 - PantryPro's `pos_*`/`inventory_deductions` tables have RLS on with no
   working policies (key off `auth.uid()`, null under Clerk) — locked, but
@@ -160,9 +193,7 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
 - No `.env.example`. No baseline schema migration committed.
 - Single Stake package tier designed, never built; `bundles` +
   `bundle-creator.tsx` exist agency-side only.
-- `sign-selection.ts` — unused weighted-search engine for Zone 3/4,
-  predates and was superseded by the keyword-ranking now live in
-  `layout-calculator.ts`. Candidate for deletion.
+- ~~`sign-selection.ts`~~ — deleted on branch (M1), was unused.
 
 **Product direction (decided):** ship the Lettered Message configurator
 first (already works); Single Stake (pre-made signs, no letters) comes
@@ -263,8 +294,9 @@ search is exhausted; remaining answers live in the off-repo specs.
   Elite Processing — always enabled as fallback"**, i.e. the
   platform-collects model the user rejected 2026-10-07 — must become
   the Express option.
-- **Booking rules are ignored by the wizard (same bug class as
-  pricing).** Agencies save `booking_rules` (lead time default 48h,
+- ~~Booking rules ignored by the wizard~~ — **fixed on branch (M1)**,
+  `features/booking/booking-rules.ts`, client + server. Lead time is now
+  measured to *delivery* (event minus extra days before). Old note: Agencies save `booking_rules` (lead time default 48h,
   min/max rental days, same-day toggle) but `booking/types.ts`, the
   event-details step and `/api/orders/create` hardcode 48h.
 - Fixed 2026-10-07 (`src/features/auth/actions.ts`): after creating an
@@ -275,7 +307,8 @@ search is exhausted; remaining answers live in the off-repo specs.
 ## Next steps, in order
 All product decisions needed for these are in PRODUCT.md (2026-10-07).
 One branch + PR per milestone, browser-tested on its preview first.
-1. **Real inventory + server-side holds with placeholder stock**
+1. ~~**Real inventory + server-side holds**~~ — built, PR open; merge
+   after the user's own click-through.
    (PRODUCT.md "Placeholder data rule"): stock from `agency_inventory`
    rows (seed plenty of every sign for test agencies), holds in
    `inventory_holds`, wizard honours `booking_rules` (lead time,
@@ -308,6 +341,23 @@ One branch + PR per milestone, browser-tested on its preview first.
   query the DOM for `disabled` state rather than trusting one snapshot.
 
 ## NOT VERIFIED — check before trusting
+- **M1 items not seen running:** the hold's sliding 1h expiry over a
+  real idle hour (only the touch call was exercised); the
+  `clear-expired-holds` cron (production-only); the agency dashboard
+  inventory page now listing 344 rows per agency (not opened - may need
+  filtering); a human click-through on a phone.
+- **M1 open questions for the user:** (a) a minimum rental > 1 day is
+  met by *charged* extra days - is that the intended price? (b) the hold
+  action is public and unthrottled; a script could tie up stock in 1h
+  windows - rate-limit before launch? (c) changing the event date then
+  jumping straight to Review fails at Place Order ("regenerate your
+  layout"), not earlier.
+- **Leftover test row:** one `order_signs` row (20x red A) on order
+  YCE-2026-647960 from SQL testing. Its hold is inactive so it blocks
+  nothing; delete it (Supabase MCP deletes need user approval - they
+  timed out when the user was away).
+- **Preview has no `RESEND_API_KEY`** — preview orders log "Failed to
+  send email"; set it for Preview in Vercel if preview emails matter.
 - **Per-agency pricing in the wizard (branch, `e376b55` + `c6875e4`).**
   Server props verified (above); still unverified end to end. Booking page
   reads `pricing_config` server-side → wizard context →
