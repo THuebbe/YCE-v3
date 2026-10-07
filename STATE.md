@@ -5,15 +5,34 @@ the user restored the paused Supabase project. **But this is a demo, not
 a sellable product** — see "Go-live blockers" below: checkout never
 charges, dashboard order actions are fake, inventory isn't real.
 
-**Unmerged:** branch `claude/vercel-host-and-pricing` (`e376b55`,
-`c6875e4`, `cbbd63d`, `4724f90`, `a29daab`) — per-agency pricing, real
-agency id/slug in the wizard, `.vercel.app` hostname fix, card data kept
-off the server, server-side total check, Supabase keep-alive cron,
-tenant-isolation fixes from the 2026-10-06 audit. Verified on its Vercel preview (see VERIFIED
-WORKING); full click-through to an order still not done. Close PRs #1/#2.
+**2026-10-07: PR #4 merged to `main`** (per-agency pricing, card data
+kept off the server, server-side total check, keep-alive cron,
+tenant-isolation fixes, pricing page, product decisions) and live in
+production. Old PRs #1/#2 closed. `CRON_SECRET` set in Vercel
+(sensitive) *after* the merge deploy — it takes effect on the next
+production deploy; until then `/api/cron/keep-alive` is open (harmless).
 
-Last browser click-through: 2026-09-14. Supabase free tier re-pauses
-after ~7 idle days — it has now caused two outages.
+**Claude's cloud environment, set up 2026-10-07:**
+- Allowed domains: `*.vercel.app`, `*.supabase.co`,
+  `*.clerk.accounts.dev`, `api.clerk.com`, Stripe (`*.stripe.com`,
+  `*.stripe.network`), Braintree/PayPal/Venmo hosts.
+- Env var `CLERK_SECRET_KEY` (dev instance, `sk_test_`) — visible only
+  in sessions started after 2026-10-07 ~17:30 UTC. Use it with Clerk's
+  Backend API to sign in as existing test users (sign-in tokens); no
+  stored passwords. Several test users already exist in Clerk.
+- **Browser E2E works** (headless Chromium via the project's Playwright:
+  import `/home/user/YCE-v3/node_modules/playwright/index.mjs` from a
+  scratchpad script; `executablePath: /opt/pw-browsers/chromium-1194/
+  chrome-linux/chrome`). Every wizard step renders twice (desktop +
+  mobile copies) — target `#id:visible` / `button:visible`. Verified:
+  live `/elite-denver/booking` loads, step 1 → Event Details.
+- Vercel Hobby keeps runtime logs only 1 hour.
+
+**Working style agreed:** one branch + one PR per milestone, Claude
+tests on the preview before handing over, user merges.
+
+Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
+(live since PR #4) should prevent a third outage.
 
 ## VERIFIED WORKING (seen running, not inferred)
 - **2026-10-07, user click-through to a placed order** on preview
@@ -126,9 +145,9 @@ after ~7 idle days — it has now caused two outages.
 - Plus BROKEN #1/#4/#5 (holds, inventory).
 
 ## Known, deliberately deferred
-- **No `CRON_SECRET` in Vercel.** Keep-alive is open without it (by
-  design, harmless read); `/api/cron/clear-expired-holds` falls back to
-  the guessable `'dev-secret'`. Set `CRON_SECRET` in Vercel to lock both.
+- `CRON_SECRET` set in Vercel 2026-10-07 (production + preview); live
+  from the next production deploy. `/api/cron/clear-expired-holds`
+  still has a `'dev-secret'` fallback in code — remove it.
 - RLS off on all YCE tables — before first paying agency, not before demo.
 - PantryPro's `pos_*`/`inventory_deductions` tables have RLS on with no
   working policies (key off `auth.uid()`, null under Clerk) — locked, but
@@ -203,37 +222,22 @@ Remaining, not urgent:
 - **Dashboard order actions:** `stateMachine.ts` defines the flow; open
   question is only what "check-in" and "edit signs" do to inventory
   counts. Build when a browser click-through is possible.
-- **Cloud-session E2E is blocked:** the environment's network policy
-  denies `*.vercel.app` and `*.supabase.co`, so a Claude session can't
-  click through previews or run the app against the DB. Add both under
-  Allowed domains (environment settings → Network access) to unblock.
+- ~~Cloud-session E2E blocked~~ — unblocked 2026-10-07 (see top).
 
 ## Onboarding / payments — open details (decisions in PRODUCT.md)
 Decided 2026-10-07: website optional; service area = city+state,
 informational; card up front for trials; customers pay in full.
-Still open:
-- Payments: can an agency mix (own Venmo + our Express for cards)?
-- Dashboard setup checklist + "not accepting bookings yet" state until
-  payments/pricing/inventory are done?
-- Cancellation: window decided (24h before delivery). Open: what
-  happens inside 24h — no refund, or agency's discretion? Agency-side
-  cancellations always full refund?
-- Late fee: rule decided (manual, waivable). Open: how the assessed fee
-  is *collected* after the fact — payment link vs. saved card.
-- Damage fee: decided (optional, waivable, per-agency amount). Open:
-  default amount; one flat per-sign fee, or separate damaged vs missing?
-- Card-on-file for fees needs a consent notice at checkout and the
-  agency's policies shown there (fees, cancellation) — also chargeback
-  protection.
-- Bookings gate on inventory, but real per-agency inventory doesn't
-  exist yet (manifest-backed) — the gate depends on the sign_library
-  letters work.
-- Pricing page (2026-10-07) now shows $49/$79 monthly, $499/$799
-  annual, plans named Essentials and Elite (user, 2026-10-07).
+Since decided (all in PRODUCT.md, 2026-10-07): payment mixing allowed;
+setup checklist gating bookings on inventory + payments; cancellation
+fees 5% before / 100% inside a 24h window, waivable, customer self-cancel
+link; late + damage fees (manual, waivable, $5/sign damage default),
+collected via saved card (card) / vaulted Venmo or payment link;
+checkout terms + "I agree"; Essentials/Elite $49/$79, $499/$799 annual;
+optional 14-day trial toggled by one platform setting, coupons in
+Stripe. Still open:
 - Subscription renewal fails (expired card): grace period, then booking
   page off? Stripe retries automatically; never hold agency funds (the
   archived "Held Funds System" idea is dead).
-- Trial decided (14 days, optional). Open: how we toggle trial/promos.
 
 **Prior answers found 2026-10-07** (archive + code + live UI; NOT yet
 confirmed by user — confirm before building). `archive/old-planning/`
@@ -269,21 +273,27 @@ search is exhausted; remaining answers live in the off-repo specs.
   "Lawn care" copy removed from onboarding, marketing and pricing pages.
 
 ## Next steps, in order
-1. Click through to a placed order on the branch preview; merge; close
-   PRs #1/#2.
-2. **Real payments, Stripe first** — decisions needed first: Stripe
-   Connect (money goes to the agency; the Stripe webhook already tracks
-   `stripe_account_id`) vs. one platform account; who pays fees; deposit
-   vs. full charge at booking. (Elements + server-created
-   PaymentIntent on the agency's connected account, order created on
-   payment confirmation, total recomputed server-side). Then Venmo, then
-   PayPal — all three stay, shipped in sequence.
-3. Rebuild dashboard order actions on Supabase (`actions-disabled.ts`).
-4. Server-side holds on `inventory_holds`; real per-agency inventory
-   (needs the sign_library letters decisions in `ARCHITECTURE.md`).
-5. Production Clerk instance + domain; Supabase paid tier; tenant-filter
-   audit.
-6. Smart configurator theming — after the above, not before.
+All product decisions needed for these are in PRODUCT.md (2026-10-07).
+One branch + PR per milestone, browser-tested on its preview first.
+1. **Real inventory + server-side holds with placeholder stock**
+   (PRODUCT.md "Placeholder data rule"): stock from `agency_inventory`
+   rows (seed plenty of every sign for test agencies), holds in
+   `inventory_holds`, wizard honours `booking_rules` (lead time,
+   rental days — currently hardcoded 48h).
+2. **Stripe Express + real test charges** — Connect Standard/Express,
+   card saved for later fees, checkout terms + "I agree", order created
+   on payment confirmation from the server total. Replace the
+   "YardCard Elite Processing — always enabled" settings toggle.
+3. **Agency subscription billing** (Essentials/Elite, monthly/annual,
+   optional 14-day trial, card up front, promo codes).
+4. **Onboarding + dashboard setup checklist** (inventory + payments gate
+   bookings).
+5. **Cancellation link + late/damage fee flows**; rebuild dashboard
+   order actions (`actions-disabled.ts`).
+6. Later: Venmo/PayPal fee collection, production Clerk + domain,
+   middleware `x-url` fix (see audit), smart configurator theming.
+- Pending user answer: point test agencies' emails (elite-denver,
+  sunny-signs-ca, texas-signs) at the user's inbox?
 
 ## Reference docs
 - `PRODUCT.md` — business rules, authoritative for WHY.
