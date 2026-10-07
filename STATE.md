@@ -42,9 +42,9 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
   still showed $95/$10 on that build — fixed in `1c692af`, re-test on a
   later preview. That build also still logged the full payload incl.
   card fields (fixed in `cbbd63d`). Test agencies elite-denver,
-  sunny-signs-ca and texas-signs have emails on real-looking domains —
-  notifications may reach real businesses; point them at the user's
-  own inbox.
+  sunny-signs-ca and texas-signs had emails on real-looking domains;
+  repointed to thuebbe.coding@gmail.com on 2026-10-07 (all six test
+  agencies now notify the user's own inboxes).
 - **2026-10-06, branch preview `dpl_AcVAANwgNwMeHbBaiVGGXDvjFrp8`:**
   server-rendered wizard props carry the real agency —
   elite-denver `{basePrice:81, extraDayPrice:13}`, texas-signs
@@ -292,8 +292,6 @@ One branch + PR per milestone, browser-tested on its preview first.
    order actions (`actions-disabled.ts`).
 6. Later: Venmo/PayPal fee collection, production Clerk + domain,
    middleware `x-url` fix (see audit), smart configurator theming.
-- Pending user answer: point test agencies' emails (elite-denver,
-  sunny-signs-ca, texas-signs) at the user's inbox?
 
 ## Reference docs
 - `PRODUCT.md` — business rules, authoritative for WHY.
