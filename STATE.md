@@ -3,7 +3,7 @@
 Last verified: 2026-10-07
 
 **2026-10-07: milestone 1 (real inventory + server-side holds + booking
-rules) built on branch `claude/m1-inventory-holds`, browser-tested on its
+rules + setup/teardown/cutoff date model + hold rate limit) built on branch `claude/m1-inventory-holds`, browser-tested on its
 preview, PR open - NOT merged.** The DB side is already live (migrations
 applied 2026-10-07 via Supabase MCP), so production's sign_library now
 has the letter rows even though production code doesn't use them yet.
@@ -53,10 +53,20 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
   - Race: my-business red Z set to 1, two browsers generated "ZED" at
     once - one reserved, the other got "Z (classic/red): need 1, 0 free".
     Stock restored to 20.
-  - Booking rules: lederman-bonds temporarily set to 120h lead / 3-day
-    minimum - date `min` and hint followed it, a 3-day-out date kept
-    Continue disabled, extra days defaulted to 2, adding a day re-held
-    (old hold `replaced`, end date moved). Rules restored to 48h / 1 day.
+  - **Date model v2 on preview `a216de6`** (setup/teardown days, order
+    cutoff, extra days in Event Details): lederman-bonds temporarily at
+    cutoff 2 / setup 2 / min rental 3 - earliest date today+4 shown live,
+    3-days-out refused with the earliest date, extra days defaulted to 2,
+    total $125 = $95 + 3x$10, hold window Oct 14..20 exactly as computed;
+    changing dates afterwards dropped the hold and the regenerate
+    *replaced* it (one live hold). sunny-signs-ca Sat order held Fri..Sun.
+    Race re-run OK. Rules restored to defaults (1/1/1, min 1).
+  - Settings page (signed in as admin@elite-denver via Clerk sign-in
+    token): "Order cutoff" loads, saving 2 reached `booking_rules`, legacy
+    keys dropped, setup/teardown kept, price untouched. Reset to 1.
+  - Hold rate limit (SQL): 3 live holds per client key OK, 4th
+    `rate_limited`, replacing your own still allowed; preview holds carry
+    a `client_key` (Vercel passes the IP).
   - SQL functions exercised directly: overlap vs non-overlap, replacing
     only your own session's hold, unknown sign, wrong session / changed
     dates refused, order hold blocks dates after its start but not before.
@@ -295,8 +305,9 @@ search is exhausted; remaining answers live in the off-repo specs.
   platform-collects model the user rejected 2026-10-07 — must become
   the Express option.
 - ~~Booking rules ignored by the wizard~~ — **fixed on branch (M1)**,
-  `features/booking/booking-rules.ts`, client + server. Lead time is now
-  measured to *delivery* (event minus extra days before). Old note: Agencies save `booking_rules` (lead time default 48h,
+  `features/booking/booking-rules.ts`, client + server - order cutoff in
+  days before delivery, setup/teardown days (see NOT VERIFIED "M1
+  decisions"). Old note: Agencies save `booking_rules` (lead time default 48h,
   min/max rental days, same-day toggle) but `booking/types.ts`, the
   event-details step and `/api/orders/create` hardcode 48h.
 - Fixed 2026-10-07 (`src/features/auth/actions.ts`): after creating an
@@ -346,12 +357,20 @@ One branch + PR per milestone, browser-tested on its preview first.
   `clear-expired-holds` cron (production-only); the agency dashboard
   inventory page now listing 344 rows per agency (not opened - may need
   filtering); a human click-through on a phone.
-- **M1 open questions for the user:** (a) a minimum rental > 1 day is
-  met by *charged* extra days - is that the intended price? (b) the hold
-  action is public and unthrottled; a script could tie up stock in 1h
-  windows - rate-limit before launch? (c) changing the event date then
-  jumping straight to Review fails at Place Order ("regenerate your
-  layout"), not earlier.
+- **M1 decisions (user, 2026-10-07), built:** setup + teardown days
+  (default 1 each, free, block stock; editable in Elite at the permissions
+  stage - no UI yet); order cutoff = calendar days before delivery
+  (default 1; replaces lead-time hours + same-day toggle; business days
+  rejected for now - needs a working-days calendar); "end of day" in the
+  agency's `operating_hours.timeZone`, else the customer's browser zone
+  (only west-branch has one); extra days live in Event Details, the
+  configurator pricing card is gone; hold rate limit 3 live / IP / agency
+  and 30 created / IP / 10 min (one script stopped; many IPs not - Vercel
+  firewall/BotID later). Changing dates now drops the hold in Event
+  Details, so the old "fails at Place Order" gap is closed.
+- **Pending approval:** `migrations/20261008_drop_old_create_booking_hold.sql`
+  (drops the unused 7-arg `yce_create_booking_hold`; DROPs time out
+  without the user present).
 - **Leftover test row:** one `order_signs` row (20x red A) on order
   YCE-2026-647960 from SQL testing. Its hold is inactive so it blocks
   nothing; delete it (Supabase MCP deletes need user approval - they

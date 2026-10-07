@@ -9,7 +9,7 @@ src/features/booking/
   components/display/LetterStake.tsx                one character; dev/prod branch
   services/layout-calculator.ts                     message text -> ZoneSign[]
   actions.ts                                        server actions: catalog, hold, touch (only inventory path)
-  booking-rules.ts                                  lead time / rental days from agencies.booking_rules
+  booking-rules.ts                                  cutoff / setup / teardown / rental days (agencies.booking_rules)
   services/catalog-keys.ts                          layout sign -> sign_library.asset_key
 ```
 
@@ -48,9 +48,15 @@ with `rental_start <= end`. Order holds have no end: signs stay out until
 released (check-in, cancellation, or `SELECT yce_release_order_hold(id)`
 by hand - check-in isn't built yet). Every write takes a per-agency
 advisory lock. The `yce_*` functions are granted to `service_role` only.
-Rental range = delivery (event day - extra days before) through removal
-(day after event + extra days after), UTC calendar days of the local-noon
-event date.
+Rental range = delivery (event day - extra days before - `setupDays`)
+through pickup (event day + extra days after + `teardownDays`), UTC
+calendar days of the local-noon event date. Order cutoff: end of day,
+`orderCutoffDays` before delivery, in the agency's
+`operating_hours.timeZone` else the customer's zone. All in
+`features/booking/booking-rules.ts`; extra days are picked in Event
+Details so the window is known before the configurator holds anything.
+Hold creation is rate-limited per hashed client IP (3 live per agency,
+30 per 10 min) inside `yce_create_booking_hold`.
 
 **Not used by the booking side:** `agency_inventory.available_quantity` /
 `allocated_quantity` / `deployed_quantity` - counters from the dashboard
