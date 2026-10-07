@@ -112,13 +112,32 @@ agency's own fault).
 ## Damage fees — DECIDED 2026-10-07
 Optional, same flow as late fees: check-in records damaged/missing
 signs, the app proposes a fee, the agency assesses or waives it.
-Amount: a per-agency setting (inventory doesn't track sign cost).
+Amount: a per-agency **per-sign** setting, **default $5** (Victory Signs
+retail is ~$2.80–$3.85/letter in sets; $5 covers replacement + shipping).
+Inventory doesn't track sign cost.
 
 ## Collecting late/damage fees — DECIDED 2026-10-07
-- **Paid by card** → card saved at booking (with a clear "late/damage
-  fees may be charged" notice) and charged after the agency assesses.
-  If the charge fails, fall back to a payment link.
-- **Paid by Venmo/PayPal** → the customer gets a payment link.
+- **Paid by card** → card saved at booking and charged after the agency
+  assesses. If the charge fails, fall back to a payment link.
+- **Paid by Venmo** → Braintree can save ("vault") the Venmo account
+  for later charges; use it if the agency's Braintree account allows,
+  else a payment link. Verify in Braintree sandbox before relying on it.
+- **Paid by PayPal** → payment link.
+- Checkout shows the agency's terms (auto-generated from its settings,
+  readable on demand) and requires an **"I agree"** checkbox — needed
+  for consent to later charges and as chargeback protection.
+- Rejected: hotel-style card *holds* (authorize now, capture later).
+  Holds expire after ~7 days (≤30 with extended authorization, only for
+  some merchant types) and bookings are often weeks out; they also
+  contradict "pay in full at booking".
+
+## Placeholder data rule — DECIDED 2026-10-07
+Until the Victory Signs library exists, everything must work exactly as
+it will live — real inventory checks, holds, setup-checklist gate —
+except that the test agencies happen to own plenty of every sign.
+Swapping in the real library must be a **data** change, not a code
+change. (Today's code breaks this: stock comes from the asset manifest
+in code, not `agency_inventory`, and holds live in the browser.)
 
 ## Platform revenue
 **Plans — DECIDED 2026-10-07** (supersedes the pricing page's
