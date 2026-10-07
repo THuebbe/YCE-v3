@@ -205,14 +205,16 @@ Still open:
 - Payments: can an agency mix (own Venmo + our Express for cards)?
 - Dashboard setup checklist + "not accepting bookings yet" state until
   payments/pricing/inventory are done?
-- Cancellations/refunds: window and who issues them (agency's
-  processor; with Express the refund comes out of the agency's balance).
-- `pricing_config.lateFee`: how is it collected? Charging later needs a
-  saved card (Stripe only — Venmo/PayPal can't be charged after the fact).
+- Cancellation: window decided (24h before delivery). Open: what
+  happens inside 24h — no refund, or agency's discretion? Agency-side
+  cancellations always full refund?
+- Late fee: rule decided (manual, waivable). Open: how the assessed fee
+  is *collected* after the fact — payment link vs. saved card.
+- Damaged/missing signs: check-in records them; any replacement fee?
 - Subscription renewal fails (expired card): grace period, then booking
   page off? Stripe retries automatically; never hold agency funds (the
   archived "Held Funds System" idea is dead).
-- Trial length.
+- Trial decided (14 days, optional). Open: how we toggle trial/promos.
 
 **Prior answers found 2026-10-07** (archive + code + live UI; NOT yet
 confirmed by user — confirm before building). `archive/old-planning/`

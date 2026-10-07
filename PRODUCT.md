@@ -85,7 +85,30 @@ Open details are tracked in STATE.md.
 ## Customer payment
 **Customers pay in full at booking** (no deposits).
 
+## Cancellations — DECIDED 2026-10-07
+Window is measured from the **scheduled delivery** (event date minus
+extra days before), not from when the order was placed: cancelling
+**24h+ before delivery** → automatic full refund. (Code today measures
+24h after order creation — wrong, must change.)
+
+## Late fees — DECIDED 2026-10-07
+Only when the agency **couldn't collect the signs** at the scheduled
+pickup. Never automatic: after the agency **manually confirms the signs
+are back**, the app computes `days late × pricing_config.lateFee` and
+the agency **assesses it or waives it** (the late pickup may be the
+agency's own fault).
+
 ## Platform revenue
+**Plans — DECIDED 2026-10-07** (supersedes the pricing page's
+$29/$79/$149):
+- **$49/mo** — the required core: customer booking, agency
+  notification on new orders, inventory control.
+- **$79/mo** — everything above + all reporting, and later the in-app
+  store.
+**14-day free trial is optional** — an agency can skip it and start
+paying. Card required up front either way. We must be able to turn the
+trial and any promotion/coupon **on and off** ourselves.
+
 **Subscriptions are the main income.** Agencies pay us via Stripe
 Billing (subscription), separate from Connect. Not built yet — the
 settings page shows mock subscription data. Per-booking application
