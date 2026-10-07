@@ -71,6 +71,14 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
     359 signs with real letter art. Mock signs had broken images - fixed
     with labeled PNGs in `public/sign-assets/placeholder/`
     (`scripts/generate-mock-sign-placeholders.py`), rows updated live.
+  - **Idle expiry over a real hour (2026-10-07, preview `a216de6`):** hold
+    A (texas-signs) created 21:32 UTC and left idle; hold B
+    (sunny-signs-ca) same time, wizard moved to the payment step at 22:02.
+    +55 min: both live, A's signs blocked. B's expiry had slid to 23:02.
+    +65 min: A expired - its signs back to 20/20 for its dates, touching it
+    returns `hold_expired_or_missing`, `yce_expire_temporary_holds()`
+    marked it inactive (`expired`); B still live and blocking. B then
+    released by hand.
   - Hold rate limit (SQL): 3 live holds per client key OK, 4th
     `rate_limited`, replacing your own still allowed; preview holds carry
     a `client_key` (Vercel passes the IP).
@@ -359,9 +367,8 @@ One branch + PR per milestone, browser-tested on its preview first.
   query the DOM for `disabled` state rather than trusting one snapshot.
 
 ## NOT VERIFIED — check before trusting
-- **M1 items not seen running:** the hold's sliding 1h expiry over a
-  real idle hour (only the touch call was exercised); the
-  `clear-expired-holds` cron (production-only); the agency dashboard
+- **M1 items not seen running:** the `clear-expired-holds` cron route
+  itself (production-only; the SQL it calls was run by hand); the agency dashboard
   inventory page now listing 344 rows per agency (not opened - may need
   filtering); a human click-through on a phone.
 - **M1 decisions (user, 2026-10-07), built:** setup + teardown days
