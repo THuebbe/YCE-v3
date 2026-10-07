@@ -218,7 +218,9 @@ Still open:
 confirmed by user — confirm before building). `archive/old-planning/`
 holds only a stale checklist + rules; the detailed specs
 (`technical-architecture.md`, `project-guide.md`) live outside this
-repo. Git history of deleted docs not yet searched (shell was down).
+repo. Git history searched too: the only deleted docs (`PROGRESS_LOG.md`,
+`PRISMA_FIX_PLAN.md`) hold setup notes, no product decisions. In-repo
+search is exhausted; remaining answers live in the off-repo specs.
 - Cancellation: 24h after order creation → auto refund; later → manual
   refund (`orders/utils.ts` `isWithinCancellationWindow`,
   `cancel-order-modal.tsx`).
