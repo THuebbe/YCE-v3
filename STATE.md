@@ -110,6 +110,9 @@ after ~7 idle days — it has now caused two outages.
   stubbed when Prisma was removed (`orders/actions-disabled.ts` throws).
   Only document generation is real.
 - **Clerk runs a development instance in production** (`pk_test_` key).
+- **Agency subscription billing (main revenue) isn't built** — settings
+  shows mock subscription data. Needs Stripe Billing, separate from
+  Connect.
 - Plus BROKEN #1/#4/#5 (holds, inventory).
 
 ## Known, deliberately deferred
@@ -179,10 +182,14 @@ Remaining, not urgent:
 - The guards are type-checked, not seen running (no browser here).
 
 ## Decisions needed before the next big build
-- **Stripe:** Connect (agency paid directly; webhook already tracks
-  `stripe_account_id`) vs. one platform account? Full charge vs. deposit
-  at booking? Are the `STRIPE_*` keys in Vercel test or live? (They're
-  set; values not read.)
+- **Stripe — DECIDED 2026-10-07, see PRODUCT.md "Payments":** money
+  always goes straight to the agency. Standard Connect for agencies with
+  Stripe, Express Connect (turnkey, optional per-booking application
+  fee) for agencies without; no platform-account fallback charging.
+  Keys in Vercel are test keys (per user) — stay on test keys until
+  launch; live keys charge real cards. Still open: full charge vs.
+  deposit at booking. User is new to Stripe — walk them through the
+  dashboard steps when building this.
 - **Dashboard order actions:** `stateMachine.ts` defines the flow; open
   question is only what "check-in" and "edit signs" do to inventory
   counts. Build when a browser click-through is possible.

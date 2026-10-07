@@ -49,11 +49,27 @@ from the Lettered Message package (assembled character display). Needs
 a `singleStakePrice` field. Ship letters-only first.
 
 ## Payments
-Primary path is direct-to-agency via Stripe Connect. Platform account is
-the failsafe when the agency's account fails, with an email alert to the
-agency and a weekly automated retry. Braintree/Venmo and PayPal exist
-because solo operators genuinely use them — this is market-researched,
-not scope creep.
+**DECIDED 2026-10-07 (supersedes the "platform account as failsafe"
+plan):** customer money always goes straight to the agency; the
+platform never holds or forwards it (collecting on our own Stripe
+account and paying agencies later breaks Stripe's terms and risks
+money-transmitter rules).
+- **Agency already has Stripe** → Stripe Connect *Standard* (links
+  their account; what `features/payments/actions.ts` does today).
+- **Agency has no payment setup (turnkey)** → Stripe Connect *Express*:
+  short Stripe-hosted signup (ID + bank) from inside our app. We may
+  take a per-booking *application fee* on these, which also covers what
+  Stripe charges the platform per Express account.
+- **Agency's account can't take payments** → their booking page says
+  so. No fallback charging on the platform account.
+Braintree/Venmo and PayPal exist because solo operators genuinely use
+them — this is market-researched, not scope creep.
+
+## Platform revenue
+**Subscriptions are the main income.** Agencies pay us via Stripe
+Billing (subscription), separate from Connect. Not built yet — the
+settings page shows mock subscription data. Per-booking application
+fees on Express accounts are optional, secondary revenue.
 
 ## Deliberate non-goals right now
 Multi-location per agency · white-label branding · advanced analytics ·
@@ -64,7 +80,6 @@ public API · enterprise multi-agency management. All post-MVP.
   Direct Supabase queries now. IDs are still cuids as a legacy.
 - **Subdomain routing** (`agency-city.yardcardelite.com`). Replaced by
   agency slug in the path: `/<agency-slug>/booking`. Middleware still
-  contains subdomain code; it is the reason every `.vercel.app` deploy
-  breaks. See STATE.md.
+  contains subdomain code (now ignores `.vercel.app` hosts). See STATE.md.
 - The original 8-week roadmap and its step checklist. Reality diverged
   ~9 months ago; the checkboxes are actively misleading.
