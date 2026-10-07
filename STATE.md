@@ -64,6 +64,13 @@ Supabase free tier re-pauses after ~7 idle days — the keep-alive cron
   - Settings page (signed in as admin@elite-denver via Clerk sign-in
     token): "Order cutoff" loads, saving 2 reached `booking_rules`, legacy
     keys dropped, setup/teardown kept, price untouched. Reset to 1.
+  - Agency dashboard `/elite-denver/inventory` with the seed (signed in):
+    "My Inventory" lists 356 items, totals 7444 = 344x20 + the old 564;
+    so `getCurrentTenant()` DOES resolve on this page (the audit's "likely
+    null on every host" is wrong at least here). Sign Library tab shows
+    359 signs with real letter art. Mock signs had broken images - fixed
+    with labeled PNGs in `public/sign-assets/placeholder/`
+    (`scripts/generate-mock-sign-placeholders.py`), rows updated live.
   - Hold rate limit (SQL): 3 live holds per client key OK, 4th
     `rate_limited`, replacing your own still allowed; preview holds carry
     a `client_key` (Vercel passes the IP).
@@ -368,6 +375,12 @@ One branch + PR per milestone, browser-tested on its preview first.
   and 30 created / IP / 10 min (one script stopped; many IPs not - Vercel
   firewall/BotID later). Changing dates now drops the hold in Event
   Details, so the old "fails at Place Order" gap is closed.
+- **Inventory UI with a real letter library (product question, not a
+  bug):** the Sign Library tab lists every glyph x colorway (315 letter
+  cards) and buries the 15 pre-made boards. Grouping by glyph/colorway is
+  a dashboard design task for milestone 4/5. The 15 original boards'
+  `/images/signs/*.jpg` don't exist (pre-existing, broken before M1).
+  One unexplained 400 on the My Inventory tab (not traced).
 - **Pending approval:** `migrations/20261008_drop_old_create_booking_hold.sql`
   (drops the unused 7-arg `yce_create_booking_hold`; DROPs time out
   without the user present).

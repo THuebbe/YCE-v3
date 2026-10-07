@@ -81,7 +81,7 @@ all_signs AS (
   SELECT asset_key, name, category, sign_type, ch, style, colorway, w, h, img FROM asset
   UNION ALL
   SELECT asset_key, name, category, sign_type, ch, NULL, NULL, w, h,
-         '/placeholder/' || asset_key || '.png' FROM mock
+         '/sign-assets/placeholder/' || asset_key || '.png' FROM mock
 )
 INSERT INTO sign_library (id, asset_key, name, category, sign_type, "character",
   style, colorway, size_width, size_height, image_url, is_platform, updated_at)
