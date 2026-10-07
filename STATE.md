@@ -213,6 +213,33 @@ Still open:
   page off? Stripe retries automatically; never hold agency funds (the
   archived "Held Funds System" idea is dead).
 - Trial length.
+
+**Prior answers found 2026-10-07** (archive + code + live UI; NOT yet
+confirmed by user — confirm before building). `archive/old-planning/`
+holds only a stale checklist + rules; the detailed specs
+(`technical-architecture.md`, `project-guide.md`) live outside this
+repo. Git history of deleted docs not yet searched (shell was down).
+- Cancellation: 24h after order creation → auto refund; later → manual
+  refund (`orders/utils.ts` `isWithinCancellationWindow`,
+  `cancel-order-modal.tsx`).
+- Late fee: assessed manually at pickup on the Pickup Checklist PDF
+  ("Days Late / Late Fee will be charged") — no auto-charge designed.
+- Damage: check-in records good/damaged/missing + photos; no damage fee.
+- Subscriptions: pricing page says 14-day free trial, Basic $29 /
+  Professional $79 / Enterprise $149 per month, cancel anytime, annual
+  discounts (copy partly template — "Up to 50 clients", "routing");
+  settings mock shows "Professional $99". Archive Rule 13: proration,
+  failed-payment handling, notifications, and "hold funds for lapsed
+  subscriptions" (dead — conflicts with the 2026-10-07 decision).
+- Payment mix: settings already let an agency connect several
+  processors at once and pick a "Primary". But it shows **"YardCard
+  Elite Processing — always enabled as fallback"**, i.e. the
+  platform-collects model the user rejected 2026-10-07 — must become
+  the Express option.
+- **Booking rules are ignored by the wizard (same bug class as
+  pricing).** Agencies save `booking_rules` (lead time default 48h,
+  min/max rental days, same-day toggle) but `booking/types.ts`, the
+  event-details step and `/api/orders/create` hardcode 48h.
 - Fixed 2026-10-07 (`src/features/auth/actions.ts`): after creating an
   agency the form redirected to `/dashboard?agency=…`, a route that
   doesn't exist (code-read: likely 404). Now `/<slug>/dashboard`.
