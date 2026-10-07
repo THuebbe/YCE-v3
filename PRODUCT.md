@@ -102,6 +102,11 @@ Open details are tracked in STATE.md.
   **inside the window, default 100%** (no refund). Agency can **waive**
   either fee per order.
 - Agency-initiated cancellations (can't fulfil) → full refund.
+- **Customers cancel themselves** via a "Cancel booking" link in the
+  confirmation email (customers have no accounts): it shows the refund
+  the fee rules produce, the customer confirms, the refund runs — no
+  agency work. The confirmation email also states the cancellation
+  policy (same terms as the checkout "I agree").
 
 ## Late fees — DECIDED 2026-10-07
 Only when the agency **couldn't collect the signs** at the scheduled
@@ -148,8 +153,11 @@ $29/$79/$149):
 - **Elite, $79/mo** — everything above + all reporting, and later the in-app
   store.
 - **Annual:** $499/yr and $799/yr.
-- IDEA for the permissions stage (not decided): Essentials runs on
-  default policy values; Elite unlocks fine-tuning them.
+- Tier split for the permissions stage (direction agreed 2026-10-07,
+  details later): **Essentials** sets its own prices (base, extra day)
+  and can waive any fee per order; policy values run on defaults.
+  **Elite** unlocks fine-tuning policies — cancellation window and
+  percentages, late/damage fee amounts, booking rules.
 **14-day free trial is optional** — an agency can skip it and start
 paying. Card required up front either way. We must be able to turn the
 trial and any promotion/coupon **on and off** ourselves: coupons via the
