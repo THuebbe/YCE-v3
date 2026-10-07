@@ -80,16 +80,27 @@ defaults pricing, city and phone. Target flow:
    **Card required up front**, even for the trial.
 **Inventory is NOT an onboarding step** — done later in the dashboard;
 it's long and operators may not have the details at signup.
+
+**Setup checklist (dashboard), DECIDED 2026-10-07:** shown until
+complete. **Inventory and payments gate bookings** — until both are
+done the booking page says "not accepting bookings yet". Everything
+else ships with defaults the checklist recommends reviewing ($95 base,
+$10/extra day, $25/day late fee, 5% cancellation fee, 24h notice).
+Agencies may **mix** payment methods (e.g. cards online + Venmo).
 Open details are tracked in STATE.md.
 
 ## Customer payment
 **Customers pay in full at booking** (no deposits).
 
 ## Cancellations — DECIDED 2026-10-07
-Window is measured from the **scheduled delivery** (event date minus
-extra days before), not from when the order was placed: cancelling
-**24h+ before delivery** → automatic full refund. (Code today measures
-24h after order creation — wrong, must change.)
+- Measured from the **scheduled delivery** (event date minus extra days
+  before), never from when the order was placed. (Code today measures
+  24h after order creation — wrong, must change.)
+- Per-agency settings: **notice period** (default 24h) and
+  **cancellation fee** (default 5% — covers Stripe's ~3% that isn't
+  returned on refunds; the dashboard tells agencies this). Agency can
+  **waive** the fee per order.
+- Agency-initiated cancellations (can't fulfil) → full refund.
 
 ## Late fees — DECIDED 2026-10-07
 Only when the agency **couldn't collect the signs** at the scheduled
@@ -98,6 +109,17 @@ are back**, the app computes `days late × pricing_config.lateFee` and
 the agency **assesses it or waives it** (the late pickup may be the
 agency's own fault).
 
+## Damage fees — DECIDED 2026-10-07
+Optional, same flow as late fees: check-in records damaged/missing
+signs, the app proposes a fee, the agency assesses or waives it.
+Amount: a per-agency setting (inventory doesn't track sign cost).
+
+## Collecting late/damage fees — DECIDED 2026-10-07
+- **Paid by card** → card saved at booking (with a clear "late/damage
+  fees may be charged" notice) and charged after the agency assesses.
+  If the charge fails, fall back to a payment link.
+- **Paid by Venmo/PayPal** → the customer gets a payment link.
+
 ## Platform revenue
 **Plans — DECIDED 2026-10-07** (supersedes the pricing page's
 $29/$79/$149):
@@ -105,9 +127,11 @@ $29/$79/$149):
   notification on new orders, inventory control.
 - **$79/mo** — everything above + all reporting, and later the in-app
   store.
+- **Annual:** $499/yr and $799/yr.
 **14-day free trial is optional** — an agency can skip it and start
 paying. Card required up front either way. We must be able to turn the
-trial and any promotion/coupon **on and off** ourselves.
+trial and any promotion/coupon **on and off** ourselves: coupons via the
+Stripe dashboard, the trial via one platform setting (no admin UI yet).
 
 **Subscriptions are the main income.** Agencies pay us via Stripe
 Billing (subscription), separate from Connect. Not built yet — the
