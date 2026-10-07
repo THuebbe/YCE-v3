@@ -7,8 +7,10 @@
  * is bound to the wizard's session id. RLS is off - all queries below filter
  * on the agency.
  */
+import { createHash } from 'crypto';
+import { headers } from 'next/headers';
 import { supabase, getAgencyBySlug } from '@/lib/db/supabase-client';
-import { parseBookingRules, rentalWindow, validateBookingDates } from './booking-rules';
+import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from './booking-rules';
 
 const MAX_SIGNS_PER_HOLD = 200;
 
@@ -24,7 +26,20 @@ export type CreateHoldResult =
 
 async function resolveAgency(agencySlug: string) {
   const agency = await getAgencyBySlug(agencySlug);
-  return agency?.is_active ? (agency as { id: string; booking_rules: unknown }) : null;
+  return agency?.is_active
+    ? (agency as { id: string; booking_rules: unknown; operating_hours: unknown })
+    : null;
+}
+
+/**
+ * Rate-limit key for the caller: a hash of the client IP (Vercel sets
+ * x-forwarded-for / x-real-ip itself, so they can't be spoofed there).
+ * Null when there's no IP (local dev) - the limit is then skipped.
+ */
+async function clientKey(): Promise<string | null> {
+  const h = await headers();
+  const ip = h.get('x-forwarded-for')?.split(',')[0]?.trim() || h.get('x-real-ip')?.trim();
+  return ip ? createHash('sha256').update(`yce-hold:${ip}`).digest('hex').slice(0, 32) : null;
 }
 
 /** Styles and colorways this agency actually stocks, for the wizard pickers. */
@@ -52,6 +67,8 @@ export async function getBookingCatalog(agencySlug: string): Promise<{ styles: s
 export async function createBookingHold(input: {
   agencySlug: string;
   sessionId: string;
+  /** Customer's IANA zone; used for the order cutoff when the agency has none */
+  timeZone?: string;
   eventDate: string;
   extraDaysBefore: number;
   extraDaysAfter: number;
@@ -68,7 +85,9 @@ export async function createBookingHold(input: {
   const eventDate = new Date(input.eventDate);
   const before = Math.max(0, Math.floor(input.extraDaysBefore || 0));
   const after = Math.max(0, Math.floor(input.extraDaysAfter || 0));
-  const dateError = validateBookingDates(parseBookingRules(agency.booking_rules), eventDate, before, after);
+  const rules = parseBookingRules(agency.booking_rules);
+  const today = todayIn(resolveTimeZone(agency.operating_hours, input.timeZone));
+  const dateError = validateBookingDates(rules, eventDate, before, after, today);
   if (dateError) return { ok: false, error: dateError };
 
   const counts = new Map<string, number>();
@@ -89,7 +108,7 @@ export async function createBookingHold(input: {
     return { ok: false, error: 'Some signs in this display are not carried by this agency' };
   }
 
-  const { start, end } = rentalWindow(eventDate, before, after);
+  const { start, end } = rentalWindow(rules, eventDate, before, after);
   const { data, error } = await supabase.rpc('yce_create_booking_hold', {
     p_agency_id: agency.id,
     p_session_id: input.sessionId,
@@ -97,6 +116,7 @@ export async function createBookingHold(input: {
     p_rental_end: end,
     p_items: [...counts].map(([key, quantity]) => ({ sign_id: byKey.get(key)!.id, quantity })),
     p_replace_hold_id: input.replaceHoldId ?? null,
+    p_client_key: await clientKey(),
   });
   if (error || !data) {
     console.error('yce_create_booking_hold failed:', error?.message);
@@ -107,11 +127,14 @@ export async function createBookingHold(input: {
   if (result.ok && result.hold_id) {
     return { ok: true, holdId: result.hold_id, rentalStart: start, rentalEnd: end };
   }
+  if (result.reason === 'rate_limited') {
+    return { ok: false, error: 'Too many reservation attempts. Please wait a few minutes and try again.' };
+  }
   if (result.reason === 'insufficient_stock') {
     const nameById = new Map(signs.map(s => [s.id as string, s.name as string]));
     return {
       ok: false,
-      error: 'Not enough of some signs are free for these dates. Try another color or different dates.',
+      error: 'Not enough of some signs are free for these dates. Try another color, or go back and change your dates.',
       shortages: (result.shortages ?? []).map(s => ({
         name: nameById.get(s.sign_id) ?? s.sign_id,
         requested: s.requested,

@@ -34,6 +34,7 @@ interface WizardProviderProps {
   agencySlug: string;
   pricing: BookingPricing;
   bookingRules: BookingRules;
+  agencyTimeZone?: string;
   totalSteps: number;
   initialStep?: number;
   initialData?: Partial<BookingFormData>;
@@ -45,6 +46,7 @@ export function WizardProvider({
   agencySlug,
   pricing,
   bookingRules,
+  agencyTimeZone,
   totalSteps, 
   initialStep = 1,
   initialData = {}
@@ -53,6 +55,15 @@ export function WizardProvider({
   const [furthestStep, setFurthestStep] = useState(initialStep);
   const [formData, setFormData] = useState<Partial<BookingFormData>>(initialData);
   const [sessionId] = useState(loadSessionId);
+  // The agency's zone when it set one, else the customer's browser zone
+  const [timeZone] = useState<string | undefined>(() => {
+    if (agencyTimeZone) return agencyTimeZone;
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return undefined;
+    }
+  });
 
   // Moving through the wizard is activity: keep the sign hold from lapsing
   // (it expires after an hour without any).
@@ -117,6 +128,7 @@ export function WizardProvider({
     pricing,
     bookingRules,
     sessionId,
+    timeZone,
     currentStep,
     totalSteps,
     furthestStep,

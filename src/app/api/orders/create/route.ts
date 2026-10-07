@@ -3,7 +3,7 @@ import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
 import { sendOrderNotificationEmail } from "@/lib/email";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
-import { parseBookingRules, rentalWindow, validateBookingDates } from "@/features/booking/booking-rules";
+import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { z } from "zod";
 
 // Relaxed input validation schema - only validate essential fields
@@ -16,6 +16,8 @@ const createOrderInputSchema = z.object({
 		}),
 		event: z.object({
 			eventDate: z.string(), // Accept as string, convert manually
+			extraDaysBefore: z.number().int().min(0).max(7).default(0),
+			extraDaysAfter: z.number().int().min(0).max(7).default(0),
 			deliveryAddress: z
 				.object({
 					street: z.string().min(5),
@@ -39,8 +41,6 @@ const createOrderInputSchema = z.object({
 				nameColorway: z.string().min(1).optional(),
 				characterTheme: z.string().optional(),
 				hobbies: z.array(z.string()).optional(),
-				extraDaysBefore: z.number().min(0).max(7).default(0),
-				extraDaysAfter: z.number().min(0).max(7).default(0),
 				previewUrl: z.string().optional(),
 				holdId: z.string().min(1),
 			})
@@ -61,6 +61,7 @@ const createOrderInputSchema = z.object({
 	}),
 	holdId: z.string().min(1, "Hold ID is required"),
 	sessionId: z.string().min(1, "Booking session is required"),
+	timeZone: z.string().max(64).optional(),
 	paymentIntentId: z.string().min(1, "Payment Intent ID is required"),
 	agencySlug: z.string().min(1, "Agency slug is required"),
 	totalAmount: z.number().positive("Total amount must be positive"),
@@ -107,7 +108,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, sessionId, paymentIntentId, agencySlug, totalAmount } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, agencySlug, totalAmount } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -133,8 +134,8 @@ export async function POST(
 		}
 		const serverTotal = calculateBookingTotal(
 			pricing,
-			formData.display?.extraDaysBefore ?? 0,
-			formData.display?.extraDaysAfter ?? 0
+			formData.event.extraDaysBefore,
+			formData.event.extraDaysAfter
 		);
 		if (Math.abs(serverTotal - totalAmount) > 0.005) {
 			console.warn('⚠️ Order total mismatch:', { agencySlug, client: totalAmount, server: serverTotal });
@@ -156,14 +157,15 @@ export async function POST(
 			);
 		}
 
-		// The agency's booking rules (lead time to delivery, rental length)
-		const extraDaysBefore = formData.display?.extraDaysBefore ?? 0;
-		const extraDaysAfter = formData.display?.extraDaysAfter ?? 0;
+		// The agency's booking rules (order cutoff before delivery, rental length)
+		const { extraDaysBefore, extraDaysAfter } = formData.event;
+		const rules = parseBookingRules(agency.booking_rules);
 		const dateError = validateBookingDates(
-			parseBookingRules(agency.booking_rules),
+			rules,
 			eventDate,
 			extraDaysBefore,
-			extraDaysAfter
+			extraDaysAfter,
+			todayIn(resolveTimeZone(agency.operating_hours, timeZone))
 		);
 		if (dateError) {
 			return NextResponse.json({ success: false, error: dateError }, { status: 400 });
@@ -257,7 +259,7 @@ export async function POST(
 		// The order takes over the customer's sign hold (the signs stay
 		// blocked until check-in). No hold, no order: an order without signs
 		// would let the same letters be booked twice.
-		const { start, end } = rentalWindow(eventDate, extraDaysBefore, extraDaysAfter);
+		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
 		const { data: conversion, error: conversionError } = await supabase.rpc(
 			"yce_convert_hold_to_order",
 			{

@@ -4,20 +4,24 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { createEventSchema, EventFormData, TimeWindow } from '../../types';
-import { earliestEventDate } from '../../booking-rules';
+import { addDays, earliestEventDay, maxExtraDays, rentalWindow, todayIn, validateBookingDates } from '../../booking-rules';
+import { calculateBookingTotal } from '../../pricing';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
 export function EventDetailsStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep, bookingRules } = useWizard();
-  const eventSchema = useMemo(() => createEventSchema(bookingRules), [bookingRules]);
+  const { formData, updateFormData, nextStep, prevStep, bookingRules, pricing, timeZone } = useWizard();
+  // "Today" where the order cutoff is decided (agency zone, else browser)
+  const today = useMemo(() => todayIn(timeZone), [timeZone]);
+  const eventSchema = useMemo(() => createEventSchema(bookingRules, today), [bookingRules, today]);
   const [localData, setLocalData] = useState<EventFormData>(
     formData.event || {
-      // A day past the agency's minimum lead time, not the minimum itself:
-      // eventSchema re-checks "now + lead time" at validation time, so a
-      // default with zero margin goes invalid the instant any time passes
-      // after mount. The extra day keeps it valid for a normal session.
-      eventDate: new Date(earliestEventDate(bookingRules).getTime() + 24 * 60 * 60 * 1000),
+      // A day past the earliest bookable date, so the default doesn't go
+      // invalid if the customer is still here when the day rolls over
+      eventDate: new Date(`${addDays(earliestEventDay(bookingRules, 0, today), 1)}T12:00:00`),
+      extraDaysBefore: 0,
+      // Start at the agency's minimum rental length (the event day counts as one)
+      extraDaysAfter: Math.max(0, bookingRules.minimumRentalDays - 1),
       deliveryAddress: {
         street: '',
         city: '',
@@ -63,11 +67,26 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
       return;
     }
 
-    updateFormData({ event: localData });
+    // Signs already reserved for other dates: drop that hold so the
+    // configurator re-reserves for the new ones
+    const held = formData.display;
+    const signsOut = rentalWindow(bookingRules, localData.eventDate, localData.extraDaysBefore, localData.extraDaysAfter);
+    if (held?.holdId && (held.holdRentalStart !== signsOut.start || held.holdRentalEnd !== signsOut.end)) {
+      updateFormData({
+        event: localData,
+        display: { ...held, holdId: '', holdRentalStart: undefined, holdRentalEnd: undefined },
+      });
+    } else {
+      updateFormData({ event: localData });
+    }
     nextStep();
   };
 
   const isValid = eventSchema.safeParse(localData).success;
+  // Shown live: Continue stays disabled while this is set
+  const dateIssue = validateBookingDates(
+    bookingRules, localData.eventDate, localData.extraDaysBefore, localData.extraDaysAfter, today
+  );
 
   // Format date for input
   const formatDateForInput = (date: Date) => {
@@ -132,15 +151,66 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
               type="date"
               value={formatDateForInput(localData.eventDate)}
               onChange={(e) => handleDateChange(e.target.value)}
-              min={formatDateForInput(earliestEventDate(bookingRules))}
+              min={earliestEventDay(bookingRules, localData.extraDaysBefore, today)}
               className={errors.eventDate ? 'border-error' : ''}
             />
-            {errors.eventDate && (
-              <p className="text-body-small text-error-red mt-1">{errors.eventDate}</p>
+            {(errors.eventDate || dateIssue) && (
+              <p className="text-body-small text-error-red mt-1">{errors.eventDate || dateIssue}</p>
             )}
             <p className="text-body-small text-neutral-500 mt-1">
-              Must be at least {bookingRules.minimumLeadTimeHours} hours from now
+              Earliest available: {new Date(`${earliestEventDay(bookingRules, localData.extraDaysBefore, today)}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
             </p>
+          </div>
+
+          {/* Extra display days (paid) - chosen here so the configurator
+              reserves signs for the right dates */}
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex justify-between">
+              <span className="text-body">Base Package (event day)</span>
+              <span className="text-body font-medium">${pricing.basePrice.toFixed(2)}</span>
+            </div>
+            {([
+              ['extraDaysBefore', 'Extra Days Before', 'extraDaysAfter'],
+              ['extraDaysAfter', 'Extra Days After', 'extraDaysBefore'],
+            ] as const).map(([field, label, other]) => {
+              const max = maxExtraDays(bookingRules, localData[other]);
+              return (
+                <div key={field} className="flex items-center justify-between">
+                  <span className="text-body-small">{label}</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      aria-label={`Fewer ${label.toLowerCase()}`}
+                      onClick={() => handleInputChange(field, Math.max(0, localData[field] - 1))}
+                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
+                      disabled={localData[field] <= 0}
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center">{localData[field]}</span>
+                    <button
+                      type="button"
+                      aria-label={`More ${label.toLowerCase()}`}
+                      onClick={() => handleInputChange(field, Math.min(max, localData[field] + 1))}
+                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
+                      disabled={localData[field] >= max}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
+              <div className="flex justify-between text-body-small">
+                <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × ${pricing.extraDayPrice.toFixed(2)})</span>
+                <span>${((localData.extraDaysBefore + localData.extraDaysAfter) * pricing.extraDayPrice).toFixed(2)}</span>
+              </div>
+            )}
+            <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
+              <span>Total</span>
+              <span className="text-primary">${calculateBookingTotal(pricing, localData.extraDaysBefore, localData.extraDaysAfter).toFixed(2)}</span>
+            </div>
           </div>
 
           {/* Delivery Address */}

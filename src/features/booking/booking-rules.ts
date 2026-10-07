@@ -1,50 +1,56 @@
 /**
- * Booking rules come from `agencies.booking_rules` (JSONB), the values the
- * agency settings UI and /api/agency/booking-rules write. The wizard and the
- * server both enforce them through this file - never hardcode a lead time.
+ * Booking rules come from `agencies.booking_rules` (JSONB), written by the
+ * agency settings UI via /api/agency/booking-rules. The wizard and the
+ * server both enforce them through this file - never hardcode a date rule.
+ *
+ * Model (decided 2026-10-07):
+ *   delivery  = event day - extra days before - setupDays
+ *   signs out = delivery .. event day + extra days after + teardownDays
+ *   cutoff    = the customer must order by end of day, orderCutoffDays
+ *               before delivery (0 = ordering on delivery day is fine)
+ * Setup/teardown days are free and only block inventory; extra days are
+ * the customer's paid display days. All days are calendar days.
  *
  * Shared by client and server: keep it free of server-only imports.
  */
 export interface BookingRules {
-  minimumLeadTimeHours: number;
+  orderCutoffDays: number;
+  setupDays: number;
+  teardownDays: number;
   minimumRentalDays: number;
   maximumRentalDays: number;
-  allowSameDayBooking: boolean;
 }
 
-/** Same defaults the agency settings route applies to a missing value. */
 export const DEFAULT_BOOKING_RULES: BookingRules = {
-  minimumLeadTimeHours: 48,
+  orderCutoffDays: 1,
+  setupDays: 1,
+  teardownDays: 1,
   minimumRentalDays: 1,
   maximumRentalDays: 14,
-  allowSameDayBooking: false,
 };
 
 /** The extra-day steppers' own cap, independent of the agency's rules. */
 const MAX_EXTRA_DAYS_PER_SIDE = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function parseBookingRules(raw: unknown): BookingRules {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
-  const num = (v: unknown, fallback: number, min: number) => {
+  const int = (v: unknown, fallback: number, min: number, max: number) => {
     const n = Number(v);
-    return Number.isFinite(n) && n >= min ? n : fallback;
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, Math.floor(n))) : fallback;
   };
-  const minimumRentalDays = Math.floor(num(r.minimumRentalDays, DEFAULT_BOOKING_RULES.minimumRentalDays, 1));
-  const maximumRentalDays = Math.max(
-    minimumRentalDays,
-    Math.floor(num(r.maximumRentalDays, DEFAULT_BOOKING_RULES.maximumRentalDays, 1))
-  );
+  const d = DEFAULT_BOOKING_RULES;
+  const minimumRentalDays = int(r.minimumRentalDays, d.minimumRentalDays, 1, 30);
   return {
-    minimumLeadTimeHours: num(r.minimumLeadTimeHours, DEFAULT_BOOKING_RULES.minimumLeadTimeHours, 0),
+    orderCutoffDays: int(r.orderCutoffDays, d.orderCutoffDays, 0, 30),
+    setupDays: int(r.setupDays, d.setupDays, 0, 14),
+    teardownDays: int(r.teardownDays, d.teardownDays, 0, 14),
     minimumRentalDays,
-    maximumRentalDays,
-    allowSameDayBooking: typeof r.allowSameDayBooking === 'boolean'
-      ? r.allowSameDayBooking
-      : DEFAULT_BOOKING_RULES.allowSameDayBooking,
+    maximumRentalDays: Math.max(minimumRentalDays, int(r.maximumRentalDays, d.maximumRentalDays, 1, 30)),
   };
 }
 
-/** Rental length in days: the event day plus any extra days either side. */
+/** Display days the customer pays for: the event day plus extra days. */
 export function rentalDays(extraDaysBefore: number, extraDaysAfter: number): number {
   return 1 + extraDaysBefore + extraDaysAfter;
 }
@@ -54,59 +60,79 @@ export function maxExtraDays(rules: BookingRules, otherSide: number): number {
   return Math.max(0, Math.min(MAX_EXTRA_DAYS_PER_SIDE, rules.maximumRentalDays - 1 - otherSide));
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 /** YYYY-MM-DD of an instant, in UTC. The wizard stores event dates at local
- *  noon, which lands on the same calendar day in UTC for US time zones. */
+ *  noon, which lands on the same calendar day in UTC for the Americas and
+ *  Europe. */
 export function toDayKey(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function addDays(dayKey: string, days: number): string {
+export function addDays(dayKey: string, days: number): string {
   return toDayKey(new Date(Date.parse(`${dayKey}T12:00:00Z`) + days * DAY_MS));
 }
 
-/**
- * The calendar days the signs are out: from delivery (extra days before the
- * event) through removal, the day after the last rental day. Holds block
- * exactly this range.
- */
-export function rentalWindow(eventDate: Date, extraDaysBefore: number, extraDaysAfter: number) {
+/** Today's date in `timeZone` (an IANA name). Unknown or missing -> UTC. */
+export function todayIn(timeZone: string | undefined, now = new Date()): string {
+  try {
+    // en-CA formats as YYYY-MM-DD
+    return new Intl.DateTimeFormat('en-CA', { timeZone: timeZone || 'UTC' }).format(now);
+  } catch {
+    return toDayKey(now);
+  }
+}
+
+/** The agency's time zone if it set one (operating_hours.timeZone), else
+ *  the customer's - "end of day" is local to whoever is in charge of it. */
+export function resolveTimeZone(operatingHours: unknown, customerTimeZone?: string): string | undefined {
+  const tz = operatingHours && typeof operatingHours === 'object'
+    ? (operatingHours as Record<string, unknown>).timeZone
+    : undefined;
+  return typeof tz === 'string' && tz ? tz : customerTimeZone;
+}
+
+/** Calendar days the signs are out (and held): delivery through pickup. */
+export function rentalWindow(
+  rules: BookingRules,
+  eventDate: Date,
+  extraDaysBefore: number,
+  extraDaysAfter: number
+) {
   const eventDay = toDayKey(eventDate);
   return {
-    start: addDays(eventDay, -extraDaysBefore),
-    end: addDays(eventDay, 1 + extraDaysAfter),
+    start: addDays(eventDay, -(extraDaysBefore + rules.setupDays)),
+    end: addDays(eventDay, extraDaysAfter + rules.teardownDays),
   };
 }
 
-/** Earliest event date allowed with no extra days before it. */
-export function earliestEventDate(rules: BookingRules, now = new Date()): Date {
-  return new Date(now.getTime() + rules.minimumLeadTimeHours * 60 * 60 * 1000);
+/** Earliest event day bookable today with this many extra days before. */
+export function earliestEventDay(rules: BookingRules, extraDaysBefore: number, today: string): string {
+  return addDays(today, rules.orderCutoffDays + rules.setupDays + extraDaysBefore);
+}
+
+function formatDay(dayKey: string): string {
+  return new Date(`${dayKey}T12:00:00Z`).toLocaleDateString('en-US', {
+    weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC',
+  });
 }
 
 /**
  * Returns a customer-facing error, or null when the dates are bookable.
- * Lead time is measured to delivery (the first extra day before the event),
- * since that's when the agency has to show up. Lead time wins over the
- * same-day toggle; the toggle only matters for lead times under a day.
+ * `today` is a YYYY-MM-DD in the deciding time zone (see todayIn).
  */
 export function validateBookingDates(
   rules: BookingRules,
   eventDate: Date,
   extraDaysBefore: number,
   extraDaysAfter: number,
-  now = new Date()
+  today: string
 ): string | null {
   if (isNaN(eventDate.getTime())) return 'Please choose a valid event date';
 
-  const delivery = new Date(eventDate.getTime() - extraDaysBefore * DAY_MS);
-  if (delivery.getTime() < now.getTime() + rules.minimumLeadTimeHours * 60 * 60 * 1000) {
+  const earliest = earliestEventDay(rules, extraDaysBefore, today);
+  if (toDayKey(eventDate) < earliest) {
     return extraDaysBefore > 0
-      ? `Delivery (${extraDaysBefore} day${extraDaysBefore === 1 ? '' : 's'} before the event) must be at least ${rules.minimumLeadTimeHours} hours from now`
-      : `Event date must be at least ${rules.minimumLeadTimeHours} hours from now`;
-  }
-  if (!rules.allowSameDayBooking && toDayKey(delivery) <= toDayKey(now)) {
-    return 'Same-day delivery is not available';
+      ? `With ${extraDaysBefore} extra day${extraDaysBefore === 1 ? '' : 's'} before, the earliest event date is ${formatDay(earliest)}`
+      : `The earliest available event date is ${formatDay(earliest)}`;
   }
 
   const days = rentalDays(extraDaysBefore, extraDaysAfter);

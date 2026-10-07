@@ -12,6 +12,11 @@ import {
 	OperatingHours,
 	operatingHoursSchema,
 } from "../validation/agencySettings";
+import {
+	DEFAULT_BOOKING_RULES,
+	parseBookingRules,
+	type BookingRules as SharedBookingRules,
+} from "@/features/booking/booking-rules";
 
 // BlackoutDate type
 interface BlackoutDate {
@@ -22,13 +27,10 @@ interface BlackoutDate {
 	type: 'holiday' | 'maintenance' | 'vacation' | 'special_event';
 }
 
-// BookingRules type
-interface BookingRules {
-	minimumLeadTimeHours: number;
-	maximumRentalDays: number;
-	minimumRentalDays: number;
-	allowSameDayBooking: boolean;
-}
+// BookingRules: the shape the booking wizard enforces (features/booking/booking-rules.ts).
+// setupDays/teardownDays have no UI yet (permissions stage) but are carried
+// through so saving doesn't reset them.
+type BookingRules = SharedBookingRules;
 
 // BlackoutDatesTab Props
 interface BlackoutDatesTabProps {
@@ -200,46 +202,25 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 			</div>
 
 			<div className="space-y-6">
-				{/* Minimum Lead Time */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Minimum Lead Time
-						</label>
-						<div className="flex items-center space-x-3">
-							<input
-								type="number"
-								value={bookingRules.minimumLeadTimeHours}
-								onChange={(e) => updateBookingRule('minimumLeadTimeHours', parseInt(e.target.value) || 0)}
-								min="0"
-								max="168"
-								className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-							/>
-							<span className="text-sm text-gray-600">hours before rental start</span>
-						</div>
-						<p className="mt-1 text-xs text-gray-500">
-							How far in advance customers must book (0-168 hours)
-						</p>
+				{/* Order Cutoff */}
+				<div>
+					<label className="block text-sm font-medium text-gray-700 mb-2">
+						Order Cutoff
+					</label>
+					<div className="flex items-center space-x-3">
+						<input
+							type="number"
+							value={bookingRules.orderCutoffDays}
+							onChange={(e) => updateBookingRule('orderCutoffDays', Math.max(0, parseInt(e.target.value) || 0))}
+							min="0"
+							max="30"
+							className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+						/>
+						<span className="text-sm text-gray-600">days before delivery</span>
 					</div>
-
-					{/* Same Day Booking Toggle */}
-					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Same-Day Booking
-						</label>
-						<div className="flex items-center space-x-3">
-							<input
-								type="checkbox"
-								checked={bookingRules.allowSameDayBooking}
-								onChange={(e) => updateBookingRule('allowSameDayBooking', e.target.checked)}
-								className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-							/>
-							<span className="text-sm text-gray-700">Allow same-day bookings</span>
-						</div>
-						<p className="mt-1 text-xs text-gray-500">
-							Override lead time requirement for same-day requests
-						</p>
-					</div>
+					<p className="mt-1 text-xs text-gray-500">
+						Customers must order by the end of this day. With 1, a Saturday event (delivered Friday) can be booked until Thursday night. 0 allows ordering on the delivery day.
+					</p>
 				</div>
 
 				{/* Rental Duration Limits */}
@@ -301,8 +282,8 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 				<div className="bg-gray-50 p-4 rounded-lg">
 					<h4 className="text-sm font-medium text-gray-900 mb-2">Current Policy Summary</h4>
 					<ul className="text-sm text-gray-600 space-y-1">
-						<li>• Customers must book at least <strong>{bookingRules.minimumLeadTimeHours} hours</strong> in advance</li>
-						<li>• Same-day booking: <strong>{bookingRules.allowSameDayBooking ? 'Allowed' : 'Not allowed'}</strong></li>
+						<li>• Orders close at the end of the day <strong>{bookingRules.orderCutoffDays} day{bookingRules.orderCutoffDays === 1 ? '' : 's'}</strong> before delivery</li>
+						<li>• Signs go out <strong>{bookingRules.setupDays} day{bookingRules.setupDays === 1 ? '' : 's'}</strong> before the event and come back <strong>{bookingRules.teardownDays} day{bookingRules.teardownDays === 1 ? '' : 's'}</strong> after (no charge)</li>
 						<li>• Rental period: <strong>{bookingRules.minimumRentalDays} - {bookingRules.maximumRentalDays} days</strong></li>
 					</ul>
 				</div>
@@ -342,12 +323,7 @@ export default function AgencySettingsSection({
 		defaultOperatingHours
 	);
 	const [blackoutDates, setBlackoutDates] = useState<BlackoutDate[]>([]);
-	const [bookingRules, setBookingRules] = useState<BookingRules>({
-		minimumLeadTimeHours: 48,
-		maximumRentalDays: 14,
-		minimumRentalDays: 1,
-		allowSameDayBooking: false
-	});
+	const [bookingRules, setBookingRules] = useState<BookingRules>(DEFAULT_BOOKING_RULES);
 	const [validationErrors, setValidationErrors] = useState<string[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
@@ -423,7 +399,7 @@ export default function AgencySettingsSection({
 				if (response.ok) {
 					const result = await response.json();
 					if (result.success && result.data) {
-						setBookingRules(result.data);
+						setBookingRules(parseBookingRules(result.data));
 					}
 				} else {
 					console.error("API response not ok:", response.status);

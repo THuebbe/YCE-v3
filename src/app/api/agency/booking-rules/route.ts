@@ -1,37 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { z } from 'zod'
+import { bookingRulesSchema } from '@/app/[agency]/settings/validation/agencySettings'
+import { parseBookingRules } from '@/features/booking/booking-rules'
 
-// Booking rules schema
-const bookingRulesSchema = z.object({
-  minimumLeadTimeHours: z
-    .number()
-    .min(0, 'Lead time cannot be negative')
-    .max(168, 'Lead time cannot exceed 1 week (168 hours)'),
-  maximumRentalDays: z
-    .number()
-    .min(1, 'Maximum rental must be at least 1 day')
-    .max(30, 'Maximum rental cannot exceed 30 days'),
-  minimumRentalDays: z
-    .number()
-    .min(1, 'Minimum rental must be at least 1 day')
-    .max(7, 'Minimum rental cannot exceed 7 days'),
-  allowSameDayBooking: z.boolean(),
-}).refine((data) => {
-  return data.maximumRentalDays >= data.minimumRentalDays
-}, {
-  message: 'Maximum rental days must be greater than or equal to minimum rental days'
-})
-
-// Default booking rules
-const defaultBookingRules = {
-  minimumLeadTimeHours: 48,
-  maximumRentalDays: 14,
-  minimumRentalDays: 1,
-  allowSameDayBooking: false
-}
-
+// One schema for the settings form and this route; the booking wizard reads
+// the same shape via parseBookingRules (features/booking/booking-rules.ts)
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -74,8 +48,8 @@ export async function GET(request: NextRequest) {
       }, { status: 404 })
     }
 
-    // Return booking rules or default if none exist
-    const bookingRules = agency.booking_rules || defaultBookingRules
+    // Stored rules normalized to the current shape (defaults fill gaps)
+    const bookingRules = parseBookingRules(agency.booking_rules)
 
     return NextResponse.json({
       success: true,

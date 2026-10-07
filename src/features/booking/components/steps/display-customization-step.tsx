@@ -3,12 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
-import { calculateBookingTotal } from '../../pricing';
 import { displaySchema, DisplayFormData, Sign } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { createBookingHold, getBookingCatalog } from '../../actions';
-import { maxExtraDays, rentalWindow, validateBookingDates } from '../../booking-rules';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { DisplayGrid } from '../display/DisplayGrid';
 import { LetterStake } from '../display/LetterStake';
@@ -91,7 +89,7 @@ const hobbies = [
 ];
 
 export function DisplayCustomizationStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, pricing, bookingRules, sessionId } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone } = useWizard();
   const [localData, setLocalData] = useState<DisplayFormData>(
     formData.display || {
       eventMessage: '',
@@ -104,9 +102,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       nameColorway: 'Red',
       characterTheme: '',
       hobbies: [],
-      extraDaysBefore: 0,
-      // Start at the agency's minimum rental length (the event day counts as one)
-      extraDaysAfter: Math.max(0, bookingRules.minimumRentalDays - 1),
       holdId: '',
     }
   );
@@ -117,9 +112,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const [shortages, setShortages] = useState<{ name: string; requested: number; available: number }[]>([]);
   const [availableStyles, setAvailableStyles] = useState<string[]>(['Classic']);
   const [availableColorways, setAvailableColorways] = useState<string[]>(['Red']);
-  // Catalog keys of the signs in the current preview, for re-holding when
-  // only the extra days change.
-  const [heldKeys, setHeldKeys] = useState<string[]>([]);
   // The session's last hold, kept after a design edit clears holdId so the
   // next preview replaces it instead of stacking a second hold.
   const lastHoldId = useRef(localData.holdId || '');
@@ -176,17 +168,18 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
    *  hold. Returns the updated display data, or null on failure (the error
    *  and any shortages are shown). */
   const reserveSigns = async (keys: string[], data: DisplayFormData): Promise<DisplayFormData | null> => {
-    const eventDate = formData.event?.eventDate;
-    if (!eventDate) {
+    const event = formData.event;
+    if (!event?.eventDate) {
       setPreviewError('Please choose an event date first');
       return null;
     }
     const result = await createBookingHold({
       agencySlug,
       sessionId,
-      eventDate: new Date(eventDate).toISOString(),
-      extraDaysBefore: data.extraDaysBefore,
-      extraDaysAfter: data.extraDaysAfter,
+      timeZone,
+      eventDate: new Date(event.eventDate).toISOString(),
+      extraDaysBefore: event.extraDaysBefore ?? 0,
+      extraDaysAfter: event.extraDaysAfter ?? 0,
       catalogKeys: keys,
       replaceHoldId: data.holdId || lastHoldId.current || undefined,
     });
@@ -250,7 +243,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       const keys = placed.map(sign => sign.catalogKey!);
       const reserved = await reserveSigns(keys, { ...localData, holdId: '' });
       const updatedData = reserved ?? { ...localData, holdId: '', holdRentalStart: undefined, holdRentalEnd: undefined };
-      setHeldKeys(reserved ? keys : []);
       setLocalData(updatedData);
       updateFormData({ display: updatedData });
     } catch (error) {
@@ -274,42 +266,13 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       return;
     }
 
-    const eventDate = formData.event?.eventDate ? new Date(formData.event.eventDate) : null;
-    const dateError = eventDate
-      ? validateBookingDates(bookingRules, eventDate, localData.extraDaysBefore, localData.extraDaysAfter)
-      : 'Please choose an event date first';
-    if (dateError) {
-      setPreviewError(dateError);
-      return;
-    }
-
-    // Extra days changed since the signs were reserved: re-reserve the same
-    // signs for the new dates (the order is refused if they don't match).
-    let dataToSave = localData;
-    const held = rentalWindow(eventDate!, localData.extraDaysBefore, localData.extraDaysAfter);
-    if (held.start !== localData.holdRentalStart || held.end !== localData.holdRentalEnd) {
-      if (heldKeys.length === 0) {
-        setPreviewError('Please regenerate your layout to reserve signs for these dates');
-        return;
-      }
-      setPreviewLoading(true);
-      const reserved = await reserveSigns(heldKeys, localData);
-      setPreviewLoading(false);
-      if (!reserved) return;
-      dataToSave = reserved;
-      setLocalData(reserved);
-    }
-
     // Make sure form data is saved to wizard context
-    updateFormData({ display: dataToSave });
+    updateFormData({ display: localData });
     nextStep();
   };
   
   // Auto-generation removed - users now manually generate layout with button
 
-  const calculateTotal = () => {
-    return calculateBookingTotal(pricing, localData.extraDaysBefore, localData.extraDaysAfter);
-  };
 
   const validationData = { ...localData };
   const validationResult = displaySchema.safeParse(validationData);
@@ -348,10 +311,9 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         </p>
       </div>
 
-      {/* Row 1: Preview (span 2 cols) + Pricing */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Preview - Spans 2 columns */}
-        <div className="lg:col-span-2">
+      {/* Row 1: Preview (full width - dates and price live in Event Details) */}
+      <div className="mb-6">
+        <div>
           {/* Preview Area */}
           <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
             <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
@@ -465,76 +427,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 Generate your layout to continue to payment
               </p>
             )}
-          </div>
-        </div>
-
-        {/* Pricing - Right column */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-            <h3 className="text-h5 text-neutral-900 mb-4">Pricing</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-body">Base Package</span>
-                <span className="text-body font-medium">${pricing.basePrice.toFixed(2)}</span>
-              </div>
-              
-              {/* Extra Days Controls */}
-              <div className="border-t pt-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-body-small">Extra Days Before</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleInputChange('extraDaysBefore', Math.max(0, localData.extraDaysBefore - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysBefore <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData.extraDaysBefore}</span>
-                    <button
-                      onClick={() => handleInputChange('extraDaysBefore', Math.min(maxExtraDays(bookingRules, localData.extraDaysAfter), localData.extraDaysBefore + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysBefore >= maxExtraDays(bookingRules, localData.extraDaysAfter)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-body-small">Extra Days After</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleInputChange('extraDaysAfter', Math.max(0, localData.extraDaysAfter - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysAfter <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData.extraDaysAfter}</span>
-                    <button
-                      onClick={() => handleInputChange('extraDaysAfter', Math.min(maxExtraDays(bookingRules, localData.extraDaysBefore), localData.extraDaysAfter + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysAfter >= maxExtraDays(bookingRules, localData.extraDaysBefore)}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
-                  <div className="flex justify-between mt-2 text-body-small">
-                    <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × ${pricing.extraDayPrice.toFixed(2)})</span>
-                    <span>${((localData.extraDaysBefore + localData.extraDaysAfter) * pricing.extraDayPrice).toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
-                <span>Total</span>
-                <span className="text-primary">${calculateTotal().toFixed(2)}</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
