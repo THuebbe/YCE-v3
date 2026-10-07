@@ -16,6 +16,16 @@ Last browser click-through: 2026-09-14. Supabase free tier re-pauses
 after ~7 idle days — it has now caused two outages.
 
 ## VERIFIED WORKING (seen running, not inferred)
+- **2026-10-07, user click-through to a placed order** on preview
+  `c6875e4` (elite-denver, 2 extra days): order `YCE-2026-647960` saved
+  with the real agency id, total $107 (= $81 + 2×$13) matching the
+  server-side recompute; agency notification email sent. Breakdown lines
+  still showed $95/$10 on that build — fixed in `1c692af`, re-test on a
+  later preview. That build also still logged the full payload incl.
+  card fields (fixed in `cbbd63d`). Test agencies elite-denver,
+  sunny-signs-ca and texas-signs have emails on real-looking domains —
+  notifications may reach real businesses; point them at the user's
+  own inbox.
 - **2026-10-06, branch preview `dpl_AcVAANwgNwMeHbBaiVGGXDvjFrp8`:**
   server-rendered wizard props carry the real agency —
   elite-denver `{basePrice:81, extraDayPrice:13}`, texas-signs
