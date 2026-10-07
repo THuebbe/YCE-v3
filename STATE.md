@@ -397,10 +397,7 @@ One branch + PR per milestone, browser-tested on its preview first.
   setup/teardown days mid-checkout fails that one order (`dates_changed`).
 - ~~Pending approval~~: old 7-arg `yce_create_booking_hold` dropped and the
   leftover test `order_signs` row deleted by the user, 2026-10-07.
-- **Leftover test row:** one `order_signs` row (20x red A) on order
-  YCE-2026-647960 from SQL testing. Its hold is inactive so it blocks
-  nothing; delete it (Supabase MCP deletes need user approval - they
-  timed out when the user was away).
+- ~~Leftover test row~~ on YCE-2026-647960: deleted by the user 2026-10-07.
 - **Preview has no `RESEND_API_KEY`** — preview orders log "Failed to
   send email"; set it for Preview in Vercel if preview emails matter.
 - **Per-agency pricing in the wizard (branch, `e376b55` + `c6875e4`).**
