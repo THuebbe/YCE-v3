@@ -96,10 +96,11 @@ Open details are tracked in STATE.md.
 - Measured from the **scheduled delivery** (event date minus extra days
   before), never from when the order was placed. (Code today measures
   24h after order creation — wrong, must change.)
-- Per-agency settings: **notice period** (default 24h) and
-  **cancellation fee** (default 5% — covers Stripe's ~3% that isn't
-  returned on refunds; the dashboard tells agencies this). Agency can
-  **waive** the fee per order.
+- Per-agency settings: **notice period** (default 24h before delivery)
+  and two fees: **before the window, default 5%** (covers Stripe's ~3%
+  that isn't returned on refunds; the dashboard tells agencies this) and
+  **inside the window, default 100%** (no refund). Agency can **waive**
+  either fee per order.
 - Agency-initiated cancellations (can't fulfil) → full refund.
 
 ## Late fees — DECIDED 2026-10-07
@@ -142,11 +143,13 @@ in code, not `agency_inventory`, and holds live in the browser.)
 ## Platform revenue
 **Plans — DECIDED 2026-10-07** (supersedes the pricing page's
 $29/$79/$149):
-- **$49/mo** — the required core: customer booking, agency
+- **Essentials, $49/mo** — the required core: customer booking, agency
   notification on new orders, inventory control.
-- **$79/mo** — everything above + all reporting, and later the in-app
+- **Elite, $79/mo** — everything above + all reporting, and later the in-app
   store.
 - **Annual:** $499/yr and $799/yr.
+- IDEA for the permissions stage (not decided): Essentials runs on
+  default policy values; Elite unlocks fine-tuning them.
 **14-day free trial is optional** — an agency can skip it and start
 paying. Card required up front either way. We must be able to turn the
 trial and any promotion/coupon **on and off** ourselves: coupons via the

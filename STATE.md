@@ -212,9 +212,6 @@ Still open:
   is *collected* after the fact — payment link vs. saved card.
 - Damage fee: decided (optional, waivable, per-agency amount). Open:
   default amount; one flat per-sign fee, or separate damaged vs missing?
-- Cancellation fee: open whether it applies to every customer
-  cancellation or only ones inside the notice period, and whether
-  inside-the-window cancellations get any refund.
 - Card-on-file for fees needs a consent notice at checkout and the
   agency's policies shown there (fees, cancellation) — also chargeback
   protection.
@@ -222,8 +219,7 @@ Still open:
   exist yet (manifest-backed) — the gate depends on the sign_library
   letters work.
 - Pricing page (2026-10-07) now shows $49/$79 monthly, $499/$799
-  annual. Plan names "Essentials"/"Professional" were Claude's
-  placeholder — confirm.
+  annual, plans named Essentials and Elite (user, 2026-10-07).
 - Subscription renewal fails (expired card): grace period, then booking
   page off? Stripe retries automatically; never hold agency funds (the
   archived "Held Funds System" idea is dead).

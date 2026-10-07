@@ -16,7 +16,7 @@ const PLANS = [
     ],
   },
   {
-    name: 'Professional',
+    name: 'Elite',
     tagline: 'For agencies that want the full picture',
     monthly: 79,
     annual: 799,
@@ -121,7 +121,7 @@ export default function PricingPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Can I pay yearly?</h3>
-              <p className="text-gray-600">Yes. Annual billing is $499/year for Essentials and $799/year for Professional.</p>
+              <p className="text-gray-600">Yes. Annual billing is $499/year for Essentials and $799/year for Elite.</p>
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Can I cancel anytime?</h3>
