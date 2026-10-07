@@ -198,6 +198,25 @@ Remaining, not urgent:
   click through previews or run the app against the DB. Add both under
   Allowed domains (environment settings → Network access) to unblock.
 
+## Onboarding — open details (design in PRODUCT.md)
+- Website optional? Many solo operators only have a Facebook page —
+  fall back to our own confirmation page if blank.
+- Service area: city names are ambiguous across states — store
+  city+state (or ZIP). Informational only, or reject out-of-area
+  bookings?
+- Payments toggle: can an agency mix (Venmo of their own + our Stripe
+  Express for cards)? A strict either/or blocks that common case.
+- Skipping payments/inventory at signup leaves a booking page that
+  can't take money or promises letters they don't own — needs a
+  dashboard setup checklist and a "not accepting bookings yet" state.
+- Promo codes: Stripe Billing supports them natively (create coupons in
+  the Stripe dashboard), so little custom code. Trial with or without a
+  card up front?
+- Fixed 2026-10-07 (`src/features/auth/actions.ts`): after creating an
+  agency the form redirected to `/dashboard?agency=…`, a route that
+  doesn't exist (code-read: likely 404). Now `/<slug>/dashboard`.
+  "Lawn care" copy removed from onboarding, marketing and pricing pages.
+
 ## Next steps, in order
 1. Click through to a placed order on the branch preview; merge; close
    PRs #1/#2.

@@ -19,10 +19,10 @@ export default async function OnboardingPage() {
               Welcome to YardCard Elite
             </h1>
             <p className="text-xl text-gray-600 mb-2">
-              Let&apos;s set up your lawn care business
+              Let&apos;s set up your yard sign rental business
             </p>
             <p className="text-gray-500">
-              Create your agency profile to start managing clients and growing your business
+              Create your agency profile to start taking bookings and growing your business
             </p>
           </div>
 

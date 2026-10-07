@@ -35,7 +35,7 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-            Choose the perfect plan for your lawn care business. Start with our free trial and scale as you grow.
+            Choose the perfect plan for your yard sign rental business. Start with our free trial and scale as you grow.
           </p>
         </div>
 

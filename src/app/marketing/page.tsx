@@ -37,12 +37,12 @@ export default function MarketingHomePage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-            Professional Lawn Care
-            <span className="text-blue-600"> Scheduling</span>
+            Yard Sign Rentals,
+            <span className="text-blue-600"> Simplified</span>
           </h1>
           <p className="mt-6 text-lg leading-8 text-gray-600 max-w-2xl mx-auto">
-            Streamline your lawn care business with YardCard Elite. Manage clients, schedule services, 
-            and grow your business with our comprehensive platform designed for lawn care professionals.
+            Run your yard sign rental business with YardCard Elite. Take online bookings, track your
+            sign inventory, and manage every display from order to pickup in one place.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Link

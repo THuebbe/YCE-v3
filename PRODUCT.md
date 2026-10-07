@@ -65,6 +65,21 @@ money-transmitter rules).
 Braintree/Venmo and PayPal exist because solo operators genuinely use
 them — this is market-researched, not scope creep.
 
+## Agency onboarding — DECIDED 2026-10-07, not built
+Today `/onboarding` is one form (name, slug, description) that silently
+defaults pricing, city and phone. Target flow:
+1. **Business basics** — name, slug, phone, **main website** (customers
+   are sent back there after a successful booking), **service area as
+   multiple cities**.
+2. **Pricing** — set during onboarding (reuse the settings form), not
+   left at defaults.
+3. **Payments** — a toggle: *Set up your payment processor* (Stripe,
+   Venmo, PayPal) or *Use ours* (Stripe Express). See "Payments".
+4. **Subscription** — trial/plan, with a **promotion code** field.
+**Inventory is NOT an onboarding step** — done later in the dashboard;
+it's long and operators may not have the details at signup.
+Open details are tracked in STATE.md.
+
 ## Platform revenue
 **Subscriptions are the main income.** Agencies pay us via Stripe
 Billing (subscription), separate from Connect. Not built yet — the

@@ -190,8 +190,8 @@ export async function completeOnboarding(agencySlug: string) {
     redirect('/auth/sign-in')
   }
 
-  // Redirect to the agency's dashboard using query parameter
-  redirect(`/dashboard?agency=${agencySlug}`)
+  // Dashboards live at /<slug>/dashboard; there is no /dashboard route
+  redirect(`/${agencySlug}/dashboard`)
 }
 
 // TODO: Implement user role management with Supabase
