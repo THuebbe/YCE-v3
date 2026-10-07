@@ -198,20 +198,21 @@ Remaining, not urgent:
   click through previews or run the app against the DB. Add both under
   Allowed domains (environment settings → Network access) to unblock.
 
-## Onboarding — open details (design in PRODUCT.md)
-- Website optional? Many solo operators only have a Facebook page —
-  fall back to our own confirmation page if blank.
-- Service area: city names are ambiguous across states — store
-  city+state (or ZIP). Informational only, or reject out-of-area
-  bookings?
-- Payments toggle: can an agency mix (Venmo of their own + our Stripe
-  Express for cards)? A strict either/or blocks that common case.
-- Skipping payments/inventory at signup leaves a booking page that
-  can't take money or promises letters they don't own — needs a
-  dashboard setup checklist and a "not accepting bookings yet" state.
-- Promo codes: Stripe Billing supports them natively (create coupons in
-  the Stripe dashboard), so little custom code. Trial with or without a
-  card up front?
+## Onboarding / payments — open details (decisions in PRODUCT.md)
+Decided 2026-10-07: website optional; service area = city+state,
+informational; card up front for trials; customers pay in full.
+Still open:
+- Payments: can an agency mix (own Venmo + our Express for cards)?
+- Dashboard setup checklist + "not accepting bookings yet" state until
+  payments/pricing/inventory are done?
+- Cancellations/refunds: window and who issues them (agency's
+  processor; with Express the refund comes out of the agency's balance).
+- `pricing_config.lateFee`: how is it collected? Charging later needs a
+  saved card (Stripe only — Venmo/PayPal can't be charged after the fact).
+- Subscription renewal fails (expired card): grace period, then booking
+  page off? Stripe retries automatically; never hold agency funds (the
+  archived "Held Funds System" idea is dead).
+- Trial length.
 - Fixed 2026-10-07 (`src/features/auth/actions.ts`): after creating an
   agency the form redirected to `/dashboard?agency=…`, a route that
   doesn't exist (code-read: likely 404). Now `/<slug>/dashboard`.
