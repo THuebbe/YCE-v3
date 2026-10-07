@@ -1,9 +1,30 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { BookingFormData, WizardContextType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type { BookingPricing } from '../pricing';
+import type { BookingRules } from '../booking-rules';
+import { touchBookingHold } from '../actions';
+
+const SESSION_KEY = 'yce_booking_session';
+
+/** One id per browser tab's wizard run; survives a reload, not a new tab.
+ *  Never rendered, so a server/client mismatch here is harmless. */
+function loadSessionId(): string {
+  const fresh = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  if (typeof window === 'undefined') return fresh;
+  try {
+    const existing = window.sessionStorage.getItem(SESSION_KEY);
+    if (existing) return existing;
+    window.sessionStorage.setItem(SESSION_KEY, fresh);
+  } catch {
+    // Storage blocked (private mode): a per-page-load id still works
+  }
+  return fresh;
+}
 
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
@@ -12,6 +33,7 @@ interface WizardProviderProps {
   agencyId: string;
   agencySlug: string;
   pricing: BookingPricing;
+  bookingRules: BookingRules;
   totalSteps: number;
   initialStep?: number;
   initialData?: Partial<BookingFormData>;
@@ -22,6 +44,7 @@ export function WizardProvider({
   agencyId,
   agencySlug,
   pricing,
+  bookingRules,
   totalSteps, 
   initialStep = 1,
   initialData = {}
@@ -29,6 +52,15 @@ export function WizardProvider({
   const [currentStep, setCurrentStep] = useState(initialStep);
   const [furthestStep, setFurthestStep] = useState(initialStep);
   const [formData, setFormData] = useState<Partial<BookingFormData>>(initialData);
+  const [sessionId] = useState(loadSessionId);
+
+  // Moving through the wizard is activity: keep the sign hold from lapsing
+  // (it expires after an hour without any).
+  const holdId = formData.display?.holdId;
+  useEffect(() => {
+    if (!holdId) return;
+    touchBookingHold({ agencySlug, sessionId, holdId }).catch(() => {});
+  }, [currentStep, holdId, agencySlug, sessionId]);
   
   // Payment methods hook
   const paymentMethodsHook = usePaymentMethods();
@@ -83,6 +115,8 @@ export function WizardProvider({
     agencyId,
     agencySlug,
     pricing,
+    bookingRules,
+    sessionId,
     currentStep,
     totalSteps,
     furthestStep,

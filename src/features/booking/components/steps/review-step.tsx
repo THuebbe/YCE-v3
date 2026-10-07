@@ -11,7 +11,7 @@ import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing, sessionId } = useWizard();
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [orderProcessing, setOrderProcessing] = useState(false);
@@ -106,6 +106,7 @@ export function ReviewStep() {
           payment: formData.payment
         },
         holdId: formData.display.holdId,
+        sessionId, // the hold belongs to this wizard session
         paymentIntentId,
         agencySlug, // order API resolves the slug to agency_id
         totalAmount: calculateTotal()

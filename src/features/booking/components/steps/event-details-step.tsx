@@ -1,21 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
-import { eventSchema, EventFormData, TimeWindow } from '../../types';
+import { createEventSchema, EventFormData, TimeWindow } from '../../types';
+import { earliestEventDate } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 
 export function EventDetailsStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep, bookingRules } = useWizard();
+  const eventSchema = useMemo(() => createEventSchema(bookingRules), [bookingRules]);
   const [localData, setLocalData] = useState<EventFormData>(
     formData.event || {
-      // 72h, not the 48h minimum: eventSchema re-checks "now + 48h" at
-      // validation time, so a default with zero margin goes invalid the
-      // instant any time passes after mount. The extra day of slack keeps
-      // it valid for the length of a normal checkout session.
-      eventDate: new Date(Date.now() + 72 * 60 * 60 * 1000),
+      // A day past the agency's minimum lead time, not the minimum itself:
+      // eventSchema re-checks "now + lead time" at validation time, so a
+      // default with zero margin goes invalid the instant any time passes
+      // after mount. The extra day keeps it valid for a normal session.
+      eventDate: new Date(earliestEventDate(bookingRules).getTime() + 24 * 60 * 60 * 1000),
       deliveryAddress: {
         street: '',
         city: '',
@@ -130,14 +132,14 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
               type="date"
               value={formatDateForInput(localData.eventDate)}
               onChange={(e) => handleDateChange(e.target.value)}
-              min={formatDateForInput(new Date(Date.now() + 48 * 60 * 60 * 1000))}
+              min={formatDateForInput(earliestEventDate(bookingRules))}
               className={errors.eventDate ? 'border-error' : ''}
             />
             {errors.eventDate && (
               <p className="text-body-small text-error-red mt-1">{errors.eventDate}</p>
             )}
             <p className="text-body-small text-neutral-500 mt-1">
-              Must be at least 48 hours from today
+              Must be at least {bookingRules.minimumLeadTimeHours} hours from now
             </p>
           </div>
 

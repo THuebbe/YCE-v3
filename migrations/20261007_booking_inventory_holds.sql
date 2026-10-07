@@ -266,6 +266,19 @@ LANGUAGE sql AS $$
   SELECT COUNT(*)::integer FROM expired;
 $$;
 
+-- Styles/colorways an agency stocks, for the wizard's pickers. A function
+-- rather than a PostgREST select so a large library isn't cut at max-rows.
+CREATE OR REPLACE FUNCTION yce_owned_styles(p_agency_id text)
+RETURNS TABLE (style text, colorway text)
+LANGUAGE sql STABLE AS $$
+  SELECT DISTINCT s.style, s.colorway
+  FROM agency_inventory ai
+  JOIN sign_library s ON s.id = ai.sign_id
+  WHERE ai.agency_id = p_agency_id AND ai.quantity > 0
+    AND s.style IS NOT NULL AND s.colorway IS NOT NULL
+  ORDER BY 1, 2;
+$$;
+
 -- RLS is off, so keep these out of reach of the public anon/authenticated
 -- PostgREST roles; only the server's service-role client may call them.
 DO $$
@@ -278,7 +291,8 @@ BEGIN
     'yce_touch_booking_hold(text,text,text,integer)',
     'yce_convert_hold_to_order(text,text,text,text,date,date)',
     'yce_release_order_hold(text,text)',
-    'yce_expire_temporary_holds()'
+    'yce_expire_temporary_holds()',
+    'yce_owned_styles(text)'
   ] LOOP
     EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC, anon, authenticated', f);
     EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role', f);
