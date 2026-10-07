@@ -368,9 +368,8 @@ One branch + PR per milestone, browser-tested on its preview first.
 
 ## NOT VERIFIED — check before trusting
 - **M1 items not seen running:** the `clear-expired-holds` cron route
-  itself (production-only; the SQL it calls was run by hand); the agency dashboard
-  inventory page now listing 344 rows per agency (not opened - may need
-  filtering); a human click-through on a phone.
+  itself (production-only; the SQL it calls was run by hand); a human
+  click-through on a phone.
 - **M1 decisions (user, 2026-10-07), built:** setup + teardown days
   (default 1 each, free, block stock; editable in Elite at the permissions
   stage - no UI yet); order cutoff = calendar days before delivery
