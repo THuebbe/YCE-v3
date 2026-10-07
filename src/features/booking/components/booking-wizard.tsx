@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { WizardProvider, useWizard } from '../context/wizard-context';
+import type { BookingPricing } from '../pricing';
 import { ProgressIndicator } from './progress-indicator';
 import { BookingErrorBoundary } from './error-boundary';
 import { ContactInfoStep } from './steps/contact-info-step';
@@ -129,13 +130,15 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
 }
 
 interface BookingWizardProps {
-  agencyId?: string;
+  agencyId: string;
+  agencySlug: string;
+  pricing: BookingPricing;
   initialStep?: number;
 }
 
-export function BookingWizard({ agencyId, initialStep = 1 }: BookingWizardProps) {
+export function BookingWizard({ agencyId, agencySlug, pricing, initialStep = 1 }: BookingWizardProps) {
   return (
-    <WizardProvider totalSteps={wizardSteps.length} initialStep={initialStep}>
+    <WizardProvider agencyId={agencyId} agencySlug={agencySlug} pricing={pricing} totalSteps={wizardSteps.length} initialStep={initialStep}>
       <BookingWizardContent agencyId={agencyId} />
     </WizardProvider>
   );

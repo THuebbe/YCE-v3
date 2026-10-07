@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
+import { calculateBookingTotal } from '../../pricing';
 import { Button } from '@/shared/components/ui/button';
 import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2, AlertCircle } from 'lucide-react';
 import { DisplayGrid } from '../display/DisplayGrid';
@@ -10,7 +11,7 @@ import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing } = useWizard();
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [orderProcessing, setOrderProcessing] = useState(false);
@@ -50,7 +51,10 @@ export function ReviewStep() {
         eventNumber: formData.display.eventNumber,
         theme: formData.display.characterTheme,
         hobbies: formData.display.hobbies,
-        agencyId: 'yardcard-elite-west-branch' // TODO: Get from route params
+        agencyId,
+        style: formData.display.messageStyle,
+        messageColorway: formData.display.messageColorway,
+        nameColorway: formData.display.nameColorway
       });
       
       if (layoutResult.meetsMinimumFill) {
@@ -73,10 +77,7 @@ export function ReviewStep() {
   }, [hasValidLayout]);
 
   const calculateTotal = () => {
-    const basePrice = 95;
-    const extraDayPrice = 10;
-    const extraDays = (formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0);
-    return basePrice + (extraDays * extraDayPrice);
+    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
   };
 
   const handlePlaceOrder = async () => {
@@ -106,15 +107,11 @@ export function ReviewStep() {
         },
         holdId: formData.display.holdId,
         paymentIntentId,
-        agencyId: 'yardcard-elite-west-branch', // TODO: Get from route params
+        agencySlug, // order API resolves the slug to agency_id
         totalAmount: calculateTotal()
       };
 
-      console.log('🚀 Sending order data:', {
-        eventDateType: typeof orderData.formData.event?.eventDate,
-        eventDateValue: orderData.formData.event?.eventDate,
-        fullOrderData: JSON.stringify(orderData, null, 2)
-      });
+      console.log('🚀 Sending order for', agencySlug);
 
       const response = await fetch('/api/orders/create', {
         method: 'POST',
@@ -395,21 +392,21 @@ export function ReviewStep() {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-body">Base Package</span>
-              <span className="text-body">$95.00</span>
+              <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
             </div>
             
             {((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) > 0 && (
               <>
-                {formData.display?.extraDaysBefore && formData.display.extraDaysBefore > 0 && (
+                {(formData.display?.extraDaysBefore ?? 0) > 0 && (
                   <div className="flex justify-between text-body-small">
-                    <span className="text-neutral-600">Extra Days Before ({formData.display.extraDaysBefore})</span>
-                    <span className="text-neutral-900">${formData.display.extraDaysBefore * 10}.00</span>
+                    <span className="text-neutral-600">Extra Days Before ({formData.display?.extraDaysBefore})</span>
+                    <span className="text-neutral-900">${((formData.display?.extraDaysBefore ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
                   </div>
                 )}
-                {formData.display?.extraDaysAfter && formData.display.extraDaysAfter > 0 && (
+                {(formData.display?.extraDaysAfter ?? 0) > 0 && (
                   <div className="flex justify-between text-body-small">
-                    <span className="text-neutral-600">Extra Days After ({formData.display.extraDaysAfter})</span>
-                    <span className="text-neutral-900">${formData.display.extraDaysAfter * 10}.00</span>
+                    <span className="text-neutral-600">Extra Days After ({formData.display?.extraDaysAfter})</span>
+                    <span className="text-neutral-900">${((formData.display?.extraDaysAfter ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
                   </div>
                 )}
               </>
@@ -417,7 +414,7 @@ export function ReviewStep() {
             
             <div className="border-t pt-3 flex justify-between text-h4 font-bold">
               <span>Total</span>
-              <span className="text-primary">${calculateTotal()}.00</span>
+              <span className="text-primary">${calculateTotal().toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -476,7 +473,7 @@ export function ReviewStep() {
           ) : !hasValidLayout ? (
             'Complete Step 3 First'
           ) : (
-            `Place Order - $${calculateTotal()}.00`
+            `Place Order - $${calculateTotal().toFixed(2)}`
           )}
         </Button>
       </div>

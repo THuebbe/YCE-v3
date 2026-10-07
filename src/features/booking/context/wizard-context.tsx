@@ -3,11 +3,15 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { BookingFormData, WizardContextType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
+import type { BookingPricing } from '../pricing';
 
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
 interface WizardProviderProps {
   children: React.ReactNode;
+  agencyId: string;
+  agencySlug: string;
+  pricing: BookingPricing;
   totalSteps: number;
   initialStep?: number;
   initialData?: Partial<BookingFormData>;
@@ -15,6 +19,9 @@ interface WizardProviderProps {
 
 export function WizardProvider({ 
   children, 
+  agencyId,
+  agencySlug,
+  pricing,
   totalSteps, 
   initialStep = 1,
   initialData = {}
@@ -73,6 +80,9 @@ export function WizardProvider({
   const isLastStep = currentStep === totalSteps;
 
   const value: WizardContextType = {
+    agencyId,
+    agencySlug,
+    pricing,
     currentStep,
     totalSteps,
     furthestStep,

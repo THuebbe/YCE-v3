@@ -1,6 +1,7 @@
 'use server';
 
 import { cache } from 'react';
+import { requireAgencyMember } from '@/features/auth/guards';
 import { getCurrentTenant } from '@/lib/tenant-context';
 import { getDashboardMetrics as getSupabaseDashboardMetrics, getOrdersByAgency } from '@/lib/db/supabase-client';
 import type { 
@@ -18,6 +19,7 @@ export const getDashboardMetrics = cache(async (agencyId: string): Promise<Dashb
   if (!agencyId) {
     throw new Error('Agency ID is required');
   }
+  await requireAgencyMember(agencyId);
   
   console.log('📊 Dashboard: Getting metrics for agency:', agencyId);
 
@@ -71,6 +73,7 @@ export const getRecentOrders = cache(async (agencyId: string, params: { limit?: 
   if (!agencyId) {
     throw new Error('Agency ID is required');
   }
+  await requireAgencyMember(agencyId);
   const { limit = 5 } = params;
 
   try {
