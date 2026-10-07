@@ -114,7 +114,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const [availableColorways, setAvailableColorways] = useState<string[]>(['Red']);
   // The session's last hold, kept after a design edit clears holdId so the
   // next preview replaces it instead of stacking a second hold.
-  const lastHoldId = useRef(localData.holdId || '');
+  const lastHoldId = useRef(localData.holdId || localData.staleHoldId || '');
 
   const layoutCalculatorService = new LayoutCalculatorService();
 
@@ -142,7 +142,9 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     setLocalData(prev => ({
       ...prev,
       [field]: value,
-      ...(invalidatesHold && prev.holdId ? { holdId: '', holdRentalStart: undefined, holdRentalEnd: undefined } : {}),
+      ...(invalidatesHold && prev.holdId
+        ? { holdId: '', staleHoldId: prev.holdId, holdRentalStart: undefined, holdRentalEnd: undefined }
+        : {}),
     }));
     if (invalidatesHold) {
       setLayoutCalculation(null);
@@ -191,7 +193,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     lastHoldId.current = result.holdId;
     setShortages([]);
     setPreviewError(null);
-    return { ...data, holdId: result.holdId, holdRentalStart: result.rentalStart, holdRentalEnd: result.rentalEnd };
+    return { ...data, holdId: result.holdId, staleHoldId: undefined, holdRentalStart: result.rentalStart, holdRentalEnd: result.rentalEnd };
   };
 
   const generateLayoutPreview = async () => {

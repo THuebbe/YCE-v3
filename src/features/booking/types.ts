@@ -60,6 +60,9 @@ export const displaySchema = z.object({
   // when the dates no longer match it
   holdRentalStart: z.string().optional(),
   holdRentalEnd: z.string().optional(),
+  // A hold this session no longer uses (dates or design changed); the next
+  // reservation replaces it instead of leaving it live until it expires
+  staleHoldId: z.string().optional(),
 });
 
 // Payment Step - Dynamic schema based on available methods

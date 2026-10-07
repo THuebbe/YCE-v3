@@ -74,7 +74,7 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
     if (held?.holdId && (held.holdRentalStart !== signsOut.start || held.holdRentalEnd !== signsOut.end)) {
       updateFormData({
         event: localData,
-        display: { ...held, holdId: '', holdRentalStart: undefined, holdRentalEnd: undefined },
+        display: { ...held, holdId: '', staleHoldId: held.holdId, holdRentalStart: undefined, holdRentalEnd: undefined },
       });
     } else {
       updateFormData({ event: localData });
