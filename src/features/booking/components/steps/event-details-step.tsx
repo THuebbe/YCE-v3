@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { createEventSchema, EventFormData, TimeWindow } from '../../types';
-import { addDays, earliestEventDay, maxExtraDays, rentalWindow, todayIn, validateBookingDates } from '../../booking-rules';
+import { addDays, earliestEventDay, formatDay, maxExtraDays, rentalWindow, todayIn, validateBookingDates } from '../../booking-rules';
 import { calculateBookingTotal } from '../../pricing';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -158,7 +158,7 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
               <p className="text-body-small text-error-red mt-1">{errors.eventDate || dateIssue}</p>
             )}
             <p className="text-body-small text-neutral-500 mt-1">
-              Earliest available: {new Date(`${earliestEventDay(bookingRules, localData.extraDaysBefore, today)}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              Earliest available: {formatDay(earliestEventDay(bookingRules, localData.extraDaysBefore, today))}
             </p>
           </div>
 

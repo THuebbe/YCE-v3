@@ -271,10 +271,25 @@ export async function POST(
 				p_rental_end: end,
 			}
 		);
-		const converted = (conversion as { ok?: boolean; reason?: string } | null);
-		if (conversionError || !converted?.ok) {
+		let converted = (conversion as { ok?: boolean; reason?: string } | null);
+		if (conversionError) {
+			// The call may have committed and only the response was lost: if
+			// the hold now belongs to this order, the conversion succeeded.
+			const { data: ownHold } = await supabase
+				.from("inventory_holds")
+				.select("id")
+				.eq("id", holdId)
+				.eq("order_id", orderRecord.id)
+				.eq("hold_type", "order")
+				.maybeSingle();
+			if (ownHold) converted = { ok: true };
+		}
+		if (!converted?.ok) {
 			console.warn("⚠️ Hold conversion failed:", conversionError?.message ?? converted?.reason);
-			await supabase.from("orders").delete().eq("id", orderRecord.id);
+			const { error: deleteError } = await supabase.from("orders").delete().eq("id", orderRecord.id);
+			if (deleteError) {
+				console.error("❌ Could not roll back order without signs:", orderRecord.id, deleteError.message);
+			}
 			const reason = converted?.reason;
 			return NextResponse.json(
 				{

@@ -381,9 +381,22 @@ One branch + PR per milestone, browser-tested on its preview first.
   a dashboard design task for milestone 4/5. The 15 original boards'
   `/images/signs/*.jpg` don't exist (pre-existing, broken before M1).
   One unexplained 400 on the My Inventory tab (not traced).
-- **Pending approval:** `migrations/20261008_drop_old_create_booking_hold.sql`
-  (drops the unused 7-arg `yce_create_booking_hold`; DROPs time out
-  without the user present).
+- **Code review of the M1 diff (2026-10-07, `/code-review high`):** fixed
+  - a wizard session's live holds are now replaced server-side (a reload
+  or failed regenerate used to stack holds); converting a hold the expiry
+  cron already deactivated now works; the order route checks whether a
+  "failed" conversion actually committed before rolling the order back;
+  date labels share `formatDay`. All three DB fixes tested in a
+  rolled-back SQL block. Not fixed, by decision: order holds have no end
+  until check-in (M5) - **every test/real order permanently removes its
+  signs until released by hand**; shared-IP customers share the 3-hold
+  limit; a spoofed browser time zone can shift the cutoff by hours when
+  the agency has no time zone (fix: agency time zone at onboarding);
+  old-shape `booking_rules` fall back to defaults (test agencies only);
+  dashboard stock counters still ignore holds (M5); an agency changing
+  setup/teardown days mid-checkout fails that one order (`dates_changed`).
+- ~~Pending approval~~: old 7-arg `yce_create_booking_hold` dropped and the
+  leftover test `order_signs` row deleted by the user, 2026-10-07.
 - **Leftover test row:** one `order_signs` row (20x red A) on order
   YCE-2026-647960 from SQL testing. Its hold is inactive so it blocks
   nothing; delete it (Supabase MCP deletes need user approval - they

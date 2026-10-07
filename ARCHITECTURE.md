@@ -47,7 +47,8 @@ quantity - live temporary holds overlapping the range - active order holds
 with `rental_start <= end`. Order holds have no end: signs stay out until
 released (check-in, cancellation, or `SELECT yce_release_order_hold(id)`
 by hand - check-in isn't built yet). Every write takes a per-agency
-advisory lock. The `yce_*` functions are granted to `service_role` only.
+advisory lock. A new temporary hold replaces every live temporary hold
+of the same wizard `session_id` (server-side; a refused one keeps them). The `yce_*` functions are granted to `service_role` only.
 Rental range = delivery (event day - extra days before - `setupDays`)
 through pickup (event day + extra days after + `teardownDays`), UTC
 calendar days of the local-noon event date. Order cutoff: end of day,

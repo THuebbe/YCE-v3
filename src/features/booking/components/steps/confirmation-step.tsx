@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
-import { rentalWindow } from '../../booking-rules';
+import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Check, Calendar, MapPin, Mail, Phone, Download, Home } from 'lucide-react';
 
@@ -30,10 +30,6 @@ export function ConfirmationStep() {
 
   // Same delivery/pickup days the sign hold was taken for (setup and
   // teardown days included)
-  const formatWindowDay = (dayKey: string) =>
-    new Date(`${dayKey}T12:00:00Z`).toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
-    });
   const signsOut = formData.event?.eventDate
     ? rentalWindow(
         bookingRules,
@@ -42,8 +38,8 @@ export function ConfirmationStep() {
         formData.event.extraDaysAfter || 0
       )
     : null;
-  const getDeliveryDate = () => (signsOut ? formatWindowDay(signsOut.start) : 'Date not set');
-  const getRemovalDate = () => (signsOut ? formatWindowDay(signsOut.end) : 'Date not set');
+  const getDeliveryDate = () => (signsOut ? formatDay(signsOut.start, true) : 'Date not set');
+  const getRemovalDate = () => (signsOut ? formatDay(signsOut.end, true) : 'Date not set');
 
   return (
     <motion.div

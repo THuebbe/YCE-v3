@@ -109,9 +109,11 @@ export function earliestEventDay(rules: BookingRules, extraDaysBefore: number, t
   return addDays(today, rules.orderCutoffDays + rules.setupDays + extraDaysBefore);
 }
 
-function formatDay(dayKey: string): string {
+/** Human label for a YYYY-MM-DD day key, e.g. "Saturday, Oct 10". */
+export function formatDay(dayKey: string, withYear = false): string {
   return new Date(`${dayKey}T12:00:00Z`).toLocaleDateString('en-US', {
-    weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC',
+    weekday: 'long', month: withYear ? 'long' : 'short', day: 'numeric',
+    ...(withYear ? { year: 'numeric' } : {}), timeZone: 'UTC',
   });
 }
 
