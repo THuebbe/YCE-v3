@@ -3,6 +3,7 @@ import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
 import { sendOrderNotificationEmail } from "@/lib/email";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
+import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { z } from "zod";
 
 // Relaxed input validation schema - only validate essential fields
@@ -15,6 +16,8 @@ const createOrderInputSchema = z.object({
 		}),
 		event: z.object({
 			eventDate: z.string(), // Accept as string, convert manually
+			extraDaysBefore: z.number().int().min(0).max(7).default(0),
+			extraDaysAfter: z.number().int().min(0).max(7).default(0),
 			deliveryAddress: z
 				.object({
 					street: z.string().min(5),
@@ -38,8 +41,6 @@ const createOrderInputSchema = z.object({
 				nameColorway: z.string().min(1).optional(),
 				characterTheme: z.string().optional(),
 				hobbies: z.array(z.string()).optional(),
-				extraDaysBefore: z.number().min(0).max(7).default(0),
-				extraDaysAfter: z.number().min(0).max(7).default(0),
 				previewUrl: z.string().optional(),
 				holdId: z.string().min(1),
 			})
@@ -59,6 +60,8 @@ const createOrderInputSchema = z.object({
 			.optional(),
 	}),
 	holdId: z.string().min(1, "Hold ID is required"),
+	sessionId: z.string().min(1, "Booking session is required"),
+	timeZone: z.string().max(64).optional(),
 	paymentIntentId: z.string().min(1, "Payment Intent ID is required"),
 	agencySlug: z.string().min(1, "Agency slug is required"),
 	totalAmount: z.number().positive("Total amount must be positive"),
@@ -105,7 +108,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, paymentIntentId, agencySlug, totalAmount } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, agencySlug, totalAmount } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -131,8 +134,8 @@ export async function POST(
 		}
 		const serverTotal = calculateBookingTotal(
 			pricing,
-			formData.display?.extraDaysBefore ?? 0,
-			formData.display?.extraDaysAfter ?? 0
+			formData.event.extraDaysBefore,
+			formData.event.extraDaysAfter
 		);
 		if (Math.abs(serverTotal - totalAmount) > 0.005) {
 			console.warn('⚠️ Order total mismatch:', { agencySlug, client: totalAmount, server: serverTotal });
@@ -154,17 +157,18 @@ export async function POST(
 			);
 		}
 
-		// Validate date is at least 48 hours from now
-		const now = new Date();
-		const minDate = new Date(now.getTime() + 48 * 60 * 60 * 1000);
-		if (eventDate < minDate) {
-			return NextResponse.json(
-				{
-					success: false,
-					error: "Event date must be at least 48 hours from now",
-				},
-				{ status: 400 }
-			);
+		// The agency's booking rules (order cutoff before delivery, rental length)
+		const { extraDaysBefore, extraDaysAfter } = formData.event;
+		const rules = parseBookingRules(agency.booking_rules);
+		const dateError = validateBookingDates(
+			rules,
+			eventDate,
+			extraDaysBefore,
+			extraDaysAfter,
+			todayIn(resolveTimeZone(agency.operating_hours, timeZone))
+		);
+		if (dateError) {
+			return NextResponse.json({ success: false, error: dateError }, { status: 400 });
 		}
 
 		// Generate order number (format: YCE-YYYY-NNNNNN)
@@ -211,6 +215,11 @@ export async function POST(
 					? formData.display?.customMessage
 					: formData.display?.eventMessage,
 			theme: formData.display?.characterTheme || null,
+			extra_days: extraDaysBefore + extraDaysAfter,
+			extra_day_fee: (extraDaysBefore + extraDaysAfter) * pricing.extraDayPrice,
+			extraDaysBefore,
+			extraDaysAfter,
+			holdId,
 
 			// Payment information
 			payment_method: formData.payment?.paymentMethod || null,
@@ -247,6 +256,55 @@ export async function POST(
 
 		console.log("✅ Order created successfully:", orderRecord?.id);
 
+		// The order takes over the customer's sign hold (the signs stay
+		// blocked until check-in). No hold, no order: an order without signs
+		// would let the same letters be booked twice.
+		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
+		const { data: conversion, error: conversionError } = await supabase.rpc(
+			"yce_convert_hold_to_order",
+			{
+				p_hold_id: holdId,
+				p_agency_id: actualAgencyId,
+				p_session_id: sessionId,
+				p_order_id: orderRecord.id,
+				p_rental_start: start,
+				p_rental_end: end,
+			}
+		);
+		let converted = (conversion as { ok?: boolean; reason?: string } | null);
+		if (conversionError) {
+			// The call may have committed and only the response was lost: if
+			// the hold now belongs to this order, the conversion succeeded.
+			const { data: ownHold } = await supabase
+				.from("inventory_holds")
+				.select("id")
+				.eq("id", holdId)
+				.eq("order_id", orderRecord.id)
+				.eq("hold_type", "order")
+				.maybeSingle();
+			if (ownHold) converted = { ok: true };
+		}
+		if (!converted?.ok) {
+			console.warn("⚠️ Hold conversion failed:", conversionError?.message ?? converted?.reason);
+			const { error: deleteError } = await supabase.from("orders").delete().eq("id", orderRecord.id);
+			if (deleteError) {
+				console.error("❌ Could not roll back order without signs:", orderRecord.id, deleteError.message);
+			}
+			const reason = converted?.reason;
+			return NextResponse.json(
+				{
+					success: false,
+					error:
+						reason === "insufficient_stock"
+							? "Some of your signs were booked by someone else while your reservation was idle. Please go back and regenerate your layout."
+							: reason === "dates_changed"
+								? "Your dates changed after your signs were reserved. Please go back and regenerate your layout."
+								: "Your sign reservation has ended. Please go back and regenerate your layout.",
+				},
+				{ status: 409 }
+			);
+		}
+
 		// Send email notification to agency
 		try {
 			await sendOrderNotificationEmail({
@@ -263,7 +321,6 @@ export async function POST(
 			// Don't fail the order creation if email fails
 		}
 
-		// TODO: Convert soft hold to hard hold (inventory management)
 		// TODO: Send confirmation email to customer
 		// TODO: Create calendar event for delivery
 

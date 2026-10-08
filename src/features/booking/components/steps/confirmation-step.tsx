@@ -4,11 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
+import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Check, Calendar, MapPin, Mail, Phone, Download, Home } from 'lucide-react';
 
 export function ConfirmationStep() {
-  const { formData, pricing } = useWizard();
+  const { formData, pricing, bookingRules } = useWizard();
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Get order details from the form data
@@ -24,38 +25,21 @@ export function ConfirmationStep() {
   }, []);
 
   const calculateTotal = () => {
-    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
+    return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
   };
 
-  const getDeliveryDate = () => {
-    if (!formData.event?.eventDate) return 'Date not set';
-    
-    const eventDate = new Date(formData.event.eventDate);
-    const deliveryDate = new Date(eventDate);
-    deliveryDate.setDate(eventDate.getDate() - (formData.display?.extraDaysBefore || 0));
-    
-    return deliveryDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getRemovalDate = () => {
-    if (!formData.event?.eventDate) return 'Date not set';
-    
-    const eventDate = new Date(formData.event.eventDate);
-    const removalDate = new Date(eventDate);
-    removalDate.setDate(eventDate.getDate() + 1 + (formData.display?.extraDaysAfter || 0));
-    
-    return removalDate.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  // Same delivery/pickup days the sign hold was taken for (setup and
+  // teardown days included)
+  const signsOut = formData.event?.eventDate
+    ? rentalWindow(
+        bookingRules,
+        new Date(formData.event.eventDate),
+        formData.event.extraDaysBefore || 0,
+        formData.event.extraDaysAfter || 0
+      )
+    : null;
+  const getDeliveryDate = () => (signsOut ? formatDay(signsOut.start, true) : 'Date not set');
+  const getRemovalDate = () => (signsOut ? formatDay(signsOut.end, true) : 'Date not set');
 
   return (
     <motion.div
@@ -162,13 +146,13 @@ export function ConfirmationStep() {
               <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
             </div>
             
-            {((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) > 0 && (
+            {((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) > 0 && (
               <div className="flex justify-between text-body-small">
                 <span className="text-neutral-600">
-                  Extra Days ({(formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)})
+                  Extra Days ({(formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)})
                 </span>
                 <span className="text-neutral-900">
-                  ${(((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
+                  ${(((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
                 </span>
               </div>
             )}

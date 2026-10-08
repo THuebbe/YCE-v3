@@ -1,5 +1,6 @@
 import { BookingWizard } from '@/features/booking/components/booking-wizard';
 import { parseBookingPricing } from '@/features/booking/pricing';
+import { parseBookingRules, resolveTimeZone } from '@/features/booking/booking-rules';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
 
@@ -44,6 +45,8 @@ export default async function AgencyBookingPage({ params, searchParams }: Bookin
         agencyId={agency.id}
         agencySlug={agency.slug}
         pricing={pricing}
+        bookingRules={parseBookingRules(agency.booking_rules)}
+        agencyTimeZone={resolveTimeZone(agency.operating_hours)}
         initialStep={step}
       />
     </div>

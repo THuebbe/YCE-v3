@@ -1,5 +1,6 @@
 import { LayoutCalculation, DisplayZone, ZoneSign, SignStyle } from '../types';
 import { loadManifest, indexManifest, resolveAsset, assetUrl, SignAsset } from './sign-assets';
+import { ordinalKey, decorationKey, backdropKey, bookendKey } from './catalog-keys';
 
 // Decoration display names that resolve to a real manifest shape asset.
 // Everything else (Baseball, Crown, Confetti, ...) has no generated art and
@@ -314,6 +315,7 @@ export class LayoutCalculatorService {
     const asset = assetIndex && style && colorway ? resolveAsset(assetIndex, char, style, colorway) : null;
     return {
       signId: `letter-${char}-${position}`,
+      catalogKey: asset?.id,
       zone,
       type: 'letter',
       position,
@@ -341,6 +343,7 @@ export class LayoutCalculatorService {
     const asset = assetIndex && style && colorway ? resolveAsset(assetIndex, digit, style, colorway) : null;
     return {
       signId: `number-${digit}-${position}`,
+      catalogKey: asset?.id,
       zone: 'zone1',
       type: 'number',
       position,
@@ -360,6 +363,7 @@ export class LayoutCalculatorService {
   private createOrdinalSign(ordinal: string, position: number, width: number): ZoneSign {
     return {
       signId: `ordinal-${ordinal}-${position}`,
+      catalogKey: ordinalKey(ordinal),
       zone: 'zone1',
       type: 'ordinal',
       position,
@@ -391,6 +395,7 @@ export class LayoutCalculatorService {
       : null;
     return {
       signId: `decoration-${name}-${position}`,
+      catalogKey: asset?.id ?? decorationKey(name),
       zone: 'zone3',
       type: 'decoration',
       position,
@@ -410,6 +415,7 @@ export class LayoutCalculatorService {
   private createBackdropSign(name: string, position: number, width: number): ZoneSign {
     return {
       signId: `backdrop-${name}-${position}`,
+      catalogKey: backdropKey(name),
       zone: 'zone4',
       type: 'backdrop',
       position,
@@ -427,6 +433,7 @@ export class LayoutCalculatorService {
   private createBookendSign(name: string, position: number, width: number): ZoneSign {
     return {
       signId: `bookend-${name}-${position}`,
+      catalogKey: bookendKey(name),
       zone: 'zone5',
       type: 'bookend',
       position,

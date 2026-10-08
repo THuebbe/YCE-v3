@@ -105,12 +105,15 @@ export const blackoutDateSchema = z.object({
   }).optional(),
 })
 
-// Booking rules schema
+// Booking rules schema - the shape features/booking/booking-rules.ts enforces
 export const bookingRulesSchema = z.object({
-  minimumLeadTimeHours: z
+  orderCutoffDays: z
     .number()
-    .min(0, 'Lead time cannot be negative')
-    .max(168, 'Lead time cannot exceed 1 week (168 hours)'),
+    .int()
+    .min(0, 'Order cutoff cannot be negative')
+    .max(30, 'Order cutoff cannot exceed 30 days'),
+  setupDays: z.number().int().min(0).max(14).default(1),
+  teardownDays: z.number().int().min(0).max(14).default(1),
   maximumRentalDays: z
     .number()
     .min(1, 'Maximum rental must be at least 1 day')
@@ -119,7 +122,6 @@ export const bookingRulesSchema = z.object({
     .number()
     .min(1, 'Minimum rental must be at least 1 day')
     .max(7, 'Minimum rental cannot exceed 7 days'),
-  allowSameDayBooking: z.boolean(),
 }).refine((data) => {
   return data.maximumRentalDays >= data.minimumRentalDays
 }, {
@@ -288,10 +290,11 @@ export const defaultAgencySettings: AgencySettings = {
     customWindows: []
   },
   bookingRules: {
-    minimumLeadTimeHours: 48,
+    orderCutoffDays: 1,
+    setupDays: 1,
+    teardownDays: 1,
     maximumRentalDays: 14,
     minimumRentalDays: 1,
-    allowSameDayBooking: false
   },
   blackoutDates: [],
   serviceArea: {

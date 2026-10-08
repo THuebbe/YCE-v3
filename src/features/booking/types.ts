@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { BookingPricing } from './pricing';
+import { DEFAULT_BOOKING_RULES, toDayKey, validateBookingDates, type BookingRules } from './booking-rules';
 
 // Contact Information Step
 export const contactSchema = z.object({
@@ -15,16 +16,14 @@ export const contactSchema = z.object({
   ),
 });
 
-// Event Details Step
-export const eventSchema = z.object({
-  eventDate: z.date().refine(
-    (date) => {
-      const now = new Date();
-      const minDate = new Date(now.getTime() + 48 * 60 * 60 * 1000); // 48 hours from now
-      return date >= minDate;
-    },
-    'Event date must be at least 48 hours from now'
-  ),
+// Event Details Step: the date and the paid extra days, so the rental
+// window is fixed before the configurator reserves signs. The date rules
+// are the agency's (booking_rules); `today` is a YYYY-MM-DD in the deciding
+// time zone. eventSchema (default rules) is kept for the inferred type.
+const eventFields = {
+  eventDate: z.date(),
+  extraDaysBefore: z.number().int().min(0).max(7).default(0),
+  extraDaysAfter: z.number().int().min(0).max(7).default(0),
   deliveryAddress: z.object({
     street: z.string().min(5, 'Please enter a complete street address'),
     city: z.string().min(2, 'City is required'),
@@ -35,7 +34,13 @@ export const eventSchema = z.object({
     required_error: 'Please select a preferred time window',
   }),
   deliveryNotes: z.string().optional(),
-});
+};
+export const createEventSchema = (rules: BookingRules = DEFAULT_BOOKING_RULES, today = toDayKey(new Date())) =>
+  z.object(eventFields).superRefine((data, ctx) => {
+    const error = validateBookingDates(rules, data.eventDate, data.extraDaysBefore, data.extraDaysAfter, today);
+    if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['eventDate'], message: error });
+  });
+export const eventSchema = createEventSchema();
 
 // Display Customization Step
 export const displaySchema = z.object({
@@ -49,10 +54,15 @@ export const displaySchema = z.object({
   nameColorway: z.string().min(1, 'Please select a name color'),
   characterTheme: z.string().optional(),
   hobbies: z.array(z.string()).optional(),
-  extraDaysBefore: z.number().min(0).max(7).default(0),
-  extraDaysAfter: z.number().min(0).max(7).default(0),
   previewUrl: z.string().optional(),
   holdId: z.string().min(1, 'Please generate your display layout first'),
+  // Rental window the hold was taken for; Event Details clears the hold
+  // when the dates no longer match it
+  holdRentalStart: z.string().optional(),
+  holdRentalEnd: z.string().optional(),
+  // A hold this session no longer uses (dates or design changed); the next
+  // reservation replaces it instead of leaving it live until it expires
+  staleHoldId: z.string().optional(),
 });
 
 // Payment Step - Dynamic schema based on available methods
@@ -107,6 +117,11 @@ export interface WizardContextType {
   agencyId: string;
   agencySlug: string;
   pricing: BookingPricing;
+  bookingRules: BookingRules;
+  /** Identifies this browser's wizard run to the server; holds belong to it. */
+  sessionId: string;
+  /** IANA zone that decides "end of day" for the order cutoff */
+  timeZone: string | undefined;
   currentStep: number;
   totalSteps: number;
   furthestStep: number;
@@ -168,6 +183,9 @@ export interface ZoneSign {
   zone: SignZone;
   type: SignType;
   position: number; // Order within the zone
+  /** sign_library.asset_key of the physical sign; what holds reserve.
+   *  Missing when the layout placed something no catalog sign matches. */
+  catalogKey?: string;
   character?: string; // For letters/numbers
   isOrdinal?: boolean; // For ordinal indicators (st, nd, rd, th)
   side?: 'left' | 'right'; // For zone3 decorations, which side of the name they sit on

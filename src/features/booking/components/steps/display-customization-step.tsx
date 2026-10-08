@@ -1,14 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
-import { calculateBookingTotal } from '../../pricing';
 import { displaySchema, DisplayFormData, Sign } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { InventoryService } from '../../services/inventory';
-import { SignSelectionService } from '../../services/sign-selection';
+import { createBookingHold, getBookingCatalog } from '../../actions';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { DisplayGrid } from '../display/DisplayGrid';
 import { LetterStake } from '../display/LetterStake';
@@ -91,7 +89,7 @@ const hobbies = [
 ];
 
 export function DisplayCustomizationStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep, agencyId, pricing } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone } = useWizard();
   const [localData, setLocalData] = useState<DisplayFormData>(
     formData.display || {
       eventMessage: '',
@@ -104,8 +102,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       nameColorway: 'Red',
       characterTheme: '',
       hobbies: [],
-      extraDaysBefore: 0,
-      extraDaysAfter: 0,
       holdId: '',
     }
   );
@@ -113,34 +109,52 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const [holdId, setHoldId] = useState<string | null>(null);
+  const [shortages, setShortages] = useState<{ name: string; requested: number; available: number }[]>([]);
   const [availableStyles, setAvailableStyles] = useState<string[]>(['Classic']);
   const [availableColorways, setAvailableColorways] = useState<string[]>(['Red']);
+  // The session's last hold, kept after a design edit clears holdId so the
+  // next preview replaces it instead of stacking a second hold.
+  const lastHoldId = useRef(localData.holdId || localData.staleHoldId || '');
 
-  const inventoryService = new InventoryService();
-  const signSelectionService = new SignSelectionService();
   const layoutCalculatorService = new LayoutCalculatorService();
 
   const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
   useEffect(() => {
-    inventoryService.getAvailableStyles().then(styles => {
+    getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
       if (styles.length > 0) setAvailableStyles(styles.map(capitalize));
-    });
-    inventoryService.getAvailableColorways().then(colorways => {
       if (colorways.length > 0) setAvailableColorways(colorways.map(capitalize));
+      if (styles.length === 0 || colorways.length === 0) {
+        setPreviewError('This agency has no letter signs in stock yet. Please contact them directly.');
+      }
     });
-  }, []);
+  }, [agencySlug]);
+
+  // Edits that change which signs the display uses invalidate the hold;
+  // the customer regenerates the preview to reserve the new set.
+  const DESIGN_FIELDS: (keyof DisplayFormData)[] = [
+    'eventMessage', 'customMessage', 'eventNumber', 'recipientName', 'messageStyle',
+    'nameStyle', 'messageColorway', 'nameColorway', 'characterTheme', 'hobbies',
+  ];
 
   const handleInputChange = (field: keyof DisplayFormData, value: any) => {
-    setLocalData(prev => ({ ...prev, [field]: value }));
-    
+    const invalidatesHold = DESIGN_FIELDS.includes(field);
+    setLocalData(prev => ({
+      ...prev,
+      [field]: value,
+      ...(invalidatesHold && prev.holdId
+        ? { holdId: '', staleHoldId: prev.holdId, holdRentalStart: undefined, holdRentalEnd: undefined }
+        : {}),
+    }));
+    if (invalidatesHold) {
+      setLayoutCalculation(null);
+      setShortages([]);
+    }
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
-    
-    // Auto-generation removed - users now manually generate layout with button
   };
 
   const handleHobbyToggle = (hobby: string) => {
@@ -152,6 +166,36 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     handleInputChange('hobbies', newHobbies);
   };
 
+  /** Reserve `keys` for the current dates, replacing this session's last
+   *  hold. Returns the updated display data, or null on failure (the error
+   *  and any shortages are shown). */
+  const reserveSigns = async (keys: string[], data: DisplayFormData): Promise<DisplayFormData | null> => {
+    const event = formData.event;
+    if (!event?.eventDate) {
+      setPreviewError('Please choose an event date first');
+      return null;
+    }
+    const result = await createBookingHold({
+      agencySlug,
+      sessionId,
+      timeZone,
+      eventDate: new Date(event.eventDate).toISOString(),
+      extraDaysBefore: event.extraDaysBefore ?? 0,
+      extraDaysAfter: event.extraDaysAfter ?? 0,
+      catalogKeys: keys,
+      replaceHoldId: data.holdId || lastHoldId.current || undefined,
+    });
+    if (!result.ok) {
+      setPreviewError(result.error);
+      setShortages(result.shortages ?? []);
+      return null;
+    }
+    lastHoldId.current = result.holdId;
+    setShortages([]);
+    setPreviewError(null);
+    return { ...data, holdId: result.holdId, staleHoldId: undefined, holdRentalStart: result.rentalStart, holdRentalEnd: result.rentalEnd };
+  };
+
   const generateLayoutPreview = async () => {
     if (!localData.eventMessage || !localData.recipientName) {
       return;
@@ -159,6 +203,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     
     setPreviewLoading(true);
     setPreviewError(null);
+    setShortages([]);
     
     try {
       const message = localData.eventMessage === 'Custom Message' 
@@ -169,7 +214,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         setPreviewLoading(false);
         return;
       }
-      
       
       const layoutResult = await layoutCalculatorService.calculateLayout({
         message: message,
@@ -182,53 +226,27 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         messageColorway: localData.messageColorway,
         nameColorway: localData.nameColorway
       });
-      
-      
-      if (layoutResult.meetsMinimumFill) {
-        setLayoutCalculation(layoutResult);
-        
-        // Create soft hold on all selected signs
-        const allSignAllocations = [
-          ...layoutResult.zone1.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
-          ...layoutResult.zone2.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
-          ...layoutResult.zone3.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
-          ...layoutResult.zone4.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const })),
-          ...layoutResult.zone5.signs.map(sign => ({ signId: sign.signId, quantity: 1, holdType: 'soft' as const }))
-        ];
-        
-        
-        if (allSignAllocations.length > 0) {
-          // Try to create real hold first
-          const holdResult = await inventoryService.createSoftHold(
-            allSignAllocations,
-            agencyId,
-            'session_' + Date.now().toString()
-          );
-          
-          if (holdResult.success) {
-            setHoldId(holdResult.holdId!);
-            // Immediately save holdId to form data AND wizard context
-            const updatedData = { ...localData, holdId: holdResult.holdId! };
-            setLocalData(updatedData);
-            updateFormData({ display: updatedData });
-          } else {
-            // Create a mock hold ID to allow testing the rest of the flow
-            const mockHoldId = `mock_hold_${Date.now()}`;
-            setHoldId(mockHoldId);
-            // Immediately save holdId to form data AND wizard context
-            const updatedData = { ...localData, holdId: mockHoldId };
-            setLocalData(updatedData);
-            updateFormData({ display: updatedData });
-            // Show a warning but don't block the flow
-            setPreviewError('Using mock inventory hold for testing. Real inventory system needs setup.');
-          }
-        } else {
-          setPreviewError('No signs selected for layout');
-        }
-      } else {
+      setLayoutCalculation(layoutResult); // shown even when it can't be reserved
+
+      if (!layoutResult.meetsMinimumFill) {
         setPreviewError(`Zone 3 fill requirement not met (${Math.round((layoutResult.zone3.fillPercentage || 0) * 100)}% < 75% minimum)`);
-        setLayoutCalculation(layoutResult); // Still show the layout for debugging
+        return;
       }
+
+      const placed = [layoutResult.zone1, layoutResult.zone2, layoutResult.zone3, layoutResult.zone4, layoutResult.zone5]
+        .flatMap(zone => zone.signs);
+      const unmatched = placed.filter(sign => !sign.catalogKey);
+      if (unmatched.length > 0) {
+        const chars = [...new Set(unmatched.map(sign => sign.character ?? sign.type))].join(' ');
+        setPreviewError(`We don't carry these characters in this style and color: ${chars}`);
+        return;
+      }
+
+      const keys = placed.map(sign => sign.catalogKey!);
+      const reserved = await reserveSigns(keys, { ...localData, holdId: '' });
+      const updatedData = reserved ?? { ...localData, holdId: '', holdRentalStart: undefined, holdRentalEnd: undefined };
+      setLocalData(updatedData);
+      updateFormData({ display: updatedData });
     } catch (error) {
       console.error('Error generating layout preview:', error);
       setPreviewError('Failed to generate preview');
@@ -237,10 +255,8 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     }
   };
   
-  const validateAndContinue = () => {
-    // Use the holdId from localData since it should be updated when layout is generated
-    const dataToValidate = { ...localData };
-    const result = displaySchema.safeParse(dataToValidate);
+  const validateAndContinue = async () => {
+    const result = displaySchema.safeParse(localData);
     
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -253,15 +269,12 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     }
 
     // Make sure form data is saved to wizard context
-    updateFormData({ display: dataToValidate });
+    updateFormData({ display: localData });
     nextStep();
   };
   
   // Auto-generation removed - users now manually generate layout with button
 
-  const calculateTotal = () => {
-    return calculateBookingTotal(pricing, localData.extraDaysBefore, localData.extraDaysAfter);
-  };
 
   const validationData = { ...localData };
   const validationResult = displaySchema.safeParse(validationData);
@@ -300,10 +313,9 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         </p>
       </div>
 
-      {/* Row 1: Preview (span 2 cols) + Pricing */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Preview - Spans 2 columns */}
-        <div className="lg:col-span-2">
+      {/* Row 1: Preview (full width - dates and price live in Event Details) */}
+      <div className="mb-6">
+        <div>
           {/* Preview Area */}
           <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
             <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
@@ -319,6 +331,13 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                   <div className="text-center p-4">
                     <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
                     <p className="text-body-small text-red-700">{previewError}</p>
+                    {shortages.length > 0 && (
+                      <ul className="text-body-small text-red-700 mt-2">
+                        {shortages.map(item => (
+                          <li key={item.name}>{item.name}: need {item.requested}, {item.available} free</li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </div>
                 {layoutCalculation && (
@@ -400,7 +419,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
             {layoutCalculation && layoutCalculation.meetsMinimumFill && localData.holdId && (
               <p className="text-body-small text-green-700 text-center flex items-center justify-center">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Layout generated & signs reserved for 1 hour
+                Layout generated & signs reserved (held while you book; released after 1 hour idle)
               </p>
             )}
             
@@ -410,76 +429,6 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 Generate your layout to continue to payment
               </p>
             )}
-          </div>
-        </div>
-
-        {/* Pricing - Right column */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-            <h3 className="text-h5 text-neutral-900 mb-4">Pricing</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-body">Base Package</span>
-                <span className="text-body font-medium">${pricing.basePrice.toFixed(2)}</span>
-              </div>
-              
-              {/* Extra Days Controls */}
-              <div className="border-t pt-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-body-small">Extra Days Before</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleInputChange('extraDaysBefore', Math.max(0, localData.extraDaysBefore - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysBefore <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData.extraDaysBefore}</span>
-                    <button
-                      onClick={() => handleInputChange('extraDaysBefore', Math.min(7, localData.extraDaysBefore + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysBefore >= 7}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-body-small">Extra Days After</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleInputChange('extraDaysAfter', Math.max(0, localData.extraDaysAfter - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysAfter <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData.extraDaysAfter}</span>
-                    <button
-                      onClick={() => handleInputChange('extraDaysAfter', Math.min(7, localData.extraDaysAfter + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData.extraDaysAfter >= 7}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-                
-                {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
-                  <div className="flex justify-between mt-2 text-body-small">
-                    <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × ${pricing.extraDayPrice.toFixed(2)})</span>
-                    <span>${((localData.extraDaysBefore + localData.extraDaysAfter) * pricing.extraDayPrice).toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
-                <span>Total</span>
-                <span className="text-primary">${calculateTotal().toFixed(2)}</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

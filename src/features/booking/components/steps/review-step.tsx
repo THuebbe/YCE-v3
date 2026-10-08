@@ -11,7 +11,7 @@ import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing, sessionId, timeZone } = useWizard();
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [orderProcessing, setOrderProcessing] = useState(false);
@@ -77,7 +77,7 @@ export function ReviewStep() {
   }, [hasValidLayout]);
 
   const calculateTotal = () => {
-    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
+    return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
   };
 
   const handlePlaceOrder = async () => {
@@ -106,6 +106,8 @@ export function ReviewStep() {
           payment: formData.payment
         },
         holdId: formData.display.holdId,
+        sessionId, // the hold belongs to this wizard session
+        timeZone, // decides "end of day" for the order cutoff
         paymentIntentId,
         agencySlug, // order API resolves the slug to agency_id
         totalAmount: calculateTotal()
@@ -395,18 +397,18 @@ export function ReviewStep() {
               <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
             </div>
             
-            {((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) > 0 && (
+            {((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) > 0 && (
               <>
-                {(formData.display?.extraDaysBefore ?? 0) > 0 && (
+                {(formData.event?.extraDaysBefore ?? 0) > 0 && (
                   <div className="flex justify-between text-body-small">
-                    <span className="text-neutral-600">Extra Days Before ({formData.display?.extraDaysBefore})</span>
-                    <span className="text-neutral-900">${((formData.display?.extraDaysBefore ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
+                    <span className="text-neutral-600">Extra Days Before ({formData.event?.extraDaysBefore})</span>
+                    <span className="text-neutral-900">${((formData.event?.extraDaysBefore ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
                   </div>
                 )}
-                {(formData.display?.extraDaysAfter ?? 0) > 0 && (
+                {(formData.event?.extraDaysAfter ?? 0) > 0 && (
                   <div className="flex justify-between text-body-small">
-                    <span className="text-neutral-600">Extra Days After ({formData.display?.extraDaysAfter})</span>
-                    <span className="text-neutral-900">${((formData.display?.extraDaysAfter ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
+                    <span className="text-neutral-600">Extra Days After ({formData.event?.extraDaysAfter})</span>
+                    <span className="text-neutral-900">${((formData.event?.extraDaysAfter ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
                   </div>
                 )}
               </>

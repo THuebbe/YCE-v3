@@ -173,7 +173,7 @@ export function PaymentStep() {
   };
 
   const calculateTotal = () => {
-    return calculateBookingTotal(pricing, formData.display?.extraDaysBefore || 0, formData.display?.extraDaysAfter || 0);
+    return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
   };
 
   const selectedMethod = paymentMethods.availablePaymentMethods.find(
@@ -466,13 +466,13 @@ export function PaymentStep() {
                 <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
               </div>
               
-              {((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) > 0 && (
+              {((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) > 0 && (
                 <div className="flex justify-between text-body-small">
                   <span className="text-neutral-600">
-                    Extra Days ({(formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)})
+                    Extra Days ({(formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)})
                   </span>
                   <span className="text-neutral-900">
-                    ${(((formData.display?.extraDaysBefore || 0) + (formData.display?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
+                    ${(((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
                   </span>
                 </div>
               )}
