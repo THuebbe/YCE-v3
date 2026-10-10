@@ -1,6 +1,29 @@
 import PDFDocument from 'pdfkit';
 import { createBlobService } from '@/lib/storage/vercel-blob';
 import { getOrderWithDetails } from '../utils';
+import { getOrderSignLines } from '../client-utils';
+
+/**
+ * The order as the documents read it. Signs come from order_signs (wizard
+ * bookings) with order_items as the fallback, same as the dashboard; the
+ * camelCase names map the real snake_case columns; money is in dollars.
+ * Wizard bookings are priced as a package (base + extra days), not per sign.
+ */
+export function toDocumentOrder(order: any) {
+  const total = Number(order.total) || 0;
+  const extraDayFee = Number(order.extra_day_fee) || 0;
+  return {
+    ...order,
+    lines: getOrderSignLines(order),
+    specialInstructions: order.special_instructions || order.delivery_notes || '',
+    extraDays: Number(order.extra_days) || 0,
+    extraDayFee,
+    basePackage: total - extraDayFee,
+    lateFee: Number(order.late_fee) || 0,
+    paymentMethod: order.payment_method || '',
+    total,
+  };
+}
 
 export type DocumentType = 'pickTicket' | 'orderSummary' | 'pickupChecklist';
 
@@ -30,20 +53,38 @@ export class DocumentGenerationError extends Error {
   }
 }
 
+
+/** Table rows are placed at absolute y; start a new page before running off
+ *  this one (wizard orders have ~20 sign lines). */
+function nextRowY(doc: PDFKit.PDFDocument, y: number, rowHeight: number): number {
+  if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
+    doc.addPage();
+    return doc.page.margins.top;
+  }
+  return y;
+}
+
+/** After an absolutely positioned table, continue full-width below it. */
+function endTable(doc: PDFKit.PDFDocument, y: number) {
+  doc.x = doc.page.margins.left;
+  doc.y = Math.max(doc.y, y);
+}
+
 export async function generateOrderDocument(
   orderId: string,
   type: DocumentType
 ): Promise<DocumentResult> {
   try {
     // Fetch order details
-    const order = await getOrderWithDetails(orderId);
-    if (!order) {
+    const rawOrder = await getOrderWithDetails(orderId);
+    if (!rawOrder) {
       throw new DocumentGenerationError(
         `Order not found: ${orderId}`,
         type,
         orderId
       );
     }
+    const order = toDocumentOrder(rawOrder);
 
     // Generate PDF buffer based on type
     let pdfBuffer: Buffer;
@@ -95,7 +136,7 @@ export async function generateOrderDocument(
   }
 }
 
-async function generatePickTicketPDF(order: any): Promise<Buffer> {
+export async function generatePickTicketPDF(order: ReturnType<typeof toDocumentOrder>): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
@@ -150,7 +191,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       doc.fontSize(16).text('Items to Pick', { underline: true });
       doc.moveDown(0.5);
 
-      const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+      const signCount = order.lines.reduce((sum: number, item: any) => sum + item.quantity, 0);
       doc.fontSize(12).text(`Total Signs: ${signCount}`);
       doc.moveDown();
 
@@ -165,13 +206,15 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
-      order.order_items?.forEach((item: any, index: number) => {
+      order.lines.forEach((item: any) => {
+        yPosition = nextRowY(doc, yPosition, 25);
         doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
-        doc.text(item.sign.name, 100, yPosition, { width: 200 });
-        doc.text(item.sign.category, 300, yPosition, { width: 100 });
-        doc.text('□ Picked', 400, yPosition, { width: 150 });
+        doc.text((item.sign?.name ?? item.signId), 100, yPosition, { width: 200 });
+        doc.text((item.sign?.category ?? ''), 300, yPosition, { width: 100 });
+        doc.text('[  ] Picked', 400, yPosition, { width: 150 });
         yPosition += 25;
       });
+      endTable(doc, yPosition);
 
       // Footer
       doc.moveDown(2);
@@ -186,7 +229,7 @@ async function generatePickTicketPDF(order: any): Promise<Buffer> {
   });
 }
 
-async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
+export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumentOrder>): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
@@ -238,40 +281,38 @@ async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
       doc.fontSize(12).text('Qty', 50, yPosition, { width: 50 });
       doc.text('Sign Name', 100, yPosition, { width: 200 });
       doc.text('Category', 300, yPosition, { width: 100 });
-      doc.text('Unit Price', 400, yPosition, { width: 75 });
-      doc.text('Total', 475, yPosition, { width: 75 });
       
       yPosition += 20;
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
       // Items
-      order.order_items?.forEach((item: any) => {
+      order.lines.forEach((item: any) => {
+        yPosition = nextRowY(doc, yPosition, 25);
         doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
-        doc.text(item.sign.name, 100, yPosition, { width: 200 });
-        doc.text(item.sign.category, 300, yPosition, { width: 100 });
-        doc.text(`$${(item.unitPrice / 100).toFixed(2)}`, 400, yPosition, { width: 75 });
-        doc.text(`$${(item.line_total / 100).toFixed(2)}`, 475, yPosition, { width: 75 });
+        doc.text((item.sign?.name ?? item.signId), 100, yPosition, { width: 200 });
+        doc.text((item.sign?.category ?? ''), 300, yPosition, { width: 100 });
         yPosition += 25;
       });
 
       // Totals
-      yPosition += 20;
+      yPosition = nextRowY(doc, yPosition + 20, 110);
       doc.moveTo(400, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
-      doc.fontSize(12).text(`Subtotal: $${(order.subtotal / 100).toFixed(2)}`, 400, yPosition, { width: 150 });
+      doc.fontSize(12).text(`Base Package: $${order.basePackage.toFixed(2)}`, 350, yPosition, { width: 200 });
       yPosition += 20;
       if (order.extraDayFee > 0) {
-        doc.text(`Extra Day Fee: $${(order.extraDayFee / 100).toFixed(2)}`, 400, yPosition, { width: 150 });
+        doc.text(`Extra Days (${order.extraDays}): $${order.extraDayFee.toFixed(2)}`, 350, yPosition, { width: 200 });
         yPosition += 20;
       }
       if (order.lateFee > 0) {
-        doc.text(`Late Fee: $${(order.lateFee / 100).toFixed(2)}`, 400, yPosition, { width: 150 });
+        doc.text(`Late Fee: $${order.lateFee.toFixed(2)}`, 350, yPosition, { width: 200 });
         yPosition += 20;
       }
-      
-      doc.fontSize(14).text(`Total: $${(order.total / 100).toFixed(2)}`, 400, yPosition, { width: 150 });
+
+      doc.fontSize(14).text(`Total: $${(order.total + order.lateFee).toFixed(2)}`, 350, yPosition, { width: 200 });
+      endTable(doc, yPosition + 25);
 
       // Payment information
       doc.moveDown(2);
@@ -301,7 +342,7 @@ async function generateOrderSummaryPDF(order: any): Promise<Buffer> {
   });
 }
 
-async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
+export async function generatePickupChecklistPDF(order: ReturnType<typeof toDocumentOrder>): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
@@ -345,28 +386,32 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
       doc.fontSize(16).text('Items to Collect', { underline: true });
       doc.moveDown(0.5);
 
-      const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+      const signCount = order.lines.reduce((sum: number, item: any) => sum + item.quantity, 0);
       doc.fontSize(12).text(`Total Signs: ${signCount}`);
       doc.moveDown();
 
       // Checklist table
       let yPosition = doc.y;
       doc.fontSize(12).text('Qty', 50, yPosition, { width: 50 });
-      doc.text('Sign Name', 100, yPosition, { width: 200 });
-      doc.text('Condition', 300, yPosition, { width: 100 });
-      doc.text('Notes', 400, yPosition, { width: 150 });
+      doc.text('Sign Name', 100, yPosition, { width: 180 });
+      doc.text('Returned (count)', 280, yPosition, { width: 200 });
+      doc.text('Notes', 480, yPosition, { width: 70 });
       
       yPosition += 20;
       doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
-      order.order_items?.forEach((item: any) => {
+      order.lines.forEach((item: any) => {
+        yPosition = nextRowY(doc, yPosition, 30);
         doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
-        doc.text(item.sign.name, 100, yPosition, { width: 200 });
-        doc.text('□ Good  □ Damaged', 300, yPosition, { width: 100 });
-        doc.text('_________________', 400, yPosition, { width: 150 });
+        doc.text((item.sign?.name ?? item.signId), 100, yPosition, { width: 180 });
+        // Counts, not checkboxes: a line can be several signs (matches check-in)
+        doc.fontSize(10).text('Good ___  Damaged ___  Missing ___', 280, yPosition + 1, { width: 200 });
+        doc.text('__________', 480, yPosition + 1, { width: 70 });
+        doc.fontSize(12);
         yPosition += 30;
       });
+      endTable(doc, yPosition);
 
       // Additional notes section
       doc.moveDown(2);
@@ -384,7 +429,7 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
       doc.moveDown(0.5);
       doc.fontSize(12).text('Days Late: ______    Late Fee: $______');
       doc.moveDown();
-      doc.text('□ No late fee assessed    □ Late fee will be charged');
+      doc.text('[  ] No late fee assessed    [  ] Late fee will be charged');
 
       // Footer
       doc.moveDown(2);
@@ -399,7 +444,8 @@ async function generatePickupChecklistPDF(order: any): Promise<Buffer> {
   });
 }
 
-export function generateHTMLFallback(order: any, type: DocumentType): string {
+export function generateHTMLFallback(rawOrder: any, type: DocumentType): string {
+  const order = toDocumentOrder(rawOrder);
   const commonStyles = `
     <style>
       body { font-family: Arial, sans-serif; margin: 20px; }
@@ -448,11 +494,11 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
             <h2>Items to Pick</h2>
             <table>
               <tr><th>Qty</th><th>Sign Name</th><th>Category</th><th>Notes</th></tr>
-              ${order.order_items?.map((item: any) => `
+              ${order.lines.map((item: any) => `
                 <tr>
                   <td>${item.quantity}</td>
-                  <td>${item.sign.name}</td>
-                  <td>${item.sign.category}</td>
+                  <td>${(item.sign?.name ?? item.signId)}</td>
+                  <td>${(item.sign?.category ?? '')}</td>
                   <td>☐ Picked</td>
                 </tr>
               `).join('')}
@@ -477,19 +523,19 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
             ${customerInfo}
             <h2>Order Items</h2>
             <table>
-              <tr><th>Qty</th><th>Sign Name</th><th>Unit Price</th><th>Total</th></tr>
-              ${order.order_items?.map((item: any) => `
+              <tr><th>Qty</th><th>Sign Name</th><th>Category</th></tr>
+              ${order.lines.map((item: any) => `
                 <tr>
                   <td>${item.quantity}</td>
-                  <td>${item.sign.name}</td>
-                  <td>$${(item.unitPrice / 100).toFixed(2)}</td>
-                  <td>$${(item.line_total / 100).toFixed(2)}</td>
+                  <td>${(item.sign?.name ?? item.signId)}</td>
+                  <td>${(item.sign?.category ?? '')}</td>
                 </tr>
               `).join('')}
             </table>
             <div class="total">
-              <p>Subtotal: $${(order.subtotal / 100).toFixed(2)}</p>
-              <p><strong>Total: $${(order.total / 100).toFixed(2)}</strong></p>
+              <p>Base Package: $${order.basePackage.toFixed(2)}</p>
+              ${order.extraDayFee > 0 ? `<p>Extra Days (${order.extraDays}): $${order.extraDayFee.toFixed(2)}</p>` : ''}
+              <p><strong>Total: $${order.total.toFixed(2)}</strong></p>
             </div>
           </body>
         </html>
@@ -508,12 +554,12 @@ export function generateHTMLFallback(order: any, type: DocumentType): string {
             ${customerInfo}
             <h2>Items to Collect</h2>
             <table>
-              <tr><th>Qty</th><th>Sign Name</th><th>Condition</th><th>Notes</th></tr>
-              ${order.order_items?.map((item: any) => `
+              <tr><th>Qty</th><th>Sign Name</th><th>Returned (count)</th><th>Notes</th></tr>
+              ${order.lines.map((item: any) => `
                 <tr>
                   <td>${item.quantity}</td>
-                  <td>${item.sign.name}</td>
-                  <td>☐ Good  ☐ Damaged</td>
+                  <td>${(item.sign?.name ?? item.signId)}</td>
+                  <td>Good ___ Damaged ___ Missing ___</td>
                   <td>_________________</td>
                 </tr>
               `).join('')}
