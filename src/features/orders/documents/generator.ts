@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { createBlobService } from '@/lib/storage/vercel-blob';
 import { getOrderWithDetails } from '../utils';
-import { getOrderSignLines } from '../client-utils';
+import { formatAddress, getOrderSignLines } from '../client-utils';
 
 /**
  * The order as the documents read it. Signs come from order_signs (wizard
@@ -176,7 +176,7 @@ export async function generatePickTicketPDF(order: ReturnType<typeof toDocumentO
         .text(`Email: ${order.customer_email}`)
         .text(`Phone: ${order.customer_phone || 'Not provided'}`)
         .text(`Event Date: ${new Date(order.event_date).toLocaleDateString()}`)
-        .text(`Event Address: ${order.event_address || 'Not provided'}`);
+        .text(`Event Address: ${formatAddress(order.event_address)}`);
       doc.moveDown();
 
       // Special instructions
@@ -269,7 +269,7 @@ export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumen
         .text(`Name: ${order.customer_name}`)
         .text(`Email: ${order.customer_email}`)
         .text(`Phone: ${order.customer_phone || 'Not provided'}`)
-        .text(`Event Address: ${order.event_address || 'Not provided'}`);
+        .text(`Event Address: ${formatAddress(order.event_address)}`);
       doc.moveDown();
 
       // Order items
@@ -378,7 +378,7 @@ export async function generatePickupChecklistPDF(order: ReturnType<typeof toDocu
       doc.moveDown(0.5);
       doc.fontSize(12)
         .text(`Name: ${order.customer_name}`)
-        .text(`Address: ${order.event_address || 'Not provided'}`)
+        .text(`Address: ${formatAddress(order.event_address)}`)
         .text(`Phone: ${order.customer_phone || 'Not provided'}`);
       doc.moveDown();
 
@@ -475,7 +475,7 @@ export function generateHTMLFallback(rawOrder: any, type: DocumentType): string 
       <p><strong>Email:</strong> ${order.customer_email}</p>
       <p><strong>Phone:</strong> ${order.customer_phone || 'Not provided'}</p>
       <p><strong>Event Date:</strong> ${new Date(order.event_date).toLocaleDateString()}</p>
-      <p><strong>Address:</strong> ${order.event_address || 'Not provided'}</p>
+      <p><strong>Address:</strong> ${formatAddress(order.event_address)}</p>
     </div>
   `;
 

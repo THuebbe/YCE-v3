@@ -21,7 +21,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { countOrderSigns, formatCurrency, formatEventDate, formatDate, getOrderSignLines, getOrderStatusBadgeColor } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatEventDate, formatDate, getOrderSignLines, getOrderStatusBadgeColor } from '../client-utils';
 import { useOrderAction } from './use-order-action';
 import { generatePickTicket, generateOrderSummary, generatePickupChecklist } from '../actions';
 import { useRouter } from 'next/navigation';
@@ -235,7 +235,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                   </div>
                   <div className="flex items-start text-sm">
                     <MapPin className="h-4 w-4 mr-3 text-gray-400 mt-0.5" />
-                    <span className="text-gray-900">{order.event_address}</span>
+                    <span className="text-gray-900">{formatAddress(order.event_address)}</span>
                   </div>
                   {order.event_type && (
                     <div className="flex items-center text-sm">

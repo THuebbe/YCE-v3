@@ -16,34 +16,9 @@ import {
   X 
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { countOrderSigns, formatCurrency, formatEventDate, getOrderStatusBadgeColor } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatEventDate, getOrderStatusBadgeColor } from '../client-utils';
 import { useOrderAction } from './use-order-action';
 
-// Helper function to format address
-const formatAddress = (address: string | object): string => {
-  if (typeof address === 'string') {
-    try {
-      // Try to parse if it's a JSON string
-      const parsed = JSON.parse(address);
-      return formatAddressObject(parsed);
-    } catch {
-      // If parsing fails, return the string as-is
-      return address;
-    }
-  } else if (typeof address === 'object' && address !== null) {
-    return formatAddressObject(address);
-  }
-  return 'Address not available';
-};
-
-const formatAddressObject = (addr: any): string => {
-  const parts = [];
-  if (addr.street) parts.push(addr.street);
-  if (addr.city) parts.push(addr.city);
-  if (addr.state) parts.push(addr.state);
-  if (addr.zip) parts.push(addr.zip);
-  return parts.join(', ') || 'Address not available';
-};
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
 import { EditSignsModal } from './edit-signs-modal';

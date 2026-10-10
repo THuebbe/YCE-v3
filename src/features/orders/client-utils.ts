@@ -100,3 +100,21 @@ export function getOrderSignLines(order: any): OrderSignLine[] {
 export function countOrderSigns(order: any): number {
   return getOrderSignLines(order).reduce((sum, line) => sum + line.quantity, 0);
 }
+
+/**
+ * Event address as one line. Wizard orders store plain text; older and
+ * seeded orders store a JSON string ({street, city, state, zip}).
+ */
+export function formatAddress(address: unknown): string {
+  if (!address) return 'Not provided';
+  let value: any = address;
+  if (typeof value === 'string') {
+    try { value = JSON.parse(value); } catch { return value; }
+    if (typeof value !== 'object' || value === null) return address as string;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const parts = [value.street, value.city, value.state, value.zip].filter(Boolean);
+    if (parts.length) return parts.join(', ');
+  }
+  return 'Not provided';
+}

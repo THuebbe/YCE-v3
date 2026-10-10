@@ -7,7 +7,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Card } from '@/shared/components/ui/card';
 import { ArrowLeft, Package, User, Calendar, MapPin } from 'lucide-react';
 import { checkInOrder } from '../actions';
-import { countOrderSigns, formatCurrency, formatEventDate, getOrderSignLines } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatEventDate, getOrderSignLines } from '../client-utils';
 import { useToast } from '@/shared/components/feedback/toast';
 import { useAgencySlug } from '@/lib/navigation';
 
@@ -157,7 +157,7 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
               </div>
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                <span className="text-gray-900">{order.event_address}</span>
+                <span className="text-gray-900">{formatAddress(order.event_address)}</span>
               </div>
               <div className="flex items-center">
                 <Package className="h-4 w-4 mr-2 text-gray-400" />
