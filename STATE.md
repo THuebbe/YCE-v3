@@ -10,7 +10,7 @@ old verification notes) is in `git show aace018:STATE.md`.
   (2026-10-08) - real inventory, server-side sign holds, agency booking
   rules. Crons live and secret-protected (`/api/cron/*` → 401 without
   `CRON_SECRET`). **Still a demo, not sellable:** checkout never charges.
-- **Branch `claude/m1b-checkin-cancel`** (PR not opened yet): dashboard
+- **Branch `claude/m1b-checkin-cancel`** (PR #7): dashboard
   order actions (advance / check-in / cancel), onboarding asks for real
   business data, agency time zone. See VERIFIED WORKING 2026-10-10.
 - **Waiting on the user (at a keyboard):** Stripe test-mode Connect setup
@@ -47,6 +47,16 @@ old verification notes) is in `git show aace018:STATE.md`.
   refund request recorded, not processed). Test data restored after.
   Same functions tested in a rolled-back SQL block (not-deployed and
   short counts refused, completed/other-agency cancels refused).
+- **2026-10-10, preview `ae3c06f`, seeded order 0022** (`order_items`,
+  JSON address): address shown formatted; Generate Pick Ticket →
+  processing, **Print Order Summary** → deployed, both PDFs uploaded to
+  Blob and listed in `orders.documents`; check-in 1 damaged + 1 missing →
+  completed, stock 39→38 and 52→51, 5 `sign_check_ins` rows. Status/stock
+  restored; its 5 check-in + 3 activity rows remain (DELETE needs the
+  user's approval). **Documents** (pick ticket, summary, checklist) fixed
+  and rendered locally from real order YCE-2026-101575: all 20 lines,
+  $81 + 2×$13 = $107, page breaks, JSON addresses. Server PDFs can't be
+  opened from Claude's sandbox (Blob blocked) - only their upload is seen.
 - **2026-10-10, onboarding on preview `d9c0e17`** as a brand-new Clerk
   test user (`onboarding-test+clerk_test@example.com`,
   `user_3KVXtQcipHtzhP9QALMcn3SVODb`, no `users` row): bad phone/website,
@@ -106,6 +116,8 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Subdomain URLs 404 in dev (no rewrite) - use `/<slug>/booking`.
 - Customers sharing one IP share the 3-hold limit; a spoofed browser time
   zone can move the cutoff by hours for agencies without a time zone.
+- Check-in says "N removed from inventory" even for a sign with no
+  `agency_inventory` row (some seeded signs) - nothing to reduce there.
 - Preview has no `RESEND_API_KEY` (preview orders don't email).
 - 300+ `console.log`, 70+ `any`, 3 (type-broken) test files; no
   `.env.example`; no committed baseline schema.
@@ -131,7 +143,7 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Still open: subscription renewal failure handling (grace period?).
 
 ## Next steps
-1. Open the PR for `claude/m1b-checkin-cancel`; user click-through
+1. PR #7 (`claude/m1b-checkin-cancel`): user click-through
    (check-in on a phone) and merge.
 2. **Milestone 2: Stripe** - 2a Express onboarding + Payment Element +
    direct charge + order on payment success + card saved for fees +
