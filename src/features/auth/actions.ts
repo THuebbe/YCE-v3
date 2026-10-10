@@ -75,10 +75,21 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
     }
 
     // Extract and validate form data
+    const parseJson = (value: FormDataEntryValue | null) => {
+      try { return JSON.parse(String(value ?? '')) } catch { return undefined }
+    }
+    const num = (value: FormDataEntryValue | null) =>
+      value === null || value === '' ? undefined : Number(value)
     const rawData = {
       name: formData.get('name') as string,
       slug: formData.get('slug') as string,
       description: formData.get('description') as string || undefined,
+      phone: (formData.get('phone') as string) || '',
+      website: (formData.get('website') as string) || undefined,
+      serviceAreas: parseJson(formData.get('serviceAreas')) ?? [],
+      timeZone: (formData.get('timeZone') as string) || '',
+      basePrice: num(formData.get('basePrice')),
+      extraDayPrice: num(formData.get('extraDayPrice')),
     }
 
     const validationResult = createAgencySchema.safeParse(rawData)
@@ -89,7 +100,8 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
       }
     }
 
-    const { name, slug, description } = validationResult.data
+    const { name, slug, description, phone, website, serviceAreas, timeZone, basePrice, extraDayPrice } =
+      validationResult.data
 
     // Double-check slug availability
     const availabilityCheck = await checkSubdomainAvailability(slug)
@@ -119,18 +131,22 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         stripe_payouts_enabled: false,
         stripe_details_submitted: false,
         address: {},
+        domain: website || null,
         agency_code: `AG${Date.now()}`,
         business_name: name,
-        city: 'Default City', // TODO: Get from form
+        city: serviceAreas[0].city,
         email: user.emailAddresses[0]?.emailAddress || '',
         order_counter: 0,
-        phone: '', // TODO: Get from form
+        phone,
+        // The agency's own prices; lateFee is the policy default (PRODUCT.md)
         pricing_config: {
           lateFee: 25,
-          basePrice: 95, // Match schema default
-          extraDayPrice: 10
+          basePrice,
+          extraDayPrice
         },
-        settings: {},
+        // Decides "end of day" for the order cutoff (booking-rules.ts)
+        operating_hours: { timeZone },
+        settings: { serviceAreas },
         stripe_connect_status: 'pending',
         subscription_start_date: now,
         subscription_status: 'trial' // Match schema default instead of 'active'
