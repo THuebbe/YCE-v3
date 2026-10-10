@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
 import { useAgencySlug } from '@/lib/navigation';
@@ -39,12 +39,22 @@ export function useOrderAction(order: { id: string }, onCancel: () => void) {
         : action === 'printOrderSummary' ? generateOrderSummary
         : null;
       const docResult = document ? await document(order.id).catch(() => null) : null;
+      const docUrl = docResult?.success ? docResult.result?.url : undefined;
       toast({
         title: getActionLabel(action),
         description: document && !docResult?.success
           ? 'Status updated, but the document failed - generate it from the order page'
-          : 'Order updated',
+          : docUrl ? 'Order updated. The PDF is also on the order card.' : 'Order updated',
         variant: document && !docResult?.success ? 'warning' : 'success',
+        // A tapped link opens on iPhone; window.open after the await would be
+        // blocked as a popup. Longer so there's time to tap it.
+        ...(docUrl ? {
+          duration: 12000,
+          action: React.createElement('a', {
+            href: docUrl, target: '_blank', rel: 'noopener noreferrer',
+            className: 'inline-block px-3 py-2 rounded-md bg-primary text-white text-sm font-medium',
+          }, 'Open PDF'),
+        } : {}),
       });
       router.refresh();
     } finally {
