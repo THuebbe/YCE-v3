@@ -2,7 +2,7 @@
 
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { supabase } from '@/lib/db/supabase-client'
+import { supabase, getUserById } from '@/lib/db/supabase-client'
 import { 
   createAgencySchema, 
   checkSubdomainSchema,
@@ -103,6 +103,15 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
     const { name, slug, description, phone, website, serviceAreas, timeZone, basePrice, extraDayPrice } =
       validationResult.data
 
+    // One agency per member: creating a second would silently move them
+    const existingUser = await getUserById(user.id)
+    if (existingUser?.agency_id) {
+      return {
+        success: false,
+        error: 'Your account already belongs to an agency'
+      }
+    }
+
     // Double-check slug availability
     const availabilityCheck = await checkSubdomainAvailability(slug)
     if (!availabilityCheck.available) {
@@ -162,22 +171,40 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
       }
     }
 
-    // Update the user to be associated with this agency
-    const { error: userError } = await supabase
-      .from('users')
-      .update({
-        agency_id: agency.id,
-        role: 'ADMIN',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
+    // Link the creator to the agency. The users row normally comes from the
+    // Clerk webhook, which has not delivered since 2025-10 - so create the
+    // row here when it's missing (same fields the webhook writes), and check
+    // a row really was written: a silent no-op left new owners locked out.
+    // `users` is shared with PantryPro: touch only this person's row.
+    const now2 = new Date().toISOString()
+    const link = existingUser
+      ? await supabase
+          .from('users')
+          .update({ agency_id: agency.id, role: 'ADMIN', updated_at: now2 })
+          .eq('id', existingUser.id)
+          .select('id')
+      : await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            clerk_user_id: user.id,
+            email: user.emailAddresses[0]?.emailAddress || '',
+            first_name: user.firstName,
+            last_name: user.lastName,
+            role: 'ADMIN',
+            agency_id: agency.id,
+            created_at: now2,
+            updated_at: now2,
+          })
+          .select('id')
 
-    if (userError) {
-      console.error('❌ Error updating user with agency:', userError)
-      // Agency was created but user association failed
+    if (link.error || !link.data?.length) {
+      console.error('❌ Error linking user to agency:', link.error?.message)
+      // Don't leave an agency nobody can reach
+      await supabase.from('agencies').delete().eq('id', agency.id)
       return {
         success: false,
-        error: 'Agency created but failed to associate user'
+        error: 'Could not link your account to the new agency. Please try again.'
       }
     }
 
