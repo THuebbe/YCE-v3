@@ -1,7 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { User } from '@clerk/nextjs/server'
 import { getCurrentTenant, withCurrentTenantContext } from '@/lib/tenant-context'
-// import { getTenantPrismaClient, prisma } from '@/lib/db/prisma'
 import { supabase } from '@/lib/db/supabase-client'
 
 // Type for authenticated user with tenant context

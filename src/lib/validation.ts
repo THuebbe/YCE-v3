@@ -21,7 +21,7 @@ export const createAgencySchema = z.object({
     // /<slug>/... would collide with them
     .refine(slug => ![
       'www', 'api', 'admin', 'app', 'mail', 'ftp', 'localhost', 'staging', 'dev', 'test',
-      'auth', 'maintenance', 'marketing', 'onboarding', 'pricing', 'routing', 'dashboard',
+      'auth', 'maintenance', 'marketing', 'onboarding', 'pricing', 'routing', 'dashboard', 'not-found',
     ].includes(slug), 'This name is reserved'),
 
   description: z
@@ -55,7 +55,7 @@ export const createAgencySchema = z.object({
     .refine(isAgencyTimeZone, 'Please choose your time zone'),
 
   basePrice: z.number({ required_error: 'Enter your base price', invalid_type_error: 'Enter your base price' }).positive('Base price must be more than $0').max(10000),
-  extraDayPrice: z.number({ required_error: 'Enter your extra-day price (0 if you don\'t charge for extra days)', invalid_type_error: 'Enter your extra-day price' }).min(0, 'Extra-day price cannot be negative').max(10000),
+  extraDayPrice: z.number({ required_error: 'Enter your extra-day price (0 if you don\'t charge for extra days)', invalid_type_error: 'Enter your extra-day price' }).min(0, 'Extra-day price cannot be negative').max(1000, 'Extra-day price cannot exceed $1,000'),
 })
 
 export type CreateAgencyInput = z.infer<typeof createAgencySchema>

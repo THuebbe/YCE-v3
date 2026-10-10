@@ -186,6 +186,7 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
           .from('users')
           .update({ agency_id: agency.id, role: 'ADMIN', updated_at: now2 })
           .eq('id', existingUser.id)
+          .is('agency_id', null) // a parallel submit that linked first wins
           .select('id')
       : await supabase
           .from('users')
@@ -205,7 +206,8 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
     if (link.error || !link.data?.length) {
       console.error('❌ Error linking user to agency:', link.error?.message)
       // Don't leave an agency nobody can reach
-      await supabase.from('agencies').delete().eq('id', agency.id)
+      const { error: cleanupError } = await supabase.from('agencies').delete().eq('id', agency.id)
+      if (cleanupError) console.error('❌ Orphan agency left behind:', agency.id, cleanupError.message)
       return {
         success: false,
         error: 'Could not link your account to the new agency. Please try again.'

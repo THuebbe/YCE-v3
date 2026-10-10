@@ -84,7 +84,7 @@ export async function getUserById(userId: string): Promise<any | null> {
 
     // userId is the Clerk auth ID. Users created via the Clerk webhook have
     // it stored directly as `id` (see api/webhooks/clerk/route.ts), but
-    // manually-seeded users (e.g. scripts/sync-clerk-users.ts) keep their
+    // manually-seeded users keep their
     // original cuid `id` and link to Clerk only via `clerk_user_id`. Match
     // either so both paths resolve.
     const { data, error } = await supabase

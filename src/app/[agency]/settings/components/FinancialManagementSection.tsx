@@ -45,9 +45,9 @@ export default function FinancialManagementSection({
   onError 
 }: FinancialManagementSectionProps) {
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>({
-    basePrice: agency.basePrice || 50,
-    extraDayPrice: agency.extraDayPrice || 10,
-    lateFee: agency.lateFee || 25,
+    basePrice: agency.basePrice ?? 50,
+    extraDayPrice: agency.extraDayPrice ?? 10,
+    lateFee: agency.lateFee ?? 25,
   })
 
   const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null)
@@ -77,9 +77,9 @@ export default function FinancialManagementSection({
       if (data && data.success && data.data) {
         const responseData = data.data
         setPricingConfig({
-          basePrice: responseData.basePrice || pricingConfig.basePrice,
-          extraDayPrice: responseData.extraDayPrice || pricingConfig.extraDayPrice,
-          lateFee: responseData.lateFee || pricingConfig.lateFee,
+          basePrice: responseData.basePrice ?? pricingConfig.basePrice,
+          extraDayPrice: responseData.extraDayPrice ?? pricingConfig.extraDayPrice,
+          lateFee: responseData.lateFee ?? pricingConfig.lateFee,
         })
         
         // Set payment processor status
