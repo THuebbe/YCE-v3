@@ -57,9 +57,14 @@ money-transmitter rules).
 - **Agency already has Stripe** → Stripe Connect *Standard* (links
   their account; what `features/payments/actions.ts` does today).
 - **Agency has no payment setup (turnkey)** → Stripe Connect *Express*:
-  short Stripe-hosted signup (ID + bank) from inside our app. We may
-  take a per-booking *application fee* on these, which also covers what
-  Stripe charges the platform per Express account.
+  short Stripe-hosted signup (ID + bank) from inside our app. We take a
+  per-booking *application fee* on these, which also covers what Stripe
+  charges the platform per Express account. **DECIDED 2026-10-10: flat
+  $3 per booking**, deducted from the agency's payout; shown on the
+  agency's statement/invoice, **not** on the customer's confirmation.
+  Agencies on their own Stripe (Standard) pay no per-booking fee.
+  (The 5% "service fee" in the settings code belongs to the rejected
+  platform-collects model - dead code, not this fee.)
 - **Agency's account can't take payments** → their booking page says
   so. No fallback charging on the platform account.
 Braintree/Venmo and PayPal exist because solo operators genuinely use

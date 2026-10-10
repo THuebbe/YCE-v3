@@ -3,6 +3,7 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
+import { DEFAULT_BOOKING_RULES } from '@/features/booking/booking-rules'
 import { 
   createAgencySchema, 
   checkSubdomainSchema,
@@ -155,6 +156,9 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         },
         // Decides "end of day" for the order cutoff (booking-rules.ts)
         operating_hours: { timeZone },
+        // Current shape explicitly (the column default is the retired
+        // lead-time-hours shape)
+        booking_rules: DEFAULT_BOOKING_RULES,
         settings: { serviceAreas },
         stripe_connect_status: 'pending',
         subscription_start_date: now,

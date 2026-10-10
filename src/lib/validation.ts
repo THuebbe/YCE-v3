@@ -54,8 +54,8 @@ export const createAgencySchema = z.object({
     .string()
     .refine(isAgencyTimeZone, 'Please choose your time zone'),
 
-  basePrice: z.number({ invalid_type_error: 'Enter your base price' }).positive('Base price must be more than $0').max(10000),
-  extraDayPrice: z.number({ invalid_type_error: 'Enter your extra-day price' }).min(0, 'Extra-day price cannot be negative').max(10000),
+  basePrice: z.number({ required_error: 'Enter your base price', invalid_type_error: 'Enter your base price' }).positive('Base price must be more than $0').max(10000),
+  extraDayPrice: z.number({ required_error: 'Enter your extra-day price (0 if you don\'t charge for extra days)', invalid_type_error: 'Enter your extra-day price' }).min(0, 'Extra-day price cannot be negative').max(10000),
 })
 
 export type CreateAgencyInput = z.infer<typeof createAgencySchema>
