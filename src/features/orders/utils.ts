@@ -147,7 +147,7 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
-  }).format(amount / 100); // Convert from cents to dollars
+  }).format(Number(amount) || 0); // orders.total is stored in dollars
 }
 
 export function formatDate(date: Date): string {
@@ -182,6 +182,10 @@ export async function getOrderWithDetails(orderId: string) {
     .select(`
       *,
       order_items(
+        *,
+        sign:sign_library(*)
+      ),
+      order_signs(
         *,
         sign:sign_library(*)
       ),

@@ -19,6 +19,10 @@ export async function getOrdersByAgency() {
         order_items(
           *,
           sign:sign_library(*)
+        ),
+        order_signs(
+          *,
+          sign:sign_library(*)
         )
       `)
       .eq('agency_id', agencyId)
@@ -51,6 +55,10 @@ export async function getOrdersByStatus(status: string) {
       .select(`
         *,
         order_items(
+          *,
+          sign:sign_library(*)
+        ),
+        order_signs(
           *,
           sign:sign_library(*)
         )

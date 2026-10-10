@@ -16,7 +16,8 @@ import {
   X 
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { formatCurrency, formatEventDate, getOrderStatusBadgeColor } from '../client-utils';
+import { countOrderSigns, formatCurrency, formatEventDate, getOrderStatusBadgeColor } from '../client-utils';
+import { useOrderAction } from './use-order-action';
 
 // Helper function to format address
 const formatAddress = (address: string | object): string => {
@@ -43,7 +44,6 @@ const formatAddressObject = (addr: any): string => {
   if (addr.zip) parts.push(addr.zip);
   return parts.join(', ') || 'Address not available';
 };
-// import { advanceOrderStatus } from '../actions'; // Temporarily disabled to fix client/server import issue
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
 import { EditSignsModal } from './edit-signs-modal';
@@ -55,37 +55,14 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order }: OrderCardProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const agencySlug = useAgencySlug();
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
-  const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const signCount = countOrderSigns(order);
   const statusColor = getOrderStatusBadgeColor(order.status);
 
-  const handleAction = async (action: OrderAction) => {
-    if (isProcessing) return;
-    
-    setIsProcessing(true);
-    try {
-      // Temporary mock action for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
-        title: 'Demo Mode',
-        description: `Would ${getActionLabel(action).toLowerCase()} - this is demo data`,
-        variant: 'success'
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Demo mode - no real actions performed',
-        variant: 'error'
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleViewDetails = () => {
     if (agencySlug) {
@@ -98,6 +75,7 @@ export function OrderCard({ order }: OrderCardProps) {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const { run: handleAction, isProcessing } = useOrderAction(order, () => setShowCancelModal(true));
 
   const handleEditSigns = () => {
     setShowEditModal(true);
@@ -139,15 +117,17 @@ export function OrderCard({ order }: OrderCardProps) {
             >
               <Edit className="h-5 w-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancelOrder}
-              className="p-2 h-10 w-10 text-red-600 hover:text-red-700"
-              title="Cancel order"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            {['pending', 'processing'].includes(order.status) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelOrder}
+                className="p-2 h-10 w-10 text-red-600 hover:text-red-700"
+                title="Cancel order"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
 

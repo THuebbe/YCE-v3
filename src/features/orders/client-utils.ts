@@ -31,7 +31,7 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
-  }).format(amount / 100); // Convert from cents to dollars
+  }).format(Number(amount) || 0); // orders.total is stored in dollars
 }
 
 export function formatDate(date: Date): string {
@@ -74,4 +74,29 @@ export function canCancelOrder(order: any): boolean {
 
 export function calculateOrderTotal(items: { unitPrice: number; quantity: number }[]): number {
   return items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+}
+export interface OrderSignLine {
+  signId: string;
+  quantity: number;
+  sign: { name?: string; image_url?: string; category?: string } | null;
+}
+
+/**
+ * The signs an order holds. Wizard bookings write `order_signs`; older and
+ * seeded orders only have `order_items`. Same rule as yce_order_sign_lines().
+ */
+export function getOrderSignLines(order: any): OrderSignLine[] {
+  const rows: any[] = order?.order_signs?.length ? order.order_signs : order?.order_items ?? [];
+  const bySign = new Map<string, OrderSignLine>();
+  for (const row of rows) {
+    const signId = row.sign_id ?? row.signId;
+    const line = bySign.get(signId);
+    if (line) line.quantity += row.quantity;
+    else bySign.set(signId, { signId, quantity: row.quantity, sign: row.sign ?? null });
+  }
+  return [...bySign.values()];
+}
+
+export function countOrderSigns(order: any): number {
+  return getOrderSignLines(order).reduce((sum, line) => sum + line.quantity, 0);
 }
