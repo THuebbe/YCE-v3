@@ -11,8 +11,8 @@ import type { CancelOrderInput } from './types';
 export async function generateDocument(orderId: string, type: DocumentType) {
   try {
     // Browser-callable: check the caller belongs to the order's own agency.
-    // (Not getCurrentTenant(): it resolves from the URL, proves nothing about
-    // the caller, and currently can't resolve at all - see STATE.md.)
+    // (Not getCurrentTenant(): it resolves from the URL and proves nothing
+    // about the caller.)
     const { data: owner } = await supabase
       .from('orders')
       .select('agency_id')
@@ -32,7 +32,7 @@ export async function generateDocument(orderId: string, type: DocumentType) {
     });
 
     // Revalidate order pages (note: revalidatePath will work for all agency routes)
-    revalidatePath(`/[agency]/orders/${orderId}`, 'page');
+    revalidatePath('/[agency]/orders/[orderId]', 'page');
     revalidatePath('/[agency]/orders', 'page');
 
     return {
@@ -64,8 +64,8 @@ export async function generatePickupChecklist(orderId: string) {
   return generateDocument(orderId, 'pickupChecklist');
 }
 // ---------------------------------------------------------------- order flow
-// Real versions of the actions stubbed when Prisma was removed. Each checks
-// the caller belongs to the ORDER's agency (browser-callable; RLS is off).
+// Each action checks the caller belongs to the ORDER's agency
+// (browser-callable; RLS is off).
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -75,13 +75,14 @@ async function requireOrderMember(orderId: string) {
     .select('id, agency_id, status')
     .eq('id', orderId)
     .single();
-  const user = await requireAgencyMember(order?.agency_id);
+  if (!order) throw new Error('Order not found');
+  const user = await requireAgencyMember(order.agency_id);
   return { order: order as { id: string; agency_id: string; status: string }, user };
 }
 
 function revalidateOrder(orderId: string) {
   revalidatePath('/[agency]/orders', 'page');
-  revalidatePath(`/[agency]/orders/${orderId}`, 'page');
+  revalidatePath('/[agency]/orders/[orderId]', 'page');
 }
 
 const ADVANCE: Partial<Record<OrderAction, { from: string; to: string; stamp?: string }>> = {
@@ -104,12 +105,14 @@ export async function advanceOrderStatus(orderId: string, action: OrderAction): 
       .from('orders')
       .update({ status: step.to, updated_at: now, ...(step.stamp ? { [step.stamp]: now } : {}) })
       .eq('id', orderId)
+      .eq('agency_id', order.agency_id)
       .eq('status', step.from) // lost a race with another tab -> no row
       .select('id');
     if (error || !updated?.length) return { success: false, error: 'Order changed - refresh and try again' };
-    await supabase.from('order_activities').insert({
+    const { error: logError } = await supabase.from('order_activities').insert({
       id: crypto.randomUUID(), order_id: orderId, action, status: step.to, user_id: user.id, created_at: now,
     });
+    if (logError) console.error('order_activities insert failed:', orderId, logError.message);
     revalidateOrder(orderId);
     return { success: true };
   } catch (error) {
@@ -173,6 +176,15 @@ export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult
           : 'Cancel failed',
       };
     }
+    // The refund itself needs Stripe (milestone 2); keep the amount asked for
+    const { data: cancelled } = await supabase
+      .from('orders').select('total').eq('id', input.orderId).eq('agency_id', order.agency_id).single();
+    const refundAmount = input.refundType === 'none' ? 0
+      : Math.min(Math.max(Number(input.refundAmount) || 0, 0), Number(cancelled?.total) || 0);
+    const { error: refundError } = await supabase
+      .from('orders').update({ refund_amount: refundAmount })
+      .eq('id', input.orderId).eq('agency_id', order.agency_id);
+    if (refundError) console.error('refund_amount not saved:', input.orderId, refundError.message);
     revalidateOrder(input.orderId);
     return { success: true };
   } catch (error) {

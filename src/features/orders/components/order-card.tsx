@@ -88,7 +88,8 @@ export function OrderCard({ order }: OrderCardProps) {
               size="sm"
               onClick={handleEditSigns}
               className="p-2 h-10 w-10"
-              title="Edit signs"
+              disabled // Edit signs is not built yet (needs a stock re-check and re-hold)
+              title="Editing signs isn't available yet"
             >
               <Edit className="h-5 w-5" />
             </Button>

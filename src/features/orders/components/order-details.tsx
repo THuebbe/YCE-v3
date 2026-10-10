@@ -158,9 +158,9 @@ export function OrderDetails({ order }: OrderDetailsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      {/* Header: buttons wrap under the title on phones */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center space-x-4 min-w-0">
           <Button
             variant="ghost"
             onClick={handleBack}
@@ -169,7 +169,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
               Order #{order.order_number}
             </h1>
             <div className="flex items-center space-x-2 mt-2">
@@ -183,11 +183,12 @@ export function OrderDetails({ order }: OrderDetailsProps) {
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="secondary"
             onClick={handleEditSigns}
-            disabled={['completed', 'cancelled'].includes(order.status)}
+            disabled // Edit signs is not built yet (needs a stock re-check and re-hold)
+            title="Editing signs isn't available yet"
           >
             <Edit className="h-4 w-4 mr-2" />
             Edit Signs
@@ -297,7 +298,12 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                 Order Activity
               </h3>
               <div className="space-y-4">
-                {order.activities?.map((activity: any) => (
+                {!order.activities?.length && (
+                  <p className="text-sm text-gray-500">No activity yet.</p>
+                )}
+                {[...(order.activities ?? [])]
+                  .sort((a: any, b: any) => String(a.created_at).localeCompare(String(b.created_at)))
+                  .map((activity: any) => (
                   <div key={activity.id} className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
                       {activity.status === 'completed' ? (
@@ -311,15 +317,16 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {activity.user.first_name} {activity.user.last_name}
+                          {getActionLabel(activity.action as OrderAction) ?? activity.action}
+                          {activity.user && ` · ${[activity.user.first_name, activity.user.last_name].filter(Boolean).join(' ')}`}
                         </span>
                         <span className="text-xs text-gray-500">
                           {formatDate(new Date(activity.created_at))}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {activity.notes}
-                      </p>
+                      {activity.notes && (
+                        <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>
+                      )}
                     </div>
                   </div>
                 ))}

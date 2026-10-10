@@ -53,7 +53,7 @@ export function formatEventDate(date: Date): string {
   }).format(date);
 }
 
-// Client-side versions of server functions (mock data for demo)
+// Client-side versions of server functions
 export function shouldAutoRefund(order: any): boolean {
   return isWithinCancellationWindow(order);
 }
@@ -68,8 +68,8 @@ export function isWithinCancellationWindow(order: any): boolean {
 }
 
 export function canCancelOrder(order: any): boolean {
-  // Can cancel if not completed or already cancelled
-  return !['completed', 'cancelled'].includes(order.status);
+  // Deployed orders end with check-in, not a cancel (yce_cancel_order agrees)
+  return ['pending', 'processing'].includes(order.status);
 }
 
 export function calculateOrderTotal(items: { unitPrice: number; quantity: number }[]): number {

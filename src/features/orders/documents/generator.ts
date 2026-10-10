@@ -535,7 +535,7 @@ export function generateHTMLFallback(rawOrder: any, type: DocumentType): string 
             <div class="total">
               <p>Base Package: $${order.basePackage.toFixed(2)}</p>
               ${order.extraDayFee > 0 ? `<p>Extra Days (${order.extraDays}): $${order.extraDayFee.toFixed(2)}</p>` : ''}
-              <p><strong>Total: $${order.total.toFixed(2)}</strong></p>
+              <p><strong>Total: $${(order.total + order.lateFee).toFixed(2)}</strong></p>
             </div>
           </body>
         </html>

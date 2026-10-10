@@ -190,7 +190,9 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
         <div className="space-y-3">
           <h3 className="font-semibold text-gray-900">Signs</h3>
           {lines.length === 0 && (
-            <p className="text-sm text-gray-600">No signs are recorded for this order.</p>
+            <p className="text-sm text-gray-600">
+              No signs are recorded for this order. Completing the check-in just closes it.
+            </p>
           )}
           {lines.map(line => {
             const c = counts.find(x => x.signId === line.signId)!;
@@ -247,7 +249,7 @@ export function MobileCheckIn({ order }: MobileCheckInProps) {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
         <Button
           onClick={handleSubmit}
-          disabled={isProcessing || lines.length === 0}
+          disabled={isProcessing}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-medium"
         >
           {isProcessing ? 'Processing...' : 'Complete Check-In'}

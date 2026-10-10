@@ -7,7 +7,7 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import { AlertTriangle, DollarSign, Clock } from 'lucide-react';
-import { formatCurrency, shouldAutoRefund, isWithinCancellationWindow } from '../client-utils';
+import { formatCurrency, isWithinCancellationWindow } from '../client-utils';
 import { cancelOrder } from '../actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
@@ -26,9 +26,8 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
   const { toast } = useToast();
   const router = useRouter();
 
-  const canAutoRefund = shouldAutoRefund(order);
   const withinCancellationWindow = isWithinCancellationWindow(order);
-  const maxRefundAmount = order.total;
+  const maxRefundAmount = Number(order.total) || 0; // dollars (numeric column comes back as a string)
 
   const handleCancel = async () => {
     if (isProcessing) return;
@@ -162,11 +161,6 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
               >
                 <DollarSign className="h-4 w-4 mr-1 text-green-600" />
                 Full Refund ({formatCurrency(maxRefundAmount)})
-                {canAutoRefund && (
-                  <span className="ml-2 text-xs text-green-600 font-medium">
-                    Auto-processed
-                  </span>
-                )}
               </label>
             </div>
 
@@ -186,7 +180,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
                   id="partialAmount"
                   type="number"
                   min="0"
-                  max={maxRefundAmount / 100}
+                  max={maxRefundAmount}
                   step="0.01"
                   value={partialAmount}
                   onChange={(e) => setPartialAmount(e.target.value)}
@@ -222,19 +216,6 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
           </div>
         </div>
 
-        {/* Warning for deployed orders */}
-        {order.status === 'deployed' && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 mr-2" />
-              <div className="text-sm text-red-800">
-                <strong>Warning:</strong> This order is currently deployed. 
-                Cancelling will require immediate sign retrieval from the field.
-                Post-deployment cancellations are typically treated as completed orders.
-              </div>
-            </div>
-          </div>
-        )}
       </ModalContent>
 
       <ModalFooter>

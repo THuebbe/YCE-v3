@@ -126,8 +126,8 @@ export function getOrderStatusBadgeColor(status: string): string {
 }
 
 export function canCancelOrder(order: any): boolean {
-  // Can cancel if not completed or already cancelled
-  return !['completed', 'cancelled'].includes(order.status);
+  // Deployed orders end with check-in, not a cancel (yce_cancel_order agrees)
+  return ['pending', 'processing'].includes(order.status);
 }
 
 export function isWithinCancellationWindow(order: any): boolean {
@@ -176,7 +176,8 @@ export async function getOrderWithDetails(orderId: string) {
     throw new Error('No tenant context available');
   }
 
-  // Get order with related data
+  // Get order with related data. No agencies(*) embed: that row holds
+  // payment secrets and this order is passed to client components.
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select(`
@@ -189,8 +190,10 @@ export async function getOrderWithDetails(orderId: string) {
         *,
         sign:sign_library(*)
       ),
-      agency:agencies(*),
-      createdBy:users(*)
+      activities:order_activities(
+        id, action, status, notes, created_at,
+        user:users(first_name, last_name)
+      )
     `)
     .eq('id', orderId)
     .eq('agency_id', agencyId)
