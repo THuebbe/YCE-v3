@@ -47,6 +47,8 @@ export interface ToastProps
   onClose?: () => void;
   action?: React.ReactNode;
   closable?: boolean;
+  /** ms before it closes itself (default 5000) */
+  duration?: number;
 }
 
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
@@ -58,6 +60,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
     onClose, 
     action, 
     closable = true,
+    duration: _duration, // used by the provider, not a DOM attribute
     children,
     ...props 
   }, ref) => {
@@ -128,10 +131,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     
     setToasts((prev) => [...prev, newToast]);
 
-    // Auto-remove toast after 5 seconds
+    // Auto-remove (default 5 seconds)
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
+    }, toast.duration ?? 5000);
   }, []);
 
   const removeToast = React.useCallback((id: string) => {
@@ -143,7 +146,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       
       {/* Toast Container */}
-      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-96 max-w-screen-sm">
+      <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 w-96 max-w-[calc(100vw-2rem)]">
         {toasts.map((toast) => (
           <Toast
             key={toast.id}
