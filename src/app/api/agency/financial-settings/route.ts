@@ -103,9 +103,9 @@ export async function GET(request: NextRequest) {
     // Map database fields to API response format
     const financialData = {
       paymentMethod,
-      basePrice: pricingConfig.basePrice || 50,
-      extraDayPrice: pricingConfig.extraDayPrice || 10,
-      lateFee: pricingConfig.lateFee || 25,
+      basePrice: pricingConfig.basePrice ?? 50,
+      extraDayPrice: pricingConfig.extraDayPrice ?? 10,
+      lateFee: pricingConfig.lateFee ?? 25,
       stripeStatus: hasStripeAccount ? {
         accountId: agency.stripe_account_id,
         accountStatus: agency.stripe_account_status,

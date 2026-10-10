@@ -8,9 +8,9 @@ import { getUserById } from '@/lib/db/supabase-client';
  * serving another agency's data. Use it in any 'use server' function that
  * takes an agency or order id, or that relies on getCurrentTenant() (which
  * resolves the agency from the URL and proves nothing about the caller).
- * Same check the [agency] dashboard pages do.
+ * Same check the [agency] dashboard pages do. Returns the member (users row).
  */
-export async function requireAgencyMember(agencyId: string | null | undefined): Promise<void> {
+export async function requireAgencyMember(agencyId: string | null | undefined) {
   const { userId } = await auth();
   if (!userId || !agencyId) {
     throw new Error('Unauthorized');
@@ -19,4 +19,5 @@ export async function requireAgencyMember(agencyId: string | null | undefined): 
   if (!user || user.agency_id !== agencyId) {
     throw new Error('Forbidden');
   }
+  return user as { id: string; agency_id: string };
 }

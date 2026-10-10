@@ -1,3 +1,4 @@
+import { isAgencyTimeZone } from '@/lib/time-zones'
 import { z } from 'zod'
 
 // Time validation regex (24-hour format HH:MM)
@@ -42,10 +43,10 @@ export const operatingHoursSchema = z.object({
   friday: dayHoursSchema,
   saturday: dayHoursSchema,
   sunday: dayHoursSchema,
+  // Decides "end of day" for the booking order cutoff
   timeZone: z
     .string()
-    .min(1, 'Time zone is required')
-    .default('America/New_York'),
+    .refine(isAgencyTimeZone, 'Please choose your time zone'),
 })
 
 // Delivery window schema

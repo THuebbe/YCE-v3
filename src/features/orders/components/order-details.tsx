@@ -21,7 +21,8 @@ import {
   XCircle
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { formatCurrency, formatEventDate, formatDate, getOrderStatusBadgeColor } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatEventDate, formatDate, getOrderSignLines, getOrderStatusBadgeColor } from '../client-utils';
+import { useOrderAction } from './use-order-action';
 import { generatePickTicket, generateOrderSummary, generatePickupChecklist } from '../actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
@@ -35,7 +36,6 @@ interface OrderDetailsProps {
 }
 
 export function OrderDetails({ order }: OrderDetailsProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingDocument, setIsGeneratingDocument] = useState<string | null>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const router = useRouter();
@@ -44,30 +44,9 @@ export function OrderDetails({ order }: OrderDetailsProps) {
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
   const statusColor = getOrderStatusBadgeColor(order.status);
-  const signCount = order.items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const signCount = countOrderSigns(order);
+  const signLines = getOrderSignLines(order);
 
-  const handleAction = async (action: OrderAction) => {
-    if (isProcessing) return;
-    
-    setIsProcessing(true);
-    try {
-      // Temporary mock action for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
-        title: 'Demo Mode',
-        description: `Would ${getActionLabel(action).toLowerCase()} - this is demo data`,
-        variant: 'success'
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Demo mode - no real actions performed',
-        variant: 'error'
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleBack = () => {
     if (agencySlug) {
@@ -80,6 +59,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const { run: handleAction, isProcessing } = useOrderAction(order, () => setShowCancelModal(true));
 
   const handleEditSigns = () => {
     setShowEditModal(true);
@@ -169,15 +149,18 @@ export function OrderDetails({ order }: OrderDetailsProps) {
     }
   };
 
+  // Saved documents (orders.documents, incl. ones the status buttons made)
+  // plus any generated in this view; the newest of each type wins
   const getDocumentOfType = (type: string) => {
-    return documents.find((doc: any) => doc.type === type);
+    const saved = Array.isArray(order.documents) ? order.documents : [];
+    return [...saved, ...documents].filter((doc: any) => doc.type === type).at(-1);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+      {/* Header: buttons wrap under the title on phones */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center space-x-4 min-w-0">
           <Button
             variant="ghost"
             onClick={handleBack}
@@ -186,7 +169,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">
               Order #{order.order_number}
             </h1>
             <div className="flex items-center space-x-2 mt-2">
@@ -200,11 +183,12 @@ export function OrderDetails({ order }: OrderDetailsProps) {
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="secondary"
             onClick={handleEditSigns}
-            disabled={['completed', 'cancelled'].includes(order.status)}
+            disabled // Edit signs is not built yet (needs a stock re-check and re-hold)
+            title="Editing signs isn't available yet"
           >
             <Edit className="h-4 w-4 mr-2" />
             Edit Signs
@@ -212,7 +196,8 @@ export function OrderDetails({ order }: OrderDetailsProps) {
           <Button
             variant="secondary"
             onClick={handleCancelOrder}
-            disabled={['completed', 'cancelled'].includes(order.status)}
+            disabled={!['pending', 'processing'].includes(order.status)}
+            title={order.status === 'deployed' ? 'Deployed orders end with check-in' : undefined}
             className="text-red-600 hover:text-red-700"
           >
             <X className="h-4 w-4 mr-2" />
@@ -254,7 +239,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                   </div>
                   <div className="flex items-start text-sm">
                     <MapPin className="h-4 w-4 mr-3 text-gray-400 mt-0.5" />
-                    <span className="text-gray-900">{order.event_address}</span>
+                    <span className="text-gray-900">{formatAddress(order.event_address)}</span>
                   </div>
                   {order.event_type && (
                     <div className="flex items-center text-sm">
@@ -281,29 +266,25 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                 Order Items
               </h3>
               <div className="space-y-4">
-                {order.order_items?.map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                {signLines.length === 0 && (
+                  <p className="text-sm text-gray-600">No signs recorded for this order.</p>
+                )}
+                {signLines.map((line) => (
+                  <div key={line.signId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      {item.sign.image_url && (
+                      {line.sign?.image_url && (
                         <img
-                          src={item.sign.image_url}
-                          alt={item.sign.name}
-                          className="w-12 h-12 object-cover rounded"
+                          src={line.sign.image_url}
+                          alt={line.sign.name}
+                          className="w-12 h-12 object-contain rounded bg-white"
                         />
                       )}
                       <div>
-                        <h4 className="font-medium text-gray-900">{item.sign.name}</h4>
-                        <p className="text-sm text-gray-600">{item.sign.category}</p>
+                        <h4 className="font-medium text-gray-900">{line.sign?.name ?? line.signId}</h4>
+                        <p className="text-sm text-gray-600">{line.sign?.category}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-600">
-                        Qty: {item.quantity}
-                      </div>
-                      <div className="font-medium text-gray-900">
-                        {formatCurrency(item.line_total)}
-                      </div>
-                    </div>
+                    <div className="text-sm text-gray-600">Qty: {line.quantity}</div>
                   </div>
                 ))}
               </div>
@@ -317,7 +298,12 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                 Order Activity
               </h3>
               <div className="space-y-4">
-                {order.activities?.map((activity: any) => (
+                {!order.activities?.length && (
+                  <p className="text-sm text-gray-500">No activity yet.</p>
+                )}
+                {[...(order.activities ?? [])]
+                  .sort((a: any, b: any) => String(a.created_at).localeCompare(String(b.created_at)))
+                  .map((activity: any) => (
                   <div key={activity.id} className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
                       {activity.status === 'completed' ? (
@@ -331,15 +317,16 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {activity.user.first_name} {activity.user.last_name}
+                          {getActionLabel(activity.action as OrderAction) ?? activity.action}
+                          {activity.user && ` · ${[activity.user.first_name, activity.user.last_name].filter(Boolean).join(' ')}`}
                         </span>
                         <span className="text-xs text-gray-500">
                           {formatDate(new Date(activity.created_at))}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {activity.notes}
-                      </p>
+                      {activity.notes && (
+                        <p className="text-sm text-gray-600 mt-1">{activity.notes}</p>
+                      )}
                     </div>
                   </div>
                 ))}

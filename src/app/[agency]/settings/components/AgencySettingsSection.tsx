@@ -12,6 +12,7 @@ import {
 	OperatingHours,
 	operatingHoursSchema,
 } from "../validation/agencySettings";
+import { AGENCY_TIME_ZONES } from "@/lib/time-zones";
 import {
 	DEFAULT_BOOKING_RULES,
 	parseBookingRules,
@@ -311,7 +312,7 @@ const defaultOperatingHours: OperatingHours = {
 	friday: { open: "09:00", close: "17:00", isOpen: true },
 	saturday: { open: "10:00", close: "16:00", isOpen: true },
 	sunday: { open: "12:00", close: "16:00", isOpen: false },
-	timeZone: "America/New_York",
+	timeZone: "", // never assumed - the agency picks it
 };
 
 export default function AgencySettingsSection({
@@ -340,8 +341,8 @@ export default function AgencySettingsSection({
 
 				if (response.ok) {
 					const result = await response.json();
-					if (result.success && result.data && Object.keys(result.data).length > 1) {
-						setOperatingHours(result.data);
+					if (result.success && result.data) {
+						setOperatingHours({ ...defaultOperatingHours, ...result.data });
 					} else {
 						setOperatingHours(defaultOperatingHours);
 					}
@@ -523,7 +524,7 @@ export default function AgencySettingsSection({
 					Time Zone
 				</label>
 				<select
-					value={operatingHours?.timeZone || "America/New_York"}
+					value={operatingHours?.timeZone || ""}
 					onChange={(e) => {
 						setOperatingHours((prev) => ({
 							...prev,
@@ -532,11 +533,19 @@ export default function AgencySettingsSection({
 					}}
 					className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
 				>
-					<option value="America/New_York">Eastern Time (ET)</option>
-					<option value="America/Chicago">Central Time (CT)</option>
-					<option value="America/Denver">Mountain Time (MT)</option>
-					<option value="America/Los_Angeles">Pacific Time (PT)</option>
+					<option value="" disabled>
+						Not set - choose your time zone
+					</option>
+					{AGENCY_TIME_ZONES.map((zone) => (
+						<option key={zone.value} value={zone.value}>
+							{zone.label}
+						</option>
+					))}
 				</select>
+				<p className="mt-1 text-xs text-gray-500">
+					Booking cutoffs (&quot;order by end of day&quot;) use this time zone.
+					{!operatingHours?.timeZone && " Until you set it, the customer's own time zone is used."}
+				</p>
 			</div>
 
 			{validationErrors.length > 0 && (
