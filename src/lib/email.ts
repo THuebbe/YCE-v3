@@ -16,7 +16,13 @@ interface OrderNotificationData {
 	totalAmount: number;
 	agencyName?: string;
 	agencyEmail: string;
+	/** Link to the order in the dashboard; the button is left out without it */
+	orderUrl?: string;
 }
+
+// Customer-typed text goes into this HTML: escape it
+const escapeHtml = (value: string) =>
+	value.replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch]!);
 
 export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 	try {
@@ -29,8 +35,8 @@ export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 				
 				<div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
 					<h2 style="color: #065f46; margin: 0 0 15px 0;">Order Details</h2>
-					<p><strong>Order Number:</strong> ${data.orderNumber}</p>
-					<p><strong>Customer:</strong> ${data.customerName}</p>
+					<p><strong>Order Number:</strong> ${escapeHtml(data.orderNumber)}</p>
+					<p><strong>Customer:</strong> ${escapeHtml(data.customerName)}</p>
 					<p><strong>Event Date:</strong> ${new Date(data.eventDate).toLocaleDateString()}</p>
 					<p><strong>Total Amount:</strong> $${data.totalAmount.toFixed(2)}</p>
 				</div>
@@ -39,9 +45,9 @@ export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 					You have a new order! Please log into your dashboard to review the details and begin processing.
 				</p>
 				
-				<div style="text-align: center; margin: 30px 0;">
+				${data.orderUrl ? `<div style="text-align: center; margin: 30px 0;">
 					<a 
-						href="#" 
+						href="${escapeHtml(data.orderUrl)}" 
 						style="
 							background-color: #059669; 
 							color: white; 
@@ -53,7 +59,7 @@ export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 					>
 						View Order in Dashboard
 					</a>
-				</div>
+				</div>` : ''}
 			</div>
 		`;
 
@@ -61,7 +67,7 @@ export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 		const result = await resend.emails.send({
 			from: 'YardCard Elite <onboarding@resend.dev>',
 			to: [data.agencyEmail],
-			subject: `New Order: ${data.orderNumber} - ${data.customerName}`,
+			subject: `New Order: ${data.orderNumber} - ${data.customerName.replace(/[\r\n]+/g, ' ')}`,
 			html: emailHtml,
 		});
 		

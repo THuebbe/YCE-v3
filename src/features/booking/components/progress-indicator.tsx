@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 
@@ -35,6 +35,14 @@ export function ProgressIndicator({
 	const [isSnappingBack, setIsSnappingBack] = useState(false);
 	const [snapBackDirection, setSnapBackDirection] = useState<'left' | 'right' | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
+	// Phone strip scrolls sideways: keep the current step in view
+	const mobileStripRef = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		const strip = mobileStripRef.current;
+		const current = strip?.querySelector<HTMLElement>(`[data-step="${currentStep}"]`);
+		if (!strip || !current) return;
+		strip.scrollTo({ left: current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2, behavior: "smooth" });
+	}, [currentStep]);
 	return (
 		<div className="w-full bg-background-white border-b border-neutral-200 px-4 py-6 select-none">
 			<div className="max-w-4xl mx-auto">
@@ -157,12 +165,13 @@ export function ProgressIndicator({
 
 				{/* Mobile Horizontal Scrolling Progress Bar */}
 				<div className="md:hidden">
-					<div className="relative overflow-x-auto">
+					<div ref={mobileStripRef} className="relative overflow-x-auto">
 						{/* Horizontal scrolling container with same design as desktop */}
 						<div className="flex items-center justify-start gap-6 px-4 min-w-max">
 							{steps.slice(0, totalSteps).map((step, index) => (
 								<div
 									key={step.id}
+									data-step={step.id}
 									className="flex items-center flex-shrink-0"
 								>
 									{/* Step Circle - Same as desktop */}
@@ -277,7 +286,8 @@ export function ProgressIndicator({
 					{/* Progress indicator */}
 					<div className="text-center mt-4">
 						<p className="text-xs text-neutral-500">
-							{Math.round((currentStep / totalSteps) * 100)}% Complete • Step {currentStep} of {totalSteps}
+							Step {currentStep} of {totalSteps}
+							{steps[currentStep - 1] ? ` • ${steps[currentStep - 1].title}` : ""}
 						</p>
 					</div>
 				</div>

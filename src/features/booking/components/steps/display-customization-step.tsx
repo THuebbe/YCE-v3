@@ -124,6 +124,22 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
       if (styles.length > 0) setAvailableStyles(styles.map(capitalize));
       if (colorways.length > 0) setAvailableColorways(colorways.map(capitalize));
+      // The defaults ('Classic' / 'Red') may be something this agency doesn't
+      // stock; start from what it has so the first Generate can succeed
+      const firstStyle = styles[0] && capitalize(styles[0]);
+      const firstColor = colorways[0] && capitalize(colorways[0]);
+      setLocalData(prev => {
+        const styleOk = (v?: string) => !firstStyle || styles.some(s => capitalize(s) === v);
+        const colorOk = (v?: string) => !firstColor || colorways.some(c => capitalize(c) === v);
+        if (styleOk(prev.messageStyle) && styleOk(prev.nameStyle) && colorOk(prev.messageColorway) && colorOk(prev.nameColorway)) return prev;
+        return {
+          ...prev,
+          messageStyle: styleOk(prev.messageStyle) ? prev.messageStyle : firstStyle,
+          nameStyle: styleOk(prev.nameStyle) ? prev.nameStyle : firstStyle,
+          messageColorway: colorOk(prev.messageColorway) ? prev.messageColorway : firstColor,
+          nameColorway: colorOk(prev.nameColorway) ? prev.nameColorway : firstColor,
+        };
+      });
       if (styles.length === 0 || colorways.length === 0) {
         setPreviewError('This agency has no letter signs in stock yet. Please contact them directly.');
       }
