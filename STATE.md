@@ -12,7 +12,12 @@ old verification notes) is in `git show aace018:STATE.md`.
   `CRON_SECRET`). **Still a demo, not sellable:** checkout never charges.
 - **Branch `claude/m1b-checkin-cancel`** (PR #7): dashboard
   order actions (advance / check-in / cancel), onboarding asks for real
-  business data, agency time zone. See VERIFIED WORKING 2026-10-10.
+  business data, agency time zone, order documents, plus fixes from a
+  3-agent code review (2026-10-10). See VERIFIED WORKING 2026-10-10.
+- **Branch `claude/m1c-booking-hardening`** (from main, no PR yet):
+  booking-flow fixes from the same review - payment choice, refresh
+  keeps progress, post-order lock, blackout days, server letter check,
+  agency-branded confirmation, phone layout.
 - **Waiting on the user (at a keyboard):** Stripe test-mode Connect setup
   + access for Claude, and which agency is the Express test (proposed
   texas-signs; west-branch stays the Standard test) → milestone 2.
@@ -57,6 +62,19 @@ old verification notes) is in `git show aace018:STATE.md`.
   and rendered locally from real order YCE-2026-101575: all 20 lines,
   $81 + 2×$13 = $107, page breaks, JSON addresses. Server PDFs can't be
   opened from Claude's sandbox (Blob blocked) - only their upload is seen.
+- **2026-10-10, review fixes.** PR #7 preview `b733158` (iPhone width):
+  order details fits 390px (was 575), Order Activity lists the 3 status
+  changes, Edit Signs disabled, no agency secrets in the page payload
+  (`agencies(*)` embed removed), partial refund capped at $210 and $30
+  saved to `orders.refund_amount`. Booking preview `71a776a` (iPhone):
+  `?step=6` opens step 1; reload on step 3 keeps step + data + hold;
+  PayPal choice sticks (methods faked in-browser - no test agency has
+  Venmo/PayPal connected); Review buttons fit; terms show the real
+  pickup day; a request with extra letters is refused ("reserved signs
+  don't match"); order YCE-2026-896278 placed, confirmation names the
+  agency, no email promise; reopening shows the confirmation with no
+  way back. Blackout rule unit-checked locally (delivery/pickup day).
+  Test orders: YCE-2026-201857 completed, YCE-2026-896278 cancelled.
 - **2026-10-10, preview `529228d`, dashboard:** Recent Orders shows real
   sign counts (YCE-2026-101575: 30; was hardcoded "1"); order details
   Documents panel lists saved PDFs after a reload (was empty until
@@ -107,9 +125,18 @@ old verification notes) is in `git show aace018:STATE.md`.
 6. Customers can't self-cancel; late/damage fees not built - milestone 5.
 
 ## Known gaps (not blockers)
-- "Edit signs" on an order is still a Demo Mode stub (needs stock re-check
-  and re-hold).
-- Refunds: cancel only records the requested refund (`order_activities`
+- "Edit signs" isn't built; the buttons are disabled (needs stock
+  re-check and re-hold).
+- Booking (after the m1c branch): the Customize preview is blank after a
+  refresh until regenerated (the hold survives); changing dates leaves
+  the old hold until it expires or is replaced; customers sharing an IP
+  share the hold limit; no customer confirmation email; desktop and
+  mobile copies of every step both mount.
+- The orders board has no Cancelled column (cancelled orders vanish
+  from it).
+- `/api/agency/settings` PUT would wipe `settings.serviceAreas` (Zod
+  strips unknown keys); nothing calls it today.
+- Refunds: cancel only records the requested refund (`orders.refund_amount`,
   metadata) until Stripe.
 - Dashboard stock counters (`available_quantity` etc.) ignore holds;
   the booking side uses `yce_sign_availability` (ARCHITECTURE.md).
