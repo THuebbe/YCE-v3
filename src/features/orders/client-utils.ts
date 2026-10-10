@@ -31,7 +31,7 @@ export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
-  }).format(amount / 100); // Convert from cents to dollars
+  }).format(Number(amount) || 0); // orders.total is stored in dollars
 }
 
 export function formatDate(date: Date): string {
@@ -53,7 +53,7 @@ export function formatEventDate(date: Date): string {
   }).format(date);
 }
 
-// Client-side versions of server functions (mock data for demo)
+// Client-side versions of server functions
 export function shouldAutoRefund(order: any): boolean {
   return isWithinCancellationWindow(order);
 }
@@ -68,10 +68,53 @@ export function isWithinCancellationWindow(order: any): boolean {
 }
 
 export function canCancelOrder(order: any): boolean {
-  // Can cancel if not completed or already cancelled
-  return !['completed', 'cancelled'].includes(order.status);
+  // Deployed orders end with check-in, not a cancel (yce_cancel_order agrees)
+  return ['pending', 'processing'].includes(order.status);
 }
 
 export function calculateOrderTotal(items: { unitPrice: number; quantity: number }[]): number {
   return items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0);
+}
+export interface OrderSignLine {
+  signId: string;
+  quantity: number;
+  sign: { name?: string; image_url?: string; category?: string } | null;
+}
+
+/**
+ * The signs an order holds. Wizard bookings write `order_signs`; older and
+ * seeded orders only have `order_items`. Same rule as yce_order_sign_lines().
+ */
+export function getOrderSignLines(order: any): OrderSignLine[] {
+  const rows: any[] = order?.order_signs?.length ? order.order_signs : order?.order_items ?? [];
+  const bySign = new Map<string, OrderSignLine>();
+  for (const row of rows) {
+    const signId = row.sign_id ?? row.signId;
+    const line = bySign.get(signId);
+    if (line) line.quantity += row.quantity;
+    else bySign.set(signId, { signId, quantity: row.quantity, sign: row.sign ?? null });
+  }
+  return [...bySign.values()];
+}
+
+export function countOrderSigns(order: any): number {
+  return getOrderSignLines(order).reduce((sum, line) => sum + line.quantity, 0);
+}
+
+/**
+ * Event address as one line. Wizard orders store plain text; older and
+ * seeded orders store a JSON string ({street, city, state, zip}).
+ */
+export function formatAddress(address: unknown): string {
+  if (!address) return 'Not provided';
+  let value: any = address;
+  if (typeof value === 'string') {
+    try { value = JSON.parse(value); } catch { return value; }
+    if (typeof value !== 'object' || value === null) return address as string;
+  }
+  if (typeof value === 'object' && value !== null) {
+    const parts = [value.street, value.city, value.state, value.zip].filter(Boolean);
+    if (parts.length) return parts.join(', ');
+  }
+  return 'Not provided';
 }

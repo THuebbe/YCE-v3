@@ -45,8 +45,8 @@ signs without looking at stock - shortages surface at hold time, by name.
 **Availability** (`yce_sign_availability`) for rental days [start, end]:
 quantity - live temporary holds overlapping the range - active order holds
 with `rental_start <= end`. Order holds have no end: signs stay out until
-released (check-in, cancellation, or `SELECT yce_release_order_hold(id)`
-by hand - check-in isn't built yet). Every write takes a per-agency
+released by check-in (`yce_check_in_order`) or cancellation
+(`yce_cancel_order`), or by hand with `SELECT yce_release_order_hold(id)`. Every write takes a per-agency
 advisory lock. A new temporary hold replaces every live temporary hold
 of the same wizard `session_id` (server-side; a refused one keeps them). The `yce_*` functions are granted to `service_role` only.
 Rental range = delivery (event day - extra days before - `setupDays`)
@@ -184,8 +184,8 @@ Booking side: `[agency]/booking/[[...path]]/page.tsx` reads
 `calculateBookingTotal()` (`features/booking/pricing.ts`). No valid
 `basePrice` -> the page refuses to quote. `/api/orders/create`
 recomputes the total from `pricing_config` and rejects a mismatch.
-Known inconsistency: the settings API fills missing/zero values with
-`|| 50` / `|| 10`, so settings can display a price the wizard won't use.
+The settings API and form fill only MISSING values (`?? 50` / `?? 10`;
+a stored 0 extra-day price stays 0, fixed 2026-10-10).
 
 ## Tables — YCE only (25 more in this database belong to PantryPro)
 ```
@@ -198,7 +198,8 @@ IDs are cuids (`cmcpperej000fq8br24m5cd06`) — a Prisma legacy. Prisma
 itself was removed early in the project's life; the file-level relics
 (`vercel.json` dataproxy config, `scripts/fix-prisma-lock.bat`,
 `scripts/create-test-users.ts`) were deleted in the 2026-09-12 cleanup
-(see STATE.md) — cuids are the only Prisma trace left, and that's a
+(see STATE.md); the last Prisma-era scripts in `scripts/` were deleted
+2026-10-10. Cuids are the only Prisma trace left, and that's a
 data-format fact, not a dead file. Column casing varies BY TABLE:
 `orders.agency_id` and `agency_inventory.agency_id` (verified against live
 app code and the database; this previously said `orders."agencyId"`,

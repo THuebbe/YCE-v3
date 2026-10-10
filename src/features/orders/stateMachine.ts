@@ -25,9 +25,11 @@ export const orderStateMachine: Record<OrderStatus, OrderStateDefinition> = {
     nextStates: ['deployed', 'cancelled'],
     description: 'Pick ticket generated, order being prepared for deployment'
   },
+  // No cancel once deployed: the signs are in a yard, so the order ends with
+  // check-in (which releases its sign hold).
   deployed: {
-    actions: ['checkInSigns', 'cancel'],
-    nextStates: ['completed', 'cancelled'],
+    actions: ['checkInSigns'],
+    nextStates: ['completed'],
     description: 'Signs deployed in the field, awaiting check-in'
   },
   completed: {

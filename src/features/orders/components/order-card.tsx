@@ -16,34 +16,9 @@ import {
   X 
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { formatCurrency, formatEventDate, getOrderStatusBadgeColor } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatEventDate, getOrderStatusBadgeColor } from '../client-utils';
+import { useOrderAction } from './use-order-action';
 
-// Helper function to format address
-const formatAddress = (address: string | object): string => {
-  if (typeof address === 'string') {
-    try {
-      // Try to parse if it's a JSON string
-      const parsed = JSON.parse(address);
-      return formatAddressObject(parsed);
-    } catch {
-      // If parsing fails, return the string as-is
-      return address;
-    }
-  } else if (typeof address === 'object' && address !== null) {
-    return formatAddressObject(address);
-  }
-  return 'Address not available';
-};
-
-const formatAddressObject = (addr: any): string => {
-  const parts = [];
-  if (addr.street) parts.push(addr.street);
-  if (addr.city) parts.push(addr.city);
-  if (addr.state) parts.push(addr.state);
-  if (addr.zip) parts.push(addr.zip);
-  return parts.join(', ') || 'Address not available';
-};
-// import { advanceOrderStatus } from '../actions'; // Temporarily disabled to fix client/server import issue
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
 import { EditSignsModal } from './edit-signs-modal';
@@ -55,37 +30,14 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order }: OrderCardProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const agencySlug = useAgencySlug();
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
-  const signCount = order.order_items?.reduce((sum: number, item: any) => sum + item.quantity, 0) || 0;
+  const signCount = countOrderSigns(order);
   const statusColor = getOrderStatusBadgeColor(order.status);
 
-  const handleAction = async (action: OrderAction) => {
-    if (isProcessing) return;
-    
-    setIsProcessing(true);
-    try {
-      // Temporary mock action for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast({
-        title: 'Demo Mode',
-        description: `Would ${getActionLabel(action).toLowerCase()} - this is demo data`,
-        variant: 'success'
-      });
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Demo mode - no real actions performed',
-        variant: 'error'
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleViewDetails = () => {
     if (agencySlug) {
@@ -98,6 +50,7 @@ export function OrderCard({ order }: OrderCardProps) {
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const { run: handleAction, isProcessing } = useOrderAction(order, () => setShowCancelModal(true));
 
   const handleEditSigns = () => {
     setShowEditModal(true);
@@ -135,19 +88,22 @@ export function OrderCard({ order }: OrderCardProps) {
               size="sm"
               onClick={handleEditSigns}
               className="p-2 h-10 w-10"
-              title="Edit signs"
+              disabled // Edit signs is not built yet (needs a stock re-check and re-hold)
+              title="Editing signs isn't available yet"
             >
               <Edit className="h-5 w-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancelOrder}
-              className="p-2 h-10 w-10 text-red-600 hover:text-red-700"
-              title="Cancel order"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            {['pending', 'processing'].includes(order.status) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelOrder}
+                className="p-2 h-10 w-10 text-red-600 hover:text-red-700"
+                title="Cancel order"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            )}
           </div>
         </div>
 

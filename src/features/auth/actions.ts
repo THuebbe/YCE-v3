@@ -2,7 +2,8 @@
 
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { supabase } from '@/lib/db/supabase-client'
+import { supabase, getUserById } from '@/lib/db/supabase-client'
+import { DEFAULT_BOOKING_RULES } from '@/features/booking/booking-rules'
 import { 
   createAgencySchema, 
   checkSubdomainSchema,
@@ -75,10 +76,21 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
     }
 
     // Extract and validate form data
+    const parseJson = (value: FormDataEntryValue | null) => {
+      try { return JSON.parse(String(value ?? '')) } catch { return undefined }
+    }
+    const num = (value: FormDataEntryValue | null) =>
+      value === null || value === '' ? undefined : Number(value)
     const rawData = {
       name: formData.get('name') as string,
       slug: formData.get('slug') as string,
       description: formData.get('description') as string || undefined,
+      phone: (formData.get('phone') as string) || '',
+      website: (formData.get('website') as string) || undefined,
+      serviceAreas: parseJson(formData.get('serviceAreas')) ?? [],
+      timeZone: (formData.get('timeZone') as string) || '',
+      basePrice: num(formData.get('basePrice')),
+      extraDayPrice: num(formData.get('extraDayPrice')),
     }
 
     const validationResult = createAgencySchema.safeParse(rawData)
@@ -89,7 +101,17 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
       }
     }
 
-    const { name, slug, description } = validationResult.data
+    const { name, slug, description, phone, website, serviceAreas, timeZone, basePrice, extraDayPrice } =
+      validationResult.data
+
+    // One agency per member: creating a second would silently move them
+    const existingUser = await getUserById(user.id)
+    if (existingUser?.agency_id) {
+      return {
+        success: false,
+        error: 'Your account already belongs to an agency'
+      }
+    }
 
     // Double-check slug availability
     const availabilityCheck = await checkSubdomainAvailability(slug)
@@ -119,18 +141,25 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         stripe_payouts_enabled: false,
         stripe_details_submitted: false,
         address: {},
+        domain: website || null,
         agency_code: `AG${Date.now()}`,
         business_name: name,
-        city: 'Default City', // TODO: Get from form
+        city: serviceAreas[0].city,
         email: user.emailAddresses[0]?.emailAddress || '',
         order_counter: 0,
-        phone: '', // TODO: Get from form
+        phone,
+        // The agency's own prices; lateFee is the policy default (PRODUCT.md)
         pricing_config: {
           lateFee: 25,
-          basePrice: 95, // Match schema default
-          extraDayPrice: 10
+          basePrice,
+          extraDayPrice
         },
-        settings: {},
+        // Decides "end of day" for the order cutoff (booking-rules.ts)
+        operating_hours: { timeZone },
+        // Current shape explicitly (the column default is the retired
+        // lead-time-hours shape)
+        booking_rules: DEFAULT_BOOKING_RULES,
+        settings: { serviceAreas },
         stripe_connect_status: 'pending',
         subscription_start_date: now,
         subscription_status: 'trial' // Match schema default instead of 'active'
@@ -146,22 +175,42 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
       }
     }
 
-    // Update the user to be associated with this agency
-    const { error: userError } = await supabase
-      .from('users')
-      .update({
-        agency_id: agency.id,
-        role: 'ADMIN',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id)
+    // Link the creator to the agency. The users row normally comes from the
+    // Clerk webhook, which has not delivered since 2025-10 - so create the
+    // row here when it's missing (same fields the webhook writes), and check
+    // a row really was written: a silent no-op left new owners locked out.
+    // `users` is shared with PantryPro: touch only this person's row.
+    const now2 = new Date().toISOString()
+    const link = existingUser
+      ? await supabase
+          .from('users')
+          .update({ agency_id: agency.id, role: 'ADMIN', updated_at: now2 })
+          .eq('id', existingUser.id)
+          .is('agency_id', null) // a parallel submit that linked first wins
+          .select('id')
+      : await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            clerk_user_id: user.id,
+            email: user.emailAddresses[0]?.emailAddress || '',
+            first_name: user.firstName,
+            last_name: user.lastName,
+            role: 'ADMIN',
+            agency_id: agency.id,
+            created_at: now2,
+            updated_at: now2,
+          })
+          .select('id')
 
-    if (userError) {
-      console.error('❌ Error updating user with agency:', userError)
-      // Agency was created but user association failed
+    if (link.error || !link.data?.length) {
+      console.error('❌ Error linking user to agency:', link.error?.message)
+      // Don't leave an agency nobody can reach
+      const { error: cleanupError } = await supabase.from('agencies').delete().eq('id', agency.id)
+      if (cleanupError) console.error('❌ Orphan agency left behind:', agency.id, cleanupError.message)
       return {
         success: false,
-        error: 'Agency created but failed to associate user'
+        error: 'Could not link your account to the new agency. Please try again.'
       }
     }
 

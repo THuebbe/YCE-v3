@@ -7,8 +7,9 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import { AlertTriangle, DollarSign, Clock } from 'lucide-react';
-import { formatCurrency, shouldAutoRefund, isWithinCancellationWindow } from '../client-utils';
-// import { cancelOrder } from '../actions'; // Temporarily disabled to fix client/server import issue
+import { formatCurrency, isWithinCancellationWindow } from '../client-utils';
+import { cancelOrder } from '../actions';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
 
 interface CancelOrderModalProps {
@@ -23,32 +24,37 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
   const [partialAmount, setPartialAmount] = useState('');
   const [reason, setReason] = useState('');
   const { toast } = useToast();
+  const router = useRouter();
 
-  const canAutoRefund = shouldAutoRefund(order);
   const withinCancellationWindow = isWithinCancellationWindow(order);
-  const maxRefundAmount = order.total;
+  const maxRefundAmount = Number(order.total) || 0; // dollars (numeric column comes back as a string)
 
   const handleCancel = async () => {
     if (isProcessing) return;
 
     setIsProcessing(true);
     try {
-      const refundAmount = refundType === 'full' 
-        ? maxRefundAmount 
-        : refundType === 'partial' 
-          ? Math.min(parseInt(partialAmount) * 100 || 0, maxRefundAmount)
+      const refundAmount = refundType === 'full'
+        ? maxRefundAmount
+        : refundType === 'partial'
+          ? Math.min(parseFloat(partialAmount) || 0, maxRefundAmount)
           : 0;
 
-      // Temporary mock action for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await cancelOrder({ orderId: order.id, reason, refundType, refundAmount });
+      if (!result.success) {
+        toast({ title: 'Could not cancel order', description: result.error, variant: 'error' });
+        return;
+      }
 
       toast({
-        title: 'Demo Mode - Order Cancel',
-        description: `Would cancel Order #${order.order_number}${refundAmount > 0 ? ` with ${formatCurrency(refundAmount)} refund` : ''} - this is demo data`,
+        title: 'Order cancelled',
+        description: `Order #${order.order_number} is cancelled and its signs are free again.${refundAmount > 0 ? ` Refund of ${formatCurrency(refundAmount)} recorded - issue it in your payment processor until refunds are built in.` : ''}`,
         variant: 'success'
       });
 
+      resetModal();
       onClose();
+      router.refresh();
     } catch (error) {
       toast({
         title: 'Error',
@@ -124,7 +130,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
             <div className="flex items-center text-green-800">
               <Clock className="h-4 w-4 mr-2" />
               <span className="text-sm font-medium">
-                Order is within 24-hour cancellation window - eligible for automatic refund
+                Within 24 hours of booking. Refunds aren't sent automatically yet (that arrives with payments) - the refund you choose is recorded; issue it in your payment processor.
               </span>
             </div>
           </div>
@@ -133,7 +139,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
             <div className="flex items-center text-amber-800">
               <Clock className="h-4 w-4 mr-2" />
               <span className="text-sm font-medium">
-                Order is past 24-hour cancellation window - manual refund processing required
+                Past 24 hours since booking. The refund you choose is recorded; issue it in your payment processor.
               </span>
             </div>
           </div>
@@ -155,11 +161,6 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
               >
                 <DollarSign className="h-4 w-4 mr-1 text-green-600" />
                 Full Refund ({formatCurrency(maxRefundAmount)})
-                {canAutoRefund && (
-                  <span className="ml-2 text-xs text-green-600 font-medium">
-                    Auto-processed
-                  </span>
-                )}
               </label>
             </div>
 
@@ -179,7 +180,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
                   id="partialAmount"
                   type="number"
                   min="0"
-                  max={maxRefundAmount / 100}
+                  max={maxRefundAmount}
                   step="0.01"
                   value={partialAmount}
                   onChange={(e) => setPartialAmount(e.target.value)}
@@ -215,19 +216,6 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
           </div>
         </div>
 
-        {/* Warning for deployed orders */}
-        {order.status === 'deployed' && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 mr-2" />
-              <div className="text-sm text-red-800">
-                <strong>Warning:</strong> This order is currently deployed. 
-                Cancelling will require immediate sign retrieval from the field.
-                Post-deployment cancellations are typically treated as completed orders.
-              </div>
-            </div>
-          </div>
-        )}
       </ModalContent>
 
       <ModalFooter>

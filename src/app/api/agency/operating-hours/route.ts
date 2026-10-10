@@ -12,7 +12,6 @@ const defaultOperatingHours = {
   friday: { open: '09:00', close: '17:00', isOpen: true },
   saturday: { open: '10:00', close: '16:00', isOpen: true },
   sunday: { open: '12:00', close: '16:00', isOpen: false },
-  timeZone: 'America/New_York'
 }
 
 export async function GET(request: NextRequest) {
@@ -58,7 +57,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Return operating hours or default operating hours if none exist
-    const operatingHours = agency.operating_hours || defaultOperatingHours
+    // Stored values over default hours. No default time zone: an agency
+    // that never chose one must not look like it's on Eastern time.
+    const operatingHours = { ...defaultOperatingHours, ...(agency.operating_hours || {}) }
 
     return NextResponse.json({
       success: true,

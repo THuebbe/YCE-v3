@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { countOrderSigns } from '@/features/orders/client-utils'
 
 // Create Supabase client with service role key for server-side operations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
@@ -83,7 +84,7 @@ export async function getUserById(userId: string): Promise<any | null> {
 
     // userId is the Clerk auth ID. Users created via the Clerk webhook have
     // it stored directly as `id` (see api/webhooks/clerk/route.ts), but
-    // manually-seeded users (e.g. scripts/sync-clerk-users.ts) keep their
+    // manually-seeded users keep their
     // original cuid `id` and link to Clerk only via `clerk_user_id`. Match
     // either so both paths resolve.
     const { data, error } = await supabase
@@ -132,7 +133,7 @@ export async function getOrdersByAgency(agencyId: string, limit: number = 10): P
   try {
     const { data, error } = await supabase
       .from('orders')
-      .select('*')
+      .select('*, order_items(sign_id, quantity), order_signs(sign_id, quantity)')
       .eq('agency_id', agencyId)
       .order('created_at', { ascending: false })
       .limit(limit)
@@ -164,7 +165,8 @@ export async function getUpcomingOrdersByAgency(agencyId: string, limit: number 
         customer_name,
         event_date,
         status,
-        order_items(quantity)
+        order_items(sign_id, quantity),
+        order_signs(sign_id, quantity)
       `)
       .eq('agency_id', agencyId)
       .in('status', ['pending', 'processing', 'deployed'])
@@ -188,7 +190,7 @@ export async function getUpcomingOrdersByAgency(agencyId: string, limit: number 
       customer_name: order.customer_name,
       event_date: order.event_date,
       status: order.status,
-      signCount: order.order_items?.reduce((total: number, item: any) => total + (item.quantity || 0), 0) || 0
+      signCount: countOrderSigns(order)
     }))
     
     console.log(`✅ Supabase: Found ${transformedOrders.length} upcoming orders`)
