@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
@@ -43,24 +43,18 @@ export function PaymentStep() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPaymentFields, setSelectedPaymentFields] = useState<Record<string, any>>({});
 
-  // Update default payment method when available methods load
+  // Apply the agency's default method once, when the methods first load and
+  // the customer hasn't picked one (re-applying it on every render snapped a
+  // Venmo/PayPal choice straight back to the default).
+  const defaultApplied = useRef(Boolean(formData.payment?.paymentMethod));
   useEffect(() => {
-    if (paymentMethods.defaultPaymentMethod && 
-        !paymentMethods.isLoading && 
-        paymentMethods.availablePaymentMethods.length > 0) {
-      
-      const defaultExists = paymentMethods.availablePaymentMethods.find(
-        m => m.id === paymentMethods.defaultPaymentMethod
-      );
-      
-      if (defaultExists && localData.paymentMethod !== paymentMethods.defaultPaymentMethod) {
-        setLocalData(prev => ({
-          ...prev,
-          paymentMethod: paymentMethods.defaultPaymentMethod as any
-        }));
-      }
-    }
-  }, [paymentMethods, localData.paymentMethod]);
+    if (defaultApplied.current || paymentMethods.isLoading) return;
+    const available = paymentMethods.availablePaymentMethods;
+    if (!available.length) return;
+    defaultApplied.current = true;
+    const preferred = available.find(m => m.id === paymentMethods.defaultPaymentMethod) ?? available[0];
+    setLocalData(prev => ({ ...prev, paymentMethod: preferred.id as any }));
+  }, [paymentMethods.isLoading, paymentMethods.availablePaymentMethods, paymentMethods.defaultPaymentMethod]);
 
   const handlePaymentMethodChange = (methodId: string) => {
     setLocalData(prev => ({ 

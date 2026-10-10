@@ -1,13 +1,40 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { BookingFormData, WizardContextType } from '../types';
+import { AgencyContact, BookingFormData, ExtendedBookingFormData, WizardContextType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type { BookingPricing } from '../pricing';
 import type { BookingRules } from '../booking-rules';
 import { touchBookingHold } from '../actions';
 
 const SESSION_KEY = 'yce_booking_session';
+const STATE_KEY = 'yce_booking_state:'; // + agency slug
+
+type SavedWizard = { formData: Partial<BookingFormData>; currentStep: number; furthestStep: number };
+
+/** Wizard progress for this tab, so a refresh or the browser's Back button
+ *  doesn't throw the customer back to step 1 (their sign hold lives on). */
+function loadSavedWizard(agencySlug: string, totalSteps: number): SavedWizard | null {
+  try {
+    const raw = window.sessionStorage.getItem(STATE_KEY + agencySlug);
+    if (!raw) return null;
+    const saved = JSON.parse(raw) as SavedWizard;
+    const eventDate = saved.formData?.event?.eventDate;
+    if (saved.formData?.event && eventDate) {
+      saved.formData.event = { ...saved.formData.event, eventDate: new Date(eventDate as unknown as string) };
+    }
+    const clamp = (n: unknown) => Math.min(Math.max(Math.trunc(Number(n)) || 1, 1), totalSteps);
+    const furthestStep = clamp(saved.furthestStep);
+    return { formData: saved.formData ?? {}, furthestStep, currentStep: Math.min(clamp(saved.currentStep), furthestStep) };
+  } catch {
+    return null;
+  }
+}
+
+/** Start the next booking from scratch (after an order, or on request). */
+export function clearSavedWizard(agencySlug: string) {
+  try { window.sessionStorage.removeItem(STATE_KEY + agencySlug); } catch {}
+}
 
 /** One id per browser tab's wizard run; survives a reload, not a new tab.
  *  Never rendered, so a server/client mismatch here is harmless. */
@@ -32,10 +59,12 @@ interface WizardProviderProps {
   children: React.ReactNode;
   agencyId: string;
   agencySlug: string;
+  agency: AgencyContact;
   pricing: BookingPricing;
   bookingRules: BookingRules;
   agencyTimeZone?: string;
   totalSteps: number;
+  /** Ignored: the wizard always starts at step 1 (or saved progress). */
   initialStep?: number;
   initialData?: Partial<BookingFormData>;
 }
@@ -44,16 +73,40 @@ export function WizardProvider({
   children, 
   agencyId,
   agencySlug,
+  agency,
   pricing,
   bookingRules,
   agencyTimeZone,
   totalSteps, 
-  initialStep = 1,
   initialData = {}
 }: WizardProviderProps) {
-  const [currentStep, setCurrentStep] = useState(initialStep);
-  const [furthestStep, setFurthestStep] = useState(initialStep);
+  // Always start at step 1: a ?step= in the URL used to jump straight to an
+  // empty "Order Confirmed!" page. Saved progress (below) is the only way in.
+  const [currentStep, setCurrentStep] = useState(1);
+  const [furthestStep, setFurthestStep] = useState(1);
   const [formData, setFormData] = useState<Partial<BookingFormData>>(initialData);
+  // Steps copy formData when they mount, so restore before rendering them
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    const saved = loadSavedWizard(agencySlug, totalSteps);
+    if (saved) {
+      setFormData(saved.formData);
+      setCurrentStep(saved.currentStep);
+      setFurthestStep(saved.furthestStep);
+    }
+    setRestored(true);
+  }, [agencySlug, totalSteps]);
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      window.sessionStorage.setItem(STATE_KEY + agencySlug, JSON.stringify({ formData, currentStep, furthestStep }));
+    } catch {
+      // Storage blocked: the wizard still works, it just won't survive a refresh
+    }
+  }, [restored, agencySlug, formData, currentStep, furthestStep]);
+  // Once the order is placed, the wizard is finished: no going back to
+  // Review to place it again (the hold is already used up).
+  const orderPlaced = Boolean((formData as Partial<ExtendedBookingFormData>).orderResult);
   const [sessionId] = useState(loadSessionId);
   // The agency's zone when it set one, else the customer's browser zone
   const [timeZone] = useState<string | undefined>(() => {
@@ -91,6 +144,7 @@ export function WizardProvider({
   }, []);
 
   const nextStep = useCallback(() => {
+    if (orderPlaced) return;
     setCurrentStep(prev => {
       const newStep = Math.min(prev + 1, totalSteps);
       // Update furthest step when moving forward
@@ -98,14 +152,16 @@ export function WizardProvider({
       return newStep;
     });
     scrollToTop();
-  }, [totalSteps, scrollToTop]);
+  }, [totalSteps, scrollToTop, orderPlaced]);
 
   const prevStep = useCallback(() => {
+    if (orderPlaced) return;
     setCurrentStep(prev => Math.max(prev - 1, 1));
     scrollToTop();
-  }, [scrollToTop]);
+  }, [scrollToTop, orderPlaced]);
 
   const goToStep = useCallback((step: number) => {
+    if (orderPlaced) return;
     if (step >= 1 && step <= totalSteps) {
       // Prevent jumping ahead to incomplete steps
       if (step > furthestStep) {
@@ -115,16 +171,17 @@ export function WizardProvider({
       setCurrentStep(step);
       scrollToTop();
     }
-  }, [totalSteps, furthestStep, scrollToTop]);
+  }, [totalSteps, furthestStep, scrollToTop, orderPlaced]);
 
-  const canGoNext = currentStep < totalSteps;
-  const canGoPrev = currentStep > 1;
+  const canGoNext = !orderPlaced && currentStep < totalSteps;
+  const canGoPrev = !orderPlaced && currentStep > 1;
   const isFirstStep = currentStep === 1;
   const isLastStep = currentStep === totalSteps;
 
   const value: WizardContextType = {
     agencyId,
     agencySlug,
+    agency,
     pricing,
     bookingRules,
     sessionId,
@@ -153,7 +210,7 @@ export function WizardProvider({
 
   return (
     <WizardContext.Provider value={value}>
-      {children}
+      {restored ? children : <div className="min-h-[60vh]" aria-busy="true" />}
     </WizardContext.Provider>
   );
 }

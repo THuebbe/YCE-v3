@@ -113,9 +113,19 @@ export interface WizardStep {
   validation: z.ZodSchema<any> | null;
 }
 
+/** Who the customer is booking with (shown on the confirmation page).
+ *  Only these public fields - never the agencies row itself. */
+export interface AgencyContact {
+  name: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+}
+
 export interface WizardContextType {
   agencyId: string;
   agencySlug: string;
+  agency: AgencyContact;
   pricing: BookingPricing;
   bookingRules: BookingRules;
   /** Identifies this browser's wizard run to the server; holds belong to it. */
@@ -293,49 +303,12 @@ export interface SignSelectionCriteria {
   preferredWidth?: number;
 }
 
-// Order creation types
-export interface CreateBookingOrderInput {
-  formData: BookingFormData;
-  holdId: string;
-  paymentIntentId: string;
-  agencyId: string;
-  totalAmount: number;
-}
-
 export interface BookingOrderResult {
   success: boolean;
   orderId?: string;
   orderNumber?: string;
   confirmationCode?: string;
   error?: string;
-}
-
-// Pricing calculation
-export interface PricingBreakdown {
-  basePackage: number;
-  extraDaysBefore: number;
-  extraDaysAfter: number;
-  extraDaysTotal: number;
-  subtotal: number;
-  platformFee: number;
-  total: number;
-}
-
-// Agency booking site configuration
-export interface AgencyBookingConfig {
-  agencyId: string;
-  agencyName: string;
-  subdomain: string;
-  isActive: boolean;
-  customBranding?: {
-    logoUrl?: string;
-    primaryColor?: string;
-    backgroundImage?: string;
-  };
-  basePrice: number;
-  extraDayPrice: number;
-  availableThemes: string[];
-  availableSignStyles: string[];
 }
 
 // Payment Method Types for Dynamic Selection

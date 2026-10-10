@@ -8,16 +8,15 @@ old verification notes) is in `git show aace018:STATE.md`.
 ## Now
 - **Production** (`yce-v3.vercel.app`, Hobby): milestone 1 live since PR #6
   (2026-10-08) - real inventory, server-side sign holds, agency booking
-  rules. Crons live and secret-protected (`/api/cron/*` → 401 without
+  rules. PR #7 merged 2026-10-10: order check-in/cancel, documents,
+  real onboarding data, time zone. Crons live and secret-protected (`/api/cron/*` → 401 without
   `CRON_SECRET`). **Still a demo, not sellable:** checkout never charges.
-- **Branch `claude/m1b-checkin-cancel`** (PR #7): dashboard
-  order actions (advance / check-in / cancel), onboarding asks for real
-  business data, agency time zone, order documents, plus fixes from a
-  3-agent code review (2026-10-10). See VERIFIED WORKING 2026-10-10.
-- **Branch `claude/m1c-booking-hardening`** (from main, no PR yet):
-  booking-flow fixes from the same review - payment choice, refresh
-  keeps progress, post-order lock, blackout days, server letter check,
-  agency-branded confirmation, phone layout.
+- **Branch `claude/m1c-booking-hardening`** (PR open, waiting on the
+  user's click-through): booking-flow fixes from the 2026-10-10 review -
+  payment choice, refresh keeps progress, post-order lock, blackout
+  days, server letter check, agency-branded confirmation, phone layout -
+  plus findable PDFs (Open PDF link in the toast, document links on
+  order cards; the user couldn't find a generated pick ticket).
 - **Waiting on the user (at a keyboard):** Stripe test-mode Connect setup
   + access for Claude, and which agency is the Express test (proposed
   texas-signs; west-branch stays the Standard test) → milestone 2.
@@ -62,6 +61,9 @@ old verification notes) is in `git show aace018:STATE.md`.
   and rendered locally from real order YCE-2026-101575: all 20 lines,
   $81 + 2×$13 = $107, page breaks, JSON addresses. Server PDFs can't be
   opened from Claude's sandbox (Blob blocked) - only their upload is seen.
+- **2026-10-10, the user opened a generated PDF on their phone** (production
+  pick ticket for seeded ELITE-DENVER-296052, which has no sign lines, so
+  an empty sign table). Blob-hosted PDFs open on a phone.
 - **2026-10-10, review fixes.** PR #7 preview `b733158` (iPhone width):
   order details fits 390px (was 575), Order Activity lists the 3 status
   changes, Edit Signs disabled, no agency secrets in the page payload
@@ -176,7 +178,7 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Still open: subscription renewal failure handling (grace period?).
 
 ## Next steps
-1. PR #7 (`claude/m1b-checkin-cancel`): user click-through
+1. Booking-hardening PR: user click-through
    (check-in on a phone) and merge.
 2. **Milestone 2: Stripe** - 2a Express onboarding + Payment Element +
    direct charge + order on payment success + card saved for fees +

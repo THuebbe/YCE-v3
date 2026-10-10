@@ -19,6 +19,9 @@ export interface BookingRules {
   teardownDays: number;
   minimumRentalDays: number;
   maximumRentalDays: number;
+  /** YYYY-MM-DD days the agency doesn't work (agencies.blackout_dates):
+   *  no delivery or pickup on them. Absent = none. */
+  blackoutDays?: string[];
 }
 
 export const DEFAULT_BOOKING_RULES: BookingRules = {
@@ -33,7 +36,8 @@ export const DEFAULT_BOOKING_RULES: BookingRules = {
 const MAX_EXTRA_DAYS_PER_SIDE = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-export function parseBookingRules(raw: unknown): BookingRules {
+/** `blackoutRaw` is agencies.blackout_dates ([{ date: 'YYYY-MM-DD', ... }]). */
+export function parseBookingRules(raw: unknown, blackoutRaw?: unknown): BookingRules {
   const r = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
   const int = (v: unknown, fallback: number, min: number, max: number) => {
     const n = Number(v);
@@ -47,7 +51,15 @@ export function parseBookingRules(raw: unknown): BookingRules {
     teardownDays: int(r.teardownDays, d.teardownDays, 0, 14),
     minimumRentalDays,
     maximumRentalDays: Math.max(minimumRentalDays, int(r.maximumRentalDays, d.maximumRentalDays, 1, 30)),
+    ...(blackoutRaw !== undefined ? { blackoutDays: parseBlackoutDays(blackoutRaw) } : {}),
   };
+}
+
+function parseBlackoutDays(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(entry => (entry && typeof entry === 'object' ? (entry as Record<string, unknown>).date : entry))
+    .filter((day): day is string => typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day));
 }
 
 /** Display days the customer pays for: the event day plus extra days. */
@@ -135,6 +147,18 @@ export function validateBookingDates(
     return extraDaysBefore > 0
       ? `With ${extraDaysBefore} extra day${extraDaysBefore === 1 ? '' : 's'} before, the earliest event date is ${formatDay(earliest)}`
       : `The earliest available event date is ${formatDay(earliest)}`;
+  }
+
+  // The agency has to be working on the days it delivers and picks up
+  const blackout = rules.blackoutDays ?? [];
+  if (blackout.length) {
+    const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
+    if (blackout.includes(start)) {
+      return `We can't deliver on ${formatDay(start)} (closed) - please pick another date`;
+    }
+    if (blackout.includes(end)) {
+      return `We can't pick up on ${formatDay(end)} (closed) - please pick another date or change the extra days`;
+    }
   }
 
   const days = rentalDays(extraDaysBefore, extraDaysAfter);
