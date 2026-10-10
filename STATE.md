@@ -57,6 +57,12 @@ old verification notes) is in `git show aace018:STATE.md`.
   and rendered locally from real order YCE-2026-101575: all 20 lines,
   $81 + 2×$13 = $107, page breaks, JSON addresses. Server PDFs can't be
   opened from Claude's sandbox (Blob blocked) - only their upload is seen.
+- **2026-10-10, preview `529228d`, dashboard:** Recent Orders shows real
+  sign counts (YCE-2026-101575: 30; was hardcoded "1"); order details
+  Documents panel lists saved PDFs after a reload (was empty until
+  generated in that view) and its buttons open the Blob URLs. Most seeded
+  elite-denver orders (`ELITE-DENVER-*`) and YCE-2026-647960 have no sign
+  lines in the DB at all, so "0 signs" there is the data, not a bug.
 - **2026-10-10, onboarding on preview `d9c0e17`** as a brand-new Clerk
   test user (`onboarding-test+clerk_test@example.com`,
   `user_3KVXtQcipHtzhP9QALMcn3SVODb`, no `users` row): bad phone/website,
