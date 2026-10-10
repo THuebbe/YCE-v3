@@ -61,6 +61,9 @@ old verification notes) is in `git show aace018:STATE.md`.
   and rendered locally from real order YCE-2026-101575: all 20 lines,
   $81 + 2×$13 = $107, page breaks, JSON addresses. Server PDFs can't be
   opened from Claude's sandbox (Blob blocked) - only their upload is seen.
+- **2026-10-10, the user opened a generated PDF on their phone** (production
+  pick ticket for seeded ELITE-DENVER-296052, which has no sign lines, so
+  an empty sign table). Blob-hosted PDFs open on a phone.
 - **2026-10-10, review fixes.** PR #7 preview `b733158` (iPhone width):
   order details fits 390px (was 575), Order Activity lists the 3 status
   changes, Edit Signs disabled, no agency secrets in the page payload
