@@ -149,8 +149,11 @@ export function OrderDetails({ order }: OrderDetailsProps) {
     }
   };
 
+  // Saved documents (orders.documents, incl. ones the status buttons made)
+  // plus any generated in this view; the newest of each type wins
   const getDocumentOfType = (type: string) => {
-    return documents.find((doc: any) => doc.type === type);
+    const saved = Array.isArray(order.documents) ? order.documents : [];
+    return [...saved, ...documents].filter((doc: any) => doc.type === type).at(-1);
   };
 
   return (
