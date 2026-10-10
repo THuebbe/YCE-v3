@@ -2,6 +2,7 @@
 
 import { cache } from 'react';
 import { requireAgencyMember } from '@/features/auth/guards';
+import { countOrderSigns } from '@/features/orders/client-utils';
 import { getCurrentTenant } from '@/lib/tenant-context';
 import { getDashboardMetrics as getSupabaseDashboardMetrics, getOrdersByAgency } from '@/lib/db/supabase-client';
 import type { 
@@ -88,7 +89,7 @@ export const getRecentOrders = cache(async (agencyId: string, params: { limit?: 
       event_date: order.event_date || order.deploymentDate,
       status: order.status as OrderStatus,
       total: Number(order.totalAmount || order.total || 0),
-      signCount: 1, // TODO: Implement proper sign count with Supabase
+      signCount: countOrderSigns(order),
       created_at: order.created_at
     }));
 
