@@ -12,14 +12,15 @@ MVP operating cost ~$90/month (Vercel + Supabase + Resend + Clerk), so
 the model is profitable from roughly the second agency.
 
 ## Booking rules (these are product decisions, not implementation detail)
-- **48-hour minimum advance booking.** Implemented and working.
+- **Lead time: order cutoff + setup days** (replaced the old 48-hour
+  minimum, 2026-10-07). Per-agency `booking_rules`, see STATE.md "Decisions".
 - **Inventory soft-hold: 1 hour, session-based.** Triggered on PREVIEW
   GENERATION, not on browsing. Automatic cleanup of expired holds.
-  The UI already says "signs reserved for 1 hour." See ARCHITECTURE.md
-  for the hold spec — currently stubbed to localStorage.
+  Server-side since milestone 1 (`yce_create_booking_hold`); see
+  ARCHITECTURE.md for the hold spec.
 - **Alternative suggestions on inventory conflict.** If the requested
   signs aren't available, offer substitutes rather than failing.
-  `sign-selection.ts` has `getAlternatives()` for this; unused.
+  Not built (today the hold refuses and names the short sign).
 - **Zone 3 fill target: 75%.** `layout-calculator.ts` now enforces 75%
   (fixed 2026-09-14; previously hardcoded `0.6`, contradicting this spec).
 - **24-hour cancellation cutoff** with auto-refund logic. Not built.
@@ -70,9 +71,9 @@ money-transmitter rules).
 Braintree/Venmo and PayPal exist because solo operators genuinely use
 them — this is market-researched, not scope creep.
 
-## Agency onboarding — DECIDED 2026-10-07, not built
-Today `/onboarding` is one form (name, slug, description) that silently
-defaults pricing, city and phone. Target flow:
+## Agency onboarding — DECIDED 2026-10-07; steps 1-2 built 2026-10-10
+`/onboarding` asks for business basics, cities served, time zone and
+pricing. Payments and subscription steps wait on milestones 2-3. Target flow:
 1. **Business basics** — name, slug, phone, **main website** (optional;
    customers are sent back there after a successful booking, else to our
    confirmation page), **service area as multiple city+state entries**
@@ -147,8 +148,8 @@ Until the Victory Signs library exists, everything must work exactly as
 it will live — real inventory checks, holds, setup-checklist gate —
 except that the test agencies happen to own plenty of every sign.
 Swapping in the real library must be a **data** change, not a code
-change. (Today's code breaks this: stock comes from the asset manifest
-in code, not `agency_inventory`, and holds live in the browser.)
+change. (True since milestone 1: stock comes from `agency_inventory` and
+holds are server-side.)
 
 ## Platform revenue
 **Plans — DECIDED 2026-10-07** (supersedes the pricing page's

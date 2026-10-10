@@ -8,8 +8,6 @@
     "vercel-build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "cleanup:preview": "tsx scripts/cleanup-test-data.ts --preview",
-    "cleanup:confirm": "tsx scripts/cleanup-test-data.ts --confirm",
     "test-email": "tsx scripts/test-email.ts --"
   },
   "dependencies": {

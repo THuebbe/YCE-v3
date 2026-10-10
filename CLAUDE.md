@@ -5,7 +5,7 @@ inventory and orders; their customers book displays through a public
 booking wizard scoped to the agency.
 
 ## Stack
-- Next.js 15.3.4 (App Router), React 19, TypeScript, Tailwind v4
+- Next.js 15.3.9 (App Router), React 19, TypeScript, Tailwind v4
 - **Auth: Clerk.** Not Supabase Auth. `auth.uid()` is ALWAYS null here.
 - **Data: Supabase (Postgres).** Not Prisma — the README is stale.
 - Payments: Stripe, Braintree/Venmo, PayPal — all three intentional
@@ -39,10 +39,12 @@ booking wizard scoped to the agency.
    `agencies` table has both. Always check the real column name.
    **Anything still referencing Prisma is a deprecated relic — delete
    it, don't work around it.**
-5. **Migrations in `migrations/` are NOT auto-applied.** They are run
-   by hand in the Supabase SQL editor. Schema drift between repo and
-   database has already caused two outages. If you add a migration,
-   say explicitly that it must be run manually.
+5. **Migrations in `migrations/` are NOT auto-applied.** Claude applies
+   them through the Supabase MCP (OK'd 2026-10-07); DELETE/DROP
+   statements wait for the user's approval, so put those in their own
+   file for the user to run in the Supabase SQL editor. Schema drift
+   between repo and database has already caused two outages. If you add
+   a migration, say explicitly whether it has been applied.
 6. **Pricing is per-agency and lives in `agencies.pricing_config`**
    (JSONB: `basePrice`, `extraDayPrice`, `lateFee`). The agency settings
    UI and `/api/agency/financial-settings` read and write it correctly.
