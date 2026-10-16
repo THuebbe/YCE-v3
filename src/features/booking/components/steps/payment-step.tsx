@@ -130,7 +130,9 @@ export function PaymentStep() {
     const availableMethodIds = paymentMethods.availablePaymentMethods.map(m => m.id);
     const schema = createPaymentSchema(availableMethodIds);
     
-    const result = schema.safeParse(localData);
+    // Stripe's form collects the billing ZIP itself
+    const usesStripeCard = localData.paymentMethod === 'card' && !!stripeAccountId;
+    const result = schema.safeParse(usesStripeCard ? { ...localData, billingAddress: undefined } : localData);
     
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -138,11 +140,14 @@ export function PaymentStep() {
         const field = error.path.join('.');
         fieldErrors[field] = error.message;
       });
+      // Also in the general alert, so an error on a field this form doesn't
+      // show never leaves the button looking dead
+      fieldErrors.payment = result.error.errors[0]?.message ?? 'Please check your payment details.';
       setErrors(fieldErrors);
       return;
     }
 
-    if (localData.paymentMethod === 'card' && stripeAccountId) {
+    if (usesStripeCard) {
       setCollectingCard(true);
       const card = await collectCard.current?.();
       setCollectingCard(false);

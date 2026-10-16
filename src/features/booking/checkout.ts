@@ -160,6 +160,7 @@ export async function startCardCheckout(input: {
   const { data: paidAlready } = await supabase
     .from('booking_checkouts')
     .select('id')
+    .eq('agency_id', payload.agency.id)
     .eq('hold_id', payload.holdId)
     .in('status', ['charged', 'finalizing', 'completed'])
     .limit(1)
