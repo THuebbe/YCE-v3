@@ -106,20 +106,12 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
       />
       
       <main className="container mx-auto py-8">
-        {/* Desktop: Fade transitions */}
-        <div className="hidden md:block">
-          <BookingErrorBoundary>
-            <AnimatePresence mode="wait">
-              <StepComponent key={currentStep} />
-            </AnimatePresence>
-          </BookingErrorBoundary>
-        </div>
-        
-        {/* Mobile: Horizontal slide transitions */}
-        <div className="md:hidden overflow-x-hidden min-h-[500px]">
+        {/* One copy of the step for every screen size (a hidden second copy
+            duplicated element ids and would mount Stripe's card form twice) */}
+        <div className="overflow-x-hidden md:overflow-visible min-h-[500px]">
           <BookingErrorBoundary>
             <AnimatePresence mode="wait" custom={stepDirection}>
-              <StepComponent 
+              <StepComponent
                 key={currentStep}
                 custom={stepDirection}
               />

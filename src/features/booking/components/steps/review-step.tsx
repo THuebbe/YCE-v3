@@ -10,6 +10,7 @@ import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2, AlertCircle
 import { DisplayGrid } from '../display/DisplayGrid';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
+import { stripeForAccount } from '../payment-methods/StripeCardForm';
 
 export function ReviewStep() {
   const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing, bookingRules, sessionId, timeZone } = useWizard();
@@ -99,37 +100,51 @@ export function ReviewStep() {
     setOrderError(null);
 
     try {
-      // TODO: In a real implementation, process payment with Stripe first
-      const paymentIntentId = 'pi_mock_' + Date.now(); // Mock payment intent ID
-
-      const orderData = {
+      const payment = formData.payment;
+      const base = {
         formData: {
           contact: formData.contact,
           event: formData.event,
           display: formData.display,
-          payment: formData.payment
+          payment,
         },
         holdId: formData.display.holdId,
         sessionId, // the hold belongs to this wizard session
         timeZone, // decides "end of day" for the order cutoff
-        paymentIntentId,
         agencySlug, // order API resolves the slug to agency_id
-        totalAmount: calculateTotal()
+        totalAmount: calculateTotal(),
+      };
+      const send = async (extra: { paymentIntentId: string; confirmationTokenId?: string }) => {
+        const response = await fetch('/api/orders/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...base, ...extra }),
+        });
+        return (await response.json()) as BookingOrderResult;
       };
 
-      console.log('🚀 Sending order for', agencySlug);
+      // Agencies on Stripe: the server charges the card token from the
+      // Payment step. Others: no-charge demo checkout.
+      const stripeCard = Boolean(payment.confirmationTokenId && payment.stripeAccountId);
+      let result = stripeCard
+        ? await send({ paymentIntentId: 'pending', confirmationTokenId: payment.confirmationTokenId })
+        : await send({ paymentIntentId: 'pi_mock_' + Date.now() });
 
-      const response = await fetch('/api/orders/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const result: BookingOrderResult = await response.json();
+      // The card's bank asks the customer to approve (3-D Secure)
+      if (result.requiresAction && result.clientSecret && result.paymentIntentId && payment.stripeAccountId) {
+        const stripe = await stripeForAccount(payment.stripeAccountId);
+        const action = stripe ? await stripe.handleNextAction({ clientSecret: result.clientSecret }) : null;
+        if (!action || action.error) {
+          updateFormData({ payment: { ...payment, confirmationTokenId: undefined } });
+          setOrderError(`${action?.error?.message ?? 'Your card could not be verified.'} Please go back to Payment and try again.`);
+          return;
+        }
+        result = await send({ paymentIntentId: result.paymentIntentId });
+      }
 
       if (!result.success) {
+        // A card token works once: after any failed charge, enter the card again
+        if (stripeCard) updateFormData({ payment: { ...payment, confirmationTokenId: undefined } });
         setOrderError(result.error || 'Failed to create order');
         return;
       }
@@ -388,6 +403,9 @@ export function ReviewStep() {
             <span className="text-neutral-600">Payment Method:</span>
             <p className="text-neutral-900 font-medium">
               {getPaymentMethodDisplay(formData.payment?.paymentMethod || '')}
+              {formData.payment?.cardLast4 && (
+                <span className="ml-1 capitalize">({formData.payment.cardBrand ?? 'card'} ending {formData.payment.cardLast4})</span>
+              )}
             </p>
           </div>
         </div>

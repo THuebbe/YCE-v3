@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
-import { sendOrderNotificationEmail } from "@/lib/email";
+import { createOrderFromPayload, resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
 import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { z } from "zod";
@@ -62,6 +62,8 @@ const createOrderInputSchema = z.object({
 	sessionId: z.string().min(1, "Booking session is required"),
 	timeZone: z.string().max(64).optional(),
 	paymentIntentId: z.string().min(1, "Payment Intent ID is required"),
+	/** Card collected on the Payment step (Stripe ConfirmationToken), for agencies on Stripe */
+	confirmationTokenId: z.string().startsWith("ctoken_").optional(),
 	agencySlug: z.string().min(1, "Agency slug is required"),
 	totalAmount: z.number().positive("Total amount must be positive"),
 });
@@ -107,7 +109,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, sessionId, timeZone, paymentIntentId, agencySlug, totalAmount } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -186,169 +188,82 @@ export async function POST(
 			}, { status: 400 });
 		}
 
-		// Generate order number (format: YCE-YYYY-NNNNNN)
-		const year = new Date().getFullYear();
-		const randomNumber = Math.floor(Math.random() * 900000) + 100000; // 6-digit number
-		const orderNumber = `YCE-${year}-${randomNumber}`;
-
-		// Generate confirmation code (8 characters)
-		const confirmationCode = Math.random()
-			.toString(36)
-			.substring(2, 10)
-			.toUpperCase();
-
-		console.log("🔢 Generated order number:", orderNumber);
-		console.log("🎫 Generated confirmation code:", confirmationCode);
-
-		// Create order record in database - mapping to actual database columns
-		const orderData = {
-			order_number: orderNumber,
-			agency_id: actualAgencyId, // Use the UUID, not the slug
+		// The order as it will be saved (number, code and payment are added when
+		// it is created: now for demo checkouts, after the charge for cards)
+		const order = {
+			agency_id: actualAgencyId,
 			status: "pending",
-
-			// Map the server-computed total to existing 'total' and 'subtotal' columns
 			total: serverTotal,
-			subtotal: serverTotal, // Set subtotal equal to total for now (no extra fees)
-
-			// Customer information (essential) - using existing column names
+			subtotal: serverTotal,
 			customer_name: formData.contact.fullName,
 			customer_email: formData.contact.email,
 			customer_phone: formData.contact.phone,
-
-			// Event details - using existing column names
 			event_date: eventDate.toISOString(),
 			event_address: formData.event.deliveryAddress
 				? `${formData.event.deliveryAddress.street}, ${formData.event.deliveryAddress.city}, ${formData.event.deliveryAddress.state} ${formData.event.deliveryAddress.zipCode}`
 				: "Address not provided",
 			delivery_time: formData.event.timeWindow || null,
 			delivery_notes: formData.event.deliveryNotes || null,
-
-			// Display customization - mapping to existing columns
-			message: formData.display?.eventMessage || "Event Message",
+			message: formData.display.eventMessage || "Event Message",
 			message_text:
-				formData.display?.eventMessage === "Custom Message"
-					? formData.display?.customMessage
-					: formData.display?.eventMessage,
-			theme: formData.display?.characterTheme || null,
+				formData.display.eventMessage === "Custom Message"
+					? formData.display.customMessage
+					: formData.display.eventMessage,
+			theme: formData.display.characterTheme || null,
 			extra_days: extraDaysBefore + extraDaysAfter,
 			extra_day_fee: (extraDaysBefore + extraDaysAfter) * pricing.extraDayPrice,
 			extraDaysBefore,
 			extraDaysAfter,
 			holdId,
-
-			// Payment information
-			payment_method: formData.payment?.paymentMethod || null,
-			payment_intent_id: paymentIntentId,
-			payment_status: "pending",
-
-			// Additional metadata
 			special_instructions: formData.event.deliveryNotes || null,
-
-			// Store confirmation code (now working!)
-			confirmation_code: confirmationCode,
-
-			// Add updated_at since it's required (created_at has default, updated_at doesn't)
-			updated_at: new Date().toISOString(),
+		};
+		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
+		const payload: OrderPayload = {
+			order,
+			agency: { id: actualAgencyId, slug: agency.slug, name: agency.name, email: agency.contactEmail || agency.email || null },
+			holdId,
+			sessionId,
+			rentalStart: start,
+			rentalEnd: end,
+			totalDollars: serverTotal,
+			customerName: formData.contact.fullName,
+			eventDateIso: eventDate.toISOString(),
 		};
 
-		console.log("💾 Inserting order into database...");
-		const { data: orderRecord, error: insertError } = await supabase
-			.from("orders")
-			.insert([orderData])
-			.select("id, order_number")
-			.single();
-
-		if (insertError) {
-			console.error("❌ Database insert failed:", insertError);
-			return NextResponse.json(
-				{
+		// Agencies that finished Stripe setup take real card payments (direct
+		// charges to their account). Everyone else still gets the no-charge demo
+		// checkout until the setup checklist gates bookings (milestone 4).
+		const method = formData.payment?.paymentMethod || "card";
+		const stripeReady = Boolean(agency.stripe_account_id && agency.stripe_charges_enabled);
+		if (stripeReady && method === "card") {
+			const stripeAgency = { stripe_account_id: agency.stripe_account_id, stripe_account_type: agency.stripe_account_type };
+			let outcome: CheckoutOutcome;
+			if (paymentIntentId.startsWith("pi_") && !paymentIntentId.startsWith("pi_mock")) {
+				outcome = await resumeCardCheckout({ agency: stripeAgency, agencyId: actualAgencyId, sessionId, paymentIntentId });
+			} else if (confirmationTokenId) {
+				const origin = request.headers.get("origin") || `https://${request.headers.get("host")}`;
+				outcome = await startCardCheckout({
+					agency: stripeAgency,
+					payload,
+					confirmationTokenId,
+					customer: { name: formData.contact.fullName, email: formData.contact.email, phone: formData.contact.phone },
+					returnUrl: `${origin}/${agency.slug}/booking`,
+				});
+			} else {
+				return NextResponse.json({
 					success: false,
-					// Details stay in the log; customers get something they can act on
-					error: "We couldn't save your order. Please try again in a moment.",
-				},
-				{ status: 500 }
-			);
-		}
-
-		console.log("✅ Order created successfully:", orderRecord?.id);
-
-		// The order takes over the customer's sign hold (the signs stay
-		// blocked until check-in). No hold, no order: an order without signs
-		// would let the same letters be booked twice.
-		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
-		const { data: conversion, error: conversionError } = await supabase.rpc(
-			"yce_convert_hold_to_order",
-			{
-				p_hold_id: holdId,
-				p_agency_id: actualAgencyId,
-				p_session_id: sessionId,
-				p_order_id: orderRecord.id,
-				p_rental_start: start,
-				p_rental_end: end,
+					error: "Please go back to Payment and enter your card.",
+				}, { status: 400 });
 			}
-		);
-		let converted = (conversion as { ok?: boolean; reason?: string } | null);
-		if (conversionError) {
-			// The call may have committed and only the response was lost: if
-			// the hold now belongs to this order, the conversion succeeded.
-			const { data: ownHold } = await supabase
-				.from("inventory_holds")
-				.select("id")
-				.eq("id", holdId)
-				.eq("order_id", orderRecord.id)
-				.eq("hold_type", "order")
-				.maybeSingle();
-			if (ownHold) converted = { ok: true };
-		}
-		if (!converted?.ok) {
-			console.warn("⚠️ Hold conversion failed:", conversionError?.message ?? converted?.reason);
-			const { error: deleteError } = await supabase.from("orders").delete().eq("id", orderRecord.id);
-			if (deleteError) {
-				console.error("❌ Could not roll back order without signs:", orderRecord.id, deleteError.message);
-			}
-			const reason = converted?.reason;
-			return NextResponse.json(
-				{
-					success: false,
-					error:
-						reason === "insufficient_stock"
-							? "Some of your signs were booked by someone else while your reservation was idle. Please go back and regenerate your layout."
-							: reason === "dates_changed"
-								? "Your dates changed after your signs were reserved. Please go back and regenerate your layout."
-								: "Your sign reservation has ended. Please go back and regenerate your layout.",
-				},
-				{ status: 409 }
-			);
+			return checkoutResponse(outcome);
 		}
 
-		// Send email notification to agency
-		try {
-			await sendOrderNotificationEmail({
-				orderNumber: orderRecord.order_number,
-				customerName: formData.contact.fullName,
-				eventDate: eventDate.toISOString(),
-				totalAmount: serverTotal,
-				agencyName: agency.name,
-				agencyEmail: agency.contactEmail || agency.email || 'no-email@agency.com',
-				orderUrl: process.env.NEXT_PUBLIC_APP_URL
-					? `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/${agency.slug}/orders/${orderRecord.id}`
-					: undefined,
-			});
-			console.log("📧 Order notification email sent successfully");
-		} catch (emailError) {
-			console.error("⚠️ Failed to send order notification email:", emailError);
-			// Don't fail the order creation if email fails
-		}
-
-		// TODO: Send confirmation email to customer
-		// TODO: Create calendar event for delivery
-
-		return NextResponse.json({
-			success: true,
-			orderId: orderRecord.id,
-			orderNumber: orderRecord.order_number,
-			confirmationCode: confirmationCode, // Use generated code since it may not be stored in DB
+		const outcome = await createOrderFromPayload(payload, {
+			method: formData.payment?.paymentMethod || null,
+			intentId: paymentIntentId,
+			status: "pending",
 		});
+		return checkoutResponse(outcome);
 	} catch (error) {
 		console.error("❌ Unexpected error creating order:", error);
 		return NextResponse.json(
@@ -396,4 +311,25 @@ async function lettersMissingFromHold(
 		}
 	}
 	return missing;
+}
+
+function checkoutResponse(outcome: CheckoutOutcome): NextResponse<BookingOrderResult> {
+	if (outcome.ok) {
+		return NextResponse.json({
+			success: true,
+			orderId: outcome.orderId,
+			orderNumber: outcome.orderNumber,
+			confirmationCode: outcome.confirmationCode,
+		});
+	}
+	if ("requiresAction" in outcome) {
+		// 3-D Secure: the page asks the customer, then sends paymentIntentId back
+		return NextResponse.json({
+			success: false,
+			requiresAction: true,
+			clientSecret: outcome.clientSecret,
+			paymentIntentId: outcome.paymentIntentId,
+		});
+	}
+	return NextResponse.json({ success: false, error: outcome.error }, { status: outcome.status });
 }

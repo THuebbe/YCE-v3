@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
+import { handleCheckoutPaymentFailed, handleCheckoutPaymentSucceeded } from '@/features/booking/checkout';
 
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -161,23 +162,17 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        
-        // Handle successful payment
-        console.log(`Payment succeeded: ${paymentIntent.id}`);
-        // Add your payment success logic here
+      // Booking payments are direct charges on agency accounts (Connect
+      // events, event.account set). If the customer's browser went away
+      // after paying, this creates the order; otherwise it's a no-op.
+      case 'payment_intent.succeeded':
+        await handleCheckoutPaymentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
-      }
 
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        
-        // Handle failed payment
-        console.log(`Payment failed: ${paymentIntent.id}`);
-        // Add your payment failure logic here
+      case 'payment_intent.payment_failed':
+      case 'payment_intent.canceled':
+        await handleCheckoutPaymentFailed(event.data.object as Stripe.PaymentIntent);
         break;
-      }
 
       default:
         console.log(`Unhandled event type: ${event.type}`);

@@ -69,7 +69,9 @@ export function CreditCardForm({
   }
 
   const isStripeProcessor = paymentMethod.processor === 'stripe'
-  const processorName = isStripeProcessor ? 'Stripe' : 'Platform Processing'
+  // Agencies on Stripe use StripeCardForm; this form is the no-charge demo
+  // shown until an agency connects card payments
+  const processorName = isStripeProcessor ? 'Stripe' : 'Demo checkout: no charge'
 
   return (
     <div className="space-y-6">
@@ -170,7 +172,7 @@ export function CreditCardForm({
             <p className="text-body-small text-blue-700">
               {isStripeProcessor 
                 ? 'Your payment will be processed securely through Stripe.' 
-                : 'Your payment will be processed securely through our platform.'
+                : "This agency hasn't connected card payments yet, so your card won't be charged. The agency will arrange payment with you."
               }
             </p>
           </div>

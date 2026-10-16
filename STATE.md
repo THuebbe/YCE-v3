@@ -1,6 +1,6 @@
 # Where This Stands
 
-Last verified: 2026-10-10
+Last verified: 2026-10-16
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
 old verification notes) is in `git show aace018:STATE.md`.
@@ -11,15 +11,25 @@ old verification notes) is in `git show aace018:STATE.md`.
   rules. PR #7 merged 2026-10-10: order check-in/cancel, documents,
   real onboarding data, time zone. Crons live and secret-protected (`/api/cron/*` → 401 without
   `CRON_SECRET`). **Still a demo, not sellable:** checkout never charges.
-- **Branch `claude/m1c-booking-hardening`** (PR open, waiting on the
-  user's click-through): booking-flow fixes from the 2026-10-10 review -
-  payment choice, refresh keeps progress, post-order lock, blackout
-  days, server letter check, agency-branded confirmation, phone layout -
-  plus findable PDFs (Open PDF link in the toast, document links on
-  order cards; the user couldn't find a generated pick ticket).
-- **Waiting on the user (at a keyboard):** Stripe test-mode Connect setup
-  + access for Claude, and which agency is the Express test (proposed
-  texas-signs; west-branch stays the Standard test) → milestone 2.
+- PR #8 merged 2026-10-16: booking-flow hardening (payment choice,
+  refresh keeps progress, post-order lock, blackout days, server letter
+  check, agency-branded confirmation, phone layout) + findable PDFs.
+- **Stripe (test mode) connected 2026-10-16.** Platform
+  `acct_1REKSs2Hwl27rYJO`. Connect webhook `we_1UR2lK2Hwl27rYJOQlQDnGBZ`
+  → `/api/webhooks/stripe` (account/capability/person, payment_intent.*,
+  charge.refunded, charge.dispute.created); its secret is in Vercel
+  `STRIPE_WEBHOOK_SECRET` (takes effect on the next deploy). Stripe MCP
+  can't create connected accounts - agencies connect through the app.
+  west-branch = Standard test (`acct_1RkB70FdcQOC5bzL`), texas-signs =
+  Express test.
+- **Branch `claude/m2a-stripe-express`** (milestone 2a, in progress):
+  Express/Standard onboarding in Settings, Payment Element (direct charge
+  on the agency's account, $3 application fee on Express only), order
+  created only after payment succeeds (`booking_checkouts`, webhook
+  backstop, auto-refund if the hold can't convert), card saved for later
+  fees. Migration `20261016_stripe_checkout.sql` APPLIED. Agencies
+  without Stripe still get the no-charge demo checkout (now labelled as
+  such) until milestone 4 gates bookings on payments.
 
 ## Environment and working style
 - One branch + one PR per milestone; Claude tests on the Vercel preview
@@ -31,7 +41,7 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Browser E2E: headless Chromium via the project's Playwright
   (`/home/user/YCE-v3/node_modules/playwright/index.mjs`,
   `executablePath: /opt/pw-browsers/chromium-1194/chrome-linux/chrome`).
-  Wizard steps render twice (desktop + mobile) - target `:visible`.
+  The wizard renders each step once since m2a (was twice).
 - Dashboard sign-in in tests: `CLERK_SECRET_KEY` (dev instance) →
   `POST api.clerk.com/v1/sign_in_tokens` → open
   `/auth/sign-in?__clerk_ticket=…`. admin@elite-denver.com =
@@ -178,13 +188,11 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Still open: subscription renewal failure handling (grace period?).
 
 ## Next steps
-1. Booking-hardening PR: user click-through
-   (check-in on a phone) and merge.
-2. **Milestone 2: Stripe** - 2a Express onboarding + Payment Element +
+1. (done - PR #8 merged 2026-10-16)
+2. **Milestone 2: Stripe** - 2a (branch open) Express onboarding + Payment Element +
    direct charge + order on payment success + card saved for fees +
    checkout terms; 2b Standard path check, replace the "YardCard Elite
-   Processing - always enabled" toggle, refunds. Needs the user's Stripe
-   setup first (walk them through it - new to Stripe).
+   Processing - always enabled" toggle, refunds.
 3. Milestone 3: subscriptions. 4: setup checklist (inventory + payments
    gate bookings), payments/subscription onboarding steps. 5: customer
    cancel link, late/damage fees, edit signs.
@@ -196,8 +204,8 @@ old verification notes) is in `git show aace018:STATE.md`.
   hand).
 - Whether manager@elite-denver.com and the other agencies' test users
   still work in Clerk (admin@elite-denver.com does).
-- Duplicate step rendering in dev (two stacked copies; suspect
-  `AnimatePresence`) - query `:visible` / `disabled`, not one snapshot.
+- Express allowed on the platform, and the publishable key matching the
+  test account - first texas-signs onboarding shows it.
 - Node 23 (non-LTS) beyond booting fine.
 
 ## Dead ends
