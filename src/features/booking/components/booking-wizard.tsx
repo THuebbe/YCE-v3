@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import { WizardProvider, useWizard } from '../context/wizard-context';
 import type { BookingPricing } from '../pricing';
 import type { BookingRules } from '../booking-rules';
+import type { AgencyContact } from '../types';
 import { ProgressIndicator } from './progress-indicator';
 import { BookingErrorBoundary } from './error-boundary';
 import { ContactInfoStep } from './steps/contact-info-step';
@@ -133,15 +134,16 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
 interface BookingWizardProps {
   agencyId: string;
   agencySlug: string;
+  agency: AgencyContact;
   pricing: BookingPricing;
   bookingRules: BookingRules;
   agencyTimeZone?: string;
   initialStep?: number;
 }
 
-export function BookingWizard({ agencyId, agencySlug, pricing, bookingRules, agencyTimeZone, initialStep = 1 }: BookingWizardProps) {
+export function BookingWizard({ agencyId, agencySlug, agency, pricing, bookingRules, agencyTimeZone, initialStep = 1 }: BookingWizardProps) {
   return (
-    <WizardProvider agencyId={agencyId} agencySlug={agencySlug} pricing={pricing} bookingRules={bookingRules} agencyTimeZone={agencyTimeZone} totalSteps={wizardSteps.length} initialStep={initialStep}>
+    <WizardProvider agencyId={agencyId} agencySlug={agencySlug} agency={agency} pricing={pricing} bookingRules={bookingRules} agencyTimeZone={agencyTimeZone} totalSteps={wizardSteps.length} initialStep={initialStep}>
       <BookingWizardContent agencyId={agencyId} />
     </WizardProvider>
   );

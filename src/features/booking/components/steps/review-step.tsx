@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
+import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2, AlertCircle } from 'lucide-react';
 import { DisplayGrid } from '../display/DisplayGrid';
@@ -11,7 +12,10 @@ import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing, sessionId, timeZone } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing, bookingRules, sessionId, timeZone } = useWizard();
+  const pickupDay = formData.event?.eventDate
+    ? rentalWindow(bookingRules, new Date(formData.event.eventDate), formData.event.extraDaysBefore || 0, formData.event.extraDaysAfter || 0).end
+    : null;
   const [layoutCalculation, setLayoutCalculation] = useState<LayoutCalculation | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [orderProcessing, setOrderProcessing] = useState(false);
@@ -447,14 +451,15 @@ export function ReviewStep() {
               <a href="#" className="text-primary hover:underline">Terms of Service</a>
               {' '}and{' '}
               <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
-              I understand that my display will be installed during the selected time window and removed the day after my event unless extra days are purchased.
+              I understand that my display will be installed during the selected time window and removed {pickupDay ? `on ${formatDay(pickupDay, true)}` : 'after my event'}.
             </div>
           </label>
         </div>
       </div>
 
       {/* Navigation Buttons */}
-      <div className="mt-8 flex gap-4 justify-between">
+      {/* Stacked on phones (Place Order on top): side by side they overflow */}
+      <div className="mt-8 flex flex-col-reverse gap-4 md:flex-row md:justify-between">
         <Button
           onClick={prevStep}
           variant="secondary"

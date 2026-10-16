@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useWizard } from '../../context/wizard-context';
+import { useWizard, clearSavedWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
 import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Check, Calendar, MapPin, Mail, Phone, Download, Home } from 'lucide-react';
 
 export function ConfirmationStep() {
-  const { formData, pricing, bookingRules } = useWizard();
+  const { formData, pricing, bookingRules, agency, agencySlug } = useWizard();
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Get order details from the form data
@@ -105,7 +105,7 @@ export function ConfirmationStep() {
           transition={{ delay: 0.4 }}
           className="text-body-large text-neutral-700 mb-6"
         >
-          Thank you for choosing YardCard Elite! Your amazing yard display is on its way.
+          Thank you for booking with {agency.name}! Your yard display is on its way.
         </motion.p>
 
         <motion.div
@@ -158,7 +158,7 @@ export function ConfirmationStep() {
             )}
             
             <div className="border-t pt-3 flex justify-between text-h5 font-bold">
-              <span>Total Paid</span>
+              <span>Order Total</span>
               <span className="text-success-green">${calculateTotal().toFixed(2)}</span>
             </div>
 
@@ -218,9 +218,9 @@ export function ConfirmationStep() {
               1
             </div>
             <div>
-              <h4 className="text-body font-medium text-neutral-900 mb-1">Confirmation Email</h4>
+              <h4 className="text-body font-medium text-neutral-900 mb-1">Keep Your Order Number</h4>
               <p className="text-body-small text-neutral-700">
-                You'll receive a confirmation email within 5 minutes with your order details and display preview.
+                {agency.name} has your order. Save or print this page; they'll contact you if anything needs confirming.
               </p>
             </div>
           </div>
@@ -271,10 +271,14 @@ export function ConfirmationStep() {
         
         <Button
           className="px-8"
-          onClick={() => window.location.href = '/'}
+          onClick={() => {
+            // The next visit starts a new booking, not this finished one
+            clearSavedWizard(agencySlug);
+            window.location.href = agency.website || `/${agencySlug}/booking`;
+          }}
         >
           <Home className="w-4 h-4 mr-2" />
-          Return to Home
+          {agency.website ? `Back to ${agency.name}` : 'Book Another Display'}
         </Button>
       </motion.div>
 
@@ -288,16 +292,24 @@ export function ConfirmationStep() {
         <p className="text-body-small text-neutral-600 mb-2">
           Questions about your order? Need to make changes?
         </p>
-        <p className="text-body-small text-neutral-700">
-          Contact us at{' '}
-          <a href="mailto:support@yardcardelite.com" className="text-primary hover:underline">
-            support@yardcardelite.com
-          </a>
-          {' '}or{' '}
-          <a href="tel:+1234567890" className="text-primary hover:underline">
-            (123) 456-7890
-          </a>
-        </p>
+        {(agency.email || agency.phone) && (
+          <p className="text-body-small text-neutral-700">
+            Contact {agency.name}
+            {agency.email && (
+              <>
+                {' '}at{' '}
+                <a href={`mailto:${agency.email}`} className="text-primary hover:underline">{agency.email}</a>
+              </>
+            )}
+            {agency.email && agency.phone && ' or'}
+            {agency.phone && (
+              <>
+                {' '}
+                <a href={`tel:${agency.phone.replace(/[^\d+]/g, '')}`} className="text-primary hover:underline">{agency.phone}</a>
+              </>
+            )}
+          </p>
+        )}
         <p className="text-body-small text-neutral-500 mt-2">
           Reference your order number: <span className="font-mono">{orderNumber}</span>
           {confirmationCode !== 'N/A' && (

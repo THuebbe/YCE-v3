@@ -9,17 +9,12 @@ interface BookingPageProps {
     agency: string;
     path?: string[];
   }>;
-  searchParams: Promise<{
-    step?: string;
-  }>;
 }
 
-export default async function AgencyBookingPage({ params, searchParams }: BookingPageProps) {
+export default async function AgencyBookingPage({ params }: BookingPageProps) {
   const resolvedParams = await params;
-  const resolvedSearchParams = await searchParams;
   
   const { agency: agencySlug } = resolvedParams;
-  const step = resolvedSearchParams.step ? parseInt(resolvedSearchParams.step) : 1;
 
   // Verify the agency exists and is accepting bookings
   const agency = await getAgencyBySlug(agencySlug);
@@ -44,10 +39,15 @@ export default async function AgencyBookingPage({ params, searchParams }: Bookin
       <BookingWizard 
         agencyId={agency.id}
         agencySlug={agency.slug}
+        agency={{
+          name: agency.name,
+          email: agency.email || undefined,
+          phone: agency.phone || undefined,
+          website: agency.domain || undefined,
+        }}
         pricing={pricing}
-        bookingRules={parseBookingRules(agency.booking_rules)}
+        bookingRules={parseBookingRules(agency.booking_rules, agency.blackout_dates)}
         agencyTimeZone={resolveTimeZone(agency.operating_hours)}
-        initialStep={step}
       />
     </div>
   );

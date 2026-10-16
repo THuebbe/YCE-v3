@@ -31,11 +31,11 @@ const createOrderInputSchema = z.object({
 		}),
 		display: z
 			.object({
-				eventMessage: z.string().min(1).optional(),
+				eventMessage: z.string().min(1),
 				customMessage: z.string().optional(),
 				eventNumber: z.number().positive().optional(),
 				messageStyle: z.string().min(1).optional(),
-				recipientName: z.string().min(1).optional(),
+				recipientName: z.string().min(1),
 				nameStyle: z.string().min(1).optional(),
 				messageColorway: z.string().min(1).optional(),
 				nameColorway: z.string().min(1).optional(),
@@ -43,8 +43,7 @@ const createOrderInputSchema = z.object({
 				hobbies: z.array(z.string()).optional(),
 				previewUrl: z.string().optional(),
 				holdId: z.string().min(1),
-			})
-			.optional(), // Make entire display section optional for minimal testing
+			}),
 		payment: z
 			.object({
 				paymentMethod: z
@@ -159,7 +158,7 @@ export async function POST(
 
 		// The agency's booking rules (order cutoff before delivery, rental length)
 		const { extraDaysBefore, extraDaysAfter } = formData.event;
-		const rules = parseBookingRules(agency.booking_rules);
+		const rules = parseBookingRules(agency.booking_rules, agency.blackout_dates);
 		const dateError = validateBookingDates(
 			rules,
 			eventDate,
@@ -169,6 +168,22 @@ export async function POST(
 		);
 		if (dateError) {
 			return NextResponse.json({ success: false, error: dateError }, { status: 400 });
+		}
+
+		// The hold must cover the display being ordered: one reserved letter
+		// sign per letter of the message and name. (The client sends the text
+		// and the held signs separately; nothing else ties them together.)
+		const shortLetters = await lettersMissingFromHold(holdId, actualAgencyId, sessionId, [
+			formData.display.eventMessage === "Custom Message"
+				? formData.display.customMessage ?? ""
+				: formData.display.eventMessage,
+			formData.display.recipientName,
+		]);
+		if (shortLetters === null || shortLetters.length > 0) {
+			return NextResponse.json({
+				success: false,
+				error: "Your reserved signs don't match your message. Please go back to Customize and regenerate your layout.",
+			}, { status: 400 });
 		}
 
 		// Generate order number (format: YCE-YYYY-NNNNNN)
@@ -248,7 +263,8 @@ export async function POST(
 			return NextResponse.json(
 				{
 					success: false,
-					error: "Failed to create order: " + insertError.message,
+					// Details stay in the log; customers get something they can act on
+					error: "We couldn't save your order. Please try again in a moment.",
 				},
 				{ status: 500 }
 			);
@@ -314,6 +330,9 @@ export async function POST(
 				totalAmount: serverTotal,
 				agencyName: agency.name,
 				agencyEmail: agency.contactEmail || agency.email || 'no-email@agency.com',
+				orderUrl: process.env.NEXT_PUBLIC_APP_URL
+					? `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/${agency.slug}/orders/${orderRecord.id}`
+					: undefined,
 			});
 			console.log("📧 Order notification email sent successfully");
 		} catch (emailError) {
@@ -340,4 +359,41 @@ export async function POST(
 			{ status: 500 }
 		);
 	}
+}
+
+/**
+ * Letters the text needs that the session's live hold doesn't cover, or
+ * null when there is no such hold. Digits and their ordinal suffix ("16TH")
+ * become number/ordinal signs, so only the remaining letters are counted.
+ */
+async function lettersMissingFromHold(
+	holdId: string,
+	agencyId: string,
+	sessionId: string,
+	texts: string[]
+): Promise<string[] | null> {
+	const { data: hold } = await supabase
+		.from("inventory_holds")
+		.select("id, inventory_hold_items(quantity, sign:sign_library(sign_type, character))")
+		.eq("id", holdId)
+		.eq("agency_id", agencyId)
+		.eq("session_id", sessionId)
+		.maybeSingle();
+	if (!hold) return null;
+	const held = new Map<string, number>();
+	for (const item of (hold as any).inventory_hold_items ?? []) {
+		if (item.sign?.sign_type !== "letter" || !item.sign.character) continue;
+		const ch = String(item.sign.character).toUpperCase();
+		held.set(ch, (held.get(ch) ?? 0) + (item.quantity ?? 1));
+	}
+	const missing: string[] = [];
+	for (const text of texts) {
+		const letters = text.toUpperCase().replace(/\d+(ST|ND|RD|TH)?/g, "").replace(/[^A-Z]/g, "");
+		for (const ch of letters) {
+			const left = held.get(ch) ?? 0;
+			if (left > 0) held.set(ch, left - 1);
+			else missing.push(ch);
+		}
+	}
+	return missing;
 }

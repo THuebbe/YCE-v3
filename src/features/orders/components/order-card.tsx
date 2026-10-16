@@ -13,6 +13,7 @@ import {
   MoreHorizontal, 
   Eye, 
   Edit, 
+  FileText,
   X 
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
@@ -25,6 +26,22 @@ import { EditSignsModal } from './edit-signs-modal';
 import { CancelOrderModal } from './cancel-order-modal';
 import { useAgencySlug, getAgencyRoute } from '@/lib/navigation';
 
+const DOCUMENT_LABELS: Record<string, string> = {
+  pickTicket: 'Pick Ticket',
+  orderSummary: 'Order Summary',
+  pickupChecklist: 'Pickup Checklist',
+};
+
+/** orders.documents keeps every generation; show the latest of each type */
+function latestDocuments(documents: unknown): { type: string; url: string }[] {
+  if (!Array.isArray(documents)) return [];
+  const byType = new Map<string, { type: string; url: string }>();
+  for (const doc of documents) {
+    if (doc?.type && doc?.url) byType.set(doc.type, { type: doc.type, url: doc.url });
+  }
+  return Object.keys(DOCUMENT_LABELS).flatMap(type => byType.get(type) ?? []);
+}
+
 interface OrderCardProps {
   order: any;
 }
@@ -35,6 +52,7 @@ export function OrderCard({ order }: OrderCardProps) {
   const agencySlug = useAgencySlug();
 
   const availableActions = getAvailableActions(order.status as OrderStatus);
+  const orderDocuments = latestDocuments(order.documents);
   const signCount = countOrderSigns(order);
   const statusColor = getOrderStatusBadgeColor(order.status);
 
@@ -134,6 +152,24 @@ export function OrderCard({ order }: OrderCardProps) {
             <span>{formatCurrency(order.total)}</span>
           </div>
         </div>
+
+        {/* Documents made for this order (newest of each kind) */}
+        {orderDocuments.length > 0 && (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            <FileText className="h-4 w-4 text-neutral-500" />
+            {orderDocuments.map(doc => (
+              <a
+                key={doc.type}
+                href={doc.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 py-1"
+              >
+                {DOCUMENT_LABELS[doc.type] ?? doc.type}
+              </a>
+            ))}
+          </div>
+        )}
 
         {/* Action Button */}
         {availableActions.length > 0 && (

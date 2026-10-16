@@ -27,7 +27,7 @@ export type CreateHoldResult =
 async function resolveAgency(agencySlug: string) {
   const agency = await getAgencyBySlug(agencySlug);
   return agency?.is_active
-    ? (agency as { id: string; booking_rules: unknown; operating_hours: unknown })
+    ? (agency as { id: string; booking_rules: unknown; operating_hours: unknown; blackout_dates: unknown })
     : null;
 }
 
@@ -85,7 +85,7 @@ export async function createBookingHold(input: {
   const eventDate = new Date(input.eventDate);
   const before = Math.max(0, Math.floor(input.extraDaysBefore || 0));
   const after = Math.max(0, Math.floor(input.extraDaysAfter || 0));
-  const rules = parseBookingRules(agency.booking_rules);
+  const rules = parseBookingRules(agency.booking_rules, agency.blackout_dates);
   const today = todayIn(resolveTimeZone(agency.operating_hours, input.timeZone));
   const dateError = validateBookingDates(rules, eventDate, before, after, today);
   if (dateError) return { ok: false, error: dateError };
