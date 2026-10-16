@@ -51,6 +51,16 @@ old verification notes) is in `git show aace018:STATE.md`.
   2026-10-06: no paid tier while ~6 months from launch).
 
 ## VERIFIED WORKING (seen running)
+- **2026-10-16, branch `claude/m2a-stripe-express`, preview `32d4f05`,
+  west-branch (Standard, `acct_1RkB70FdcQOC5bzL`)** at phone width: Stripe
+  Payment Element on the agency's account; 4242 → order YCE-2026-630524
+  paid, checkout `completed`, hold converted, no app fee; 3-D Secure card
+  4000 0025 0000 3155 → challenge completed → YCE-2026-163750 paid; decline
+  card 0002 → "Your card was declined…", checkout `failed`, hold kept for a
+  retry. Both test orders cancelled after (test charges not refunded -
+  refunds are 2b). **Express not yet tested:** Stripe refuses to create
+  Express accounts until the platform's loss-liability profile is done
+  (dashboard.stripe.com/settings/connect/platform-profile - user action).
 - **2026-10-10, branch `claude/m1b-checkin-cancel`, preview `e78aeb7`**
   (signed in as admin@elite-denver): order YCE-2026-101575 listed its 20
   sign lines and $81.00 (was "0 signs", "$0.81"); Generate Pick Ticket →
@@ -204,8 +214,11 @@ old verification notes) is in `git show aace018:STATE.md`.
   hand).
 - Whether manager@elite-denver.com and the other agencies' test users
   still work in Clerk (admin@elite-denver.com does).
-- Express allowed on the platform, and the publishable key matching the
-  test account - first texas-signs onboarding shows it.
+- Express onboarding + $3 application fee (blocked on the Stripe
+  platform profile, see above).
+- Webhook backstop: the Connect webhook points at production, which runs
+  the pre-m2a code until merge - preview orders were created by the
+  synchronous path only.
 - Node 23 (non-LTS) beyond booting fine.
 
 ## Dead ends
