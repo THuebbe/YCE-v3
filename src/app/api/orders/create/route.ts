@@ -253,6 +253,17 @@ export async function POST(
 		// Agencies that finished Stripe setup take real card payments (direct
 		// charges to their account). Everyone else still gets the no-charge demo
 		// checkout until the setup checklist gates bookings (milestone 4).
+		// A real card from Stripe's form (token or 3-D Secure payment) must be
+		// charged or refused - never turned into an unpaid demo order. Happens if
+		// the agency's Stripe status changes mid-booking.
+		const cardFromStripe = Boolean(confirmationTokenId) || (paymentIntentId.startsWith("pi_") && !paymentIntentId.startsWith("pi_mock"));
+		if (cardFromStripe && !(stripeReady && method === "card")) {
+			console.warn("Card payment for an agency not ready for cards:", { agencySlug, stripeReady, method });
+			return NextResponse.json({
+				success: false,
+				error: "This agency can't take card payments right now, so your card was not charged. Please try again later or contact the agency."
+			}, { status: 409 });
+		}
 		if (stripeReady && method === "card") {
 			const stripeAgency = { stripe_account_id: agency.stripe_account_id, stripe_account_type: agency.stripe_account_type };
 			let outcome: CheckoutOutcome;
