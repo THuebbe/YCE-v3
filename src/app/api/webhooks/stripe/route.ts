@@ -12,6 +12,26 @@ const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+/** Mirrors the connected account's current state onto its agency. */
+async function syncAgencyStripeAccount(stripe: Stripe, accountId: string, eventId: string) {
+  try {
+    const account = await stripe.accounts.retrieve(accountId);
+    const { error } = await supabase
+      .from('agencies')
+      .update({
+        stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
+        stripe_charges_enabled: account.charges_enabled,
+        stripe_payouts_enabled: account.payouts_enabled,
+        stripe_details_submitted: account.details_submitted,
+      })
+      .eq('stripe_account_id', account.id);
+    if (error) throw error;
+    console.log('✅ Synced Stripe account', account.id, { chargesEnabled: account.charges_enabled, eventId });
+  } catch (error) {
+    console.error('Failed to sync agency Stripe account:', accountId, eventId, error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Check if Stripe is properly configured
@@ -42,35 +62,18 @@ export async function POST(request: NextRequest) {
 
     // Handle the event
     switch (event.type) {
-      case 'account.updated': {
-        const account = event.data.object as Stripe.Account;
-        
-        try {
-          // Update the agency's Stripe account status
-          const { error } = await supabase
-            .from('agencies')
-            .update({
-              stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
-              stripe_charges_enabled: account.charges_enabled,
-              stripe_payouts_enabled: account.payouts_enabled,
-              stripe_details_submitted: account.details_submitted,
-            })
-            .eq('stripe_account_id', account.id);
-
-          if (error) {
-            console.error('Error updating agency Stripe status:', error);
-            throw error;
-          }
-
-          console.log('✅ Updated account', account.id, 'status:', {
-            chargesEnabled: account.charges_enabled,
-            payoutsEnabled: account.payouts_enabled,
-            detailsSubmitted: account.details_submitted,
-            eventId: event.id
-          });
-        } catch (error) {
-          console.error('Failed to update agency Stripe status:', error);
-        }
+      // Account status: always re-read the account from Stripe. Events can
+      // arrive late or out of order (Stripe retries failed deliveries for
+      // days), so the copy inside an old event must never overwrite the
+      // current state.
+      case 'account.updated':
+      case 'capability.updated':
+      case 'person.created':
+      case 'person.updated': {
+        const object = event.data.object as { id?: string; account?: string | Stripe.Account };
+        const accountId = event.account
+          ?? (event.type === 'account.updated' ? object.id : typeof object.account === 'string' ? object.account : object.account?.id);
+        if (accountId) await syncAgencyStripeAccount(stripe, accountId, event.id);
         break;
       }
 
@@ -99,65 +102,6 @@ export async function POST(request: NextRequest) {
           console.log(`Deauthorized account ${application.id}`);
         } catch (error) {
           console.error('Failed to deauthorize agency Stripe account:', error);
-        }
-        break;
-      }
-
-      case 'capability.updated': {
-        const capability = event.data.object as Stripe.Capability;
-        
-        try {
-          // Update capabilities when they change
-          const account = await stripe!.accounts.retrieve(capability.account as string);
-          
-          const { error } = await supabase
-            .from('agencies')
-            .update({
-              stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
-              stripe_charges_enabled: account.charges_enabled,
-              stripe_payouts_enabled: account.payouts_enabled,
-              stripe_details_submitted: account.details_submitted,
-            })
-            .eq('stripe_account_id', account.id);
-
-          if (error) {
-            console.error('Error updating agency capabilities:', error);
-            throw error;
-          }
-
-          console.log(`Updated capabilities for account ${account.id}`);
-        } catch (error) {
-          console.error('Failed to update agency capabilities:', error);
-        }
-        break;
-      }
-
-      case 'person.created':
-      case 'person.updated': {
-        const person = event.data.object as Stripe.Person;
-        
-        try {
-          // Update account status when person information changes
-          const account = await stripe!.accounts.retrieve(person.account as string);
-          
-          const { error } = await supabase
-            .from('agencies')
-            .update({
-              stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
-              stripe_charges_enabled: account.charges_enabled,
-              stripe_payouts_enabled: account.payouts_enabled,
-              stripe_details_submitted: account.details_submitted,
-            })
-            .eq('stripe_account_id', account.id);
-
-          if (error) {
-            console.error('Error updating agency after person change:', error);
-            throw error;
-          }
-
-          console.log(`Updated account ${account.id} after person ${event.type}`);
-        } catch (error) {
-          console.error('Failed to update agency after person change:', error);
         }
         break;
       }
