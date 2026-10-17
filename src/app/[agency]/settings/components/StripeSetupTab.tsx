@@ -333,13 +333,14 @@ export function StripeSetupTab({
               
               {/* Action buttons */}
               <div className="flex justify-center gap-3 pt-4">
-                {!stripeStatus.hasCompletedOnboarding && (
+                {(!stripeStatus.hasCompletedOnboarding || !stripeStatus.chargesEnabled) && (
                   <Button
                     onClick={() => handleStripeConnect()}
                     disabled={isLoading}
                     size="lg"
                   >
-                    {isLoading ? 'Connecting...' : 'Continue Setup'}
+                    {isLoading ? 'Connecting...'
+                      : stripeStatus.hasCompletedOnboarding ? 'Finish Stripe verification' : 'Continue Setup'}
                   </Button>
                 )}
                 

@@ -54,7 +54,9 @@ export async function createStripeConnectAccount(type: StripeAccountType = 'expr
 
     if (agency.stripe_account_id) {
       const account = await stripe.accounts.retrieve(agency.stripe_account_id);
-      if (account.details_submitted) {
+      // Submitted but not able to charge (e.g. verification failed): Stripe's
+      // form again, which asks only for what's still due
+      if (account.details_submitted && account.charges_enabled) {
         return { success: true, message: 'Stripe account already connected', accountId: account.id };
       }
       return { success: true, onboardingUrl: await onboardingLink(account.id, agency.slug), accountId: account.id };
