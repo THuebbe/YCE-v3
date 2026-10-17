@@ -28,6 +28,7 @@ export function PlatformSignBrowser({ initialSigns = [] }: PlatformSignBrowserPr
     bundleOnly: false
   })
   const [categories, setCategories] = useState<string[]>([])
+  const [showFilters, setShowFilters] = useState(false)
   const [themes, setThemes] = useState<string[]>([])
   const [holidays, setHolidays] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -167,9 +168,9 @@ export function PlatformSignBrowser({ initialSigns = [] }: PlatformSignBrowserPr
   // Loading skeleton
   if (isLoading) {
     return (
-      <div className="flex gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row">
         {/* Filter sidebar skeleton */}
-        <div className="w-64">
+        <div className="hidden w-64 lg:block">
           <div className="bg-white border border-neutral-200 rounded-lg p-4">
             <div className="animate-pulse space-y-4">
               {[1, 2, 3, 4].map((i) => (
@@ -212,9 +213,18 @@ export function PlatformSignBrowser({ initialSigns = [] }: PlatformSignBrowserPr
   }
 
   return (
-    <div className="flex gap-6">
-      {/* Filters Sidebar */}
-      <div className="flex-shrink-0">
+    <div className="flex flex-col gap-6 lg:flex-row">
+      {/* Filters: a sidebar on wide screens; behind a toggle on phones, where
+          the full list would push the signs a screen or two down */}
+      <Button
+        variant="secondary"
+        className="self-start lg:hidden"
+        onClick={() => setShowFilters(open => !open)}
+        aria-expanded={showFilters}
+      >
+        {showFilters ? 'Hide filters' : 'Show filters'}
+      </Button>
+      <div className={`${showFilters ? '' : 'hidden'} lg:block lg:flex-shrink-0`}>
         <SignFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}

@@ -132,7 +132,7 @@ export function SignFilters({
 
   if (isLoading) {
     return (
-      <div className="w-64 p-4 space-y-4">
+      <div className="w-full p-4 space-y-4 lg:w-64">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="animate-pulse">
             <div className="h-4 bg-neutral-200 rounded mb-3"></div>
@@ -151,7 +151,7 @@ export function SignFilters({
   }
 
   return (
-    <div className="w-64 bg-white border border-neutral-200 rounded-lg p-4">
+    <div className="w-full bg-white border border-neutral-200 rounded-lg p-4 lg:w-64">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-medium text-neutral-900">Filters</h2>

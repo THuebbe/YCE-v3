@@ -440,7 +440,7 @@ export default function AgencySettingsSection({
 						return (
 							<div
 								key={day}
-								className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg"
+								className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 border border-gray-200 rounded-lg"
 							>
 								<div className="w-24">
 									<label className="text-sm font-medium text-gray-700 capitalize">
@@ -467,13 +467,15 @@ export default function AgencySettingsSection({
 									<span className="text-sm text-gray-600">Open</span>
 								</div>
 
+								{/* On a phone From and To each get a full-width line; a time
+								    field needs ~120px and two side by side don't fit */}
 								<div
-									className={`flex items-center space-x-4 ${
+									className={`flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-4 ${
 										!dayHours.isOpen ? "opacity-50" : ""
 									}`}
 								>
-									<div className="flex items-center space-x-2">
-										<label className="text-sm text-gray-600">From:</label>
+									<div className="flex items-center gap-2">
+										<label className="w-12 text-sm text-gray-600 sm:w-auto">From:</label>
 										<input
 											type="time"
 											value={dayHours.open || ""}
@@ -489,12 +491,12 @@ export default function AgencySettingsSection({
 												}));
 											}}
 											data-testid={`${day}-open-time`}
-											className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+											className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed sm:flex-none"
 										/>
 									</div>
 
-									<div className="flex items-center space-x-2">
-										<label className="text-sm text-gray-600">To:</label>
+									<div className="flex items-center gap-2">
+										<label className="w-12 text-sm text-gray-600 sm:w-auto">To:</label>
 										<input
 											type="time"
 											value={dayHours.close || ""}
@@ -510,7 +512,7 @@ export default function AgencySettingsSection({
 												}));
 											}}
 											data-testid={`${day}-close-time`}
-											className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+											className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed sm:flex-none"
 										/>
 									</div>
 								</div>

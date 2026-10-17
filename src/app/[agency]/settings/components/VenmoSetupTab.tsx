@@ -225,7 +225,7 @@ export function VenmoSetupTab({
       {/* Braintree/Venmo Status */}
       <Card className="shadow-sm border-0">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <CircleDollarSign className="w-5 h-5" />
               Venmo via Braintree

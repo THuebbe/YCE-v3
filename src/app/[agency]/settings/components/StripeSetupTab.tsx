@@ -208,7 +208,7 @@ export function StripeSetupTab({
       {/* Stripe Connect Setup Card */}
       <Card className="shadow-sm border-0">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               {getStatusIcon()}
               Stripe Connect Integration
