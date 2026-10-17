@@ -20,66 +20,25 @@ export function usePaymentMethods() {
       error: null,
     }));
 
-    try {
-      console.log('🔍 Loading payment methods for agency:', agencyId);
-
-      const response = await fetch(`/api/agency/${agencyId}/payment-methods`);
-      const data: PaymentMethodsResponse = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to load payment methods');
+    // A couple of quick retries: one dropped request shouldn't end the booking
+    let lastError = 'Failed to load payment methods';
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 800 * attempt));
+      try {
+        const response = await fetch(`/api/agency/${agencyId}/payment-methods`);
+        const data: PaymentMethodsResponse = await response.json();
+        if (!data.success || !data.data) throw new Error(data.error || 'Failed to load payment methods');
+        const { availablePaymentMethods, defaultPaymentMethod } = data.data;
+        setState({ availablePaymentMethods, isLoading: false, error: null, defaultPaymentMethod });
+        return;
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : lastError;
+        console.warn(`Loading payment methods failed (attempt ${attempt + 1}):`, lastError);
       }
-
-      if (!data.data) {
-        throw new Error('No payment methods data received');
-      }
-
-      const { availablePaymentMethods, defaultPaymentMethod } = data.data;
-
-      setState({
-        availablePaymentMethods,
-        isLoading: false,
-        error: null,
-        defaultPaymentMethod,
-      });
-
-      console.log('✅ Payment methods loaded successfully:', {
-        count: availablePaymentMethods.length,
-        methods: availablePaymentMethods.map(m => ({ id: m.id, processor: m.processor })),
-        default: defaultPaymentMethod,
-      });
-
-    } catch (error) {
-      console.error('❌ Error loading payment methods:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load payment methods';
-      
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
-
-      // Provide fallback payment methods in case of error
-      const fallbackMethods: AvailablePaymentMethod[] = [{
-        id: 'card',
-        name: 'Credit/Debit Card',
-        description: 'Visa, Mastercard, American Express',
-        icon: 'CreditCard',
-        processor: 'platform',
-        processorConfig: {
-          environment: process.env.NODE_ENV === 'production' ? 'production' : 'development'
-        }
-      }];
-
-      setState(prev => ({
-        ...prev,
-        availablePaymentMethods: fallbackMethods,
-        defaultPaymentMethod: 'card',
-      }));
-
-      console.log('🔄 Using fallback payment methods due to error');
     }
+    // No made-up fallback: a stand-in "card" method would show the no-charge
+    // demo form even for agencies that take real card payments
+    setState(prev => ({ ...prev, isLoading: false, error: lastError }));
   }, []);
 
   const getPaymentMethodById = useCallback((id: string) => {

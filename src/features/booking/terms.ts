@@ -29,6 +29,8 @@ export interface BookingTerms {
 }
 
 const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+/** "Texas Sign Solutions'" / "Elite Denver's" */
+const possessive = (name: string) => (/s$/i.test(name.trim()) ? `${name}'` : `${name}'s`);
 
 export function buildBookingTerms(input: {
   agencyName: string;
@@ -63,7 +65,7 @@ export function buildBookingTerms(input: {
       },
     ],
     agreement: paysByCard
-      ? `I agree to ${agencyName}'s booking terms and authorize ${agencyName} to charge my saved card for late or damage fees as described.`
-      : `I agree to ${agencyName}'s booking terms, including the late and damage fees described.`,
+      ? `I agree to ${possessive(agencyName)} booking terms and authorize ${agencyName} to charge my saved card for late or damage fees as described.`
+      : `I agree to ${possessive(agencyName)} booking terms, including the late and damage fees described.`,
   };
 }

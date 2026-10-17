@@ -30,6 +30,8 @@ export function PaymentStep() {
     nextStep, 
     prevStep, 
     paymentMethods,
+    loadPaymentMethods,
+    agencyId,
     pricing
   } = useWizard();
   
@@ -331,9 +333,12 @@ export function PaymentStep() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              {paymentMethods.error}. Using fallback payment options.
+              We couldn&apos;t load the payment options. Check your connection and try again.
             </AlertDescription>
           </Alert>
+          <Button className="mt-4" onClick={() => agencyId && loadPaymentMethods(agencyId)}>
+            Try again
+          </Button>
         </div>
       </motion.div>
     );
