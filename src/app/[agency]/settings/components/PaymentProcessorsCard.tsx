@@ -89,8 +89,7 @@ export function PaymentProcessorsCard({
           Payment Processors
         </CardTitle>
         <CardDescription>
-          Configure how your agency accepts payments from customers. You can use multiple processors 
-          or let YardCard Elite handle payments for you.
+          Connect the ways your customers can pay. Payments go straight to your own account.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
