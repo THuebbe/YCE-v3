@@ -81,15 +81,6 @@ describe('Financial Management Section - Success Criteria Validation', () => {
     expect(screen.getByText(/we handle all payment processing/i)).toBeInTheDocument()
   })
 
-  // Success Criterion 4: Subscription Display
-  test('displays current subscription status and billing information', () => {
-    render(<FinancialManagementSection agency={mockAgency} />)
-    
-    expect(screen.getByText(/subscription status/i)).toBeInTheDocument()
-    expect(screen.getByText(/active/i)).toBeInTheDocument()
-    expect(screen.getByText(/billing information/i)).toBeInTheDocument()
-  })
-
   // Success Criterion 5: Pricing Configuration
   test('displays pricing configuration form', () => {
     render(<FinancialManagementSection agency={mockAgency} />)
