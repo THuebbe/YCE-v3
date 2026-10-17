@@ -9,6 +9,14 @@ function getResendClient() {
 	return new Resend(apiKey);
 }
 
+/**
+ * Sender address. Until a domain is verified in Resend, only its test sender
+ * works - and it delivers only to the Resend account owner's own address.
+ * After verifying a domain, set EMAIL_FROM in Vercel (e.g.
+ * "YardCard Elite <orders@yourdomain.com>").
+ */
+const FROM_ADDRESS = process.env.EMAIL_FROM || 'YardCard Elite <onboarding@resend.dev>';
+
 interface OrderNotificationData {
 	orderNumber: string;
 	customerName: string;
@@ -65,7 +73,7 @@ export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 
 		const resend = getResendClient();
 		const result = await resend.emails.send({
-			from: 'YardCard Elite <onboarding@resend.dev>',
+			from: FROM_ADDRESS,
 			to: [data.agencyEmail],
 			subject: `New Order: ${data.orderNumber} - ${data.customerName.replace(/[\r\n]+/g, ' ')}`,
 			html: emailHtml,
@@ -92,7 +100,7 @@ export async function sendTestEmail(toEmail: string) {
 
 		const resend = getResendClient();
 		const result = await resend.emails.send({
-			from: 'YardCard Elite <onboarding@resend.dev>',
+			from: FROM_ADDRESS,
 			to: [toEmail],
 			subject: 'YardCard Elite Email Setup Test',
 			html: '<p>Congrats! Your email setup is working correctly. 🎉</p>',
