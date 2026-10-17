@@ -53,6 +53,22 @@ old verification notes) is in `git show aace018:STATE.md`.
   - Customers still get no email from us (only Stripe's receipt), until the
     cancel link work.
 
+- **Merged 2026-10-17:** PR #9 (2a Stripe + checkout terms), #10/#11 (phone
+  layout, sign-in redirect, mock billing card + dead tests removed: tsc 0
+  errors), #12 (email: Resend + verified yardcard-elite.com).
+- **Milestone 2b, in chunks (user's request):**
+  1. **PR #13 (open, verified):** refunds on cancel through Stripe (platform
+     keeps $3) + new terms $20/15%/48h, saved per order.
+  2. Next: replace the fake "YardCard Elite Processing - always enabled"
+     toggle (`settings/components/PaymentSettingsTab.tsx`) with real status.
+  3. Then: user runs the "I already have a Stripe account" signup (sandbox
+     can't load Stripe's onboarding page) to verify the Standard path.
+  - Small follow-up: `charge.refunded` webhook (refunds made in Stripe's
+    dashboard don't update the order).
+- **Launch blockers (not milestones):** Vercel Pro (Hobby is
+  non-commercial), production Clerk instance + domain, Stripe live mode
+  (platform identity + live webhook/keys), platform Terms/Privacy pages.
+
 ## Environment and working style
 - One branch + one PR per milestone; Claude tests on the Vercel preview
   (share link via Vercel MCP) before handing over; the user merges.
