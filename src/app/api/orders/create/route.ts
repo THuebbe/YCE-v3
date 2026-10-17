@@ -3,6 +3,7 @@ import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
 import { createOrderFromPayload, resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
+import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
 import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { z } from "zod";
 
@@ -66,6 +67,10 @@ const createOrderInputSchema = z.object({
 	confirmationTokenId: z.string().startsWith("ctoken_").optional(),
 	agencySlug: z.string().min(1, "Agency slug is required"),
 	totalAmount: z.number().positive("Total amount must be positive"),
+	/** The booking terms checkbox on the Review step, and which terms it showed */
+	termsAccepted: z.literal(true, { errorMap: () => ({ message: "Please agree to the booking terms" }) }),
+	termsVersion: z.string().min(1),
+	termsLateFee: z.number().min(0),
 });
 
 export async function POST(
@@ -109,7 +114,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -145,6 +150,18 @@ export async function POST(
 				error: 'This agency\'s prices were updated while you were booking. Please refresh the page to see current pricing.'
 			}, { status: 400 });
 		}
+
+		// The terms are the agency's too: the customer must have agreed to the
+		// ones in force now (a late-fee change mid-booking means a new text)
+		if (termsVersion !== TERMS_VERSION || Math.abs(termsLateFee - pricing.lateFee) > 0.005) {
+			return NextResponse.json({
+				success: false,
+				error: "This agency's booking terms were updated while you were booking. Please refresh the page and review them."
+			}, { status: 409 });
+		}
+		const method = formData.payment?.paymentMethod || "card";
+		const stripeReady = Boolean(agency.stripe_account_id && agency.stripe_charges_enabled);
+		const terms = buildBookingTerms({ agencyName: agency.name, pricing, paysByCard: stripeReady && method === "card" });
 
 		// Convert eventDate string to Date object manually
 		const eventDate = new Date(formData.event.eventDate);
@@ -216,6 +233,9 @@ export async function POST(
 			extraDaysAfter,
 			holdId,
 			special_instructions: formData.event.deliveryNotes || null,
+			// Consent for later late/damage charges, and chargeback evidence
+			terms_accepted_at: new Date().toISOString(),
+			terms_snapshot: terms,
 		};
 		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
 		const payload: OrderPayload = {
@@ -233,8 +253,6 @@ export async function POST(
 		// Agencies that finished Stripe setup take real card payments (direct
 		// charges to their account). Everyone else still gets the no-charge demo
 		// checkout until the setup checklist gates bookings (milestone 4).
-		const method = formData.payment?.paymentMethod || "card";
-		const stripeReady = Boolean(agency.stripe_account_id && agency.stripe_charges_enabled);
 		if (stripeReady && method === "card") {
 			const stripeAgency = { stripe_account_id: agency.stripe_account_id, stripe_account_type: agency.stripe_account_type };
 			let outcome: CheckoutOutcome;

@@ -6,7 +6,12 @@
 export interface BookingPricing {
   basePrice: number;
   extraDayPrice: number;
+  /** Per extra day when the signs can't be collected on time (booking terms) */
+  lateFee: number;
 }
+
+/** PRODUCT.md default when the agency hasn't set a late fee */
+export const DEFAULT_LATE_FEE = 25;
 
 /**
  * Returns null when the agency hasn't configured pricing, so the booking page
@@ -14,12 +19,17 @@ export interface BookingPricing {
  */
 export function parseBookingPricing(pricingConfig: unknown): BookingPricing | null {
   if (!pricingConfig || typeof pricingConfig !== 'object') return null;
-  const { basePrice, extraDayPrice } = pricingConfig as Record<string, unknown>;
+  const { basePrice, extraDayPrice, lateFee } = pricingConfig as Record<string, unknown>;
   const base = Number(basePrice);
   const extra = Number(extraDayPrice ?? 0);
   if (!Number.isFinite(base) || base <= 0) return null;
   if (!Number.isFinite(extra) || extra < 0) return null;
-  return { basePrice: base, extraDayPrice: extra };
+  const late = Number(lateFee ?? DEFAULT_LATE_FEE);
+  return {
+    basePrice: base,
+    extraDayPrice: extra,
+    lateFee: Number.isFinite(late) && late >= 0 ? late : DEFAULT_LATE_FEE,
+  };
 }
 
 export function calculateBookingTotal(

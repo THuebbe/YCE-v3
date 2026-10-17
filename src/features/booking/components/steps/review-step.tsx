@@ -11,9 +11,19 @@ import { DisplayGrid } from '../display/DisplayGrid';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 import { stripeForAccount } from '../payment-methods/StripeCardForm';
+import { buildBookingTerms } from '../../terms';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, pricing, bookingRules, sessionId, timeZone } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, bookingRules, sessionId, timeZone } = useWizard();
+  // The agency's booking terms: the customer must agree before Place Order
+  // (consent for later late/damage charges); the server saves its own copy
+  const terms = buildBookingTerms({
+    agencyName: agency.name,
+    pricing,
+    paysByCard: formData.payment?.paymentMethod === 'card' && Boolean(formData.payment?.stripeAccountId),
+  });
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [showFullTerms, setShowFullTerms] = useState(false);
   const pickupDay = formData.event?.eventDate
     ? rentalWindow(bookingRules, new Date(formData.event.eventDate), formData.event.extraDaysBefore || 0, formData.event.extraDaysAfter || 0).end
     : null;
@@ -113,6 +123,9 @@ export function ReviewStep() {
         timeZone, // decides "end of day" for the order cutoff
         agencySlug, // order API resolves the slug to agency_id
         totalAmount: calculateTotal(),
+        termsAccepted,
+        termsVersion: terms.version,
+        termsLateFee: pricing.lateFee,
       };
       const send = async (extra: { paymentIntentId: string; confirmationTokenId?: string }) => {
         const response = await fetch('/api/orders/create', {
@@ -456,21 +469,43 @@ export function ReviewStep() {
           </div>
         )}
 
-        {/* Terms Agreement */}
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-          <label className="flex items-start space-x-3 cursor-pointer">
+        {/* Booking terms + agreement */}
+        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 space-y-3">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-body font-semibold text-neutral-900">Booking terms</h3>
+            <button
+              type="button"
+              onClick={() => setShowFullTerms(open => !open)}
+              className="text-body-small text-primary hover:underline"
+              aria-expanded={showFullTerms}
+            >
+              {showFullTerms ? 'Hide full terms' : 'Read full terms'}
+            </button>
+          </div>
+          {showFullTerms ? (
+            <dl className="space-y-2 text-body-small text-neutral-700">
+              {terms.sections.map(section => (
+                <div key={section.title}>
+                  <dt className="font-medium text-neutral-900">{section.title}</dt>
+                  <dd>{section.text}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="text-body-small text-neutral-700">
+              Full payment now. Cancellation fees apply, and late pickup or damaged signs may be charged later.
+            </p>
+          )}
+          <label className="flex items-start gap-3 cursor-pointer pt-1">
             <input
               type="checkbox"
-              className="mt-1 w-4 h-4 text-primary bg-white border-neutral-300 rounded focus:ring-primary focus:ring-2"
-              defaultChecked
+              checked={termsAccepted}
+              onChange={e => setTermsAccepted(e.target.checked)}
+              className="mt-1 w-4 h-4 shrink-0 text-primary bg-white border-neutral-300 rounded focus:ring-primary focus:ring-2"
             />
-            <div className="text-body-small text-neutral-700">
-              I agree to the{' '}
-              <a href="#" className="text-primary hover:underline">Terms of Service</a>
-              {' '}and{' '}
-              <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
-              I understand that my display will be installed during the selected time window and removed {pickupDay ? `on ${formatDay(pickupDay, true)}` : 'after my event'}.
-            </div>
+            <span className="text-body-small text-neutral-700">
+              {terms.agreement} I understand that my display will be installed during the selected time window and removed {pickupDay ? `on ${formatDay(pickupDay, true)}` : 'after my event'}.
+            </span>
           </label>
         </div>
       </div>
@@ -487,7 +522,7 @@ export function ReviewStep() {
         </Button>
         <Button
           onClick={handlePlaceOrder}
-          disabled={orderProcessing || !hasValidLayout}
+          disabled={orderProcessing || !hasValidLayout || !termsAccepted}
           className="w-full md:w-auto px-8 bg-primary hover:bg-primary-hover shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
         >
           {orderProcessing ? (
