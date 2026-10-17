@@ -8,10 +8,14 @@ import type Stripe from 'stripe';
 /**
  * Stripe Connect for agencies. Customer money always goes straight to the
  * agency (direct charges); see PRODUCT.md "Payments".
- * - express: turnkey. Stripe-hosted signup from inside our app; $3 platform
- *   fee per booking. The agency manages it in the Express dashboard.
- *   (Created with controller properties, not the legacy type: 'express'.)
- * - standard: the agency's own full Stripe account; no per-booking fee.
+ * - 'express' (stored value; really "turnkey"): we create the account and
+ *   Stripe hosts the signup; $3 platform fee per booking.
+ * - 'standard': the agency's own Stripe account; no per-booking fee.
+ * Both are the same kind of Stripe account (decided 2026-10-17): Stripe
+ * liable for losses, the agency pays Stripe's processing fee, full Stripe
+ * Dashboard. Stripe refused the Express Dashboard with Stripe-managed risk
+ * for this platform (v1 and the v2 preview both), and legacy
+ * type: 'express' would make the platform liable and bill it Stripe's fees.
  */
 
 /** The signed-in member's agency (RLS is off: everything below is scoped to it). */
@@ -39,34 +43,6 @@ async function onboardingLink(accountId: string, slug: string) {
 }
 
 /**
- * The turnkey ("Set it up for me") account, created with Accounts v2 because
- * v1 can't combine these (Stripe rejects Express Dashboard + Stripe-managed
- * risk on v1, and legacy type: 'express' bills Stripe's fees to the platform):
- * - Express Dashboard (login links from Settings)
- * - Stripe liable for losses ("Managed Risk", needs direct charges - we use them)
- * - Stripe's processing fee charged to the agency, so the booking's
- *   application_fee_amount is only our $3
- * The id is a normal acct_..., used with v1 account links, PaymentIntents
- * (Stripe-Account) and login links like any other.
- */
-async function createExpressAccount(agency: Awaited<ReturnType<typeof currentAgency>>): Promise<string> {
-  const account = await getStripe().rawRequest('POST', '/v2/core/accounts', {
-    display_name: agency.name,
-    ...(agency.email ? { contact_email: agency.email } : {}),
-    identity: { country: 'us' },
-    dashboard: 'express',
-    defaults: { responsibilities: { fees_collector: 'stripe', losses_collector: 'stripe' } },
-    configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
-    metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug },
-  }, {
-    // Accounts v2 is a preview API on our pinned (basil) version; only this
-    // call opts in. Re-check before going live - previews can change.
-    apiVersion: '2025-07-30.preview',
-  }) as unknown as { id: string };
-  return account.id;
-}
-
-/**
  * Starts (or resumes) Stripe onboarding for the member's agency and returns
  * the Stripe-hosted onboarding URL. `type` only matters for a new account;
  * an agency that already has one continues with it.
@@ -89,15 +65,19 @@ export async function createStripeConnectAccount(type: StripeAccountType = 'expr
       ...(agency.domain ? { url: agency.domain } : {}),
       product_description: 'Yard sign display rentals',
     };
-    const accountId = type === 'express'
-      ? await createExpressAccount(agency)
-      : (await stripe.accounts.create({
-          type: 'standard',
-          country: 'US',
-          email: agency.email || undefined,
-          business_profile: businessProfile,
-          metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug },
-        })).id;
+    const { id: accountId } = await stripe.accounts.create({
+      controller: {
+        losses: { payments: 'stripe' },
+        fees: { payer: 'account' },
+        stripe_dashboard: { type: 'full' },
+        requirement_collection: 'stripe',
+      },
+      capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
+      country: 'US',
+      email: agency.email || undefined,
+      business_profile: businessProfile,
+      metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug, yce_plan: type },
+    });
 
     const { error } = await supabase
       .from('agencies')
@@ -181,18 +161,13 @@ export async function refreshStripeAccount() {
 }
 
 /**
- * Where the agency manages payouts and sees payments (and the $3 fee on
- * Express): a one-time sign-in link to the Express dashboard, or the full
- * Stripe dashboard for Standard accounts.
+ * Where the agency manages payouts and sees payments (and the $3 fee on the
+ * turnkey plan): the Stripe Dashboard, signed in with their own Stripe login.
  */
 export async function createStripeDashboardLink() {
   try {
     const agency = await currentAgency();
     if (!agency.stripe_account_id) return { success: false, error: 'Stripe is not connected yet' };
-    if (agency.stripe_account_type === 'express') {
-      const link = await getStripe().accounts.createLoginLink(agency.stripe_account_id);
-      return { success: true, url: link.url };
-    }
     return { success: true, url: 'https://dashboard.stripe.com/' };
   } catch (error) {
     console.error('Error creating Stripe dashboard link:', error);

@@ -16,6 +16,7 @@ export function getStripe(): Stripe {
   return client;
 }
 
+/** 'express' = turnkey plan ($3/booking), not Stripe's Express account type. */
 export type StripeAccountType = 'express' | 'standard';
 
 /**
