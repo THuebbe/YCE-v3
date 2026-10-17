@@ -373,3 +373,37 @@ export async function handleCheckoutPaymentFailed(intent: Stripe.PaymentIntent) 
     .eq('id', checkoutId)
     .eq('status', 'created');
 }
+
+/**
+ * Stripe webhook: charge.refunded on a connected account. Mirrors the total
+ * refunded onto the order, so refunds made in the agency's Stripe Dashboard
+ * (not through the app's cancel) show up too. Idempotent: it writes Stripe's
+ * running total, never adds to ours.
+ */
+export async function handleChargeRefunded(charge: Stripe.Charge) {
+  const paymentIntentId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id;
+  if (!paymentIntentId || !charge.amount_refunded) return;
+  const { data: checkout } = await supabase
+    .from('booking_checkouts')
+    .select('id, order_id, agency_id')
+    .eq('payment_intent_id', paymentIntentId)
+    .maybeSingle();
+  if (!checkout?.order_id) return; // not a booking payment (or no order)
+  const refunded = charge.amount_refunded / 100;
+  const { error } = await supabase
+    .from('orders')
+    .update({
+      refund_amount: refunded,
+      payment_status: charge.refunded ? 'refunded' : 'partially_refunded',
+    })
+    .eq('id', checkout.order_id)
+    .eq('agency_id', checkout.agency_id);
+  if (error) {
+    console.error('charge.refunded: order not updated:', checkout.order_id, error.message);
+    return;
+  }
+  await supabase.from('booking_checkouts')
+    .update({ status: 'refunded', updated_at: new Date().toISOString() })
+    .eq('id', checkout.id);
+  console.log('✅ Refund mirrored onto order', checkout.order_id, { refunded });
+}
