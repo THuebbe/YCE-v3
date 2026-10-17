@@ -27,7 +27,7 @@ interface AgencyProfileSectionProps {
 }
 
 export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectionProps) {
-  const { isSignedIn, userId, orgRole, isLoaded } = useAuth()
+  const { isSignedIn, userId, isLoaded } = useAuth()
   const router = useRouter()
 
   // State management
@@ -55,8 +55,10 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
   const [isDirty, setIsDirty] = useState(false)
 
   // Permission check
-  const hasPermission = isSignedIn && 
-    ['admin', 'org:admin', 'owner'].includes(orgRole || '')
+  // Roles live in our users table, not Clerk organizations (the old check
+  // used Clerk's orgRole, always empty here, so the profile never loaded).
+  // The profile API checks the role; a 403 from it means no permission.
+  const [hasPermission, setHasPermission] = useState(true)
 
   // Redirect unauthorized users
   useEffect(() => {
@@ -83,6 +85,10 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
 
       try {
         const response = await fetch(`/api/agency/profile?agencyId=${agency.id}`)
+        if (response.status === 401 || response.status === 403) {
+          setHasPermission(false)
+          return
+        }
         const data = await response.json()
         
         if (response.ok && data && data.success && data.data) {
@@ -115,10 +121,10 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
       }
     }
 
-    if (isLoaded && hasPermission) {
+    if (isLoaded && isSignedIn) {
       loadAgencyData()
     }
-  }, [isLoaded, hasPermission])
+  }, [isLoaded, isSignedIn])
 
   // Track dirty state
   useEffect(() => {
