@@ -79,6 +79,17 @@ old verification notes) is in `git show aace018:STATE.md`.
   enabled; Settings `?success=true` synced the DB. Card 4242 → order
   YCE-2026-914929 paid, checkout `completed`, **$3.00 application fee** on
   the platform (`fee_1URaBDCAFUeJ6RMeGn7i245K`). Test order cancelled.
+- **2026-10-17, same branch, preview `4d2f83f`, texas-signs: checkout terms**
+  - Review step shows the agency's booking terms; Place Order is disabled
+    until "I agree" is ticked.
+  - A request without consent is refused (400).
+  - The order saves `terms_accepted_at` + `terms_snapshot`
+    (YCE-2026-643256: paid, $3 fee, card-consent text).
+  - Payment-methods request blocked in the browser → "Try again" (no
+    demo form) → recovers.
+  - Agency flipped to not-ready while the card was on the Review step →
+    409 "your card was not charged", no order.
+  - Test orders cancelled.
 - **2026-10-10, branch `claude/m1b-checkin-cancel`, preview `e78aeb7`**
   (signed in as admin@elite-denver): order YCE-2026-101575 listed its 20
   sign lines and $81.00 (was "0 signs", "$0.81"); Generate Pick Ticket →
@@ -235,6 +246,11 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Webhook backstop: the Connect webhook points at production, which runs
   the pre-m2a code until merge - preview orders were created by the
   synchronous path only.
+- **Until PR #9 is merged, production keeps flipping texas-signs to "not
+  ready"**: Stripe is still retrying hours-old account.updated events and
+  the old handler copies their stale status. After merge every status event
+  re-reads the account. If texas-signs shows the demo checkout after merge,
+  open its Settings → Stripe tab once (re-syncs).
 - Node 23 (non-LTS) beyond booting fine.
 
 ## Dead ends
