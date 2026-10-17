@@ -11,7 +11,7 @@
 import type Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
 import { sendOrderNotificationEmail } from '@/lib/email';
-import { applicationFeeCents, getStripe, toCents, type StripeAccountType } from '@/lib/stripe';
+import { applicationFeeCents, getStripe, requestOrigin, toCents, type StripeAccountType } from '@/lib/stripe';
 
 /** Everything needed to create the order later, validated by /api/orders/create. */
 export interface OrderPayload {
@@ -100,20 +100,25 @@ export async function createOrderFromPayload(
     };
   }
 
-  try {
-    await sendOrderNotificationEmail({
-      orderNumber: orderRecord.order_number,
-      customerName: payload.customerName,
-      eventDate: payload.eventDateIso,
-      totalAmount: payload.totalDollars,
-      agencyName: payload.agency.name,
-      agencyEmail: payload.agency.email || 'no-email@agency.com',
-      orderUrl: process.env.NEXT_PUBLIC_APP_URL
-        ? `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '')}/${payload.agency.slug}/orders/${orderRecord.id}`
-        : undefined,
-    });
-  } catch (emailError) {
-    console.error('Order notification email failed (order stands):', emailError);
+  // No address, no email (a made-up recipient would bounce and hurt the
+  // sending domain's reputation)
+  if (!payload.agency.email) {
+    console.warn('Agency has no contact email; order notification skipped:', payload.agency.slug);
+  } else {
+    try {
+      const origin = await requestOrigin().catch(() => null);
+      await sendOrderNotificationEmail({
+        orderNumber: orderRecord.order_number,
+        customerName: payload.customerName,
+        eventDate: payload.eventDateIso,
+        totalAmount: payload.totalDollars,
+        agencyName: payload.agency.name,
+        agencyEmail: payload.agency.email,
+        orderUrl: origin ? `${origin}/${payload.agency.slug}/orders/${orderRecord.id}` : undefined,
+      });
+    } catch (emailError) {
+      console.error('Order notification email failed (order stands):', emailError);
+    }
   }
 
   return { ok: true, orderId: orderRecord.id, orderNumber: orderRecord.order_number, confirmationCode };

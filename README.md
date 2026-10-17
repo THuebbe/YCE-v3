@@ -30,7 +30,7 @@ the code; ask the project owner for values):
 | Database | `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
 | Auth | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET` |
 | Documents | `BLOB_READ_WRITE_TOKEN` |
-| Email | `RESEND_API_KEY` (without it, orders don't email) |
+| Email | `RESEND_API_KEY` (without it, orders don't email); `EMAIL_FROM` once a domain is verified in Resend (until then only the Resend account owner receives mail) |
 | Crons | `CRON_SECRET` |
 | Payments | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `BRAINTREE_*`, `PAYPAL_*` |
 | URLs | `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_BASE_URL` |
