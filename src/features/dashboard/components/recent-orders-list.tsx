@@ -103,16 +103,16 @@ function OrderItem({ order }: { order: any }) {
 			href={agencySlug ? `/${agencySlug}/orders/${order.id}` : "/routing"}
 			className="block"
 		>
-			<div className="flex items-center justify-between p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer">
-				<div className="space-y-1">
-					<div className="flex items-center space-x-2">
+			<div className="flex items-start justify-between gap-3 p-4 border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer">
+				<div className="min-w-0 space-y-1">
+					<div className="flex flex-wrap items-center gap-x-2 gap-y-1">
 						<User className="h-4 w-4 text-neutral-500" />
-						<span className="font-medium text-neutral-900">
+						<span className="font-medium text-neutral-900 break-words">
 							{order.customer_name}
 						</span>
 						<StatusBadge status={order.status} />
 					</div>
-					<div className="flex items-center space-x-4 text-body-small text-neutral-600">
+					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-small text-neutral-600">
 						<div className="flex items-center space-x-1">
 							<span>#{order.order_number}</span>
 						</div>
@@ -126,7 +126,7 @@ function OrderItem({ order }: { order: any }) {
 						</div>
 					</div>
 				</div>
-				<div className="text-right">
+				<div className="shrink-0 text-right">
 					<div className="font-semibold text-neutral-900">
 						${order.total.toLocaleString()}
 					</div>

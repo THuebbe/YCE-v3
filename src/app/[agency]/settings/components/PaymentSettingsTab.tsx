@@ -110,8 +110,8 @@ export function PaymentSettingsTab({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Stripe Connect */}
-          <div className="flex items-center justify-between p-4 shadow-sm rounded-lg">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 shadow-sm rounded-lg">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
               {getProcessorIcon('stripe')}
               <div>
                 <Label className="text-base font-medium">Stripe Connect</Label>
@@ -120,7 +120,7 @@ export function PaymentSettingsTab({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               {getStatusBadge(
                 stripeEnabled,
                 stripeStatus?.isConnected && !stripeStatus?.hasCompletedOnboarding
@@ -134,8 +134,8 @@ export function PaymentSettingsTab({
           </div>
 
           {/* PayPal Connect */}
-          <div className="flex items-center justify-between p-4 shadow-sm rounded-lg">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 shadow-sm rounded-lg">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
               {getProcessorIcon('paypal')}
               <div>
                 <Label className="text-base font-medium">PayPal Connect</Label>
@@ -144,7 +144,7 @@ export function PaymentSettingsTab({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               {getStatusBadge(
                 paypalEnabled,
                 paypalStatus?.isConnected && !paypalStatus?.hasCompletedOnboarding
@@ -158,8 +158,8 @@ export function PaymentSettingsTab({
           </div>
 
           {/* YCE Processing */}
-          <div className="flex items-center justify-between p-4 shadow-sm rounded-lg">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 shadow-sm rounded-lg">
+            <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
               {getProcessorIcon('yce')}
               <div>
                 <Label className="text-base font-medium">YardCard Elite Processing</Label>
@@ -168,7 +168,7 @@ export function PaymentSettingsTab({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               {getStatusBadge(true)}
               <Switch
                 checked={yceProcessingEnabled}
