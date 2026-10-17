@@ -67,6 +67,18 @@ export function isWithinCancellationWindow(order: any): boolean {
   return hoursSinceOrder <= 24;
 }
 
+/**
+ * Hours from now until delivery (start of the event day minus the extra days
+ * before), the point cancellation notice is measured from (PRODUCT.md).
+ * Negative once delivery day has started.
+ */
+export function hoursUntilDelivery(order: { event_date?: string | null; extraDaysBefore?: number | null }): number {
+  if (!order.event_date) return Infinity;
+  const [y, m, d] = String(order.event_date).slice(0, 10).split('-').map(Number);
+  const delivery = new Date(y, m - 1, d - (Number(order.extraDaysBefore) || 0));
+  return (delivery.getTime() - Date.now()) / 3_600_000;
+}
+
 export function canCancelOrder(order: any): boolean {
   // Deployed orders end with check-in, not a cancel (yce_cancel_order agrees)
   return ['pending', 'processing'].includes(order.status);

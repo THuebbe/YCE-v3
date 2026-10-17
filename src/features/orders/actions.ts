@@ -5,6 +5,7 @@ import { getOrderWithDetails, updateOrderDocuments } from './utils';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
+import { getStripe, toCents } from '@/lib/stripe';
 import type { OrderAction } from './stateMachine';
 import type { CancelOrderInput } from './types';
 
@@ -155,11 +156,57 @@ export async function checkInOrder(input: {
   }
 }
 
-/** Cancels a pending/processing order and releases its sign hold. Refunds
- *  need Stripe (milestone 2): the requested refund is only recorded. */
-export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult> {
+/**
+ * Cancels a pending/processing order, releases its sign hold and, for orders
+ * paid by card through Stripe, refunds the customer (direct charge on the
+ * agency's account; the platform's $3 application fee is kept - decided
+ * 2026-10-17). The refund runs first: if Stripe refuses it, nothing is
+ * cancelled. Unpaid/demo orders just record the amount.
+ */
+export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult & { refunded?: boolean }> {
   try {
     const { order, user } = await requireOrderMember(input.orderId);
+    if (!['pending', 'processing'].includes(order.status)) {
+      return {
+        success: false,
+        error: `A ${order.status} order can't be cancelled${order.status === 'deployed' ? ' - check its signs in instead' : ''}`,
+      };
+    }
+    const { data: details } = await supabase
+      .from('orders').select('total, payment_status')
+      .eq('id', order.id).eq('agency_id', order.agency_id).single();
+    const total = Number(details?.total) || 0;
+    const refundAmount = input.refundType === 'none' ? 0
+      : Math.round(Math.min(Math.max(Number(input.refundAmount) || 0, 0), total) * 100) / 100;
+
+    // Paid by card through Stripe? (the checkout that created this order)
+    const { data: checkout } = await supabase
+      .from('booking_checkouts')
+      .select('id, payment_intent_id, stripe_account_id')
+      .eq('order_id', order.id).eq('agency_id', order.agency_id).eq('status', 'completed')
+      .maybeSingle();
+
+    let refunded = false;
+    if (checkout?.payment_intent_id && refundAmount > 0) {
+      try {
+        await getStripe().refunds.create(
+          {
+            payment_intent: checkout.payment_intent_id,
+            amount: toCents(refundAmount),
+            refund_application_fee: false,
+            reason: 'requested_by_customer',
+            metadata: { yce_order_id: order.id, yce_cancelled_by: user.id },
+          },
+          { stripeAccount: checkout.stripe_account_id, idempotencyKey: `order-${order.id}-refund-${toCents(refundAmount)}` }
+        );
+        refunded = true;
+      } catch (error) {
+        const reason = (error as { message?: string })?.message ?? 'Stripe refused the refund';
+        console.error('Cancel refund failed:', order.id, reason);
+        return { success: false, error: `The refund didn't go through (${reason}). The order was not cancelled.` };
+      }
+    }
+
     const { data, error } = await supabase.rpc('yce_cancel_order', {
       p_order_id: input.orderId,
       p_agency_id: order.agency_id,
@@ -169,24 +216,30 @@ export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult
     });
     const result = data as { ok?: boolean; reason?: string; status?: string } | null;
     if (error || !result?.ok) {
+      if (refunded) console.error('REFUNDED BUT NOT CANCELLED - cancel it by hand:', order.id, error?.message ?? result);
       return {
         success: false,
-        error: result?.reason === 'not_cancellable'
-          ? `A ${result.status} order can't be cancelled${result.status === 'deployed' ? ' - check its signs in instead' : ''}`
-          : 'Cancel failed',
+        error: refunded
+          ? 'The refund was issued, but the order could not be marked cancelled. Please try cancelling again.'
+          : result?.reason === 'not_cancellable' ? `A ${result.status} order can't be cancelled` : 'Cancel failed',
       };
     }
-    // The refund itself needs Stripe (milestone 2); keep the amount asked for
-    const { data: cancelled } = await supabase
-      .from('orders').select('total').eq('id', input.orderId).eq('agency_id', order.agency_id).single();
-    const refundAmount = input.refundType === 'none' ? 0
-      : Math.min(Math.max(Number(input.refundAmount) || 0, 0), Number(cancelled?.total) || 0);
+
     const { error: refundError } = await supabase
-      .from('orders').update({ refund_amount: refundAmount })
+      .from('orders')
+      .update({
+        refund_amount: refundAmount,
+        ...(refunded ? { payment_status: refundAmount >= total ? 'refunded' : 'partially_refunded' } : {}),
+      })
       .eq('id', input.orderId).eq('agency_id', order.agency_id);
     if (refundError) console.error('refund_amount not saved:', input.orderId, refundError.message);
+    if (refunded) {
+      await supabase.from('booking_checkouts')
+        .update({ status: 'refunded', updated_at: new Date().toISOString() })
+        .eq('id', checkout!.id);
+    }
     revalidateOrder(input.orderId);
-    return { success: true };
+    return { success: true, refunded };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Cancel failed' };
   }

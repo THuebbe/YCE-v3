@@ -7,7 +7,8 @@ import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import { AlertTriangle, DollarSign, Clock } from 'lucide-react';
-import { formatCurrency, isWithinCancellationWindow } from '../client-utils';
+import { formatCurrency, hoursUntilDelivery } from '../client-utils';
+import { cancellationFee, cancellationPolicyOf } from '@/features/booking/terms';
 import { cancelOrder } from '../actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
@@ -20,14 +21,19 @@ interface CancelOrderModalProps {
 
 export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [refundType, setRefundType] = useState<'full' | 'partial' | 'none'>('full');
-  const [partialAmount, setPartialAmount] = useState('');
+  const maxRefundAmount = Number(order.total) || 0; // dollars (numeric column comes back as a string)
+  // What this order's own terms say for a customer cancellation
+  const policy = cancellationPolicyOf(order.terms_snapshot);
+  const fee = cancellationFee(maxRefundAmount, policy);
+  const hoursLeft = hoursUntilDelivery(order);
+  const insideNotice = hoursLeft < policy.noticeHours;
+  const suggested: 'partial' | 'none' = insideNotice ? 'none' : 'partial';
+  const [refundType, setRefundType] = useState<'full' | 'partial' | 'none'>(suggested);
+  const [partialAmount, setPartialAmount] = useState((maxRefundAmount - fee).toFixed(2));
   const [reason, setReason] = useState('');
   const { toast } = useToast();
   const router = useRouter();
-
-  const withinCancellationWindow = isWithinCancellationWindow(order);
-  const maxRefundAmount = Number(order.total) || 0; // dollars (numeric column comes back as a string)
+  const paidByCard = ['paid', 'succeeded'].includes(String(order.payment_status));
 
   const handleCancel = async () => {
     if (isProcessing) return;
@@ -48,7 +54,12 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
 
       toast({
         title: 'Order cancelled',
-        description: `Order #${order.order_number} is cancelled and its signs are free again.${refundAmount > 0 ? ` Refund of ${formatCurrency(refundAmount)} recorded - issue it in your payment processor until refunds are built in.` : ''}`,
+        description: `Order #${order.order_number} is cancelled and its signs are free again.${
+          refundAmount <= 0 ? ''
+            : 'refunded' in result && result.refunded
+              ? ` ${formatCurrency(refundAmount)} refunded to the customer's card.`
+              : ` Refund of ${formatCurrency(refundAmount)} recorded - this order wasn't paid by card here, so pay it back the way the customer paid.`
+        }`,
         variant: 'success'
       });
 
@@ -67,8 +78,8 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
   };
 
   const resetModal = () => {
-    setRefundType('full');
-    setPartialAmount('');
+    setRefundType(suggested);
+    setPartialAmount((maxRefundAmount - fee).toFixed(2));
     setReason('');
   };
 
@@ -124,26 +135,19 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
           </div>
         </div>
 
-        {/* Cancellation Window Notice */}
-        {withinCancellationWindow ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center text-green-800">
-              <Clock className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">
-                Within 24 hours of booking. Refunds aren't sent automatically yet (that arrives with payments) - the refund you choose is recorded; issue it in your payment processor.
-              </span>
-            </div>
+        {/* What this order's terms say */}
+        <div className={`${insideNotice ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-green-50 border-green-200 text-green-800'} border rounded-lg p-4`}>
+          <div className="flex items-start text-sm">
+            <Clock className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
+            <span>
+              {insideNotice
+                ? `Delivery is less than ${policy.noticeHours} hours away. If the customer is cancelling, their terms say no refund.`
+                : `If the customer is cancelling, their terms give a refund minus a ${formatCurrency(fee)} cancellation fee (${policy.feePercent}% or ${formatCurrency(policy.feeMinimum)}, whichever is more).`}
+              {' '}If you can&apos;t deliver or install (including weather), give a full refund.
+              {paidByCard ? ' The refund goes back to their card.' : ''}
+            </span>
           </div>
-        ) : (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-center text-amber-800">
-              <Clock className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">
-                Past 24 hours since booking. The refund you choose is recorded; issue it in your payment processor.
-              </span>
-            </div>
-          </div>
-        )}
+        </div>
 
         {/* Refund Options */}
         <div className="space-y-4">
@@ -167,14 +171,14 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="partial" id="partial" />
               <label htmlFor="partial" className="text-sm cursor-pointer">
-                Partial Refund
+                Refund minus cancellation fee ({formatCurrency(maxRefundAmount - fee)})
               </label>
             </div>
 
             {refundType === 'partial' && (
               <div className="ml-6 space-y-2">
                 <Label htmlFor="partialAmount" className="text-sm">
-                  Refund Amount (max: {formatCurrency(maxRefundAmount)})
+                  Refund amount (you can change it; max {formatCurrency(maxRefundAmount)})
                 </Label>
                 <Input
                   id="partialAmount"
