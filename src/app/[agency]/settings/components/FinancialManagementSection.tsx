@@ -16,7 +16,6 @@ import type {
   StripeConnectStatus,
   PayPalConnectStatus,
   BraintreeConnectStatus,
-  SubscriptionInfo,
   calculateNetPayout
 } from '../validation/financialManagement'
 import type { Agency } from '@/lib/types/agency'
@@ -50,7 +49,6 @@ export default function FinancialManagementSection({
     lateFee: agency.lateFee ?? 25,
   })
 
-  const [subscriptionInfo, setSubscriptionInfo] = useState<SubscriptionInfo | null>(null)
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
   const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus | null>(null)
   const [braintreeStatus, setBraintreeStatus] = useState<BraintreeConnectStatus | null>(null)
@@ -61,7 +59,6 @@ export default function FinancialManagementSection({
   // Load pricing configuration and subscription info on component mount
   useEffect(() => {
     loadFinancialSettings()
-    loadSubscriptionInfo()
   }, [agency.id])
 
   const loadFinancialSettings = async () => {
@@ -92,25 +89,6 @@ export default function FinancialManagementSection({
       onError?.(error instanceof Error ? error.message : 'Network error occurred')
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const loadSubscriptionInfo = async () => {
-    try {
-      // Mock subscription data for now - will integrate with actual subscription system
-      setSubscriptionInfo({
-        status: agency.subscriptionStatus as any || 'active',
-        currentPeriodStart: agency.subscriptionStartDate || new Date().toISOString(),
-        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        planName: 'Professional',
-        planPrice: 99,
-        billingInterval: 'month',
-        nextBillingDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        paymentMethodType: 'card',
-        lastFourDigits: '4242'
-      })
-    } catch (error) {
-      console.error('Error loading subscription info:', error)
     }
   }
 
@@ -295,46 +273,6 @@ export default function FinancialManagementSection({
         </CardContent>
       </Card>
 
-      {/* Subscription Information */}
-      {subscriptionInfo && (
-        <Card className="shadow-sm border-0">
-          <CardHeader>
-            <CardTitle>Subscription & Billing</CardTitle>
-            <CardDescription>
-              Your current subscription and payment information.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Current Plan</h4>
-                <p className="text-2xl font-bold text-gray-900">
-                  {subscriptionInfo.planName}
-                </p>
-                <p className="text-sm text-gray-600">
-                  ${subscriptionInfo.planPrice}/
-                  {subscriptionInfo.billingInterval === 'month' ? 'month' : 'year'}
-                </p>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Next Billing Date</h4>
-                <p className="text-gray-900">
-                  {new Date(subscriptionInfo.nextBillingDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-                <p className="text-sm text-gray-600">
-                  Payment method: {subscriptionInfo.paymentMethodType} 
-                  {subscriptionInfo.lastFourDigits && ` ending in ${subscriptionInfo.lastFourDigits}`}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
