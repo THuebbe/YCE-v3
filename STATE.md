@@ -43,6 +43,16 @@ old verification notes) is in `git show aace018:STATE.md`.
   script never ran). Open questions for the user: 404 the placeholder
   Customers/Reports pages? Hide the fake "Subscription & Billing" card?
 
+- **Email (2026-10-17):**
+  - Resend sending-only key "yce-v3 (Vercel)" is in Vercel `RESEND_API_KEY`
+    (it was never set before: agencies got no order emails).
+  - `yardcard-elite.com` (bought in Vercel, Vercel DNS) is verified in
+    Resend; its 4 DNS records (DKIM TXT, send MX/TXT, rsend CNAME) were
+    added in Vercel.
+  - `EMAIL_FROM` = `YardCard Elite <orders@yardcard-elite.com>`.
+  - Customers still get no email from us (only Stripe's receipt), until the
+    cancel link work.
+
 ## Environment and working style
 - One branch + one PR per milestone; Claude tests on the Vercel preview
   (share link via Vercel MCP) before handing over; the user merges.
