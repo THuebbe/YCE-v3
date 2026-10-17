@@ -146,6 +146,8 @@ export function PaymentProcessorsCard({
               agency={agency}
               stripeStatus={stripeStatus}
               paypalStatus={paypalStatus}
+              braintreeStatus={braintreeStatus}
+              onOpenTab={setActiveTab}
               onSuccess={onSuccess}
               onError={onError}
             />
