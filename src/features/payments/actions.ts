@@ -39,6 +39,30 @@ async function onboardingLink(accountId: string, slug: string) {
 }
 
 /**
+ * The turnkey ("Set it up for me") account, created with Accounts v2 because
+ * v1 can't combine these (Stripe rejects Express Dashboard + Stripe-managed
+ * risk on v1, and legacy type: 'express' bills Stripe's fees to the platform):
+ * - Express Dashboard (login links from Settings)
+ * - Stripe liable for losses ("Managed Risk", needs direct charges - we use them)
+ * - Stripe's processing fee charged to the agency, so the booking's
+ *   application_fee_amount is only our $3
+ * The id is a normal acct_..., used with v1 account links, PaymentIntents
+ * (Stripe-Account) and login links like any other.
+ */
+async function createExpressAccount(agency: Awaited<ReturnType<typeof currentAgency>>): Promise<string> {
+  const account = await getStripe().rawRequest('POST', '/v2/core/accounts', {
+    display_name: agency.name,
+    ...(agency.email ? { contact_email: agency.email } : {}),
+    identity: { country: 'us' },
+    dashboard: 'express',
+    defaults: { responsibilities: { fees_collector: 'stripe', losses_collector: 'stripe' } },
+    configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
+    metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug },
+  }) as unknown as { id: string };
+  return account.id;
+}
+
+/**
  * Starts (or resumes) Stripe onboarding for the member's agency and returns
  * the Stripe-hosted onboarding URL. `type` only matters for a new account;
  * an agency that already has one continues with it.
@@ -61,38 +85,20 @@ export async function createStripeConnectAccount(type: StripeAccountType = 'expr
       ...(agency.domain ? { url: agency.domain } : {}),
       product_description: 'Yard sign display rentals',
     };
-    const account = type === 'express'
-      ? await stripe.accounts.create({
-          // "Express" via controller properties, matching the platform
-          // profile: Stripe carries losses (Managed Risk - needs direct
-          // charges, which we use), the agency pays Stripe's processing
-          // fee (so application_fee_amount is only our $3), and the agency
-          // gets the Express Dashboard. The legacy type: 'express' would
-          // make the platform liable for losses instead.
-          controller: {
-            losses: { payments: 'stripe' },
-            fees: { payer: 'account' },
-            stripe_dashboard: { type: 'express' },
-            requirement_collection: 'stripe',
-          },
-          country: 'US',
-          email: agency.email || undefined,
-          business_profile: businessProfile,
-          capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-          metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug },
-        })
-      : await stripe.accounts.create({
+    const accountId = type === 'express'
+      ? await createExpressAccount(agency)
+      : (await stripe.accounts.create({
           type: 'standard',
           country: 'US',
           email: agency.email || undefined,
           business_profile: businessProfile,
           metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug },
-        });
+        })).id;
 
     const { error } = await supabase
       .from('agencies')
       .update({
-        stripe_account_id: account.id,
+        stripe_account_id: accountId,
         stripe_account_type: type,
         stripe_account_status: 'pending',
         stripe_charges_enabled: false,
@@ -101,11 +107,11 @@ export async function createStripeConnectAccount(type: StripeAccountType = 'expr
       })
       .eq('id', agency.id);
     if (error) {
-      console.error('Saving the new Stripe account failed:', agency.id, account.id, error.message);
+      console.error('Saving the new Stripe account failed:', agency.id, accountId, error.message);
       return { success: false, error: 'Could not save your Stripe account. Please try again.' };
     }
 
-    return { success: true, onboardingUrl: await onboardingLink(account.id, agency.slug), accountId: account.id };
+    return { success: true, onboardingUrl: await onboardingLink(accountId, agency.slug), accountId };
   } catch (error) {
     console.error('Error creating Stripe Connect account:', error);
     // Stripe's own reason (e.g. Express not enabled for the platform) helps the operator
