@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
-import { handleCheckoutPaymentFailed, handleCheckoutPaymentSucceeded } from '@/features/booking/checkout';
+import { handleChargeRefunded, handleCheckoutPaymentFailed, handleCheckoutPaymentSucceeded } from '@/features/booking/checkout';
 
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -116,6 +116,11 @@ export async function POST(request: NextRequest) {
       case 'payment_intent.payment_failed':
       case 'payment_intent.canceled':
         await handleCheckoutPaymentFailed(event.data.object as Stripe.PaymentIntent);
+        break;
+
+      // Refunds, including ones made in the agency's Stripe Dashboard
+      case 'charge.refunded':
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
         break;
 
       default:
