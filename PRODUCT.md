@@ -102,11 +102,15 @@ Open details are tracked in STATE.md.
 - Measured from the **scheduled delivery** (event date minus extra days
   before), never from when the order was placed. (Code today measures
   24h after order creation — wrong, must change.)
-- Per-agency settings: **notice period** (default 24h before delivery)
-  and two fees: **before the window, default 5%** (covers Stripe's ~3%
-  that isn't returned on refunds; the dashboard tells agencies this) and
-  **inside the window, default 100%** (no refund). Agency can **waive**
-  either fee per order.
+- Per-agency settings (later; Elite): **notice period** and two fees.
+  **Defaults REVISED 2026-10-17** (from real yard card vendors' terms:
+  flat ~$25 fees, non-refundable deposits, half back late): **48h** before
+  delivery; before it, refund minus **$20 or 15%, whichever is more**;
+  inside it, no refund. Weather / can't install = full refund. The
+  platform **keeps its $3 in every cancellation** (also agency-cancelled;
+  matches Peerspace). Agency can **waive** any fee per order. Each order
+  saves the rules it was booked under; orders before 2026-10-17b keep
+  24h / 5%.
 - Agency-initiated cancellations (can't fulfil) → full refund.
 - **Customers cancel themselves** via a "Cancel booking" link in the
   confirmation email (customers have no accounts): it shows the refund

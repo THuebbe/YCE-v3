@@ -11,21 +11,53 @@ import type { BookingPricing } from './pricing';
  * (user, 2026-10-17): fees "may" be charged, no promised notice step.
  */
 
-/** PRODUCT.md defaults until agencies can set these (Elite tier, later) */
+/** Cancellation rules a booking was made under (saved on the order) */
+export interface CancellationPolicy {
+  /** Notice before delivery for a refund (inside it: no refund) */
+  noticeHours: number;
+  /** Fee kept from the refund: the greater of feePercent of the total and feeMinimum */
+  feePercent: number;
+  feeMinimum: number;
+}
+
+/**
+ * Defaults until agencies can set these (Elite tier, later). Cancellation:
+ * $20 or 15%, 48h - decided 2026-10-17 from yard card vendors' terms
+ * (flat ~$25 fees, non-refundable deposits, half back late); covers Stripe's
+ * fee and the platform's $3 even on small orders.
+ */
 export const TERMS_DEFAULTS = {
-  cancelNoticeHours: 24,
-  cancelFeePercent: 5,
+  cancellation: { noticeHours: 48, feePercent: 15, feeMinimum: 20 } as CancellationPolicy,
   damageFeePerSign: 5,
 } as const;
 
+/** Orders booked before the policy was saved on the order (terms 2026-10-17) */
+const LEGACY_CANCELLATION: CancellationPolicy = { noticeHours: 24, feePercent: 5, feeMinimum: 0 };
+
 /** Bump when the wording changes, so saved orders say which text was agreed */
-export const TERMS_VERSION = '2026-10-17';
+export const TERMS_VERSION = '2026-10-17b';
 
 export interface BookingTerms {
   version: string;
   agencyName: string;
   sections: { title: string; text: string }[];
   agreement: string;
+  cancellation: CancellationPolicy;
+}
+
+/** The cancellation rules an order was booked under (its saved terms). */
+export function cancellationPolicyOf(termsSnapshot: unknown): CancellationPolicy {
+  const saved = (termsSnapshot as { cancellation?: Partial<CancellationPolicy> } | null)?.cancellation;
+  if (saved && [saved.noticeHours, saved.feePercent, saved.feeMinimum].every(n => typeof n === 'number')) {
+    return saved as CancellationPolicy;
+  }
+  return LEGACY_CANCELLATION;
+}
+
+/** Cancellation fee in dollars for an order total (never more than the total). */
+export function cancellationFee(total: number, policy: CancellationPolicy): number {
+  const fee = Math.max((total * policy.feePercent) / 100, policy.feeMinimum);
+  return Math.round(Math.min(fee, total) * 100) / 100;
 }
 
 const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
@@ -39,7 +71,8 @@ export function buildBookingTerms(input: {
   paysByCard: boolean;
 }): BookingTerms {
   const { agencyName, pricing, paysByCard } = input;
-  const { cancelNoticeHours, cancelFeePercent, damageFeePerSign } = TERMS_DEFAULTS;
+  const { cancellation, damageFeePerSign } = TERMS_DEFAULTS;
+  const { noticeHours, feePercent, feeMinimum } = cancellation;
   const howCharged = paysByCard
     ? 'Your card is saved securely by Stripe so these fees can be charged to it.'
     : 'These fees are paid through a payment link.';
@@ -51,9 +84,9 @@ export function buildBookingTerms(input: {
       {
         title: 'Cancellations',
         text:
-          `Cancel at least ${cancelNoticeHours} hours before delivery for a refund minus a ${cancelFeePercent}% fee ` +
-          `(it covers card processing costs that aren't returned). Within ${cancelNoticeHours} hours of delivery, ` +
-          `no refund. If ${agencyName} can't deliver, you get a full refund.`,
+          `Cancel at least ${noticeHours} hours before delivery for a refund minus a cancellation fee of ` +
+          `${feePercent}% or ${money(feeMinimum)}, whichever is more. Within ${noticeHours} hours of delivery, no refund. ` +
+          `If ${agencyName} can't deliver or install your display, including because of weather, you get a full refund.`,
       },
       {
         title: 'Late pickup',
@@ -64,6 +97,7 @@ export function buildBookingTerms(input: {
         text: `Damaged or missing signs may be charged at ${money(damageFeePerSign)} per sign. ${howCharged}`,
       },
     ],
+    cancellation,
     agreement: paysByCard
       ? `I agree to ${possessive(agencyName)} booking terms and authorize ${agencyName} to charge my saved card for late or damage fees as described.`
       : `I agree to ${possessive(agencyName)} booking terms, including the late and damage fees described.`,
