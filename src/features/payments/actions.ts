@@ -58,6 +58,10 @@ async function createExpressAccount(agency: Awaited<ReturnType<typeof currentAge
     defaults: { responsibilities: { fees_collector: 'stripe', losses_collector: 'stripe' } },
     configuration: { merchant: { capabilities: { card_payments: { requested: true } } } },
     metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug },
+  }, {
+    // Accounts v2 is a preview API on our pinned (basil) version; only this
+    // call opts in. Re-check before going live - previews can change.
+    apiVersion: '2025-07-30.preview',
   }) as unknown as { id: string };
   return account.id;
 }
