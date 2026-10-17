@@ -72,11 +72,12 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
   
   // Load payment methods when agencyId is available
   useEffect(() => {
-    if (agencyId && !paymentMethods.isLoading && paymentMethods.availablePaymentMethods.length === 0) {
+    // Not after an error: the Payment step offers "Try again" instead of a loop
+    if (agencyId && !paymentMethods.isLoading && !paymentMethods.error && paymentMethods.availablePaymentMethods.length === 0) {
       console.log('🔍 BookingWizard: Loading payment methods for agency:', agencyId);
       loadPaymentMethods(agencyId);
     }
-  }, [agencyId, loadPaymentMethods, paymentMethods.isLoading, paymentMethods.availablePaymentMethods.length]);
+  }, [agencyId, loadPaymentMethods, paymentMethods.isLoading, paymentMethods.error, paymentMethods.availablePaymentMethods.length]);
   
   useEffect(() => {
     setPreviousStep(currentStep);
@@ -106,20 +107,12 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
       />
       
       <main className="container mx-auto py-8">
-        {/* Desktop: Fade transitions */}
-        <div className="hidden md:block">
-          <BookingErrorBoundary>
-            <AnimatePresence mode="wait">
-              <StepComponent key={currentStep} />
-            </AnimatePresence>
-          </BookingErrorBoundary>
-        </div>
-        
-        {/* Mobile: Horizontal slide transitions */}
-        <div className="md:hidden overflow-x-hidden min-h-[500px]">
+        {/* One copy of the step for every screen size (a hidden second copy
+            duplicated element ids and would mount Stripe's card form twice) */}
+        <div className="overflow-x-hidden md:overflow-visible min-h-[500px]">
           <BookingErrorBoundary>
             <AnimatePresence mode="wait" custom={stepDirection}>
-              <StepComponent 
+              <StepComponent
                 key={currentStep}
                 custom={stepDirection}
               />

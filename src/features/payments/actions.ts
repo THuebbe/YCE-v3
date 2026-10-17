@@ -1,198 +1,120 @@
 'use server';
 
 import { auth } from '@clerk/nextjs/server';
-import { supabase } from '@/lib/db/supabase-client';
-import Stripe from 'stripe';
+import { supabase, getUserById } from '@/lib/db/supabase-client';
+import { getStripe, requestOrigin, type StripeAccountType } from '@/lib/stripe';
+import type Stripe from 'stripe';
 
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
+/**
+ * Stripe Connect for agencies. Customer money always goes straight to the
+ * agency (direct charges); see PRODUCT.md "Payments".
+ * - 'express' (stored value; really "turnkey"): we create the account and
+ *   Stripe hosts the signup; $3 platform fee per booking.
+ * - 'standard': the agency's own Stripe account; no per-booking fee.
+ * Both are the same kind of Stripe account (decided 2026-10-17): Stripe
+ * liable for losses, the agency pays Stripe's processing fee, full Stripe
+ * Dashboard. Stripe refused the Express Dashboard with Stripe-managed risk
+ * for this platform (v1 and the v2 preview both), and legacy
+ * type: 'express' would make the platform liable and bill it Stripe's fees.
+ */
 
-export async function createStripeConnectAccount() {
+/** The signed-in member's agency (RLS is off: everything below is scoped to it). */
+async function currentAgency() {
+  const { userId } = await auth();
+  if (!userId) throw new Error('Unauthorized');
+  const user = await getUserById(userId);
+  if (!user?.agency) throw new Error('Agency not found');
+  return user.agency as {
+    id: string; slug: string; name: string; domain?: string | null; email?: string | null;
+    stripe_account_id: string | null; stripe_account_type: StripeAccountType | null;
+    stripe_details_submitted: boolean | null;
+  } & { userEmail?: string };
+}
+
+async function onboardingLink(accountId: string, slug: string) {
+  const origin = await requestOrigin();
+  const link = await getStripe().accountLinks.create({
+    account: accountId,
+    refresh_url: `${origin}/${slug}/settings?refresh=true`,
+    return_url: `${origin}/${slug}/settings?success=true`,
+    type: 'account_onboarding',
+  });
+  return link.url;
+}
+
+/**
+ * Starts (or resumes) Stripe onboarding for the member's agency and returns
+ * the Stripe-hosted onboarding URL. `type` only matters for a new account;
+ * an agency that already has one continues with it.
+ */
+export async function createStripeConnectAccount(type: StripeAccountType = 'express') {
   try {
-    const { userId } = await auth();
-    
-    if (!userId) {
-      return { success: false, error: 'Unauthorized' };
-    }
+    const agency = await currentAgency();
+    const stripe = getStripe();
 
-    // Get user's agency
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select(`
-        *,
-        agency:agencies(*)
-      `)
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      console.error('Error fetching user:', userError);
-      return { success: false, error: 'User not found' };
-    }
-
-    if (!user || !user.agency) {
-      return { success: false, error: 'Agency not found' };
-    }
-
-    // Check if agency already has a Stripe account
-    if (user.agency.stripe_account_id) {
-      // If account exists but onboarding is not complete, return existing onboarding URL
-      if (user.agency.stripe_onboarding_url && !user.agency.stripe_details_submitted) {
-        return { 
-          success: true, 
-          onboardingUrl: user.agency.stripe_onboarding_url,
-          accountId: user.agency.stripe_account_id 
-        };
+    if (agency.stripe_account_id) {
+      const account = await stripe.accounts.retrieve(agency.stripe_account_id);
+      // Submitted but not able to charge (e.g. verification failed): Stripe's
+      // form again, which asks only for what's still due
+      if (account.details_submitted && account.charges_enabled) {
+        return { success: true, message: 'Stripe account already connected', accountId: account.id };
       }
-      
-      // If account is fully set up
-      if (user.agency.stripe_details_submitted) {
-        return { 
-          success: true, 
-          message: 'Stripe account already connected',
-          accountId: user.agency.stripe_account_id 
-        };
-      }
+      return { success: true, onboardingUrl: await onboardingLink(account.id, agency.slug), accountId: account.id };
     }
 
-    // Create new Stripe Connect account
-    const account = await stripe.accounts.create({
-      type: 'standard',
-      country: 'US',
-      email: user.email,
-      business_profile: {
-        name: user.agency.name,
-        url: user.agency.domain || `https://${user.agency.slug}.yardcardelite.com`,
+    const businessProfile = {
+      name: agency.name,
+      ...(agency.domain ? { url: agency.domain } : {}),
+      product_description: 'Yard sign display rentals',
+    };
+    const { id: accountId } = await stripe.accounts.create({
+      controller: {
+        losses: { payments: 'stripe' },
+        fees: { payer: 'account' },
+        stripe_dashboard: { type: 'full' },
+        requirement_collection: 'stripe',
       },
+      capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
+      country: 'US',
+      email: agency.email || undefined,
+      business_profile: businessProfile,
+      metadata: { yce_agency_id: agency.id, yce_agency_slug: agency.slug, yce_plan: type },
     });
 
-    // Create account link for onboarding
-    const accountLink = await stripe.accountLinks.create({
-      account: account.id,
-      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${user.agency.slug}/settings?refresh=true`,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${user.agency.slug}/settings?success=true`,
-      type: 'account_onboarding',
-    });
-
-    // Update agency with Stripe account info
-    const { error: updateError } = await supabase
+    const { error } = await supabase
       .from('agencies')
       .update({
-        stripe_account_id: account.id,
+        stripe_account_id: accountId,
+        stripe_account_type: type,
         stripe_account_status: 'pending',
-        stripe_onboarding_url: accountLink.url,
         stripe_charges_enabled: false,
         stripe_payouts_enabled: false,
         stripe_details_submitted: false,
       })
-      .eq('id', user.agency.id);
-
-    if (updateError) {
-      console.error('Error updating agency:', updateError);
-      return { success: false, error: 'Failed to update agency' };
+      .eq('id', agency.id);
+    if (error) {
+      console.error('Saving the new Stripe account failed:', agency.id, accountId, error.message);
+      return { success: false, error: 'Could not save your Stripe account. Please try again.' };
     }
 
-    return { 
-      success: true, 
-      onboardingUrl: accountLink.url,
-      accountId: account.id 
-    };
+    return { success: true, onboardingUrl: await onboardingLink(accountId, agency.slug), accountId };
   } catch (error) {
     console.error('Error creating Stripe Connect account:', error);
-    return { 
-      success: false, 
-      error: 'Failed to create Stripe Connect account' 
-    };
+    // Stripe's own reason (e.g. Express not enabled for the platform) helps the operator
+    const message = (error as Stripe.errors.StripeError)?.message;
+    return { success: false, error: message ? `Stripe: ${message}` : 'Failed to start Stripe setup' };
   }
 }
 
+/** Live status from Stripe, mirrored into agencies.* for the booking page. */
 export async function getStripeConnectStatus() {
+  const agency = await currentAgency();
+  if (!agency.stripe_account_id) {
+    return { hasAccount: false, chargesEnabled: false, payoutsEnabled: false, detailsSubmitted: false };
+  }
   try {
-    console.log('💳 Getting Stripe Connect status...')
-    const { userId } = await auth();
-    
-    if (!userId) {
-      console.error('❌ Stripe status check failed: No user ID')
-      throw new Error('Unauthorized');
-    }
-    
-    console.log('💳 Stripe status check for user:', userId)
-
-    // Get user's agency
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select(`
-        *,
-        agency:agencies(*)
-      `)
-      .eq('id', userId)
-      .single();
-
-    if (userError) {
-      console.error('❌ Error fetching user for Stripe status:', userError);
-      throw new Error('User not found');
-    }
-
-    if (!user || !user.agency) {
-      console.error('❌ User or agency not found in Stripe status check:', { user: !!user, agency: !!user?.agency });
-      throw new Error('Agency not found');
-    }
-
-    const agency = user.agency;
-    console.log('💳 Agency found for Stripe status check:', { 
-      id: agency.id, 
-      slug: agency.slug,
-      hasStripeAccount: !!agency.stripe_account_id 
-    });
-
-    // If no Stripe account exists
-    if (!agency.stripe_account_id) {
-      console.log('💳 No Stripe account ID found for agency');
-      return {
-        hasAccount: false,
-        chargesEnabled: false,
-        payoutsEnabled: false,
-        detailsSubmitted: false,
-      };
-    }
-
-    // Get latest account info from Stripe with retry logic
-    console.log('💳 Fetching account details from Stripe API for account:', agency.stripe_account_id);
-    let account: Stripe.Account | null = null;
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    while (retryCount < maxRetries) {
-      try {
-        account = await stripe.accounts.retrieve(agency.stripe_account_id);
-        console.log('💳 Stripe account retrieved (attempt', retryCount + 1, '):', {
-          id: account.id,
-          chargesEnabled: account.charges_enabled,
-          payoutsEnabled: account.payouts_enabled,
-          detailsSubmitted: account.details_submitted
-        });
-        break;
-      } catch (stripeError) {
-        retryCount++;
-        console.error(`❌ Stripe API error (attempt ${retryCount}/${maxRetries}):`, stripeError);
-        if (retryCount >= maxRetries) {
-          throw new Error(`Failed to fetch Stripe account after ${maxRetries} attempts: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`);
-        }
-        // Wait before retry (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-      }
-    }
-
-    // Ensure account was retrieved
-    if (!account) {
-      throw new Error('Failed to retrieve Stripe account after all retries');
-    }
-
-    // Update local database with latest info
-    console.log('💳 Updating local database with Stripe account status...');
-    const { error: updateError } = await supabase
+    const account = await getStripe().accounts.retrieve(agency.stripe_account_id);
+    await supabase
       .from('agencies')
       .update({
         stripe_account_status: account.charges_enabled ? 'enabled' : 'pending',
@@ -201,99 +123,56 @@ export async function getStripeConnectStatus() {
         stripe_details_submitted: account.details_submitted,
       })
       .eq('id', agency.id);
-
-    if (updateError) {
-      console.error('❌ Error updating agency Stripe status in database:', updateError);
-    } else {
-      console.log('✅ Successfully updated agency Stripe status in database');
-    }
-
-    // If account is not fully set up, create new onboarding link
-    let onboardingUrl: string | undefined;
-    if (!account.details_submitted) {
-      const accountLink = await stripe.accountLinks.create({
-        account: agency.stripe_account_id,
-        refresh_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${agency.slug}/settings?refresh=true`,
-        return_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${agency.slug}/settings?success=true`,
-        type: 'account_onboarding',
-      });
-      
-      onboardingUrl = accountLink.url;
-      
-      // Update onboarding URL in database
-      await supabase
-        .from('agencies')
-        .update({ stripe_onboarding_url: onboardingUrl })
-        .eq('id', agency.id);
-    }
-
     return {
       hasAccount: true,
-      accountId: agency.stripe_account_id,
+      accountId: account.id,
+      accountType: agency.stripe_account_type ?? (account.type as StripeAccountType),
       accountStatus: account.charges_enabled ? 'enabled' : 'pending',
       chargesEnabled: account.charges_enabled,
       payoutsEnabled: account.payouts_enabled,
       detailsSubmitted: account.details_submitted,
-      onboardingUrl,
+      currentlyDue: account.requirements?.currently_due ?? [],
     };
   } catch (error) {
-    console.error('❌ Error getting Stripe Connect status:', error);
-    
-    // Fallback: return cached status from database if Stripe API fails
-    try {
-      console.log('🔄 Falling back to cached database status...');
-      const { data: user } = await supabase
-        .from('users')
-        .select(`
-          *,
-          agency:agencies(*)
-        `)
-        .eq('id', (await auth()).userId!)
-        .single();
-        
-      if (user?.agency) {
-        const cachedStatus = {
-          hasAccount: !!user.agency.stripe_account_id,
-          accountId: user.agency.stripe_account_id,
-          accountStatus: user.agency.stripe_account_status || 'pending',
-          chargesEnabled: user.agency.stripe_charges_enabled || false,
-          payoutsEnabled: user.agency.stripe_payouts_enabled || false,
-          detailsSubmitted: user.agency.stripe_details_submitted || false,
-        };
-        console.log('✅ Using cached status from database:', cachedStatus);
-        return cachedStatus;
-      }
-    } catch (fallbackError) {
-      console.error('❌ Fallback also failed:', fallbackError);
-    }
-    
-    throw error;
+    console.error('Stripe status check failed, using saved status:', error);
+    const { data } = await supabase
+      .from('agencies')
+      .select('stripe_account_status, stripe_charges_enabled, stripe_payouts_enabled, stripe_details_submitted')
+      .eq('id', agency.id)
+      .single();
+    return {
+      hasAccount: true,
+      accountId: agency.stripe_account_id,
+      accountType: agency.stripe_account_type,
+      accountStatus: data?.stripe_account_status || 'pending',
+      chargesEnabled: !!data?.stripe_charges_enabled,
+      payoutsEnabled: !!data?.stripe_payouts_enabled,
+      detailsSubmitted: !!data?.stripe_details_submitted,
+      currentlyDue: [] as string[],
+    };
   }
 }
 
 export async function refreshStripeAccount() {
   try {
-    console.log('🔄 Refreshing Stripe account status...');
-    const { userId } = await auth();
-    
-    if (!userId) {
-      console.error('❌ Refresh failed: No user ID');
-      return { success: false, error: 'Unauthorized' };
-    }
-
-    const status = await getStripeConnectStatus();
-    console.log('✅ Stripe account status refreshed successfully:', {
-      hasAccount: status.hasAccount,
-      chargesEnabled: status.chargesEnabled,
-      payoutsEnabled: status.payoutsEnabled
-    });
-    
-    return { success: true, status };
+    return { success: true, status: await getStripeConnectStatus() };
   } catch (error) {
-    console.error('❌ Error refreshing Stripe account:', error);
-    return { 
-      success: false, 
-      error: 'Failed to refresh account status' 
-    };
+    console.error('Error refreshing Stripe account:', error);
+    return { success: false, error: 'Failed to refresh account status' };
+  }
+}
+
+/**
+ * Where the agency manages payouts and sees payments (and the $3 fee on the
+ * turnkey plan): the Stripe Dashboard, signed in with their own Stripe login.
+ */
+export async function createStripeDashboardLink() {
+  try {
+    const agency = await currentAgency();
+    if (!agency.stripe_account_id) return { success: false, error: 'Stripe is not connected yet' };
+    return { success: true, url: 'https://dashboard.stripe.com/' };
+  } catch (error) {
+    console.error('Error creating Stripe dashboard link:', error);
+    return { success: false, error: 'Could not open your Stripe dashboard' };
   }
 }

@@ -1,6 +1,6 @@
 # Where This Stands
 
-Last verified: 2026-10-10
+Last verified: 2026-10-16
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
 old verification notes) is in `git show aace018:STATE.md`.
@@ -11,15 +11,37 @@ old verification notes) is in `git show aace018:STATE.md`.
   rules. PR #7 merged 2026-10-10: order check-in/cancel, documents,
   real onboarding data, time zone. Crons live and secret-protected (`/api/cron/*` → 401 without
   `CRON_SECRET`). **Still a demo, not sellable:** checkout never charges.
-- **Branch `claude/m1c-booking-hardening`** (PR open, waiting on the
-  user's click-through): booking-flow fixes from the 2026-10-10 review -
-  payment choice, refresh keeps progress, post-order lock, blackout
-  days, server letter check, agency-branded confirmation, phone layout -
-  plus findable PDFs (Open PDF link in the toast, document links on
-  order cards; the user couldn't find a generated pick ticket).
-- **Waiting on the user (at a keyboard):** Stripe test-mode Connect setup
-  + access for Claude, and which agency is the Express test (proposed
-  texas-signs; west-branch stays the Standard test) → milestone 2.
+- PR #8 merged 2026-10-16: booking-flow hardening (payment choice,
+  refresh keeps progress, post-order lock, blackout days, server letter
+  check, agency-branded confirmation, phone layout) + findable PDFs.
+- **Stripe (test mode) connected 2026-10-16.** Platform
+  `acct_1REKSs2Hwl27rYJO`. Connect webhook `we_1UR2lK2Hwl27rYJOQlQDnGBZ`
+  → `/api/webhooks/stripe` (account/capability/person, payment_intent.*,
+  charge.refunded, charge.dispute.created); its secret is in Vercel
+  `STRIPE_WEBHOOK_SECRET` (takes effect on the next deploy). Stripe MCP
+  can't create connected accounts - agencies connect through the app.
+  west-branch = Standard test (`acct_1RkB70FdcQOC5bzL`), texas-signs =
+  Express test.
+- **Branch `claude/m2a-stripe-express`** (milestone 2a, PR #9, verified on
+  preview): turnkey/Standard onboarding in Settings, Payment Element (direct charge
+  on the agency's account, $3 application fee on the turnkey plan only), order
+  created only after payment succeeds (`booking_checkouts`, webhook
+  backstop, auto-refund if the hold can't convert), card saved for later
+  fees. Migration `20261016_stripe_checkout.sql` APPLIED. Agencies
+  without Stripe still get the no-charge demo checkout (now labelled as
+  such) until milestone 4 gates bookings on payments.
+
+- **Stripe account model (DECIDED 2026-10-17):** both plans create the same
+  kind of account - Stripe liable for losses, agency pays Stripe's fees,
+  full Stripe Dashboard. The turnkey plan (stored as 'express') differs
+  only by the $3 fee. Stripe refused Express Dashboard + Stripe-liable for
+  this platform (v1 and the Accounts v2 preview); legacy type 'express'
+  makes the platform liable and bills it Stripe's fees. Revisit only if
+  Stripe enables it (Stripe support).
+- **Branch `claude/admin-phone-layout`** (PR #10): dashboard/settings/
+  inventory at phone width + the sign-in "Redirecting..." hang (inline
+  script never ran). Open questions for the user: 404 the placeholder
+  Customers/Reports pages? Hide the fake "Subscription & Billing" card?
 
 ## Environment and working style
 - One branch + one PR per milestone; Claude tests on the Vercel preview
@@ -31,7 +53,7 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Browser E2E: headless Chromium via the project's Playwright
   (`/home/user/YCE-v3/node_modules/playwright/index.mjs`,
   `executablePath: /opt/pw-browsers/chromium-1194/chrome-linux/chrome`).
-  Wizard steps render twice (desktop + mobile) - target `:visible`.
+  The wizard renders each step once since m2a (was twice).
 - Dashboard sign-in in tests: `CLERK_SECRET_KEY` (dev instance) →
   `POST api.clerk.com/v1/sign_in_tokens` → open
   `/auth/sign-in?__clerk_ticket=…`. admin@elite-denver.com =
@@ -41,6 +63,33 @@ old verification notes) is in `git show aace018:STATE.md`.
   2026-10-06: no paid tier while ~6 months from launch).
 
 ## VERIFIED WORKING (seen running)
+- **2026-10-16, branch `claude/m2a-stripe-express`, preview `32d4f05`,
+  west-branch (Standard, `acct_1RkB70FdcQOC5bzL`)** at phone width: Stripe
+  Payment Element on the agency's account; 4242 → order YCE-2026-630524
+  paid, checkout `completed`, hold converted, no app fee; 3-D Secure card
+  4000 0025 0000 3155 → challenge completed → YCE-2026-163750 paid; decline
+  card 0002 → "Your card was declined…", checkout `failed`, hold kept for a
+  retry. Both test orders cancelled after (test charges not refunded -
+  refunds are 2b).
+- **2026-10-17, same branch, preview `4f90bd3`, texas-signs (turnkey)**: the
+  app created `acct_1URY21CAFUeJ6RMe` (Stripe liable for losses, agency
+  pays Stripe fees, full Dashboard); the user did Stripe's hosted signup
+  (the sandbox can't load b.stripecdn.com); after a failed test SSN,
+  "Finish Stripe verification" reopened Stripe's form → charges + payouts
+  enabled; Settings `?success=true` synced the DB. Card 4242 → order
+  YCE-2026-914929 paid, checkout `completed`, **$3.00 application fee** on
+  the platform (`fee_1URaBDCAFUeJ6RMeGn7i245K`). Test order cancelled.
+- **2026-10-17, same branch, preview `4d2f83f`, texas-signs: checkout terms**
+  - Review step shows the agency's booking terms; Place Order is disabled
+    until "I agree" is ticked.
+  - A request without consent is refused (400).
+  - The order saves `terms_accepted_at` + `terms_snapshot`
+    (YCE-2026-643256: paid, $3 fee, card-consent text).
+  - Payment-methods request blocked in the browser → "Try again" (no
+    demo form) → recovers.
+  - Agency flipped to not-ready while the card was on the Review step →
+    409 "your card was not charged", no order.
+  - Test orders cancelled.
 - **2026-10-10, branch `claude/m1b-checkin-cancel`, preview `e78aeb7`**
   (signed in as admin@elite-denver): order YCE-2026-101575 listed its 20
   sign lines and $81.00 (was "0 signs", "$0.81"); Generate Pick Ticket →
@@ -178,13 +227,11 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Still open: subscription renewal failure handling (grace period?).
 
 ## Next steps
-1. Booking-hardening PR: user click-through
-   (check-in on a phone) and merge.
-2. **Milestone 2: Stripe** - 2a Express onboarding + Payment Element +
+1. (done - PR #8 merged 2026-10-16)
+2. **Milestone 2: Stripe** - 2a (branch open) Express onboarding + Payment Element +
    direct charge + order on payment success + card saved for fees +
    checkout terms; 2b Standard path check, replace the "YardCard Elite
-   Processing - always enabled" toggle, refunds. Needs the user's Stripe
-   setup first (walk them through it - new to Stripe).
+   Processing - always enabled" toggle, refunds.
 3. Milestone 3: subscriptions. 4: setup checklist (inventory + payments
    gate bookings), payments/subscription onboarding steps. 5: customer
    cancel link, late/damage fees, edit signs.
@@ -196,8 +243,14 @@ old verification notes) is in `git show aace018:STATE.md`.
   hand).
 - Whether manager@elite-denver.com and the other agencies' test users
   still work in Clerk (admin@elite-denver.com does).
-- Duplicate step rendering in dev (two stacked copies; suspect
-  `AnimatePresence`) - query `:visible` / `disabled`, not one snapshot.
+- Webhook backstop: the Connect webhook points at production, which runs
+  the pre-m2a code until merge - preview orders were created by the
+  synchronous path only.
+- **Until PR #9 is merged, production keeps flipping texas-signs to "not
+  ready"**: Stripe is still retrying hours-old account.updated events and
+  the old handler copies their stale status. After merge every status event
+  re-reads the account. If texas-signs shows the demo checkout after merge,
+  open its Settings → Stripe tab once (re-syncs).
 - Node 23 (non-LTS) beyond booting fine.
 
 ## Dead ends

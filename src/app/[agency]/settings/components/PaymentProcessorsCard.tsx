@@ -45,7 +45,11 @@ export function PaymentProcessorsCard({
   onSuccess, 
   onError 
 }: PaymentProcessorsCardProps) {
-  const [activeTab, setActiveTab] = useState('settings')
+  // Back from Stripe's signup: open the Stripe tab, whose return handler
+  // re-checks the account and saves its new status
+  const [activeTab, setActiveTab] = useState(
+    stripeReturnSuccess || stripeReturnRefresh ? 'stripe' : 'settings'
+  )
 
   // Status indicators for tabs
   const stripeEnabled = !!(stripeStatus?.isConnected && stripeStatus?.hasCompletedOnboarding)

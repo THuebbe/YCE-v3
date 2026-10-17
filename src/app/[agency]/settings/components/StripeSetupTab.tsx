@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CreditCard, RefreshCw, ExternalLink, CheckCircle, AlertTriangle, Info } from 'lucide-react'
 import { 
   createStripeConnectAccount, 
+  createStripeDashboardLink,
   getStripeConnectStatus, 
   refreshStripeAccount 
 } from '@/features/payments/actions'
@@ -88,11 +89,12 @@ export function StripeSetupTab({
     }
   }
 
-  const handleStripeConnect = async () => {
+  // 'express' = we set Stripe up for them ($3/booking); 'standard' = their own Stripe
+  const handleStripeConnect = async (type: 'express' | 'standard' = 'express') => {
     try {
       setIsLoading(true)
       setLoadError(null)
-      const result = await createStripeConnectAccount()
+      const result = await createStripeConnectAccount(type)
       
       if (result.success && result.onboardingUrl) {
         // Redirect to Stripe onboarding
@@ -240,18 +242,32 @@ export function StripeSetupTab({
             /* Initial Setup State */
             <div className="text-center py-8">
               <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">Set up Stripe Connect</h4>
+              <h4 className="text-lg font-medium text-gray-900 mb-2">Accept card payments</h4>
               <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
-                Accept payments directly to your bank account with full control over payouts and timing. 
-                Stripe handles PCI compliance and fraud protection.
+                Customer payments go straight to your bank account through Stripe.
+                Stripe handles card security and fraud protection.
               </p>
-              <Button
-                onClick={handleStripeConnect}
-                disabled={isLoading}
-                size="lg"
-              >
-                {isLoading ? 'Connecting...' : 'Connect with Stripe'}
-              </Button>
+              <div className="flex flex-col gap-4 max-w-md mx-auto text-left">
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <div className="font-medium text-gray-900">Set it up for me</div>
+                  <p className="text-sm text-gray-600 mt-1 mb-3">
+                    A short Stripe signup (your ID and bank account), about 5 minutes.
+                    YardCard Elite keeps $3 per booking; it shows on your Stripe statement.
+                  </p>
+                  <Button onClick={() => handleStripeConnect('express')} disabled={isLoading} className="w-full">
+                    {isLoading ? 'Connecting...' : 'Set up payments'}
+                  </Button>
+                </div>
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <div className="font-medium text-gray-900">I already have a Stripe account</div>
+                  <p className="text-sm text-gray-600 mt-1 mb-3">
+                    Connect your own Stripe account. No per-booking fee from YardCard Elite.
+                  </p>
+                  <Button onClick={() => handleStripeConnect('standard')} disabled={isLoading} variant="secondary" className="w-full">
+                    {isLoading ? 'Connecting...' : 'Connect my Stripe account'}
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
             /* Connected State */
@@ -317,19 +333,24 @@ export function StripeSetupTab({
               
               {/* Action buttons */}
               <div className="flex justify-center gap-3 pt-4">
-                {!stripeStatus.hasCompletedOnboarding && (
+                {(!stripeStatus.hasCompletedOnboarding || !stripeStatus.chargesEnabled) && (
                   <Button
-                    onClick={handleStripeConnect}
+                    onClick={() => handleStripeConnect()}
                     disabled={isLoading}
                     size="lg"
                   >
-                    {isLoading ? 'Connecting...' : 'Continue Setup'}
+                    {isLoading ? 'Connecting...'
+                      : stripeStatus.hasCompletedOnboarding ? 'Finish Stripe verification' : 'Continue Setup'}
                   </Button>
                 )}
                 
                 {stripeStatus.hasCompletedOnboarding && (
                   <Button
-                    onClick={() => window.open(`https://dashboard.stripe.com/connect/accounts/${stripeStatus.accountId}`, '_blank')}
+                    onClick={async () => {
+                      const result = await createStripeDashboardLink()
+                      if (result.success && result.url) window.location.href = result.url
+                      else setLoadError(result.error || 'Could not open your Stripe dashboard')
+                    }}
                     variant="secondary"
                     className="flex items-center gap-2"
                   >

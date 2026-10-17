@@ -71,6 +71,12 @@ export const createPaymentSchema = (availablePaymentMethods: string[] = ['card',
     required_error: 'Please select a payment method',
   }),
   paymentMethodId: z.string().optional(),
+  // Card collected by Stripe (agencies on Stripe): a one-time token the
+  // order route charges, plus what to show on the Review step
+  confirmationTokenId: z.string().optional(),
+  stripeAccountId: z.string().optional(),
+  cardBrand: z.string().optional(),
+  cardLast4: z.string().optional(),
   billingAddress: z.object({
     zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
   }).optional(),
@@ -309,6 +315,11 @@ export interface BookingOrderResult {
   orderNumber?: string;
   confirmationCode?: string;
   error?: string;
+  /** Card payment needs 3-D Secure: confirm `clientSecret` with Stripe.js,
+   *  then send `paymentIntentId` back to /api/orders/create */
+  requiresAction?: boolean;
+  clientSecret?: string;
+  paymentIntentId?: string;
 }
 
 // Payment Method Types for Dynamic Selection

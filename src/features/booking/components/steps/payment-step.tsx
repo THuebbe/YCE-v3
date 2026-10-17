@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
@@ -11,6 +11,7 @@ import { RefreshCw, AlertTriangle, CreditCard, Smartphone, DollarSign } from 'lu
 
 // Payment method components
 import { CreditCardForm } from '../payment-methods/CreditCardForm';
+import { StripeCardForm, type CollectedCard } from '../payment-methods/StripeCardForm';
 import { PayPalForm } from '../payment-methods/PayPalForm';
 import { ApplePayForm } from '../payment-methods/ApplePayForm';
 import { VenmoPaymentForm } from '@/components/payments/VenmoPaymentForm';
@@ -29,6 +30,8 @@ export function PaymentStep() {
     nextStep, 
     prevStep, 
     paymentMethods,
+    loadPaymentMethods,
+    agencyId,
     pricing
   } = useWizard();
   
@@ -116,12 +119,22 @@ export function PaymentStep() {
     setErrors({ payment: error });
   };
 
-  const validateAndContinue = () => {
+  // Agencies on Stripe: the card is entered in Stripe's own form (it never
+  // touches our pages) and turned into a one-time token on Continue
+  const collectCard = useRef<(() => Promise<CollectedCard>) | null>(null);
+  const onCardFormReady = useCallback((collect: () => Promise<CollectedCard>) => {
+    collectCard.current = collect;
+  }, []);
+  const [collectingCard, setCollectingCard] = useState(false);
+
+  const validateAndContinue = async () => {
     // Create dynamic schema based on available payment methods
     const availableMethodIds = paymentMethods.availablePaymentMethods.map(m => m.id);
     const schema = createPaymentSchema(availableMethodIds);
     
-    const result = schema.safeParse(localData);
+    // Stripe's form collects the billing ZIP itself
+    const usesStripeCard = localData.paymentMethod === 'card' && !!stripeAccountId;
+    const result = schema.safeParse(usesStripeCard ? { ...localData, billingAddress: undefined } : localData);
     
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -129,11 +142,35 @@ export function PaymentStep() {
         const field = error.path.join('.');
         fieldErrors[field] = error.message;
       });
+      // Also in the general alert, so an error on a field this form doesn't
+      // show never leaves the button looking dead
+      fieldErrors.payment = result.error.errors[0]?.message ?? 'Please check your payment details.';
       setErrors(fieldErrors);
       return;
     }
 
-    // For credit card, additional validation needed
+    if (usesStripeCard) {
+      setCollectingCard(true);
+      const card = await collectCard.current?.();
+      setCollectingCard(false);
+      if (!card?.ok) {
+        setErrors({ payment: card?.error ?? 'The card form is still loading. Please try again.' });
+        return;
+      }
+      updateFormData({
+        payment: {
+          paymentMethod: 'card',
+          confirmationTokenId: card.confirmationTokenId,
+          stripeAccountId,
+          cardBrand: card.brand,
+          cardLast4: card.last4,
+        },
+      });
+      nextStep();
+      return;
+    }
+
+    // Demo card form (agency not on Stripe yet): nothing is charged
     if (localData.paymentMethod === 'card') {
       if (!selectedPaymentFields.cardNumber) {
         setErrors(prev => ({ ...prev, cardNumber: 'Card number is required' }));
@@ -173,6 +210,9 @@ export function PaymentStep() {
   const selectedMethod = paymentMethods.availablePaymentMethods.find(
     m => m.id === localData.paymentMethod
   );
+  const stripeAccountId = selectedMethod?.processor === 'stripe'
+    ? ((selectedMethod.processorConfig as { accountId?: string } | undefined)?.accountId ?? null)
+    : null;
 
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
@@ -190,6 +230,20 @@ export function PaymentStep() {
 
     switch (localData.paymentMethod) {
       case 'card':
+        if (stripeAccountId) {
+          return (
+            <StripeCardForm
+              accountId={stripeAccountId}
+              amountCents={Math.round(totalAmount * 100)}
+              billing={{
+                name: formData.contact?.fullName,
+                email: formData.contact?.email,
+                phone: formData.contact?.phone,
+              }}
+              onReady={onCardFormReady}
+            />
+          );
+        }
         return (
           <CreditCardForm
             paymentMethod={selectedMethod}
@@ -279,9 +333,12 @@ export function PaymentStep() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              {paymentMethods.error}. Using fallback payment options.
+              We couldn&apos;t load the payment options. Check your connection and try again.
             </AlertDescription>
           </Alert>
+          <Button className="mt-4" onClick={() => agencyId && loadPaymentMethods(agencyId)}>
+            Try again
+          </Button>
         </div>
       </motion.div>
     );
@@ -494,10 +551,10 @@ export function PaymentStep() {
         {(localData.paymentMethod === 'card' || !localData.paymentMethod) && (
           <Button
             onClick={validateAndContinue}
-            disabled={!localData.paymentMethod}
+            disabled={!localData.paymentMethod || collectingCard}
             className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
           >
-            Review Order
+            {collectingCard ? 'Checking card...' : 'Review Order'}
           </Button>
         )}
       </div>
