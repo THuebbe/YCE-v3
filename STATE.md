@@ -22,14 +22,26 @@ old verification notes) is in `git show aace018:STATE.md`.
   can't create connected accounts - agencies connect through the app.
   west-branch = Standard test (`acct_1RkB70FdcQOC5bzL`), texas-signs =
   Express test.
-- **Branch `claude/m2a-stripe-express`** (milestone 2a, in progress):
-  Express/Standard onboarding in Settings, Payment Element (direct charge
-  on the agency's account, $3 application fee on Express only), order
+- **Branch `claude/m2a-stripe-express`** (milestone 2a, PR #9, verified on
+  preview): turnkey/Standard onboarding in Settings, Payment Element (direct charge
+  on the agency's account, $3 application fee on the turnkey plan only), order
   created only after payment succeeds (`booking_checkouts`, webhook
   backstop, auto-refund if the hold can't convert), card saved for later
   fees. Migration `20261016_stripe_checkout.sql` APPLIED. Agencies
   without Stripe still get the no-charge demo checkout (now labelled as
   such) until milestone 4 gates bookings on payments.
+
+- **Stripe account model (DECIDED 2026-10-17):** both plans create the same
+  kind of account - Stripe liable for losses, agency pays Stripe's fees,
+  full Stripe Dashboard. The turnkey plan (stored as 'express') differs
+  only by the $3 fee. Stripe refused Express Dashboard + Stripe-liable for
+  this platform (v1 and the Accounts v2 preview); legacy type 'express'
+  makes the platform liable and bills it Stripe's fees. Revisit only if
+  Stripe enables it (Stripe support).
+- **Branch `claude/admin-phone-layout`** (PR #10): dashboard/settings/
+  inventory at phone width + the sign-in "Redirecting..." hang (inline
+  script never ran). Open questions for the user: 404 the placeholder
+  Customers/Reports pages? Hide the fake "Subscription & Billing" card?
 
 ## Environment and working style
 - One branch + one PR per milestone; Claude tests on the Vercel preview
@@ -58,9 +70,15 @@ old verification notes) is in `git show aace018:STATE.md`.
   4000 0025 0000 3155 → challenge completed → YCE-2026-163750 paid; decline
   card 0002 → "Your card was declined…", checkout `failed`, hold kept for a
   retry. Both test orders cancelled after (test charges not refunded -
-  refunds are 2b). **Express not yet tested:** Stripe refuses to create
-  Express accounts until the platform's loss-liability profile is done
-  (dashboard.stripe.com/settings/connect/platform-profile - user action).
+  refunds are 2b).
+- **2026-10-17, same branch, preview `4f90bd3`, texas-signs (turnkey)**: the
+  app created `acct_1URY21CAFUeJ6RMe` (Stripe liable for losses, agency
+  pays Stripe fees, full Dashboard); the user did Stripe's hosted signup
+  (the sandbox can't load b.stripecdn.com); after a failed test SSN,
+  "Finish Stripe verification" reopened Stripe's form → charges + payouts
+  enabled; Settings `?success=true` synced the DB. Card 4242 → order
+  YCE-2026-914929 paid, checkout `completed`, **$3.00 application fee** on
+  the platform (`fee_1URaBDCAFUeJ6RMeGn7i245K`). Test order cancelled.
 - **2026-10-10, branch `claude/m1b-checkin-cancel`, preview `e78aeb7`**
   (signed in as admin@elite-denver): order YCE-2026-101575 listed its 20
   sign lines and $81.00 (was "0 signs", "$0.81"); Generate Pick Ticket →
@@ -214,8 +232,6 @@ old verification notes) is in `git show aace018:STATE.md`.
   hand).
 - Whether manager@elite-denver.com and the other agencies' test users
   still work in Clerk (admin@elite-denver.com does).
-- Express onboarding + $3 application fee (blocked on the Stripe
-  platform profile, see above).
 - Webhook backstop: the Connect webhook points at production, which runs
   the pre-m2a code until merge - preview orders were created by the
   synchronous path only.
