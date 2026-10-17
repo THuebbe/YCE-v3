@@ -10,6 +10,7 @@ import type Stripe from 'stripe';
  * agency (direct charges); see PRODUCT.md "Payments".
  * - express: turnkey. Stripe-hosted signup from inside our app; $3 platform
  *   fee per booking. The agency manages it in the Express dashboard.
+ *   (Created with controller properties, not the legacy type: 'express'.)
  * - standard: the agency's own full Stripe account; no per-booking fee.
  */
 
@@ -62,7 +63,18 @@ export async function createStripeConnectAccount(type: StripeAccountType = 'expr
     };
     const account = type === 'express'
       ? await stripe.accounts.create({
-          type: 'express',
+          // "Express" via controller properties, matching the platform
+          // profile: Stripe carries losses (Managed Risk - needs direct
+          // charges, which we use), the agency pays Stripe's processing
+          // fee (so application_fee_amount is only our $3), and the agency
+          // gets the Express Dashboard. The legacy type: 'express' would
+          // make the platform liable for losses instead.
+          controller: {
+            losses: { payments: 'stripe' },
+            fees: { payer: 'account' },
+            stripe_dashboard: { type: 'express' },
+            requirement_collection: 'stripe',
+          },
           country: 'US',
           email: agency.email || undefined,
           business_profile: businessProfile,
