@@ -467,14 +467,15 @@ export default function AgencySettingsSection({
 									<span className="text-sm text-gray-600">Open</span>
 								</div>
 
-								{/* On a phone the times get their own line */}
+								{/* On a phone From and To each get a full-width line; a time
+								    field needs ~120px and two side by side don't fit */}
 								<div
-									className={`flex w-full items-center gap-4 sm:w-auto ${
+									className={`flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-4 ${
 										!dayHours.isOpen ? "opacity-50" : ""
 									}`}
 								>
-									<div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
-										<label className="text-sm text-gray-600">From:</label>
+									<div className="flex items-center gap-2">
+										<label className="w-12 text-sm text-gray-600 sm:w-auto">From:</label>
 										<input
 											type="time"
 											value={dayHours.open || ""}
@@ -494,8 +495,8 @@ export default function AgencySettingsSection({
 										/>
 									</div>
 
-									<div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
-										<label className="text-sm text-gray-600">To:</label>
+									<div className="flex items-center gap-2">
+										<label className="w-12 text-sm text-gray-600 sm:w-auto">To:</label>
 										<input
 											type="time"
 											value={dayHours.close || ""}
