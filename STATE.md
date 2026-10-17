@@ -59,12 +59,33 @@ old verification notes) is in `git show aace018:STATE.md`.
 - **Milestone 2b, in chunks (user's request):**
   1. **PR #13 (merged 2026-10-17):** refunds on cancel through Stripe (platform
      keeps $3) + new terms $20/15%/48h, saved per order.
-  2. Next: replace the fake "YardCard Elite Processing - always enabled"
-     toggle (`settings/components/PaymentSettingsTab.tsx`) with real status.
-  3. Then: user runs the "I already have a Stripe account" signup (sandbox
-     can't load Stripe's onboarding page) to verify the Standard path.
+  2. **PR #14 (open, verified on preview `91e32f2`):** Payment Settings shows
+     real status (fake "YardCard Elite Processing", its 3.5% fee and the
+     no-op "primary processor" picker removed; Venmo row added) + Agency
+     Profile loads (it gated on Clerk `orgRole`, always empty here).
+  3. **Next: Standard ("I already have a Stripe account") signup check.**
+     Needs the user's browser: give them a Clerk sign-in ticket link
+     (24h, `expires_in_seconds: 86400`) for an agency WITHOUT Stripe
+     (elite-denver admin `user_2zRKzusknd0Eko93RaAnYaNm72E`), they pick
+     "Connect my Stripe account" and finish Stripe's test signup
+     (SSN 000-00-0000, address line 1 `address_full_match`, test bank).
+     Then Claude: check the account (Stripe MCP GetAccountsAccount,
+     platform context `acct_1REKSs2Hwl27rYJO`), open Settings
+     `?success=true` to sync, book with 4242, verify paid + NO app fee.
   - Small follow-up: `charge.refunded` webhook (refunds made in Stripe's
     dashboard don't update the order).
+- **How Claude tests (sandbox):**
+  - Browser runs: Playwright scripts in the session scratchpad
+    (`e2e-pay.mjs` booking with a test card; `cancel-test.mjs`;
+    `admin-sweep.mjs` 390px overflow).
+  - Previews: `get_access_to_vercel_url` share link. Admin sign-in:
+    Clerk ticket via `POST api.clerk.com/v1/sign_in_tokens` (single use).
+  - The sandbox can't reach Stripe's onboarding page (b.stripecdn.com),
+    api.resend.com or vercel.com, so the user does Stripe hosted signups.
+  - Clean up test orders with `yce_cancel_order(...)` (needs a user id of
+    that agency).
+  - texas-signs = turnkey Stripe test agency (`acct_1URY21CAFUeJ6RMe`);
+    west-branch = Standard (`acct_1RkB70FdcQOC5bzL`).
 - **Launch blockers (not milestones):** Vercel Pro (Hobby is
   non-commercial), production Clerk instance + domain, Stripe live mode
   (platform identity + live webhook/keys), platform Terms/Privacy pages.
