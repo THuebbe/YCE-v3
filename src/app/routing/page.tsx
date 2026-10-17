@@ -1,5 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
-import { redirect } from 'next/navigation'
+import { redirect, unstable_rethrow } from 'next/navigation'
 import { getUserById } from '@/lib/db/supabase-client'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
@@ -42,50 +42,11 @@ export default async function RoutingPage() {
     }
     
     if (user?.agency?.slug) {
+      // A server redirect: the old page relied on an inline <script>, which
+      // React never runs when /routing is reached by client-side navigation
+      // (as it is right after sign-in), so it hung on "Redirecting..."
       console.log('🚏 Routing page: User has agency, redirecting to dashboard:', user.agency.slug)
-      const redirectUrl = `/${user.agency.slug}/dashboard`
-      
-      return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-          <div className="flex items-center space-x-3">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <span className="text-xl text-gray-700">Setting up your dashboard...</span>
-          </div>
-          <p className="mt-2 text-sm text-gray-500">Redirecting to {user.agency.name || 'your agency'}</p>
-          <p className="mt-2 text-xs text-gray-400">If you're not redirected automatically, <a href={redirectUrl} className="text-blue-600 underline">click here</a></p>
-          
-          {/* TODO: Replace with proper client-side redirect in production
-              Current implementation uses multiple timeout attempts to work around
-              Next.js development server Fast Refresh interference. In production,
-              consider using Next.js router.replace() in a client component instead. */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                console.log('🔄 Client-side redirect: Navigating to ${redirectUrl}');
-                
-                // Multiple redirect strategies for maximum reliability
-                function performRedirect() {
-                  try {
-                    window.location.replace('${redirectUrl}');
-                  } catch (e) {
-                    console.warn('Replace failed, trying href:', e);
-                    window.location.href = '${redirectUrl}';
-                  }
-                }
-                
-                // Immediate redirect attempt
-                setTimeout(performRedirect, 100);
-                
-                // Backup redirect after 1 second
-                setTimeout(performRedirect, 1000);
-                
-                // Final backup redirect after 3 seconds
-                setTimeout(performRedirect, 3000);
-              `
-            }}
-          />
-        </div>
-      )
+      redirect(`/${user.agency.slug}/dashboard`)
     } else if (user && !user.agency) {
       console.log('🚏 Routing page: User exists but no agency, redirecting to onboarding')
       redirect('/onboarding')
@@ -98,10 +59,8 @@ export default async function RoutingPage() {
     }
 
   } catch (error) {
-    // Re-throw redirect errors so they work properly
-    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
-      throw error
-    }
+    // Let Next.js handle its own redirect (and other framework) errors
+    unstable_rethrow(error)
     
     console.error('🚏 Routing page: Error during routing:', error)
     console.error('🚏 Routing page: Error stack:', error instanceof Error ? error.stack : String(error))
