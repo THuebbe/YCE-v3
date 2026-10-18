@@ -59,21 +59,19 @@ old verification notes) is in `git show aace018:STATE.md`.
 - **Milestone 2b, in chunks (user's request):**
   1. **PR #13 (merged 2026-10-17):** refunds on cancel through Stripe (platform
      keeps $3) + new terms $20/15%/48h, saved per order.
-  2. **PR #14 (open, verified on preview `91e32f2`):** Payment Settings shows
-     real status (fake "YardCard Elite Processing", its 3.5% fee and the
-     no-op "primary processor" picker removed; Venmo row added) + Agency
-     Profile loads (it gated on Clerk `orgRole`, always empty here).
-  3. **Next: Standard ("I already have a Stripe account") signup check.**
-     Needs the user's browser: give them a Clerk sign-in ticket link
-     (24h, `expires_in_seconds: 86400`) for an agency WITHOUT Stripe
-     (elite-denver admin `user_2zRKzusknd0Eko93RaAnYaNm72E`), they pick
-     "Connect my Stripe account" and finish Stripe's test signup
-     (SSN 000-00-0000, address line 1 `address_full_match`, test bank).
-     Then Claude: check the account (Stripe MCP GetAccountsAccount,
-     platform context `acct_1REKSs2Hwl27rYJO`), open Settings
-     `?success=true` to sync, book with 4242, verify paid + NO app fee.
-  - Small follow-up: `charge.refunded` webhook (refunds made in Stripe's
-    dashboard don't update the order).
+  2. **PR #14/#15 (merged):** Payment Settings shows real status (fake
+     "YardCard Elite Processing", its 3.5% fee and the no-op "primary
+     processor" picker removed; Venmo row added) + Agency Profile loads;
+     `charge.refunded` webhook mirrors Stripe-dashboard refunds onto the
+     order (verified on production).
+  3. **Done 2026-10-18 on production:** Standard ("I already have a Stripe
+     account") path. The user signed up elite-denver → `acct_1URjHtFl2xMJRcZS`
+     (`yce_plan: standard`); webhook synced `charges_enabled` on its own.
+     Booking YCE-2026-804821 ($81, 4242) paid on the agency's account,
+     `application_fee_cents` 0, no platform fee in Stripe. Cancelled from the
+     dashboard → $61 refunded ($81 − $20 minimum fee), order
+     `partially_refunded`, checkout `refunded`.
+  - **Milestone 2b complete.**
 - **How Claude tests (sandbox):**
   - Browser runs: Playwright scripts in the session scratchpad
     (`e2e-pay.mjs` booking with a test card; `cancel-test.mjs`;
@@ -85,7 +83,9 @@ old verification notes) is in `git show aace018:STATE.md`.
   - Clean up test orders with `yce_cancel_order(...)` (needs a user id of
     that agency).
   - texas-signs = turnkey Stripe test agency (`acct_1URY21CAFUeJ6RMe`);
-    west-branch = Standard (`acct_1RkB70FdcQOC5bzL`).
+    west-branch and elite-denver (`acct_1URjHtFl2xMJRcZS`) = Standard.
+  - Production is `https://yce-v3.vercel.app` (no share link needed);
+    yardcard-elite.com is only the email domain so far.
 - **Launch blockers (not milestones):** Vercel Pro (Hobby is
   non-commercial), production Clerk instance + domain, Stripe live mode
   (platform identity + live webhook/keys), platform Terms/Privacy pages.
@@ -275,10 +275,7 @@ old verification notes) is in `git show aace018:STATE.md`.
 
 ## Next steps
 1. (done - PR #8 merged 2026-10-16)
-2. **Milestone 2: Stripe** - 2a (branch open) Express onboarding + Payment Element +
-   direct charge + order on payment success + card saved for fees +
-   checkout terms; 2b Standard path check, replace the "YardCard Elite
-   Processing - always enabled" toggle, refunds.
+2. (done - Milestone 2: Stripe, 2a + 2b, finished 2026-10-18)
 3. Milestone 3: subscriptions. 4: setup checklist (inventory + payments
    gate bookings), payments/subscription onboarding steps. 5: customer
    cancel link, late/damage fees, edit signs.
