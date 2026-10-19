@@ -23,3 +23,14 @@ alter table inventory_holds enable row level security;
 alter table inventory_hold_items enable row level security;
 alter table bundles enable row level security;
 alter table transactions enable row level security;
+
+-- Prisma-era SECURITY DEFINER helpers (app.current_agency_id, "agencyId"),
+-- unused by the app but callable by anon. Revoked (applied as migration
+-- revoke_legacy_definer_functions); dropping them is the user's call.
+revoke execute on function public.create_agency_user(text, text, text, text, text) from public, anon, authenticated;
+revoke execute on function public.delete_agency_user(text) from public, anon, authenticated;
+revoke execute on function public.update_agency_user(text, text, text, text) from public, anon, authenticated;
+revoke execute on function public.get_agency_users() from public, anon, authenticated;
+revoke execute on function public.get_current_agency() from public, anon, authenticated;
+revoke execute on function public.rls_filter_users() from public, anon, authenticated;
+revoke execute on function public.set_current_agency_id(text) from public, anon, authenticated;
