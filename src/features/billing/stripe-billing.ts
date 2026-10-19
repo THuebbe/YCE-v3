@@ -77,7 +77,7 @@ export async function createSubscriptionCheckout(input: {
   plan: Plan;
   interval: BillingInterval;
   email: string | null;
-  returnUrl: string; // the settings page; ?billing=... is appended
+  returnUrl: string; // the billing page; ?billing=... is appended
 }): Promise<string> {
   const agency = await loadAgency(input.agencyId);
   const customer = await ensureCustomer(agency, input.email);

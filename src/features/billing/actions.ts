@@ -24,8 +24,9 @@ async function requireBillingAdmin() {
   return user as { email: string | null; agency_id: string; agency: Record<string, any> };
 }
 
-async function settingsUrl(slug: string) {
-  return `${await requestOrigin()}/${slug}/settings`;
+/** Stripe Checkout and the billing portal come back to the billing page */
+async function billingUrl(slug: string) {
+  return `${await requestOrigin()}/${slug}/billing`;
 }
 
 export async function startSubscription(plan: Plan, interval: BillingInterval): Promise<UrlResult> {
@@ -42,7 +43,7 @@ export async function startSubscription(plan: Plan, interval: BillingInterval): 
       plan,
       interval,
       email: user.email,
-      returnUrl: await settingsUrl(user.agency.slug),
+      returnUrl: await billingUrl(user.agency.slug),
     });
     return { success: true, url };
   } catch (error) {
@@ -54,7 +55,7 @@ export async function startSubscription(plan: Plan, interval: BillingInterval): 
 export async function openBillingPortal(): Promise<UrlResult> {
   try {
     const user = await requireBillingAdmin();
-    const url = await createBillingPortalSession(user.agency_id, await settingsUrl(user.agency.slug));
+    const url = await createBillingPortalSession(user.agency_id, await billingUrl(user.agency.slug));
     return { success: true, url };
   } catch (error) {
     console.error('openBillingPortal failed:', error);

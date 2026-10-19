@@ -41,9 +41,11 @@ interface BillingSectionProps {
   trialDays: number
   /** Came back from Stripe Checkout */
   returnState?: 'success' | 'cancelled'
+  /** Shown after subscribing (the billing page) */
+  dashboardHref?: string
 }
 
-export function BillingSection({ subscription, trialDays, returnState }: BillingSectionProps) {
+export function BillingSection({ subscription, trialDays, returnState, dashboardHref }: BillingSectionProps) {
   const [period, setPeriod] = useState<BillingInterval>('month')
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -79,7 +81,10 @@ export function BillingSection({ subscription, trialDays, returnState }: Billing
         {returnState === 'success' && (
           <Alert>
             <Check className="h-4 w-4" />
-            <AlertDescription>Thanks! Your subscription is set up.</AlertDescription>
+            <AlertDescription>
+              Thanks! Your subscription is set up and your booking page is open.
+              {dashboardHref && <> <a href={dashboardHref} className="font-medium underline">Go to your dashboard</a></>}
+            </AlertDescription>
           </Alert>
         )}
         {error && (

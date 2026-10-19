@@ -23,7 +23,7 @@ export function BillingBanner({ agency, slug }: { agency: AgencySubscription; sl
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
         {message} Existing orders aren&apos;t affected.
       </p>
-      <Link href={`/${slug}/settings#billing`} className="rounded-md bg-amber-900 px-3 py-2 text-sm font-medium text-white">
+      <Link href={`/${slug}/billing`} className="rounded-md bg-amber-900 px-3 py-2 text-sm font-medium text-white">
         {agency.stripe_subscription_id ? 'Fix billing' : 'Choose a plan'}
       </Link>
     </div>
