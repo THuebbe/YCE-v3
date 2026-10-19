@@ -132,6 +132,13 @@ old verification notes) is in `git show aace018:STATE.md`.
   2026-10-06: no paid tier while ~6 months from launch).
 
 ## VERIFIED WORKING (seen running)
+- **2026-10-19, production after #24 + #21 merged:** elite-denver booking
+  YCE-2026-683197 (4242) paid → Resend delivered the agency's "New Order"
+  and the customer's "Your booking with Elite Yard Signs Denver: Tuesday,
+  November 3, 2026" (event_date 2026-11-03, no off-by-one); cancel from the
+  dashboard → $61 refunded and "Booking cancelled" delivered. Billing
+  webhook: a metadata change on texas-signs' subscription synced the
+  agency row within seconds (`subscription_synced_at`).
 - **2026-10-16, branch `claude/m2a-stripe-express`, preview `32d4f05`,
   west-branch (Standard, `acct_1RkB70FdcQOC5bzL`)** at phone width: Stripe
   Payment Element on the agency's account; 4242 → order YCE-2026-630524
@@ -311,9 +318,8 @@ old verification notes) is in `git show aace018:STATE.md`.
 1. (done - PR #8 merged 2026-10-16)
 2. (done - Milestone 2: Stripe, 2a + 2b, finished 2026-10-18)
 3. (built 2026-10-19, PRs #17-#20, #22, #23) Milestones 3 + 4.
-4. After merging: on production, one booking + one cancel to see the
-   customer emails in Resend's log; the user opens the billing portal once
-   (blank in Claude's sandbox); the user's tester signs up with
+4. (done 2026-10-19) Production check of emails + billing webhook. Still
+   the user's: open the billing portal once; the tester signs up with
    FOUNDINGTESTER.
 5. Milestone 5: customer cancel link, late/damage fee charging, edit signs.
 6. Later: real Venmo/PayPal checkout, production Clerk + domain, smart
@@ -321,10 +327,7 @@ old verification notes) is in `git show aace018:STATE.md`.
 
 ## NOT VERIFIED - check before trusting
 - Stripe billing portal page itself (opens, but its assets don't load in
-  Claude's sandbox) and the billing webhook on production (needs #18 merged:
-  until then production's old code 400s those events and Stripe retries).
-- Customer confirmation / cancellation emails (#22): previews have no
-  RESEND_API_KEY and the sandbox can't reach Resend.
+  Claude's sandbox) - the user should open it once.
 - Daily `/api/cron/sync-subscriptions` (needs CRON_SECRET, runs after merge).
 - `clear-expired-holds` cron route in production (its SQL was run by
   hand).
