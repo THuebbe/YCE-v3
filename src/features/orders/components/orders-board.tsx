@@ -2,6 +2,7 @@ import { getOrdersByAgency } from '../data';
 import { OrderStatus } from '../stateMachine';
 import { OrderColumn } from './order-column';
 import { EmptyOrdersState } from './empty-orders-state';
+import type { Plan } from '@/features/billing/entitlements';
 
 const ORDER_COLUMNS: { status: OrderStatus; title: string; description: string }[] = [
   {
@@ -28,9 +29,10 @@ const ORDER_COLUMNS: { status: OrderStatus; title: string; description: string }
 
 interface OrdersBoardProps {
   agencySlug: string;
+  plan: Plan;
 }
 
-export async function OrdersBoard({ agencySlug }: OrdersBoardProps) {
+export async function OrdersBoard({ agencySlug, plan }: OrdersBoardProps) {
   // Fetch real orders from Supabase
   const orders = await getOrdersByAgency();
 
@@ -75,6 +77,7 @@ export async function OrdersBoard({ agencySlug }: OrdersBoardProps) {
             title={column.title}
             description={column.description}
             orders={orders}
+            plan={plan}
           />
         );
       })}

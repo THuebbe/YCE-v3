@@ -1,6 +1,9 @@
 export type OrderStatus = 'pending' | 'processing' | 'deployed' | 'completed' | 'cancelled';
 
+import { hasFeature, type Plan } from '@/features/billing/entitlements';
+
 export type OrderAction = 
+  | 'startProcessing'
   | 'generatePickTicket'
   | 'printOrderSummary'
   | 'markDeployed'
@@ -18,12 +21,12 @@ export const orderStateMachine: Record<OrderStatus, OrderStateDefinition> = {
   pending: {
     actions: ['generatePickTicket', 'cancel'],
     nextStates: ['processing', 'cancelled'],
-    description: 'Order received and awaiting pick ticket generation'
+    description: 'Order received and awaiting preparation'
   },
   processing: {
     actions: ['printOrderSummary', 'markDeployed', 'cancel'],
     nextStates: ['deployed', 'cancelled'],
-    description: 'Pick ticket generated, order being prepared for deployment'
+    description: 'Order being prepared for deployment'
   },
   // No cancel once deployed: the signs are in a yard, so the order ends with
   // check-in (which releases its sign hold).
@@ -44,8 +47,12 @@ export const orderStateMachine: Record<OrderStatus, OrderStateDefinition> = {
   }
 };
 
-export function getAvailableActions(status: OrderStatus): OrderAction[] {
-  return orderStateMachine[status].actions;
+/** Essentials has no pick ticket, so it starts an order without one */
+export function getAvailableActions(status: OrderStatus, plan: Plan): OrderAction[] {
+  const actions = orderStateMachine[status].actions;
+  return hasFeature(plan, 'deploymentDocs')
+    ? actions
+    : actions.map(a => (a === 'generatePickTicket' ? 'startProcessing' : a));
 }
 
 export function canTransitionTo(from: OrderStatus, to: OrderStatus): boolean {
@@ -54,6 +61,7 @@ export function canTransitionTo(from: OrderStatus, to: OrderStatus): boolean {
 
 export function getNextStatusForAction(currentStatus: OrderStatus, action: OrderAction): OrderStatus | null {
   const actionToStatusMap: Record<OrderAction, OrderStatus> = {
+    startProcessing: 'processing',
     generatePickTicket: 'processing',
     printOrderSummary: 'deployed',
     markDeployed: 'deployed',
@@ -85,6 +93,7 @@ export function getStatusColor(status: OrderStatus): string {
 
 export function getActionLabel(action: OrderAction): string {
   const labels: Record<OrderAction, string> = {
+    startProcessing: 'Start Processing',
     generatePickTicket: 'Generate Pick Ticket',
     printOrderSummary: 'Print Order Summary',
     markDeployed: 'Mark as Deployed',

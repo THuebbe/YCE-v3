@@ -25,6 +25,7 @@ import { useToast } from '@/shared/components/feedback/toast';
 import { EditSignsModal } from './edit-signs-modal';
 import { CancelOrderModal } from './cancel-order-modal';
 import { useAgencySlug, getAgencyRoute } from '@/lib/navigation';
+import type { Plan } from '@/features/billing/entitlements';
 
 const DOCUMENT_LABELS: Record<string, string> = {
   pickTicket: 'Pick Ticket',
@@ -44,14 +45,15 @@ function latestDocuments(documents: unknown): { type: string; url: string }[] {
 
 interface OrderCardProps {
   order: any;
+  plan: Plan;
 }
 
-export function OrderCard({ order }: OrderCardProps) {
+export function OrderCard({ order, plan }: OrderCardProps) {
   const router = useRouter();
   const { toast } = useToast();
   const agencySlug = useAgencySlug();
 
-  const availableActions = getAvailableActions(order.status as OrderStatus);
+  const availableActions = getAvailableActions(order.status as OrderStatus, plan);
   const orderDocuments = latestDocuments(order.documents);
   const signCount = countOrderSigns(order);
   const statusColor = getOrderStatusBadgeColor(order.status);

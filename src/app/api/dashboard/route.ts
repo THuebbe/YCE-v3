@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getDashboardMetrics, getUpcomingOrdersByAgency, getUserById } from '@/lib/db/supabase-client'
+import { hasFeature, planOf } from '@/features/billing/entitlements'
 
 export async function GET() {
   try {
@@ -29,11 +30,13 @@ export async function GET() {
       ? ((dashboardMetrics.monthlyRevenue - dashboardMetrics.previousMonthRevenue) / dashboardMetrics.previousMonthRevenue) * 100 
       : 0
 
+    // Revenue is Elite; Essentials gets the order counts only
+    const showRevenue = hasFeature(planOf(user.agency), 'revenueMetrics')
     const dashboardData = {
       openOrders: dashboardMetrics.openOrdersCount || 0,
       upcomingOrders: upcomingOrders || [],
       popularSigns: [], // TODO: Implement in Phase 2
-      revenue: {
+      revenue: !showRevenue ? null : {
         current: dashboardMetrics.monthlyRevenue || 0,
         previous: dashboardMetrics.previousMonthRevenue || 0,
         change: Math.round(revenueChange * 100) / 100 // Round to 2 decimal places
@@ -42,7 +45,7 @@ export async function GET() {
       platformPopularSigns: [],
       metrics: {
         completedOrdersThisMonth: dashboardMetrics.completedOrdersCount || 0,
-        averageOrderValue: Math.round((dashboardMetrics.averageOrderValue || 0) * 100) / 100,
+        averageOrderValue: showRevenue ? Math.round((dashboardMetrics.averageOrderValue || 0) * 100) / 100 : null,
         pendingOrders: 0, // TODO: Add specific status counts if needed
         processingOrders: 0,
         deployedOrders: 0

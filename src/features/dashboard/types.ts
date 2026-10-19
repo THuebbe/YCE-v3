@@ -3,6 +3,7 @@ import React from 'react';
 
 export interface DashboardMetrics {
   openOrders: number;
+  revenueLocked: boolean; // Essentials: revenue fields are zeroed, cards show "Elite"
   monthlyRevenue: number;
   monthlyRevenueChange: number; // Percentage change from previous month
   last30DaysRevenue: number; // Rolling 30-day revenue

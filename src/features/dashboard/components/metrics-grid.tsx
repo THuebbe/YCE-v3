@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
 import { TrendingUp, TrendingDown, Package, Calendar, DollarSign, Wallet, CheckCircle } from "@/shared/components/ui/icons";
+import { Lock } from "lucide-react";
 import type { DashboardMetrics, MetricsGridProps } from "../types";
 
 export function MetricsGrid({ metrics, loading = false, error = null }: MetricsGridProps) {
@@ -41,30 +42,39 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
         loading={loading}
       />
 
-      {/* Monthly Revenue */}
-      <MetricCard
-        title="Monthly Revenue"
-        value={`$${metrics.monthlyRevenue.toLocaleString()}`}
-        icon={<Wallet className="h-5 w-5" />}
-        description="Current month revenue"
-        trend={{
-          value: Math.abs(revenueChange),
-          isPositive: isRevenuePositive,
-          icon: isRevenuePositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />
-        }}
-        colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
-        loading={loading}
-      />
+      {metrics.revenueLocked ? (
+        <>
+          <LockedMetricCard title="Monthly Revenue" />
+          <LockedMetricCard title="Last 30 Days" />
+        </>
+      ) : (
+        <>
+        {/* Monthly Revenue */}
+        <MetricCard
+          title="Monthly Revenue"
+          value={`$${metrics.monthlyRevenue.toLocaleString()}`}
+          icon={<Wallet className="h-5 w-5" />}
+          description="Current month revenue"
+          trend={{
+            value: Math.abs(revenueChange),
+            isPositive: isRevenuePositive,
+            icon: isRevenuePositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />
+          }}
+          colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
+          loading={loading}
+        />
 
-      {/* Last 30 Days Revenue */}
-      <MetricCard
-        title="Last 30 Days"
-        value={`$${metrics.last30DaysRevenue.toLocaleString()}`}
-        icon={<DollarSign className="h-5 w-5" />}
-        description="Rolling 30-day revenue"
-        colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
-        loading={loading}
-      />
+        {/* Last 30 Days Revenue */}
+        <MetricCard
+          title="Last 30 Days"
+          value={`$${metrics.last30DaysRevenue.toLocaleString()}`}
+          icon={<DollarSign className="h-5 w-5" />}
+          description="Rolling 30-day revenue"
+          colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
+          loading={loading}
+        />
+        </>
+      )}
 
       {/* Completed Orders */}
       <MetricCard
@@ -76,6 +86,21 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
         loading={loading}
       />
     </div>
+  );
+}
+
+/** Revenue on Essentials: say what it is and where it lives, without the number */
+function LockedMetricCard({ title }: { title: string }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <p className="text-sm font-medium text-neutral-600">{title}</p>
+        <Lock className="h-5 w-5 text-neutral-400" />
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-neutral-500">Revenue tracking is part of the Elite plan.</p>
+      </CardContent>
+    </Card>
   );
 }
 
