@@ -5,6 +5,7 @@ import { Header } from '@/shared/components/layout/Header'
 import { OrdersBoard } from '@/features/orders/components/orders-board'
 import { OrdersBoardSkeleton } from '@/features/orders/components/orders-board-skeleton'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
+import { planOf } from '@/features/billing/entitlements'
 
 // Force dynamic rendering since we use server-side data fetching
 export const dynamic = 'force-dynamic'
@@ -68,7 +69,7 @@ export default async function OrdersPage({ params }: OrdersPageProps) {
 
         {/* Orders Board with Suspense */}
         <Suspense fallback={<OrdersBoardSkeleton />}>
-          <OrdersBoard agencySlug={agencySlug} />
+          <OrdersBoard agencySlug={agencySlug} plan={planOf(agency)} />
         </Suspense>
       </main>
     </div>

@@ -2,6 +2,8 @@
 
 import { cache } from 'react';
 import { requireAgencyMember } from '@/features/auth/guards';
+import { getAgencyPlan } from '@/features/billing/server';
+import { hasFeature } from '@/features/billing/entitlements';
 import { countOrderSigns } from '@/features/orders/client-utils';
 import { getCurrentTenant } from '@/lib/tenant-context';
 import { getDashboardMetrics as getSupabaseDashboardMetrics, getOrdersByAgency } from '@/lib/db/supabase-client';
@@ -26,7 +28,9 @@ export const getDashboardMetrics = cache(async (agencyId: string): Promise<Dashb
 
   try {
     // Use the Supabase implementation
-    const metrics = await getSupabaseDashboardMetrics(agencyId);
+    const [metrics, plan] = await Promise.all([getSupabaseDashboardMetrics(agencyId), getAgencyPlan(agencyId)]);
+    // Revenue is Elite: don't send it to an Essentials agency's browser at all
+    const revenueLocked = !hasFeature(plan, 'revenueMetrics');
     
     // Calculate additional metrics
     const monthlyRevenueChange = metrics.previousMonthRevenue > 0 
@@ -37,13 +41,14 @@ export const getDashboardMetrics = cache(async (agencyId: string): Promise<Dashb
 
     return {
       openOrders: metrics.openOrdersCount,
-      monthlyRevenue: metrics.monthlyRevenue,
-      monthlyRevenueChange,
-      last30DaysRevenue: metrics.last30DaysRevenue || 0,
+      revenueLocked,
+      monthlyRevenue: revenueLocked ? 0 : metrics.monthlyRevenue,
+      monthlyRevenueChange: revenueLocked ? 0 : monthlyRevenueChange,
+      last30DaysRevenue: revenueLocked ? 0 : metrics.last30DaysRevenue || 0,
       popularSigns: [], // TODO: Implement popular signs with Supabase
       upcomingDeployments: [], // TODO: Implement upcoming deployments with Supabase
       completedOrdersThisMonth: metrics.completedOrdersCount,
-      averageOrderValue: metrics.averageOrderValue,
+      averageOrderValue: revenueLocked ? 0 : metrics.averageOrderValue,
       pendingOrdersCount: 0, // TODO: Implement with Supabase
       processingOrdersCount: 0, // TODO: Implement with Supabase
       deployedOrdersCount: 0, // TODO: Implement with Supabase

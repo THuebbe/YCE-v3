@@ -3,15 +3,17 @@
 import { OrderStatus, getStatusColor } from '../stateMachine';
 import { OrderCard } from './order-card';
 import { Badge } from '@/shared/components/ui/badge';
+import type { Plan } from '@/features/billing/entitlements';
 
 interface OrderColumnProps {
   status: OrderStatus;
   title: string;
   description: string;
   orders: any[];
+  plan: Plan;
 }
 
-export function OrderColumn({ status, title, description, orders }: OrderColumnProps) {
+export function OrderColumn({ status, title, description, orders, plan }: OrderColumnProps) {
   const statusColor = getStatusColor(status);
 
   return (
@@ -38,7 +40,7 @@ export function OrderColumn({ status, title, description, orders }: OrderColumnP
           </div>
         ) : (
           orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
+            <OrderCard key={order.id} order={order} plan={plan} />
           ))
         )}
       </div>

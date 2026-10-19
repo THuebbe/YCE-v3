@@ -6,8 +6,11 @@ import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
 import { getStripe, toCents } from '@/lib/stripe';
+import { requireFeature } from '@/features/billing/server';
 import type { OrderAction } from './stateMachine';
 import type { CancelOrderInput } from './types';
+
+const ELITE_DOCUMENTS: ReadonlySet<DocumentType> = new Set(['pickTicket', 'pickupChecklist']);
 
 export async function generateDocument(orderId: string, type: DocumentType) {
   try {
@@ -20,6 +23,7 @@ export async function generateDocument(orderId: string, type: DocumentType) {
       .eq('id', orderId)
       .single();
     await requireAgencyMember(owner?.agency_id);
+    if (ELITE_DOCUMENTS.has(type)) await requireFeature(owner!.agency_id, 'deploymentDocs');
 
     // Generate the document
     const result = await generateOrderDocument(orderId, type);
@@ -87,6 +91,7 @@ function revalidateOrder(orderId: string) {
 }
 
 const ADVANCE: Partial<Record<OrderAction, { from: string; to: string; stamp?: string }>> = {
+  startProcessing: { from: 'pending', to: 'processing' },
   generatePickTicket: { from: 'pending', to: 'processing' },
   printOrderSummary: { from: 'processing', to: 'deployed', stamp: 'deployed_at' },
   markDeployed: { from: 'processing', to: 'deployed', stamp: 'deployed_at' },

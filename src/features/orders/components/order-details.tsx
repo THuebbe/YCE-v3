@@ -18,7 +18,8 @@ import {
   X,
   Download,
   CheckCircle,
-  XCircle
+  XCircle,
+  Lock,
 } from 'lucide-react';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
 import { countOrderSigns, formatAddress, formatCurrency, formatEventDate, formatDate, getOrderSignLines, getOrderStatusBadgeColor } from '../client-utils';
@@ -30,19 +31,29 @@ import { EditSignsModal } from './edit-signs-modal';
 import { CancelOrderModal } from './cancel-order-modal';
 import { OrderWithDetails } from '../types';
 import { useAgencySlug } from '@/lib/navigation';
+import { hasFeature, type Plan } from '@/features/billing/entitlements';
+
+type DocType = 'pickTicket' | 'orderSummary' | 'pickupChecklist';
+const DOCUMENTS: { type: DocType; label: string }[] = [
+  { type: 'pickTicket', label: 'Pick Ticket' },
+  { type: 'orderSummary', label: 'Order Summary' },
+  { type: 'pickupChecklist', label: 'Pickup Checklist' },
+];
+const ELITE_DOCUMENTS: DocType[] = ['pickTicket', 'pickupChecklist'];
 
 interface OrderDetailsProps {
   order: any; // Using any for now due to interface conflicts with mock data
+  plan: Plan;
 }
 
-export function OrderDetails({ order }: OrderDetailsProps) {
+export function OrderDetails({ order, plan }: OrderDetailsProps) {
   const [isGeneratingDocument, setIsGeneratingDocument] = useState<string | null>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const router = useRouter();
   const { toast } = useToast();
   const agencySlug = useAgencySlug();
 
-  const availableActions = getAvailableActions(order.status as OrderStatus);
+  const availableActions = getAvailableActions(order.status as OrderStatus, plan);
   const statusColor = getOrderStatusBadgeColor(order.status);
   const signCount = countOrderSigns(order);
   const signLines = getOrderSignLines(order);
@@ -69,7 +80,7 @@ export function OrderDetails({ order }: OrderDetailsProps) {
     setShowCancelModal(true);
   };
 
-  const handleGenerateDocument = async (type: 'pickTicket' | 'orderSummary' | 'pickupChecklist') => {
+  const handleGenerateDocument = async (type: DocType) => {
     if (isGeneratingDocument) return;
     
     setIsGeneratingDocument(type);
@@ -404,98 +415,43 @@ export function OrderDetails({ order }: OrderDetailsProps) {
                 Documents
               </h3>
               <div className="space-y-2">
-                {/* Pick Ticket */}
-                {getDocumentOfType('pickTicket') ? (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => window.open(getDocumentOfType('pickTicket').url, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Pick Ticket
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => handleGenerateDocument('pickTicket')}
-                    disabled={isGeneratingDocument === 'pickTicket'}
-                  >
-                    {isGeneratingDocument === 'pickTicket' ? (
-                      <>
-                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
+                {DOCUMENTS.map(({ type, label }) => {
+                  const existing = getDocumentOfType(type);
+                  if (existing) {
+                    return (
+                      <Button key={type} variant="ghost" className="w-full justify-start"
+                        onClick={() => window.open(existing.url, '_blank')}>
                         <Download className="h-4 w-4 mr-2" />
-                        Generate Pick Ticket
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {/* Order Summary */}
-                {getDocumentOfType('orderSummary') ? (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => window.open(getDocumentOfType('orderSummary').url, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Order Summary
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => handleGenerateDocument('orderSummary')}
-                    disabled={isGeneratingDocument === 'orderSummary'}
-                  >
-                    {isGeneratingDocument === 'orderSummary' ? (
-                      <>
-                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate Order Summary
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {/* Pickup Checklist */}
-                {getDocumentOfType('pickupChecklist') ? (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => window.open(getDocumentOfType('pickupChecklist').url, '_blank')}
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Pickup Checklist
-                  </Button>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => handleGenerateDocument('pickupChecklist')}
-                    disabled={isGeneratingDocument === 'pickupChecklist'}
-                  >
-                    {isGeneratingDocument === 'pickupChecklist' ? (
-                      <>
-                        <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                        Generating...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Generate Pickup Checklist
-                      </>
-                    )}
-                  </Button>
-                )}
+                        {label}
+                      </Button>
+                    );
+                  }
+                  if (ELITE_DOCUMENTS.includes(type) && !hasFeature(plan, 'deploymentDocs')) {
+                    return (
+                      <div key={type} className="flex items-center justify-between gap-2 px-4 py-2 text-sm text-gray-500">
+                        <span className="flex items-center"><Lock className="h-4 w-4 mr-2" />{label}</span>
+                        <Badge variant="secondary">Elite</Badge>
+                      </div>
+                    );
+                  }
+                  return (
+                    <Button key={type} variant="ghost" className="w-full justify-start"
+                      onClick={() => handleGenerateDocument(type)}
+                      disabled={isGeneratingDocument === type}>
+                      {isGeneratingDocument === type ? (
+                        <>
+                          <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Download className="h-4 w-4 mr-2" />
+                          Generate {label}
+                        </>
+                      )}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
           </Card>

@@ -6,6 +6,7 @@ import { OrderDetails } from '@/features/orders/components/order-details'
 import { OrderDetailsSkeleton } from '@/features/orders/components/order-details-skeleton'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 import { getOrderWithDetails } from '@/features/orders/utils'
+import { planOf, type Plan } from '@/features/billing/entitlements'
 
 // Force dynamic rendering since we use server-side data fetching
 export const dynamic = 'force-dynamic'
@@ -17,7 +18,7 @@ interface OrderDetailPageProps {
   }>;
 }
 
-async function OrderDetailsData({ orderId }: { orderId: string }) {
+async function OrderDetailsData({ orderId, plan }: { orderId: string; plan: Plan }) {
   try {
     const order = await getOrderWithDetails(orderId)
     
@@ -25,7 +26,7 @@ async function OrderDetailsData({ orderId }: { orderId: string }) {
       notFound()
     }
 
-    return <OrderDetails order={order} />
+    return <OrderDetails order={order} plan={plan} />
   } catch (error) {
     console.error('Error fetching order details:', error)
     notFound()
@@ -75,7 +76,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
       <main className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
         {/* Order Details with Suspense */}
         <Suspense fallback={<OrderDetailsSkeleton />}>
-          <OrderDetailsData orderId={orderId} />
+          <OrderDetailsData orderId={orderId} plan={planOf(agency)} />
         </Suspense>
       </main>
     </div>

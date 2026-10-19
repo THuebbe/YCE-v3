@@ -91,7 +91,8 @@ it's long and operators may not have the details at signup.
 complete. **Inventory and payments gate bookings** — until both are
 done the booking page says "not accepting bookings yet". Everything
 else ships with defaults the checklist recommends reviewing ($95 base,
-$10/extra day, $25/day late fee, 5% cancellation fee, 24h notice).
+$10/extra day, $25/day late fee, cancellation $20 or 15% with 48h
+notice).
 Agencies may **mix** payment methods (e.g. cards online + Venmo).
 Open details are tracked in STATE.md.
 
@@ -100,8 +101,7 @@ Open details are tracked in STATE.md.
 
 ## Cancellations — DECIDED 2026-10-07
 - Measured from the **scheduled delivery** (event date minus extra days
-  before), never from when the order was placed. (Code today measures
-  24h after order creation — wrong, must change.)
+  before), never from when the order was placed.
 - Per-agency settings (later; Elite): **notice period** and two fees.
   **Defaults REVISED 2026-10-17** (from real yard card vendors' terms:
   flat ~$25 fees, non-refundable deposits, half back late): **48h** before
@@ -163,11 +163,29 @@ $29/$79/$149):
 - **Elite, $79/mo** — everything above + all reporting, and later the in-app
   store.
 - **Annual:** $499/yr and $799/yr.
-- Tier split for the permissions stage (direction agreed 2026-10-07,
-  details later): **Essentials** sets its own prices (base, extra day)
-  and can waive any fee per order; policy values run on defaults.
-  **Elite** unlocks fine-tuning policies — cancellation window and
-  percentages, late/damage fee amounts, booking rules.
+- **Tier split — DECIDED 2026-10-19** (replaces the 2026-10-07 direction).
+  Essentials is true to its name: only what's needed to run an agency.
+  Everything else is Elite.
+  - **Essentials:** customer booking, agency email on each new order,
+    inventory, the order board (start → deploy → check-in → cancel), the
+    **order summary** PDF, own prices (base, extra day), waive any fee on
+    an order. Policies run on the defaults. Dashboard: order counts.
+  - **Elite:** + the deployment paperwork (**pick ticket, pickup
+    checklist**), **policy settings** (cancellation window and fees, late
+    fee, damage fee, booking rules), **dashboard revenue** cards.
+  - Locks are enforced on the server, not only hidden in the UI
+    (`features/billing/entitlements.ts`).
+  - Not in either plan yet (later, unpriced): customer list, analytics
+    (forecasting, report builder, scheduled reports), in-app store.
+- **Billing — DECIDED 2026-10-19:**
+  - An unpaid agency (never subscribed, cancelled, or renewal failed past
+    grace) gets its **booking page closed**. The dashboard keeps working,
+    so it can finish existing orders and pay. Existing orders are never
+    touched.
+  - **7-day grace** after a failed renewal while Stripe retries.
+  - **Trial on at launch** (14 days, card up front).
+  - The first tester agency is free through a **100%-off-forever
+    coupon**, so it goes through the real signup path.
 **14-day free trial is optional** — an agency can skip it and start
 paying. Card required up front either way. We must be able to turn the
 trial and any promotion/coupon **on and off** ourselves: coupons via the
