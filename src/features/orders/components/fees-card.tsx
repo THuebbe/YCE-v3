@@ -8,6 +8,8 @@ import { assessOrderFees } from '../actions';
 import type { FeeQuote } from '../fees';
 
 const money = (n: number) => `$${n.toFixed(2)}`;
+const BRANDS: Record<string, string> = { visa: 'Visa', mastercard: 'Mastercard', amex: 'Amex', discover: 'Discover' };
+const brand = (b: string) => BRANDS[b] ?? b.charAt(0).toUpperCase() + b.slice(1);
 const day = (d: string | null) => (d ? new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }) : '?');
 
 /**
@@ -28,7 +30,7 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
       <Card>
         <div className="p-6">
           <h3 className="mb-2 text-lg font-semibold text-gray-900">Late &amp; damage fees</h3>
-          {done.status === 'charged' && <p className="text-sm text-green-700">{money(done.total)} charged{quote.card ? ` to ${quote.card.brand} ••${quote.card.last4}` : ''}. The customer was emailed.</p>}
+          {done.status === 'charged' && <p className="text-sm text-green-700">{money(done.total)} charged{quote.card ? ` to ${brand(quote.card.brand)} ••${quote.card.last4}` : ''}. The customer was emailed.</p>}
           {done.status === 'link_sent' && (
             <p className="text-sm text-amber-800">
               The card couldn&apos;t be charged, so the customer was emailed a payment link for {money(done.total)}.
@@ -100,7 +102,7 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
         {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
         <div className="flex flex-col gap-2">
           <Button onClick={() => submit(false)} disabled={busy || total <= 0}>
-            {busy ? 'Working…' : quote.card ? `Charge ${money(total)} to ${quote.card.brand} ••${quote.card.last4}` : `Email a payment link for ${money(total)}`}
+            {busy ? 'Working…' : quote.card ? `Charge ${money(total)} to ${brand(quote.card.brand)} ••${quote.card.last4}` : `Email a payment link for ${money(total)}`}
           </Button>
           <Button variant="secondary" onClick={() => submit(true)} disabled={busy}>Waive fees</Button>
         </div>
