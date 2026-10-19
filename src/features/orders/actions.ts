@@ -7,6 +7,7 @@ import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
 import { requireFeature } from '@/features/billing/server';
 import { performCancellation } from './cancellation';
+import { assessFees } from './fees';
 import type { OrderAction } from './stateMachine';
 import type { CancelOrderInput } from './types';
 
@@ -199,5 +200,25 @@ export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult
     return { success: true, refunded };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Cancel failed' };
+  }
+}
+
+/** After check-in: charge the late/damage fees the agency confirmed (or waive with 0) */
+export async function assessOrderFees(input: { orderId: string; lateAmount: number; damageAmount: number }) {
+  try {
+    const { order, user } = await requireOrderMember(input.orderId);
+    const { data: agency } = await supabase.from('agencies').select('slug').eq('id', order.agency_id).single();
+    const result = await assessFees({
+      orderId: order.id,
+      agencyId: order.agency_id,
+      agencySlug: agency?.slug ?? '',
+      lateAmount: input.lateAmount,
+      damageAmount: input.damageAmount,
+      userId: user.id,
+    });
+    revalidateOrder(input.orderId);
+    return result;
+  } catch (error) {
+    return { success: false as const, error: error instanceof Error ? error.message : 'Could not charge the fees' };
   }
 }

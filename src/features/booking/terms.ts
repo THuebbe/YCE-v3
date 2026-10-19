@@ -43,6 +43,8 @@ export interface BookingTerms {
   sections: { title: string; text: string }[];
   agreement: string;
   cancellation: CancellationPolicy;
+  /** The late and damage fee amounts agreed to (saved on the order for check-in) */
+  fees: { lateFee: number; damageFeePerSign: number };
 }
 
 /** The cancellation rules an order was booked under (its saved terms). */
@@ -52,6 +54,15 @@ export function cancellationPolicyOf(termsSnapshot: unknown): CancellationPolicy
     return saved as CancellationPolicy;
   }
   return LEGACY_CANCELLATION;
+}
+
+/** The late/damage fee amounts an order was booked under, or null for orders from before they were saved */
+export function feesPolicyOf(termsSnapshot: unknown): { lateFee: number; damageFeePerSign: number } | null {
+  const fees = (termsSnapshot as { fees?: { lateFee?: unknown; damageFeePerSign?: unknown } } | null)?.fees;
+  if (fees && typeof fees.lateFee === 'number' && typeof fees.damageFeePerSign === 'number') {
+    return { lateFee: fees.lateFee, damageFeePerSign: fees.damageFeePerSign };
+  }
+  return null;
 }
 
 /** Cancellation fee in dollars for an order total (never more than the total). */
@@ -107,6 +118,7 @@ export function buildBookingTerms(input: {
       },
     ],
     cancellation,
+    fees: { lateFee, damageFeePerSign },
     agreement: paysByCard
       ? `I agree to ${possessive(agencyName)} booking terms and authorize ${agencyName} to charge my saved card for late or damage fees as described.`
       : `I agree to ${possessive(agencyName)} booking terms, including the late and damage fees described.`,

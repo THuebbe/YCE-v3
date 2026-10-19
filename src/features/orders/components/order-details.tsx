@@ -32,6 +32,8 @@ import { CancelOrderModal } from './cancel-order-modal';
 import { OrderWithDetails } from '../types';
 import { useAgencySlug } from '@/lib/navigation';
 import { hasFeature, type Plan } from '@/features/billing/entitlements';
+import { FeesCard } from './fees-card';
+import type { FeeQuote } from '../fees';
 
 type DocType = 'pickTicket' | 'orderSummary' | 'pickupChecklist';
 const DOCUMENTS: { type: DocType; label: string }[] = [
@@ -44,9 +46,11 @@ const ELITE_DOCUMENTS: DocType[] = ['pickTicket', 'pickupChecklist'];
 interface OrderDetailsProps {
   order: any; // Using any for now due to interface conflicts with mock data
   plan: Plan;
+  /** Completed orders: the late/damage fees that may be charged */
+  feeQuote?: FeeQuote | null;
 }
 
-export function OrderDetails({ order, plan }: OrderDetailsProps) {
+export function OrderDetails({ order, plan, feeQuote }: OrderDetailsProps) {
   const [isGeneratingDocument, setIsGeneratingDocument] = useState<string | null>(null);
   const [documents, setDocuments] = useState<any[]>([]);
   const router = useRouter();
@@ -407,6 +411,8 @@ export function OrderDetails({ order, plan }: OrderDetailsProps) {
               </div>
             </Card>
           )}
+
+          {feeQuote && <FeesCard orderId={order.id} quote={feeQuote} />}
 
           {/* Documents */}
           <Card>

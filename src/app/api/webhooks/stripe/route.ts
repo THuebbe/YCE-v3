@@ -4,6 +4,7 @@ import Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
 import { handleChargeRefunded, handleCheckoutPaymentFailed, handleCheckoutPaymentSucceeded } from '@/features/booking/checkout';
 import { subscriptionIdOf, syncSubscription } from '@/features/billing/stripe-billing';
+import { handleFeeCheckoutCompleted } from '@/features/orders/fees';
 
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -144,7 +145,13 @@ export async function POST(request: NextRequest) {
       // Agency subscriptions (platform account: no event.account). Every one
       // re-reads the subscription from Stripe. Errors return 500 so Stripe
       // retries: a missed sync could leave a booking page open or closed.
+      // A customer paid a late/damage fee link (Checkout on the agency's account)
       case 'checkout.session.completed':
+        if (event.account) {
+          await handleFeeCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+          break;
+        }
+      // falls through: on the platform account it's an agency subscription
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted':
