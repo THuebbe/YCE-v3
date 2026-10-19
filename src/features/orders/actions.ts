@@ -3,6 +3,7 @@
 import { generateOrderDocument, DocumentType } from './documents/generator';
 import { getOrderWithDetails, updateOrderDocuments } from './utils';
 import { revalidatePath } from 'next/cache';
+import { put } from '@vercel/blob';
 import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
 import { requireFeature } from '@/features/billing/server';
@@ -220,5 +221,111 @@ export async function assessOrderFees(input: { orderId: string; lateAmount: numb
     return result;
   } catch (error) {
     return { success: false as const, error: error instanceof Error ? error.message : 'Could not charge the fees' };
+  }
+}
+
+export interface DisplayEdit {
+  eventMessage: string;
+  customMessage?: string | null;
+  eventNumber?: number | null;
+  recipientName: string;
+  messageStyle?: string | null;
+  messageColorway?: string | null;
+  nameColorway?: string | null;
+  characterTheme?: string | null;
+  hobbies?: string[];
+}
+
+const MAX_EDIT_SNAPSHOT_BYTES = 700 * 1024;
+
+/**
+ * The agency changes an order's display (message, name, style, colors,
+ * theme) before the signs go out. The browser lays it out with the same
+ * calculator as booking; here the signs are swapped in one locked step
+ * (stock checked for the order's dates) and the order's text and picture
+ * updated. The price is a package price, so it doesn't change.
+ */
+export async function updateOrderDisplay(input: {
+  orderId: string;
+  display: DisplayEdit;
+  catalogKeys: string[];
+  snapshotDataUrl?: string;
+}): Promise<ActionResult & { shortages?: { name: string; requested: number; available: number }[] }> {
+  try {
+    const { order, user } = await requireOrderMember(input.orderId);
+    if (!['pending', 'processing'].includes(order.status)) {
+      return { success: false, error: 'The signs are already out, so this display can\'t be edited' };
+    }
+    const d = input.display;
+    const message = d.eventMessage === 'Custom Message' ? (d.customMessage ?? '').trim() : d.eventMessage;
+    if (!message || !d.recipientName?.trim()) return { success: false, error: 'A message and a name are required' };
+    if (input.catalogKeys.length === 0 || input.catalogKeys.length > 200) return { success: false, error: 'This display has no signs' };
+
+    const counts = new Map<string, number>();
+    for (const key of input.catalogKeys) counts.set(key, (counts.get(key) ?? 0) + 1);
+    const { data: signs } = await supabase.from('sign_library').select('id, asset_key, name').in('asset_key', [...counts.keys()]);
+    const byKey = new Map((signs ?? []).map(s => [s.asset_key as string, s]));
+    if ([...counts.keys()].some(k => !byKey.has(k))) return { success: false, error: 'Some signs in this display aren\'t in the catalog' };
+
+    const { data, error } = await supabase.rpc('yce_replace_order_signs', {
+      p_order_id: order.id,
+      p_agency_id: order.agency_id,
+      p_user_id: user.id,
+      p_items: [...counts].map(([key, quantity]) => ({ sign_id: byKey.get(key)!.id, quantity })),
+    });
+    if (error) {
+      console.error('yce_replace_order_signs failed:', order.id, error.message);
+      return { success: false, error: /does not exist|PGRST202/.test(`${error.message} ${error.code}`)
+        ? 'Editing displays needs a one-time database update first (migrations/20261019_order_replace_signs_USER_RUNS.sql). Nothing was changed.'
+        : 'The display couldn\'t be saved. Nothing was changed.' };
+    }
+    const result = data as { ok: boolean; reason?: string; status?: string; shortages?: { sign_id: string; requested: number; available: number }[] };
+    if (!result.ok) {
+      if (result.reason === 'insufficient_stock') {
+        const nameById = new Map((signs ?? []).map(s => [s.id as string, s.name as string]));
+        return {
+          success: false,
+          error: 'Not enough of some signs are free on this order\'s dates. Try another color or style.',
+          shortages: (result.shortages ?? []).map(s => ({ name: nameById.get(s.sign_id) ?? s.sign_id, requested: s.requested, available: s.available })),
+        };
+      }
+      return { success: false, error: result.reason === 'not_editable' ? `A ${result.status} order can't be edited` : 'The display couldn\'t be saved. Nothing was changed.' };
+    }
+
+    // The new picture (email/Order Summary). Signs are saved even if this fails.
+    let displayImageUrl: string | undefined;
+    const prefix = 'data:image/jpeg;base64,';
+    if (input.snapshotDataUrl?.startsWith(prefix)) {
+      const bytes = Buffer.from(input.snapshotDataUrl.slice(prefix.length), 'base64');
+      if (bytes.length > 0 && bytes.length <= MAX_EDIT_SNAPSHOT_BYTES && bytes[0] === 0xff && bytes[1] === 0xd8) {
+        try {
+          displayImageUrl = (await put(`displays/${order.id}-edit.jpg`, bytes, { access: 'public', contentType: 'image/jpeg', addRandomSuffix: true })).url;
+        } catch (e) {
+          console.warn('Edited display picture not saved:', order.id, e);
+        }
+      }
+    }
+
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update({
+        message: d.eventMessage,
+        message_text: message,
+        theme: d.characterTheme || null,
+        display_config: {
+          eventMessage: d.eventMessage, customMessage: d.customMessage ?? null, eventNumber: d.eventNumber ?? null,
+          recipientName: d.recipientName.trim(), messageStyle: d.messageStyle ?? null,
+          messageColorway: d.messageColorway ?? null, nameColorway: d.nameColorway ?? null,
+          characterTheme: d.characterTheme ?? null, hobbies: d.hobbies ?? [],
+        },
+        ...(displayImageUrl ? { display_image_url: displayImageUrl } : {}),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', order.id).eq('agency_id', order.agency_id);
+    if (updateError) console.error('Edited display text not saved:', order.id, updateError.message);
+    revalidateOrder(order.id);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'The display couldn\'t be saved' };
   }
 }

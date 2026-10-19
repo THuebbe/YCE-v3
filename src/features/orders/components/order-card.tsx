@@ -22,7 +22,7 @@ import { useOrderAction } from './use-order-action';
 
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
-import { EditSignsModal } from './edit-signs-modal';
+import { EditDisplayModal } from './edit-display-modal';
 import { CancelOrderModal } from './cancel-order-modal';
 import { useAgencySlug, getAgencyRoute } from '@/lib/navigation';
 import type { Plan } from '@/features/billing/entitlements';
@@ -108,8 +108,8 @@ export function OrderCard({ order, plan }: OrderCardProps) {
               size="sm"
               onClick={handleEditSigns}
               className="p-2 h-10 w-10"
-              disabled // Edit signs is not built yet (needs a stock re-check and re-hold)
-              title="Editing signs isn't available yet"
+              disabled={!['pending', 'processing'].includes(order.status)}
+              title="Edit display"
             >
               <Edit className="h-5 w-5" />
             </Button>
@@ -193,7 +193,7 @@ export function OrderCard({ order, plan }: OrderCardProps) {
       </div>
       
       {/* Modals */}
-      <EditSignsModal
+      <EditDisplayModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         order={order}

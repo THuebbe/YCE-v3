@@ -27,7 +27,7 @@ import { useOrderAction } from './use-order-action';
 import { generatePickTicket, generateOrderSummary, generatePickupChecklist } from '../actions';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/shared/components/feedback/toast';
-import { EditSignsModal } from './edit-signs-modal';
+import { EditDisplayModal } from './edit-display-modal';
 import { CancelOrderModal } from './cancel-order-modal';
 import { OrderWithDetails } from '../types';
 import { useAgencySlug } from '@/lib/navigation';
@@ -202,11 +202,11 @@ export function OrderDetails({ order, plan, feeQuote }: OrderDetailsProps) {
           <Button
             variant="secondary"
             onClick={handleEditSigns}
-            disabled // Edit signs is not built yet (needs a stock re-check and re-hold)
-            title="Editing signs isn't available yet"
+            disabled={!['pending', 'processing'].includes(order.status)}
+            title={['pending', 'processing'].includes(order.status) ? 'Change the message, name, style or colors' : 'The signs are already out'}
           >
             <Edit className="h-4 w-4 mr-2" />
-            Edit Signs
+            Edit Display
           </Button>
           <Button
             variant="secondary"
@@ -332,7 +332,7 @@ export function OrderDetails({ order, plan, feeQuote }: OrderDetailsProps) {
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-sm font-medium text-gray-900">
-                          {getActionLabel(activity.action as OrderAction) ?? activity.action}
+                          {activity.action === 'editSigns' ? 'Display Edited' : getActionLabel(activity.action as OrderAction) ?? activity.action}
                           {activity.user && ` · ${[activity.user.first_name, activity.user.last_name].filter(Boolean).join(' ')}`}
                         </span>
                         <span className="text-xs text-gray-500">
@@ -465,7 +465,7 @@ export function OrderDetails({ order, plan, feeQuote }: OrderDetailsProps) {
       </div>
       
       {/* Modals */}
-      <EditSignsModal
+      <EditDisplayModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         order={order}
