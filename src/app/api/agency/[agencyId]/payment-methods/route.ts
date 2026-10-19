@@ -67,92 +67,29 @@ export async function GET(
       )
     }
 
-    // Determine available payment methods based on agency configuration
-    const availablePaymentMethods = []
-
-    // Credit Card - Always available
-    // Use Stripe if connected and ready, otherwise fallback to platform processing
+    // What a customer can actually pay with. Only card via the agency's
+    // Stripe today: Venmo checkout needs a signed-in agency user (customers
+    // got "Unauthorized") and PayPal checkout is a stub that saved unpaid
+    // orders, so neither is offered until it's built (STATE.md). Apple Pay
+    // and Google Pay appear inside Stripe's card form on their own.
     const hasStripeConnected = !!(
-      agency.stripe_account_id && 
-      agency.stripe_details_submitted && 
+      agency.stripe_account_id &&
+      agency.stripe_details_submitted &&
       agency.stripe_charges_enabled
     )
+    const hasVenmoEnabled = !!(agency.braintree_merchant_id && agency.braintree_account_status === 'active' && agency.venmo_enabled)
+    const hasPayPalConnected = !!(agency.paypal_account_id && agency.paypal_details_submitted && agency.paypal_payments_receivable && agency.paypal_email_confirmed)
 
-    availablePaymentMethods.push({
-      id: 'card',
-      name: 'Credit/Debit Card',
-      description: 'Visa, Mastercard, American Express',
-      icon: 'CreditCard',
-      processor: hasStripeConnected ? 'stripe' : 'platform',
-      processorConfig: hasStripeConnected ? {
-        accountId: agency.stripe_account_id,
-        environment: 'production' // Assuming production for connected accounts
-      } : {
-        environment: process.env.NODE_ENV === 'production' ? 'production' : 'development'
-      }
-    })
-
-    // Venmo - Available if Braintree is set up with Venmo enabled
-    const hasVenmoEnabled = !!(
-      agency.braintree_merchant_id &&
-      agency.braintree_account_status === 'active' &&
-      agency.venmo_enabled
-    )
-
-    if (hasVenmoEnabled) {
-      availablePaymentMethods.push({
-        id: 'venmo',
-        name: 'Venmo',
-        description: 'Pay with Venmo',
-        icon: 'Smartphone',
-        processor: 'braintree',
-        processorConfig: {
-          environment: agency.braintree_environment || 'sandbox',
-          merchantId: agency.braintree_merchant_id,
-          publicKey: agency.braintree_public_key,
-          allowDesktop: agency.venmo_allow_desktop !== false,
-          allowWebLogin: agency.venmo_allow_web_login !== false,
-          paymentMethodUsage: agency.venmo_payment_method_usage || 'multi_use'
-        }
-      })
-    }
-
-    // PayPal - Available if PayPal Partner is connected and ready
-    const hasPayPalConnected = !!(
-      agency.paypal_account_id &&
-      agency.paypal_details_submitted &&
-      agency.paypal_payments_receivable &&
-      agency.paypal_email_confirmed
-    )
-
-    if (hasPayPalConnected) {
-      availablePaymentMethods.push({
-        id: 'paypal',
-        name: 'PayPal',
-        description: 'Pay with your PayPal account',
-        icon: 'DollarSign',
-        processor: 'paypal',
-        processorConfig: {
-          accountId: agency.paypal_account_id,
-          environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox'
-        }
-      })
-    }
-
-    // Apple Pay - Available if Stripe is connected (Stripe supports Apple Pay)
-    if (hasStripeConnected) {
-      availablePaymentMethods.push({
-        id: 'apple_pay',
-        name: 'Apple Pay',
-        description: 'Pay with Touch ID or Face ID',
-        icon: 'Smartphone',
-        processor: 'stripe',
-        processorConfig: {
-          accountId: agency.stripe_account_id,
-          environment: 'production'
-        }
-      })
-    }
+    const availablePaymentMethods = hasStripeConnected
+      ? [{
+          id: 'card',
+          name: 'Credit/Debit Card',
+          description: 'Visa, Mastercard, American Express',
+          icon: 'CreditCard',
+          processor: 'stripe',
+          processorConfig: { accountId: agency.stripe_account_id, environment: 'production' },
+        }]
+      : []
 
     const response = {
       success: true,

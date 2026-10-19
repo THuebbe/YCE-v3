@@ -138,8 +138,8 @@ export function ReviewStep() {
         return (await response.json()) as BookingOrderResult;
       };
 
-      // Agencies on Stripe: the server charges the card token from the
-      // Payment step. Others: no-charge demo checkout.
+      // The server charges the card token from the Payment step. Without
+      // one (no Stripe card) the server refuses: there's no unpaid booking.
       const stripeCard = Boolean(payment.confirmationTokenId && payment.stripeAccountId);
       let result = stripeCard
         ? await send({ paymentIntentId: 'pending', confirmationTokenId: payment.confirmationTokenId })

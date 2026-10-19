@@ -4,7 +4,7 @@ import { resolveTimeZone } from '@/features/booking/booking-rules';
 import { effectiveBookingRules, effectivePolicies } from '@/features/booking/policies';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
-import { subscriptionAllowsBookings } from '@/features/billing/subscription';
+import { getBookingBlockers } from '@/features/agency/readiness-server';
 
 interface BookingPageProps {
   params: Promise<{
@@ -24,15 +24,21 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
     notFound();
   }
 
-  // Refuse to quote rather than invent a price when the agency hasn't set
-  // one. An agency without a paid-up subscription doesn't take bookings.
+  // Closed until the agency is set up to be paid: a paid-up plan, card
+  // payments, signs in stock and prices (never an invented price)
   const pricing = parseBookingPricing(agency.pricing_config);
-  if (!pricing || !subscriptionAllowsBookings(agency)) {
+  const blockers = await getBookingBlockers(agency);
+  if (!pricing || blockers.length > 0) {
+    const contact = [agency.phone, agency.email].filter(Boolean).join(' · ');
     return (
       <div className="min-h-screen flex items-center justify-center p-8 text-center">
-        <p className="text-neutral-700">
-          This agency isn&apos;t taking online bookings yet. Please contact them directly.
-        </p>
+        <div className="max-w-md space-y-2">
+          <p className="text-lg font-medium text-neutral-900">{agency.name}</p>
+          <p className="text-neutral-700">
+            This agency isn&apos;t taking online bookings yet. Please contact them directly.
+          </p>
+          {contact && <p className="text-neutral-600">{contact}</p>}
+        </div>
       </div>
     );
   }

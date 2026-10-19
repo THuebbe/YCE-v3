@@ -9,6 +9,8 @@ import { DashboardMetrics } from "@/features/dashboard/components/dashboard-metr
 import { DashboardRecentOrders } from "@/features/dashboard/components/dashboard-recent-orders";
 import { getAgencyBySlug, getUserById } from "@/lib/db/supabase-client";
 import { BillingBanner } from "@/features/billing/components/billing-banner";
+import { SetupChecklist } from "@/features/agency/components/setup-checklist";
+import { getBookingBlockers } from "@/features/agency/readiness-server";
 
 // Force dynamic rendering since we use server-side data fetching
 export const dynamic = "force-dynamic";
@@ -77,6 +79,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
 					</p>
 				</div>
 
+				<SetupChecklist missing={await getBookingBlockers(agency)} slug={agencySlug} />
 				<BillingBanner agency={agency} slug={agencySlug} />
 
 				{/* New Dashboard with Server-side Rendering and Suspense */}

@@ -11,6 +11,7 @@ import { createHash } from 'crypto';
 import { headers } from 'next/headers';
 import { supabase, getAgencyBySlug } from '@/lib/db/supabase-client';
 import { subscriptionAllowsBookings } from '@/features/billing/subscription';
+import { canTakePayments } from '@/features/agency/readiness';
 import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from './booking-rules';
 import { effectiveBookingRules } from './policies';
 
@@ -26,10 +27,10 @@ export type CreateHoldResult =
   | { ok: true; holdId: string; rentalStart: string; rentalEnd: string }
   | { ok: false; error: string; shortages?: Shortage[] };
 
-/** The agency, if it's taking bookings (active and subscription paid up) */
+/** The agency, if it's taking bookings (active, paid-up plan, can be paid) */
 async function resolveAgency(agencySlug: string) {
   const agency = await getAgencyBySlug(agencySlug);
-  return agency?.is_active && subscriptionAllowsBookings(agency)
+  return agency?.is_active && subscriptionAllowsBookings(agency) && canTakePayments(agency)
     ? (agency as { id: string; plan: string | null; booking_rules: unknown; operating_hours: unknown; blackout_dates: unknown })
     : null;
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
-import { createOrderFromPayload, resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
+import { resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
 import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
 import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
@@ -266,9 +266,8 @@ export async function POST(
 			eventDateIso: eventDate.toISOString(),
 		};
 
-		// Agencies that finished Stripe setup take real card payments (direct
-		// charges to their account). Everyone else still gets the no-charge demo
-		// checkout until the setup checklist gates bookings (milestone 4).
+		// Bookings are paid by card: direct charges to the agency's Stripe
+		// account. Agencies without it don't take bookings (readiness.ts).
 		// A real card from Stripe's form (token or 3-D Secure payment) must be
 		// charged or refused - never turned into an unpaid demo order. Happens if
 		// the agency's Stripe status changes mid-booking.
@@ -303,12 +302,14 @@ export async function POST(
 			return checkoutResponse(outcome);
 		}
 
-		const outcome = await createOrderFromPayload(payload, {
-			method: formData.payment?.paymentMethod || null,
-			intentId: paymentIntentId,
-			status: "pending",
-		});
-		return checkoutResponse(outcome);
+		// Every booking is paid by card through Stripe: there's no unpaid
+		// "demo" order any more, and Venmo/PayPal checkout isn't finished
+		// (both used to save an order without collecting anything)
+		console.warn("Booking refused: no working payment method", { agencySlug, stripeReady, method });
+		return NextResponse.json({
+			success: false,
+			error: "This agency can't take online payments right now, so no booking was made. Please contact them directly."
+		}, { status: 409 });
 	} catch (error) {
 		console.error("❌ Unexpected error creating order:", error);
 		return NextResponse.json(
