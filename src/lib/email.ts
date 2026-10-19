@@ -243,6 +243,62 @@ export async function sendAgencyCancellationNotice(data: {
 	}
 }
 
+interface FeeEmailData {
+	to: string;
+	customerName: string;
+	orderNumber: string;
+	lateDays: number;
+	lateAmount: number;
+	damagedSigns: number;
+	damageAmount: number;
+	total: number;
+	agencyName: string;
+	agencyEmail: string | null;
+	agencyPhone: string | null;
+}
+
+function feeLines(d: FeeEmailData): string {
+	const lines: string[] = [];
+	if (d.lateAmount > 0) lines.push(`<p style="margin:0 0 6px">Late pickup (${d.lateDays} day${d.lateDays === 1 ? '' : 's'}): $${d.lateAmount.toFixed(2)}</p>`);
+	if (d.damageAmount > 0) lines.push(`<p style="margin:0 0 6px">Damaged or missing signs (${d.damagedSigns}): $${d.damageAmount.toFixed(2)}</p>`);
+	lines.push(`<p style="margin:0"><strong>Total: $${d.total.toFixed(2)}</strong></p>`);
+	return lines.join('');
+}
+
+async function sendFeeEmail(d: FeeEmailData, subject: string, intro: string, after: string) {
+	const contact = [d.agencyPhone, d.agencyEmail].filter(Boolean).map(v => escapeHtml(v!)).join(' · ');
+	const address = FROM_ADDRESS.match(/<([^>]+)>/)?.[1] ?? FROM_ADDRESS;
+	const resend = getResendClient();
+	const result = await resend.emails.send({
+		from: `${d.agencyName.replace(/[<>"\r\n]/g, '')} via YardCard Elite <${address}>`,
+		to: [d.to],
+		...(d.agencyEmail ? { replyTo: d.agencyEmail } : {}),
+		subject,
+		html: `
+			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
+				<p>${intro}</p>
+				<div style="background-color: #f3f4f6; padding: 16px 20px; border-radius: 8px; margin: 16px 0;">${feeLines(d)}</div>
+				${after}
+				<p style="font-size: 14px;">These fees are in the booking terms you agreed to. Questions? Contact ${escapeHtml(d.agencyName)}${contact ? `: ${contact}` : ''}, or reply to this email.</p>
+			</div>`,
+	});
+	if (result.error) console.error('❌ Fee email: Resend error:', result.error);
+	return { success: !result.error };
+}
+
+/** Fees charged to the card saved at booking */
+export async function sendFeeChargedEmail(d: FeeEmailData & { cardLast4: string }) {
+	return sendFeeEmail(d, `Fees for order ${d.orderNumber}`,
+		`${escapeHtml(d.agencyName)} charged these fees for order ${escapeHtml(d.orderNumber)} to your card ending ${escapeHtml(d.cardLast4)}:`, '');
+}
+
+/** The saved card couldn't be charged: pay by link */
+export async function sendFeePaymentLinkEmail(d: FeeEmailData & { payUrl: string }) {
+	return sendFeeEmail(d, `Payment needed: fees for order ${d.orderNumber}`,
+		`${escapeHtml(d.agencyName)} has these fees for order ${escapeHtml(d.orderNumber)}. Your card on file couldn't be charged, so please pay here:`,
+		`<p style="text-align:center; margin: 24px 0;"><a href="${escapeHtml(d.payUrl)}" style="background-color:#111827; color:#fff; padding:12px 24px; border-radius:6px; text-decoration:none;">Pay $${d.total.toFixed(2)}</a></p>`);
+}
+
 // Test function to verify email setup
 export async function sendTestEmail(toEmail: string) {
 	try {

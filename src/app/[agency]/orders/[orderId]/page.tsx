@@ -6,6 +6,7 @@ import { OrderDetails } from '@/features/orders/components/order-details'
 import { OrderDetailsSkeleton } from '@/features/orders/components/order-details-skeleton'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 import { getOrderWithDetails } from '@/features/orders/utils'
+import { getFeeQuote } from '@/features/orders/fees'
 import { planOf, type Plan } from '@/features/billing/entitlements'
 
 // Force dynamic rendering since we use server-side data fetching
@@ -26,7 +27,9 @@ async function OrderDetailsData({ orderId, plan }: { orderId: string; plan: Plan
       notFound()
     }
 
-    return <OrderDetails order={order} plan={plan} />
+    // Checked in: the late/damage fees the agency may charge
+    const feeQuote = order.status === 'completed' ? await getFeeQuote(order.id, order.agency_id) : null
+    return <OrderDetails order={order} plan={plan} feeQuote={feeQuote} />
   } catch (error) {
     console.error('Error fetching order details:', error)
     notFound()
