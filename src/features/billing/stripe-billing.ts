@@ -89,8 +89,10 @@ export async function createSubscriptionCheckout(input: {
     customer,
     client_reference_id: agency.id,
     line_items: [{ price: await priceIdFor(PRICE_KEYS[input.plan][input.interval]), quantity: 1 }],
-    // Card up front, even for the trial (PRODUCT.md)
+    // Card up front, even for the trial (PRODUCT.md); cards only, since
+    // it's charged again every period
     payment_method_collection: 'always',
+    payment_method_types: ['card'],
     allow_promotion_codes: true,
     subscription_data: {
       metadata: { agency_id: agency.id },
