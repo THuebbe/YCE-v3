@@ -7,6 +7,8 @@ import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
 import { getStripe, toCents } from '@/lib/stripe';
 import { requireFeature } from '@/features/billing/server';
+import { sendCustomerCancellationEmail } from '@/lib/email';
+import { formatDay } from '@/features/booking/booking-rules';
 import type { OrderAction } from './stateMachine';
 import type { CancelOrderInput } from './types';
 
@@ -123,6 +125,31 @@ export async function advanceOrderStatus(orderId: string, action: OrderAction): 
     return { success: true };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Failed to update order' };
+  }
+}
+
+/** Emails the customer; the cancellation stands if it fails */
+async function notifyCustomerOfCancellation(orderId: string, agencyId: string, refundAmount: number, refundedToCard: boolean) {
+  try {
+    const { data } = await supabase
+      .from('orders')
+      .select('order_number, customer_name, customer_email, event_date, agency:agencies(name, email, phone)')
+      .eq('id', orderId).eq('agency_id', agencyId).single();
+    const agency = (Array.isArray(data?.agency) ? data?.agency[0] : data?.agency) as { name: string; email: string | null; phone: string | null } | undefined;
+    if (!data?.customer_email || !agency) return;
+    await sendCustomerCancellationEmail({
+      to: data.customer_email,
+      customerName: data.customer_name ?? '',
+      orderNumber: data.order_number,
+      eventDay: data.event_date ? formatDay(String(data.event_date).slice(0, 10), true) : 'your event',
+      refundAmount,
+      refundedToCard,
+      agencyName: agency.name,
+      agencyEmail: agency.email,
+      agencyPhone: agency.phone,
+    });
+  } catch (error) {
+    console.error('Cancellation email failed (order stays cancelled):', orderId, error);
   }
 }
 
@@ -243,6 +270,7 @@ export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult
         .update({ status: 'refunded', updated_at: new Date().toISOString() })
         .eq('id', checkout!.id);
     }
+    await notifyCustomerOfCancellation(order.id, order.agency_id, refundAmount, refunded);
     revalidateOrder(input.orderId);
     return { success: true, refunded };
   } catch (error) {

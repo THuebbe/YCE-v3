@@ -256,7 +256,7 @@ export async function POST(
 		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
 		const payload: OrderPayload = {
 			order,
-			agency: { id: actualAgencyId, slug: agency.slug, name: agency.name, email: agency.contactEmail || agency.email || null },
+			agency: { id: actualAgencyId, slug: agency.slug, name: agency.name, email: agency.contactEmail || agency.email || null, phone: agency.phone || null },
 			holdId,
 			sessionId,
 			rentalStart: start,

@@ -93,6 +93,121 @@ export async function sendOrderNotificationEmail(data: OrderNotificationData) {
 	}
 }
 
+interface CustomerConfirmationData {
+	to: string;
+	customerName: string;
+	orderNumber: string;
+	confirmationCode: string;
+	/** "Saturday, November 7, 2026" */
+	eventDay: string;
+	address: string;
+	message: string | null;
+	totalAmount: number;
+	paidByCard: boolean;
+	agencyName: string;
+	agencyEmail: string | null;
+	agencyPhone: string | null;
+	/** The terms they agreed to (orders.terms_snapshot sections) */
+	terms: { title: string; text: string }[];
+}
+
+/**
+ * The customer's booking confirmation, on the agency's behalf: replies go to
+ * the agency. Customers otherwise only got Stripe's payment receipt.
+ */
+export async function sendCustomerConfirmationEmail(data: CustomerConfirmationData) {
+	try {
+		const contact = [data.agencyPhone, data.agencyEmail].filter(Boolean).map(v => escapeHtml(v!)).join(' · ');
+		const terms = data.terms.map(t => `<p style="margin:0 0 8px"><strong>${escapeHtml(t.title)}:</strong> ${escapeHtml(t.text)}</p>`).join('');
+		const html = `
+			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
+				<h1 style="font-size: 22px;">You're booked, ${escapeHtml(data.customerName.split(' ')[0] || data.customerName)}!</h1>
+				<p>${escapeHtml(data.agencyName)} has your yard display order.</p>
+				<div style="background-color: #f3f4f6; padding: 16px 20px; border-radius: 8px; margin: 20px 0;">
+					<p style="margin:0 0 6px"><strong>Order:</strong> ${escapeHtml(data.orderNumber)} (confirmation code ${escapeHtml(data.confirmationCode)})</p>
+					<p style="margin:0 0 6px"><strong>Event day:</strong> ${escapeHtml(data.eventDay)}</p>
+					<p style="margin:0 0 6px"><strong>Address:</strong> ${escapeHtml(data.address)}</p>
+					${data.message ? `<p style="margin:0 0 6px"><strong>Message:</strong> ${escapeHtml(data.message)}</p>` : ''}
+					<p style="margin:0"><strong>${data.paidByCard ? 'Paid' : 'Total'}:</strong> $${data.totalAmount.toFixed(2)}</p>
+				</div>
+				<p>Questions or changes? Contact ${escapeHtml(data.agencyName)}${contact ? `: ${contact}` : ''}. You can also reply to this email.</p>
+				<h2 style="font-size: 16px; margin-top: 28px;">Your booking terms</h2>
+				<div style="font-size: 14px; color: #4b5563;">${terms}</div>
+				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}.</p>
+			</div>
+		`;
+		// "Texas Sign Solutions via YardCard Elite <orders@...>": the agency's
+		// name, our verified sending address
+		const address = FROM_ADDRESS.match(/<([^>]+)>/)?.[1] ?? FROM_ADDRESS;
+		const fromName = `${data.agencyName.replace(/[<>"\r\n]/g, '')} via YardCard Elite`;
+		const resend = getResendClient();
+		const result = await resend.emails.send({
+			from: `${fromName} <${address}>`,
+			to: [data.to],
+			...(data.agencyEmail ? { replyTo: data.agencyEmail } : {}),
+			subject: `Your booking with ${data.agencyName.replace(/[\r\n]+/g, ' ')}: ${data.eventDay}`,
+			html,
+		});
+		if (result.error) {
+			console.error('❌ Customer confirmation: Resend error:', result.error);
+			return { success: false, error: result.error };
+		}
+		console.log('✅ Customer confirmation sent. ID:', result.data?.id);
+		return { success: true, emailId: result.data?.id };
+	} catch (error) {
+		console.error('❌ Customer confirmation failed:', error);
+		return { success: false, error };
+	}
+}
+
+/** Tells the customer their order was cancelled, and what comes back */
+export async function sendCustomerCancellationEmail(data: {
+	to: string;
+	customerName: string;
+	orderNumber: string;
+	eventDay: string;
+	refundAmount: number;
+	refundedToCard: boolean;
+	agencyName: string;
+	agencyEmail: string | null;
+	agencyPhone: string | null;
+}) {
+	try {
+		const contact = [data.agencyPhone, data.agencyEmail].filter(Boolean).map(v => escapeHtml(v!)).join(' · ');
+		const refund = data.refundAmount > 0
+			? data.refundedToCard
+				? `<p>A refund of <strong>$${data.refundAmount.toFixed(2)}</strong> is on its way to your card. Banks usually show it within 5-10 business days.</p>`
+				: `<p>${escapeHtml(data.agencyName)} will refund <strong>$${data.refundAmount.toFixed(2)}</strong> to you.</p>`
+			: '<p>No refund is due under the booking terms you agreed to.</p>';
+		const html = `
+			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
+				<h1 style="font-size: 22px;">Your booking was cancelled</h1>
+				<p>${escapeHtml(data.agencyName)} cancelled order ${escapeHtml(data.orderNumber)} for ${escapeHtml(data.eventDay)}.</p>
+				${refund}
+				<p>Questions? Contact ${escapeHtml(data.agencyName)}${contact ? `: ${contact}` : ''}, or reply to this email.</p>
+				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}.</p>
+			</div>
+		`;
+		const address = FROM_ADDRESS.match(/<([^>]+)>/)?.[1] ?? FROM_ADDRESS;
+		const resend = getResendClient();
+		const result = await resend.emails.send({
+			from: `${data.agencyName.replace(/[<>"\r\n]/g, '')} via YardCard Elite <${address}>`,
+			to: [data.to],
+			...(data.agencyEmail ? { replyTo: data.agencyEmail } : {}),
+			subject: `Booking cancelled: ${data.orderNumber}`,
+			html,
+		});
+		if (result.error) {
+			console.error('❌ Cancellation email: Resend error:', result.error);
+			return { success: false, error: result.error };
+		}
+		return { success: true, emailId: result.data?.id };
+	} catch (error) {
+		console.error('❌ Cancellation email failed:', error);
+		return { success: false, error };
+	}
+}
+
 // Test function to verify email setup
 export async function sendTestEmail(toEmail: string) {
 	try {

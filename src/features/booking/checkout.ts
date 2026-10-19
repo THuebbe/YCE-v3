@@ -10,14 +10,16 @@
 
 import type Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
-import { sendOrderNotificationEmail } from '@/lib/email';
+import { sendCustomerConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email';
+import { formatDay } from './booking-rules';
 import { applicationFeeCents, getStripe, requestOrigin, toCents, type StripeAccountType } from '@/lib/stripe';
 
 /** Everything needed to create the order later, validated by /api/orders/create. */
 export interface OrderPayload {
   /** orders row, without order_number / confirmation_code / payment fields */
   order: Record<string, unknown>;
-  agency: { id: string; slug: string; name: string; email: string | null };
+  /** phone: optional (older saved checkouts don't have it) */
+  agency: { id: string; slug: string; name: string; email: string | null; phone?: string | null };
   holdId: string;
   sessionId: string;
   rentalStart: string;
@@ -118,6 +120,30 @@ export async function createOrderFromPayload(
       });
     } catch (emailError) {
       console.error('Order notification email failed (order stands):', emailError);
+    }
+  }
+
+  // The customer's confirmation (the order stands if it fails)
+  const order = payload.order as { customer_email?: string; event_address?: string; message_text?: string | null; terms_snapshot?: { sections?: { title: string; text: string }[] } };
+  if (order.customer_email) {
+    try {
+      await sendCustomerConfirmationEmail({
+        to: order.customer_email,
+        customerName: payload.customerName,
+        orderNumber: orderRecord.order_number,
+        confirmationCode,
+        eventDay: formatDay(payload.eventDateIso.slice(0, 10), true),
+        address: order.event_address ?? '',
+        message: order.message_text ?? null,
+        totalAmount: payload.totalDollars,
+        paidByCard: payment.status === 'paid',
+        agencyName: payload.agency.name,
+        agencyEmail: payload.agency.email,
+        agencyPhone: payload.agency.phone ?? null,
+        terms: order.terms_snapshot?.sections ?? [],
+      });
+    } catch (emailError) {
+      console.error('Customer confirmation email failed (order stands):', emailError);
     }
   }
 
