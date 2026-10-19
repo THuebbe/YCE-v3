@@ -221,45 +221,39 @@ export async function getDashboardMetrics(agencyId: string): Promise<any> {
       .eq('agency_id', agencyId)
       .in('status', ['pending', 'processing', 'deployed'])
     
-    // Get monthly revenue (current month)
-    const { data: currentMonthOrders, error: currentMonthError } = await supabase
+    // Revenue = money the agency actually kept: what was paid minus
+    // refunds, by booking date. Counts kept cancellation fees, excludes
+    // unpaid orders (old demo checkouts).
+    const { data: paidOrders } = await supabase
       .from('orders')
-      .select('total, completed_at, updated_at')
+      .select('total, refund_amount, created_at')
       .eq('agency_id', agencyId)
-      .eq('status', 'completed')
-      .or(`completed_at.gte.${startOfMonth.toISOString()},and(completed_at.is.null,updated_at.gte.${startOfMonth.toISOString()})`)
-    
-    // Get previous month revenue
-    const { data: prevMonthOrders, error: prevMonthError } = await supabase
-      .from('orders')
-      .select('total, completed_at, updated_at')
-      .eq('agency_id', agencyId)
-      .eq('status', 'completed')
-      .or(`and(completed_at.gte.${startOfPrevMonth.toISOString()},completed_at.lt.${startOfMonth.toISOString()}),and(completed_at.is.null,updated_at.gte.${startOfPrevMonth.toISOString()},updated_at.lt.${startOfMonth.toISOString()})`)
-    
+      .in('payment_status', ['paid', 'partially_refunded', 'refunded'])
+      .gte('created_at', new Date(Math.min(startOfPrevMonth.getTime(), thirtyDaysAgo.getTime())).toISOString())
+
     // Get completed orders count (current month)
-    const { data: completedOrders, error: completedOrdersError } = await supabase
+    const { data: completedOrders } = await supabase
       .from('orders')
       .select('id, completed_at, updated_at')
       .eq('agency_id', agencyId)
       .eq('status', 'completed')
       .or(`completed_at.gte.${startOfMonth.toISOString()},and(completed_at.is.null,updated_at.gte.${startOfMonth.toISOString()})`)
-    
-    // Get last 30 days revenue (rolling)
-    const { data: last30DaysOrders, error: last30DaysError } = await supabase
-      .from('orders')
-      .select('total, completed_at, updated_at')
-      .eq('agency_id', agencyId)
-      .eq('status', 'completed')
-      .or(`completed_at.gte.${thirtyDaysAgo.toISOString()},and(completed_at.is.null,updated_at.gte.${thirtyDaysAgo.toISOString()})`)
-    
+
+    const kept = (o: { total: unknown; refund_amount: unknown }) =>
+      Math.max(0, (Number(o.total) || 0) - (Number(o.refund_amount) || 0))
+    const sumSince = (from: Date, to?: Date) => (paidOrders ?? [])
+      .filter(o => { const t = new Date(o.created_at as string); return t >= from && (!to || t < to) })
+      .reduce((sum, o) => sum + kept(o), 0)
+    const round = (n: number) => Math.round(n * 100) / 100
+
     // Calculate metrics
     const openOrdersCount = openOrders?.length || 0
-    const currentMonthRevenue = currentMonthOrders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0
-    const prevMonthRevenue = prevMonthOrders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0
-    const last30DaysRevenue = last30DaysOrders?.reduce((sum, order) => sum + (order.total || 0), 0) || 0
+    const currentMonthRevenue = round(sumSince(startOfMonth))
+    const prevMonthRevenue = round(sumSince(startOfPrevMonth, startOfMonth))
+    const last30DaysRevenue = round(sumSince(thirtyDaysAgo))
     const completedOrdersCount = completedOrders?.length || 0
-    const averageOrderValue = completedOrdersCount > 0 ? currentMonthRevenue / completedOrdersCount : 0
+    const paidThisMonth = (paidOrders ?? []).filter(o => new Date(o.created_at as string) >= startOfMonth).length
+    const averageOrderValue = paidThisMonth > 0 ? round(currentMonthRevenue / paidThisMonth) : 0
     
     return {
       openOrdersCount,
