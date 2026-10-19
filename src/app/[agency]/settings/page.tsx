@@ -5,6 +5,11 @@ import { Header } from '@/shared/components/layout/Header'
 import { AgencyProfileSection } from './components/AgencyProfileSection'
 import FinancialManagementSection from './components/FinancialManagementSection'
 import AgencySettingsSection from './components/AgencySettingsSection'
+import { BillingSection } from './components/BillingSection'
+import { trialDays } from '@/features/billing/stripe-billing'
+import { PoliciesCard } from './components/PoliciesCard'
+import { parsePolicies } from '@/features/booking/policies'
+import { hasFeature, planOf } from '@/features/billing/entitlements'
 
 interface SettingsPageProps {
   params: Promise<{
@@ -64,6 +69,22 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
 
           {/* Settings Sections */}
           <div className="space-y-8">
+            {/* Subscription */}
+            <section>
+              <BillingSection
+                subscription={{
+                  stripe_subscription_id: agency.stripe_subscription_id,
+                  subscription_status: agency.subscription_status,
+                  subscription_price: agency.subscription_price,
+                  subscription_current_period_end: agency.subscription_current_period_end,
+                  subscription_trial_end: agency.subscription_trial_end,
+                  subscription_cancel_at_period_end: agency.subscription_cancel_at_period_end,
+                  subscription_past_due_since: agency.subscription_past_due_since,
+                }}
+                trialDays={trialDays()}
+              />
+            </section>
+
             {/* Agency Profile Section */}
             <section>
               <AgencyProfileSection 
@@ -83,9 +104,18 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
               />
             </section>
 
+            {/* Cancellation / late / damage fees (Elite) */}
+            <section>
+              <PoliciesCard
+                policies={parsePolicies(agency.policy_config, agency.pricing_config)}
+                canEdit={hasFeature(planOf(agency), 'policySettings')}
+                billingHref={`/${agencySlug}/billing`}
+              />
+            </section>
+
             {/* Agency Settings Section */}
             <section>
-              <AgencySettingsSection agency={agency} />
+              <AgencySettingsSection agency={agency} canEditBookingRules={hasFeature(planOf(agency), 'policySettings')} />
             </section>
 
             {/* Team Management Section - Future Feature */}

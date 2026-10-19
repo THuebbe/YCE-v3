@@ -55,6 +55,7 @@ export default function FinancialManagementSection({
   const [errors, setErrors] = useState<FinancialValidationErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [savedMessage, setSavedMessage] = useState<string | null>(null)
 
   // Load pricing configuration and subscription info on component mount
   useEffect(() => {
@@ -125,30 +126,26 @@ export default function FinancialManagementSection({
         return
       }
 
-      if (pricingConfig.lateFee < 0) {
-        setErrors({ pricingConfig: { lateFee: ['Late fee cannot be negative'] } })
-        return
-      }
 
-      const response = await fetch(`/api/agency/financial-settings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          agencyId: agency.id,
-          pricingConfig
-        })
+      // PUT with the agency in the query (the route has no POST: saving
+      // prices here used to fail with a 405)
+      const response = await fetch(`/api/agency/financial-settings?agencyId=${agency.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ basePrice: pricingConfig.basePrice, extraDayPrice: pricingConfig.extraDayPrice }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = await response.json().catch(() => ({}))
         throw new Error(errorData.error || 'Failed to save pricing configuration')
       }
 
+      setSavedMessage('Prices saved. New bookings use them right away.')
       onSuccess?.()
     } catch (error) {
       console.error('Error saving pricing configuration:', error)
+      setSavedMessage(null)
+      setErrors({ pricingConfig: { basePrice: [error instanceof Error ? error.message : 'Failed to save pricing configuration'] } })
       onError?.(error instanceof Error ? error.message : 'Failed to save pricing configuration')
     } finally {
       setIsSaving(false)
@@ -191,11 +188,11 @@ export default function FinancialManagementSection({
             Pricing Configuration
           </CardTitle>
           <CardDescription>
-            Set your base pricing and additional fees for yard card rentals.
+            Your rental prices. Cancellation, late and damage fees are under Booking policies.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="base-price">Base Price</Label>
               <Input
@@ -228,27 +225,12 @@ export default function FinancialManagementSection({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="late-fee">Late Fee</Label>
-              <Input
-                id="late-fee"
-                type="number"
-                step="0.01"
-                min="0"
-                value={pricingConfig.lateFee}
-                onChange={(e) => handlePricingChange('lateFee', e.target.value)}
-                placeholder="25.00"
-              />
-              {errors.pricingConfig?.lateFee && (
-                <p className="text-sm text-red-600">{errors.pricingConfig.lateFee[0]}</p>
-              )}
-            </div>
           </div>
 
           {/* Preview */}
           <div className="bg-gray-50 shadow-sm rounded-lg p-4">
             <h4 className="text-sm font-medium text-gray-900 mb-2">Pricing Preview</h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Standard rental:</span>
                 <span className="font-medium ml-2">${pricingConfig.basePrice.toFixed(2)}</span>
@@ -257,14 +239,11 @@ export default function FinancialManagementSection({
                 <span className="text-gray-600">Each extra day:</span>
                 <span className="font-medium ml-2">+${pricingConfig.extraDayPrice.toFixed(2)}</span>
               </div>
-              <div>
-                <span className="text-gray-600">Late return:</span>
-                <span className="font-medium ml-2">+${pricingConfig.lateFee.toFixed(2)}</span>
-              </div>
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {savedMessage && <p className="text-sm text-green-700">{savedMessage}</p>}
             <Button onClick={handleSavePricing} disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
               {isSaving ? 'Saving...' : 'Save Pricing'}

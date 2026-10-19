@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { AgencyContact, BookingFormData, ExtendedBookingFormData, WizardContextType } from '../types';
 import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type { BookingPricing } from '../pricing';
+import type { AgencyPolicies } from '../policies';
 import type { BookingRules } from '../booking-rules';
 import { touchBookingHold } from '../actions';
 
@@ -61,6 +62,8 @@ interface WizardProviderProps {
   agencySlug: string;
   agency: AgencyContact;
   pricing: BookingPricing;
+  /** Cancellation, late and damage fees for the booking terms */
+  policies: AgencyPolicies;
   bookingRules: BookingRules;
   agencyTimeZone?: string;
   totalSteps: number;
@@ -75,6 +78,7 @@ export function WizardProvider({
   agencySlug,
   agency,
   pricing,
+  policies,
   bookingRules,
   agencyTimeZone,
   totalSteps, 
@@ -183,6 +187,7 @@ export function WizardProvider({
     agencySlug,
     agency,
     pricing,
+    policies,
     bookingRules,
     sessionId,
     timeZone,

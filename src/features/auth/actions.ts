@@ -162,7 +162,7 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         settings: { serviceAreas },
         stripe_connect_status: 'pending',
         subscription_start_date: now,
-        subscription_status: 'trial' // Match schema default instead of 'active'
+        subscription_status: 'none', // set by Stripe Billing once they subscribe
       })
       .select()
       .single()
@@ -231,7 +231,7 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
   }
 }
 
-// Complete onboarding and redirect to dashboard
+// Complete onboarding: the last step is choosing a plan (billing page)
 export async function completeOnboarding(agencySlug: string) {
   // Check if user is authenticated
   const user = await currentUser()
@@ -239,8 +239,7 @@ export async function completeOnboarding(agencySlug: string) {
     redirect('/auth/sign-in')
   }
 
-  // Dashboards live at /<slug>/dashboard; there is no /dashboard route
-  redirect(`/${agencySlug}/dashboard`)
+  redirect(`/${agencySlug}/billing?welcome=1`)
 }
 
 // TODO: Implement user role management with Supabase

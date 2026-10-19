@@ -1,4 +1,3 @@
-import type { BookingPricing } from './pricing';
 
 /**
  * The booking terms the customer agrees to on the Review step (PRODUCT.md
@@ -21,7 +20,8 @@ export interface CancellationPolicy {
 }
 
 /**
- * Defaults until agencies can set these (Elite tier, later). Cancellation:
+ * Defaults (Essentials, and gaps in an Elite agency's settings - see
+ * policies.ts). Cancellation:
  * $20 or 15%, 48h - decided 2026-10-17 from yard card vendors' terms
  * (flat ~$25 fees, non-refundable deposits, half back late); covers Stripe's
  * fee and the platform's $3 even on small orders.
@@ -35,7 +35,7 @@ export const TERMS_DEFAULTS = {
 const LEGACY_CANCELLATION: CancellationPolicy = { noticeHours: 24, feePercent: 5, feeMinimum: 0 };
 
 /** Bump when the wording changes, so saved orders say which text was agreed */
-export const TERMS_VERSION = '2026-10-17b';
+export const TERMS_VERSION = '2026-10-19';
 
 export interface BookingTerms {
   version: string;
@@ -64,15 +64,26 @@ const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 /** "Texas Sign Solutions'" / "Elite Denver's" */
 const possessive = (name: string) => (/s$/i.test(name.trim()) ? `${name}'` : `${name}'s`);
 
+/** Reads right for any policy an Elite agency sets (no fee, no notice window...) */
+function cancellationText({ noticeHours, feePercent, feeMinimum }: CancellationPolicy): string {
+  const fee = feePercent > 0 && feeMinimum > 0
+    ? `a refund minus a cancellation fee of ${feePercent}% or ${money(feeMinimum)}, whichever is more`
+    : feePercent > 0 ? `a refund minus a ${feePercent}% cancellation fee`
+    : feeMinimum > 0 ? `a refund minus a ${money(feeMinimum)} cancellation fee`
+    : 'a full refund';
+  if (noticeHours <= 0) return `Cancel any time before delivery for ${fee}.`;
+  return `Cancel at least ${noticeHours} hours before delivery for ${fee}. Within ${noticeHours} hours of delivery, no refund.`;
+}
+
 export function buildBookingTerms(input: {
   agencyName: string;
-  pricing: Pick<BookingPricing, 'lateFee'>;
+  /** The agency's policies in force (policies.ts effectivePolicies) */
+  policies: { cancellation: CancellationPolicy; lateFee: number; damageFeePerSign: number };
   /** Card payments are saved for later fees; other methods get a payment link */
   paysByCard: boolean;
 }): BookingTerms {
-  const { agencyName, pricing, paysByCard } = input;
-  const { cancellation, damageFeePerSign } = TERMS_DEFAULTS;
-  const { noticeHours, feePercent, feeMinimum } = cancellation;
+  const { agencyName, policies, paysByCard } = input;
+  const { cancellation, damageFeePerSign, lateFee } = policies;
   const howCharged = paysByCard
     ? 'Your card is saved securely by Stripe so these fees can be charged to it.'
     : 'These fees are paid through a payment link.';
@@ -83,14 +94,12 @@ export function buildBookingTerms(input: {
       { title: 'Payment', text: 'You pay the full amount now.' },
       {
         title: 'Cancellations',
-        text:
-          `Cancel at least ${noticeHours} hours before delivery for a refund minus a cancellation fee of ` +
-          `${feePercent}% or ${money(feeMinimum)}, whichever is more. Within ${noticeHours} hours of delivery, no refund. ` +
+        text: `${cancellationText(cancellation)} ` +
           `If ${agencyName} can't deliver or install your display, including because of weather, you get a full refund.`,
       },
       {
         title: 'Late pickup',
-        text: `If the signs can't be collected at the scheduled pickup, ${agencyName} may charge ${money(pricing.lateFee)} per extra day until they can.`,
+        text: `If the signs can't be collected at the scheduled pickup, ${agencyName} may charge ${money(lateFee)} per extra day until they can.`,
       },
       {
         title: 'Damage',

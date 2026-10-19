@@ -54,7 +54,7 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
           title="Monthly Revenue"
           value={`$${metrics.monthlyRevenue.toLocaleString()}`}
           icon={<Wallet className="h-5 w-5" />}
-          description="Current month revenue"
+          description="Paid this month, minus refunds"
           trend={{
             value: Math.abs(revenueChange),
             isPositive: isRevenuePositive,
@@ -69,7 +69,7 @@ export function MetricsGrid({ metrics, loading = false, error = null }: MetricsG
           title="Last 30 Days"
           value={`$${metrics.last30DaysRevenue.toLocaleString()}`}
           icon={<DollarSign className="h-5 w-5" />}
-          description="Rolling 30-day revenue"
+          description="Paid in the last 30 days, minus refunds"
           colorScheme={{ color: 'text-success', bg: 'bg-success/10' }}
           loading={loading}
         />

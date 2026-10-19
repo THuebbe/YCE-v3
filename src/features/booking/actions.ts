@@ -10,7 +10,10 @@
 import { createHash } from 'crypto';
 import { headers } from 'next/headers';
 import { supabase, getAgencyBySlug } from '@/lib/db/supabase-client';
-import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from './booking-rules';
+import { subscriptionAllowsBookings } from '@/features/billing/subscription';
+import { canTakePayments } from '@/features/agency/readiness';
+import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from './booking-rules';
+import { effectiveBookingRules } from './policies';
 
 const MAX_SIGNS_PER_HOLD = 200;
 
@@ -24,10 +27,11 @@ export type CreateHoldResult =
   | { ok: true; holdId: string; rentalStart: string; rentalEnd: string }
   | { ok: false; error: string; shortages?: Shortage[] };
 
+/** The agency, if it's taking bookings (active, paid-up plan, can be paid) */
 async function resolveAgency(agencySlug: string) {
   const agency = await getAgencyBySlug(agencySlug);
-  return agency?.is_active
-    ? (agency as { id: string; booking_rules: unknown; operating_hours: unknown; blackout_dates: unknown })
+  return agency?.is_active && subscriptionAllowsBookings(agency) && canTakePayments(agency)
+    ? (agency as { id: string; plan: string | null; booking_rules: unknown; operating_hours: unknown; blackout_dates: unknown })
     : null;
 }
 
@@ -85,7 +89,7 @@ export async function createBookingHold(input: {
   const eventDate = new Date(input.eventDate);
   const before = Math.max(0, Math.floor(input.extraDaysBefore || 0));
   const after = Math.max(0, Math.floor(input.extraDaysAfter || 0));
-  const rules = parseBookingRules(agency.booking_rules, agency.blackout_dates);
+  const rules = effectiveBookingRules(agency);
   const today = todayIn(resolveTimeZone(agency.operating_hours, input.timeZone));
   const dateError = validateBookingDates(rules, eventDate, before, after, today);
   if (dateError) return { ok: false, error: dateError };

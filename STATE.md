@@ -1,11 +1,33 @@
 # Where This Stands
 
-Last verified: 2026-10-16
+Last verified: 2026-10-19
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
 old verification notes) is in `git show aace018:STATE.md`.
 
 ## Now
+- **2026-10-19 overnight (user asleep, pre-approved "do as much as you can
+  toward launch"): milestones 3 + 4, security, customer emails.** Stacked
+  PRs, merge in order: **#16** (STATE) → **#17** plans → **#18** billing +
+  signup step → **#19** Elite policies → **#20** milestone 4 → **#22**
+  customer emails → **#23** revenue fix. **#21** (RLS) is independent.
+  - All migrations below are APPLIED: `20261019_agency_plan`,
+    `_agency_subscriptions`, `_agency_policies`, `_yce_rls_backstop`.
+  - Stripe test mode: products "Essentials plan"/"Elite plan", 4 prices by
+    lookup key (`yce_{essentials,elite}_{monthly,annual}`), billing portal
+    allows switching among them, platform webhook `we_1US6YN2Hwl27rYJO0x2fMaNM`
+    (secret in Vercel `STRIPE_BILLING_WEBHOOK_SECRET`, prod + preview),
+    coupons `yce_internal_test` / `yce_founding_tester`, promo code
+    **FOUNDINGTESTER** (single use, 100% forever) for the user's tester.
+  - Test agencies: texas-signs, sunny-signs-ca, west-branch on free Elite
+    subscriptions (`yce_internal_test`); elite-denver on a real 14-day Elite
+    trial (card 4242, `sub_1US6n52Hwl27rYJORRrdaQVu`, first charge Nov 2 -
+    cancel it in the portal before then or it bills $79 in test mode);
+    lederman-bonds, my-business, onboard-test-oxmz unsubscribed (closed).
+  - After #20 merges, booking pages close for agencies without Stripe
+    (sunny-signs-ca, lederman-bonds, my-business, onboard-test-oxmz).
+  - Old dead Stripe webhook `we_1RKA9r2Hwl27rYJOozM6UHNT` (tempo-dev.app,
+    every event) still exists - delete it in Stripe if unused (DELETE: user).
 - **Production** (`yce-v3.vercel.app`, Hobby): milestone 1 live since PR #6
   (2026-10-08) - real inventory, server-side sign holds, agency booking
   rules. PR #7 merged 2026-10-10: order check-in/cancel, documents,
@@ -210,17 +232,28 @@ old verification notes) is in `git show aace018:STATE.md`.
   2026-10-07 note that cited it as evidence was mistaken.)
 
 ## Go-live blockers
-1. **Checkout never charges** (`pi_mock_…`; card form is plain inputs) →
-   milestone 2. Create the PaymentIntent from the server total.
+1. (done) Checkout charges real cards (milestone 2).
 2. **Clerk `user.created` webhook hasn't written a `users` row since
    2025-10** (found 2026-10-10). Onboarding now creates the row itself
    (branch), but check the webhook endpoint/secret in the Clerk dashboard
    - other `users` updates (name/email changes) still won't sync.
-3. Agency subscription billing (main revenue) not built - milestone 3.
-4. Clerk runs a development instance in production (`pk_test_`).
-5. RLS off on every YCE table (app-level guards only) - fix before the
-   first paying agency.
+3. (built, PR #18) Agency subscriptions. Live mode needs the same
+   products/prices (same lookup keys), portal config and a live platform
+   webhook + secret.
+4. Clerk runs a development instance in production (`pk_test_`). Free to
+   fix (Clerk free tier + yardcard-elite.com); also fixes the sign-in
+   refresh that drops `?session_id` on the way back from Stripe Checkout.
+5. (done 2026-10-19, PR #21) RLS backstop on YCE tables. STILL OPEN, the
+   user's call: `users` (shared with PantryPro) and PantryPro's tables are
+   readable/writable with the public anon key (advisor: rls_disabled_in_public).
 6. Customers can't self-cancel; late/damage fees not built - milestone 5.
+7. Venmo and PayPal checkout aren't real: Venmo's `processVenmoPayment`
+   requires a signed-in agency user (customers got "Unauthorized") and
+   takes the amount from the browser; PayPal's form is a stub. Both used
+   to save unpaid orders. Since #20 customers are only offered Stripe
+   cards; the setup tabs still work. Building them = new milestone.
+8. Vercel Pro + Stripe live: only when the first real agency pays (user's
+   call to wait).
 
 ## Known gaps (not blockers)
 - "Edit signs" isn't built; the buttons are disabled (needs stock
@@ -228,14 +261,12 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Booking (after the m1c branch): the Customize preview is blank after a
   refresh until regenerated (the hold survives); changing dates leaves
   the old hold until it expires or is replaced; customers sharing an IP
-  share the hold limit; no customer confirmation email; desktop and
+  share the hold limit; desktop and
   mobile copies of every step both mount.
 - The orders board has no Cancelled column (cancelled orders vanish
   from it).
 - `/api/agency/settings` PUT would wipe `settings.serviceAreas` (Zod
   strips unknown keys); nothing calls it today.
-- Refunds: cancel only records the requested refund (`orders.refund_amount`,
-  metadata) until Stripe.
 - Dashboard stock counters (`available_quantity` etc.) ignore holds;
   the booking side uses `yce_sign_availability` (ARCHITECTURE.md).
 - Sign Library tab lists all 315 letter variants and buries the 15
@@ -266,23 +297,35 @@ old verification notes) is in `git show aace018:STATE.md`.
   cutoff = calendar days before delivery (default 1); "end of day" in the
   agency's `operating_hours.timeZone`, else the customer's; extra days
   picked in Event Details. Setup/teardown editable in Elite later.
-- Plans Essentials $49 / Elite $79 (annual $499/$799), optional 14-day
-  trial, card up front. Cancellation fee 5% / 100% inside 24h, waivable.
-  Late $25/day and damage $5/sign defaults, manual, waivable.
+- Plans Essentials $49 / Elite $79 (annual $499/$799), 14-day trial on
+  the first subscription (BILLING_TRIAL_DAYS, 0 = off), card up front.
+  Tier split DECIDED 2026-10-19 (PRODUCT.md): Elite = pick ticket, pickup
+  checklist, own policies + booking rules, dashboard revenue; Essentials =
+  the rest incl. order summary. Unpaid = booking page closed, 7-day grace.
+  Cancellation default $20 or 15%, 48h. Late $25/day, damage $5/sign.
+  Blackout dates on every plan (Claude's call 2026-10-19 - ask the user).
 - Split the shared PantryPro DB - trigger: first paying agency or
   PantryPro resuming. Not before.
-- Still open: subscription renewal failure handling (grace period?).
 
 ## Next steps
 1. (done - PR #8 merged 2026-10-16)
 2. (done - Milestone 2: Stripe, 2a + 2b, finished 2026-10-18)
-3. Milestone 3: subscriptions. 4: setup checklist (inventory + payments
-   gate bookings), payments/subscription onboarding steps. 5: customer
-   cancel link, late/damage fees, edit signs.
-4. Later: Venmo/PayPal fee collection, production Clerk + domain, smart
+3. (built 2026-10-19, PRs #17-#20, #22, #23) Milestones 3 + 4.
+4. After merging: on production, one booking + one cancel to see the
+   customer emails in Resend's log; the user opens the billing portal once
+   (blank in Claude's sandbox); the user's tester signs up with
+   FOUNDINGTESTER.
+5. Milestone 5: customer cancel link, late/damage fee charging, edit signs.
+6. Later: real Venmo/PayPal checkout, production Clerk + domain, smart
    configurator theming (ARCHITECTURE.md, designed not built).
 
 ## NOT VERIFIED - check before trusting
+- Stripe billing portal page itself (opens, but its assets don't load in
+  Claude's sandbox) and the billing webhook on production (needs #18 merged:
+  until then production's old code 400s those events and Stripe retries).
+- Customer confirmation / cancellation emails (#22): previews have no
+  RESEND_API_KEY and the sandbox can't reach Resend.
+- Daily `/api/cron/sync-subscriptions` (needs CRON_SECRET, runs after merge).
 - `clear-expired-holds` cron route in production (its SQL was run by
   hand).
 - Whether manager@elite-denver.com and the other agencies' test users

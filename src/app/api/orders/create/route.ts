@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
-import { createOrderFromPayload, resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
+import { resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
 import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
-import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
+import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
+import { effectiveBookingRules, effectivePolicies, policyKey } from "@/features/booking/policies";
 import { z } from "zod";
+import { subscriptionAllowsBookings } from "@/features/billing/subscription";
 
 // Relaxed input validation schema - only validate essential fields
 const createOrderInputSchema = z.object({
@@ -71,6 +73,8 @@ const createOrderInputSchema = z.object({
 	termsAccepted: z.literal(true, { errorMap: () => ({ message: "Please agree to the booking terms" }) }),
 	termsVersion: z.string().min(1),
 	termsLateFee: z.number().min(0),
+	/** policies.ts policyKey of the terms the customer saw (cancellation, late, damage) */
+	termsPolicy: z.string().max(100).optional(),
 });
 
 export async function POST(
@@ -114,7 +118,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee, termsPolicy } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -128,6 +132,16 @@ export async function POST(
 		}
 		const actualAgencyId = agency.id;
 		console.log('✅ Agency UUID found:', actualAgencyId);
+
+		// No new bookings without a paid-up subscription. A card payment already
+		// made (3-D Secure return) is still finished below, so it gets its order.
+		const resumingPayment = paymentIntentId.startsWith("pi_") && !paymentIntentId.startsWith("pi_mock");
+		if (!resumingPayment && !subscriptionAllowsBookings(agency)) {
+			return NextResponse.json({
+				success: false,
+				error: "This agency isn't taking online bookings right now, so nothing was charged. Please contact them directly."
+			}, { status: 409 });
+		}
 
 		// The price is the agency's, not the browser's: recompute it and refuse
 		// an order whose quoted total doesn't match (tampering or a stale page)
@@ -153,7 +167,9 @@ export async function POST(
 
 		// The terms are the agency's too: the customer must have agreed to the
 		// ones in force now (a late-fee change mid-booking means a new text)
-		if (termsVersion !== TERMS_VERSION || Math.abs(termsLateFee - pricing.lateFee) > 0.005) {
+		const policies = effectivePolicies(agency);
+		if (termsVersion !== TERMS_VERSION || Math.abs(termsLateFee - policies.lateFee) > 0.005
+			|| (termsPolicy !== undefined && termsPolicy !== policyKey(policies))) {
 			return NextResponse.json({
 				success: false,
 				error: "This agency's booking terms were updated while you were booking. Please refresh the page and review them."
@@ -161,7 +177,7 @@ export async function POST(
 		}
 		const method = formData.payment?.paymentMethod || "card";
 		const stripeReady = Boolean(agency.stripe_account_id && agency.stripe_charges_enabled);
-		const terms = buildBookingTerms({ agencyName: agency.name, pricing, paysByCard: stripeReady && method === "card" });
+		const terms = buildBookingTerms({ agencyName: agency.name, policies, paysByCard: stripeReady && method === "card" });
 
 		// Convert eventDate string to Date object manually
 		const eventDate = new Date(formData.event.eventDate);
@@ -177,7 +193,7 @@ export async function POST(
 
 		// The agency's booking rules (order cutoff before delivery, rental length)
 		const { extraDaysBefore, extraDaysAfter } = formData.event;
-		const rules = parseBookingRules(agency.booking_rules, agency.blackout_dates);
+		const rules = effectiveBookingRules(agency);
 		const dateError = validateBookingDates(
 			rules,
 			eventDate,
@@ -240,7 +256,7 @@ export async function POST(
 		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
 		const payload: OrderPayload = {
 			order,
-			agency: { id: actualAgencyId, slug: agency.slug, name: agency.name, email: agency.contactEmail || agency.email || null },
+			agency: { id: actualAgencyId, slug: agency.slug, name: agency.name, email: agency.contactEmail || agency.email || null, phone: agency.phone || null },
 			holdId,
 			sessionId,
 			rentalStart: start,
@@ -250,9 +266,8 @@ export async function POST(
 			eventDateIso: eventDate.toISOString(),
 		};
 
-		// Agencies that finished Stripe setup take real card payments (direct
-		// charges to their account). Everyone else still gets the no-charge demo
-		// checkout until the setup checklist gates bookings (milestone 4).
+		// Bookings are paid by card: direct charges to the agency's Stripe
+		// account. Agencies without it don't take bookings (readiness.ts).
 		// A real card from Stripe's form (token or 3-D Secure payment) must be
 		// charged or refused - never turned into an unpaid demo order. Happens if
 		// the agency's Stripe status changes mid-booking.
@@ -287,12 +302,14 @@ export async function POST(
 			return checkoutResponse(outcome);
 		}
 
-		const outcome = await createOrderFromPayload(payload, {
-			method: formData.payment?.paymentMethod || null,
-			intentId: paymentIntentId,
-			status: "pending",
-		});
-		return checkoutResponse(outcome);
+		// Every booking is paid by card through Stripe: there's no unpaid
+		// "demo" order any more, and Venmo/PayPal checkout isn't finished
+		// (both used to save an order without collecting anything)
+		console.warn("Booking refused: no working payment method", { agencySlug, stripeReady, method });
+		return NextResponse.json({
+			success: false,
+			error: "This agency can't take online payments right now, so no booking was made. Please contact them directly."
+		}, { status: 409 });
 	} catch (error) {
 		console.error("❌ Unexpected error creating order:", error);
 		return NextResponse.json(

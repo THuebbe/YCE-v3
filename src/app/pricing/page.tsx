@@ -1,29 +1,32 @@
 import Link from 'next/link'
 
-// Plans decided 2026-10-07 (see PRODUCT.md "Platform revenue")
+// Plans and the tier split: PRODUCT.md "Plans" (DECIDED 2026-10-19)
 const PLANS = [
   {
     name: 'Essentials',
-    tagline: 'Everything you need to take bookings',
+    tagline: 'Everything you need to run your agency',
     monthly: 49,
     annual: 499,
     featured: false,
     features: [
       'Online booking page for your customers',
-      'Instant notification for every new order',
-      'Sign inventory control',
-      'Email support',
+      'Card payments straight to your account',
+      'Email for every new order',
+      'Sign inventory and order board',
+      'Order summary PDF for every job',
     ],
   },
   {
     name: 'Elite',
-    tagline: 'For agencies that want the full picture',
+    tagline: 'For agencies that run a tight operation',
     monthly: 79,
     annual: 799,
     featured: true,
     features: [
       'Everything in Essentials',
-      'Full reporting and analytics',
+      'Pick tickets and pickup checklists',
+      'Set your own cancellation, late and damage fees',
+      'Revenue tracking on your dashboard',
     ],
   },
 ]
@@ -117,7 +120,7 @@ export default function PricingPage() {
           <div className="max-w-3xl mx-auto space-y-8">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Do you offer a free trial?</h3>
-              <p className="text-gray-600">Yes. Both plans come with an optional 14-day free trial, or you can start your subscription right away. A card is required at signup either way.</p>
+              <p className="text-gray-600">Yes. Your first subscription starts with a 14-day free trial on either plan. A card is needed to start, and you aren't charged until the trial ends.</p>
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Can I pay yearly?</h3>
@@ -129,7 +132,7 @@ export default function PricingPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">How do my customers pay me?</h3>
-              <p className="text-gray-600">Connect your own Stripe, Venmo, or PayPal account, or let us set up card payments for you in a few minutes. Payments go directly to you.</p>
+              <p className="text-gray-600">Connect your own Stripe, Venmo, or PayPal account at no extra cost, or let us set up card payments for you in a few minutes for $3 per booking. Payments go directly to you either way.</p>
             </div>
           </div>
         </div>

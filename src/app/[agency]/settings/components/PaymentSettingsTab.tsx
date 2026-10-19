@@ -46,10 +46,12 @@ export function PaymentSettingsTab({
   const venmo: Status = braintreeStatus?.isConnected && braintreeStatus?.venmoEnabled
     ? 'active' : braintreeStatus?.isConnected ? 'pending' : 'off'
 
-  const rows: { tab: ProcessorTab; icon: React.ReactNode; name: string; what: string; status: Status }[] = [
-    { tab: 'stripe', icon: <CreditCard className="w-5 h-5" />, name: 'Cards (Stripe)', what: 'Credit and debit cards, Apple Pay', status: stripe },
-    { tab: 'paypal', icon: <CircleDollarSign className="w-5 h-5" />, name: 'PayPal', what: 'PayPal and Pay Later', status: paypal },
-    { tab: 'venmo', icon: <Smartphone className="w-5 h-5" />, name: 'Venmo', what: 'Venmo (through Braintree)', status: venmo },
+  // PayPal and Venmo checkout aren't finished, so customers aren't offered
+  // them yet (payment-methods route); their setup tabs still work
+  const rows: { tab: ProcessorTab; icon: React.ReactNode; name: string; what: string; status: Status; comingSoon?: boolean }[] = [
+    { tab: 'stripe', icon: <CreditCard className="w-5 h-5" />, name: 'Cards (Stripe)', what: 'Credit and debit cards, Apple Pay, Google Pay', status: stripe },
+    { tab: 'paypal', icon: <CircleDollarSign className="w-5 h-5" />, name: 'PayPal', what: 'Coming soon at checkout. You can connect your account now.', status: paypal, comingSoon: true },
+    { tab: 'venmo', icon: <Smartphone className="w-5 h-5" />, name: 'Venmo', what: 'Coming soon at checkout. You can connect your account now.', status: venmo, comingSoon: true },
   ]
 
   const badge = (status: Status) =>
@@ -66,7 +68,7 @@ export function PaymentSettingsTab({
             How customers can pay
           </CardTitle>
           <CardDescription>
-            Customers see every method that&apos;s taking payments. Money goes straight to your own account.
+            Customers pay by card at booking. Money goes straight to your own account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -80,7 +82,7 @@ export function PaymentSettingsTab({
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3">
-                {badge(row.status)}
+                {row.comingSoon && row.status === 'active' ? <Badge variant="outline">Connected</Badge> : badge(row.status)}
                 {onOpenTab && (
                   <Button size="sm" variant="secondary" onClick={() => onOpenTab(row.tab)}>
                     {row.status === 'active' ? 'Manage' : row.status === 'pending' ? 'Finish setup' : 'Set up'}
@@ -96,8 +98,7 @@ export function PaymentSettingsTab({
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Until card payments are set up, card bookings use a <strong>demo checkout: customers aren&apos;t
-            charged</strong> and you collect payment yourself. Set up Stripe to charge cards at booking.
+            <strong>Your booking page is closed until card payments are set up.</strong> Set up Stripe so customers pay when they book.
           </AlertDescription>
         </Alert>
       )}

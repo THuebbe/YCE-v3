@@ -15,10 +15,12 @@ export const pricingConfigSchema = z.object({
     .min(0, 'Extra day price cannot be negative')
     .max(1000, 'Extra day price cannot exceed $1,000'),
     
+  // Optional: the late fee is saved with the booking policies now
   lateFee: z
     .number()
     .min(0, 'Late fee cannot be negative')
-    .max(1000, 'Late fee cannot exceed $1,000'),
+    .max(1000, 'Late fee cannot exceed $1,000')
+    .optional(),
 })
 
 // YCE Payment Processing configuration

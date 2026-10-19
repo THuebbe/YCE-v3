@@ -240,19 +240,21 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    const { 
-      basePrice, 
-      extraDayPrice, 
-      lateFee
-    } = validationResult.data
+    const { basePrice, extraDayPrice } = validationResult.data
 
     console.log(`🔍 Financial Settings API: Updating financial settings for agency: ${agencyId}`)
 
-    // Create pricing config object for JSONB storage
+    // Prices only. The late fee is a policy (Elite, savePolicies), so the
+    // stored one is kept, as is anything else in pricing_config.
+    const { data: current } = await supabase
+      .from('agencies')
+      .select('pricing_config')
+      .eq('id', agencyId)
+      .single()
     const pricingConfig = {
+      ...((current?.pricing_config as Record<string, unknown> | null) ?? {}),
       basePrice,
       extraDayPrice,
-      lateFee
     }
 
     // Update agency financial settings in database
