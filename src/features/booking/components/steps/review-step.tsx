@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
@@ -13,6 +13,7 @@ import { LayoutCalculation, BookingOrderResult } from '../../types';
 import { stripeForAccount } from '../payment-methods/StripeCardForm';
 import { buildBookingTerms } from '../../terms';
 import { policyKey } from '../../policies';
+import { saveDisplaySnapshot } from '../../actions';
 
 export function ReviewStep() {
   const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone } = useWizard();
@@ -96,6 +97,26 @@ export function ReviewStep() {
     return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
   };
 
+  // The preview as the customer sees it, saved with the order for their
+  // confirmation email and the agency's Order Summary. Never blocks the order.
+  const previewRef = useRef<HTMLDivElement>(null);
+  const captureDisplay = async (holdId: string): Promise<string | undefined> => {
+    const node = previewRef.current;
+    if (!node || node.offsetWidth === 0) return undefined;
+    try {
+      const { toJpeg } = await import('html-to-image');
+      const capture = toJpeg(node, { quality: 0.85, pixelRatio: Math.min(2, 1100 / node.offsetWidth), backgroundColor: '#ffffff' });
+      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('capture timed out')), 8000));
+      const dataUrl = await Promise.race([capture, timeout]);
+      const saved = await saveDisplaySnapshot({ agencySlug, sessionId, holdId, dataUrl });
+      if (!saved.ok) console.warn('Display picture not saved:', saved.error);
+      return saved.ok ? saved.url : undefined;
+    } catch (error) {
+      console.warn('Display picture failed (order continues):', error);
+      return undefined;
+    }
+  };
+
   const handlePlaceOrder = async () => {
     if (!formData.contact || !formData.event || !formData.display || !formData.payment) {
       setOrderError('Missing required form data. Please complete all steps.');
@@ -112,6 +133,7 @@ export function ReviewStep() {
 
     try {
       const payment = formData.payment;
+      const displayImageUrl = await captureDisplay(formData.display.holdId);
       const base = {
         formData: {
           contact: formData.contact,
@@ -128,6 +150,7 @@ export function ReviewStep() {
         termsVersion: terms.version,
         termsLateFee: policies.lateFee,
         termsPolicy: policyKey(policies),
+        displayImageUrl,
       };
       const send = async (extra: { paymentIntentId: string; confirmationTokenId?: string }) => {
         const response = await fetch('/api/orders/create', {
@@ -339,7 +362,7 @@ export function ReviewStep() {
                 </div>
               </div>
             ) : layoutCalculation ? (
-              <div className="aspect-[4/2]">
+              <div className="aspect-[4/2]" ref={previewRef}>
                 <DisplayGrid layout={layoutCalculation} className="review-preview" />
               </div>
             ) : (

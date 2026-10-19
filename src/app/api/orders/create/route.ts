@@ -6,6 +6,7 @@ import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/p
 import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
 import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { effectiveBookingRules, effectivePolicies, policyKey } from "@/features/booking/policies";
+import { isDisplaySnapshotUrl } from "@/features/booking/snapshot";
 import { z } from "zod";
 import { subscriptionAllowsBookings } from "@/features/billing/subscription";
 
@@ -75,6 +76,8 @@ const createOrderInputSchema = z.object({
 	termsLateFee: z.number().min(0),
 	/** policies.ts policyKey of the terms the customer saw (cancellation, late, damage) */
 	termsPolicy: z.string().max(100).optional(),
+	/** Review step picture of the display (features/booking/actions.ts saveDisplaySnapshot) */
+	displayImageUrl: z.string().max(500).optional(),
 });
 
 export async function POST(
@@ -118,7 +121,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee, termsPolicy } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee, termsPolicy, displayImageUrl } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -252,6 +255,8 @@ export async function POST(
 			// Consent for later late/damage charges, and chargeback evidence
 			terms_accepted_at: new Date().toISOString(),
 			terms_snapshot: terms,
+			// Only a picture saved for this booking's own hold
+			display_image_url: displayImageUrl && isDisplaySnapshotUrl(displayImageUrl, holdId) ? displayImageUrl : null,
 		};
 		const { start, end } = rentalWindow(rules, eventDate, extraDaysBefore, extraDaysAfter);
 		const payload: OrderPayload = {

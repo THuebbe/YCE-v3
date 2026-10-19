@@ -124,7 +124,7 @@ export async function createOrderFromPayload(
   }
 
   // The customer's confirmation (the order stands if it fails)
-  const order = payload.order as { customer_email?: string; event_address?: string; message_text?: string | null; terms_snapshot?: { sections?: { title: string; text: string }[] } };
+  const order = payload.order as { customer_email?: string; event_address?: string; display_image_url?: string | null; terms_snapshot?: { sections?: { title: string; text: string }[] } };
   if (order.customer_email) {
     try {
       await sendCustomerConfirmationEmail({
@@ -134,7 +134,7 @@ export async function createOrderFromPayload(
         confirmationCode,
         eventDay: formatDay(payload.eventDateIso.slice(0, 10), true),
         address: order.event_address ?? '',
-        message: order.message_text ?? null,
+        displayImageUrl: order.display_image_url ?? null,
         totalAmount: payload.totalDollars,
         paidByCard: payment.status === 'paid',
         agencyName: payload.agency.name,

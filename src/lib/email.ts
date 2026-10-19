@@ -101,7 +101,8 @@ interface CustomerConfirmationData {
 	/** "Saturday, November 7, 2026" */
 	eventDay: string;
 	address: string;
-	message: string | null;
+	/** Picture of their display (orders.display_image_url) */
+	displayImageUrl: string | null;
 	totalAmount: number;
 	paidByCard: boolean;
 	agencyName: string;
@@ -127,8 +128,8 @@ export async function sendCustomerConfirmationEmail(data: CustomerConfirmationDa
 					<p style="margin:0 0 6px"><strong>Order:</strong> ${escapeHtml(data.orderNumber)} (confirmation code ${escapeHtml(data.confirmationCode)})</p>
 					<p style="margin:0 0 6px"><strong>Event day:</strong> ${escapeHtml(data.eventDay)}</p>
 					<p style="margin:0 0 6px"><strong>Address:</strong> ${escapeHtml(data.address)}</p>
-					${data.message ? `<p style="margin:0 0 6px"><strong>Message:</strong> ${escapeHtml(data.message)}</p>` : ''}
 					<p style="margin:0"><strong>${data.paidByCard ? 'Paid' : 'Total'}:</strong> $${data.totalAmount.toFixed(2)}</p>
+					${data.displayImageUrl ? `<img src="${escapeHtml(data.displayImageUrl)}" alt="Your yard display" width="100%" style="display:block; width:100%; max-width:560px; height:auto; margin-top:16px; border-radius:6px;" />` : ''}
 				</div>
 				<p>Questions or changes? Contact ${escapeHtml(data.agencyName)}${contact ? `: ${contact}` : ''}. You can also reply to this email.</p>
 				<h2 style="font-size: 16px; margin-top: 28px;">Your booking terms</h2>

@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 import { Header } from '@/shared/components/layout/Header'
+import { resolveTimeZone } from '@/features/booking/booking-rules'
 import { BillingSection } from '../settings/components/BillingSection'
 import { syncCustomerSubscription, syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
 import { hasLiveSubscription } from '@/features/billing/subscription'
@@ -72,6 +73,7 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
             subscription_past_due_since: agency.subscription_past_due_since,
           }}
           trialDays={trialDays()}
+          timeZone={resolveTimeZone(agency.operating_hours)}
           returnState={justSubscribed ? 'success' : billing === 'cancelled' ? 'cancelled' : undefined}
           dashboardHref={`/${agencySlug}/dashboard`}
         />

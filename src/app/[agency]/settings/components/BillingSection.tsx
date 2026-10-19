@@ -32,8 +32,15 @@ const PLAN_FEATURES: Record<Plan, string[]> = {
   ],
 }
 
-function formatDate(iso: string | null | undefined) {
-  return iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
+/** In the agency's time zone: a trial ending 01:39 UTC Nov 2 ends Nov 1 in Denver (Stripe's portal agrees) */
+function formatDate(iso: string | null | undefined, timeZone?: string) {
+  if (!iso) return ''
+  const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric', timeZone: timeZone || 'UTC' }
+  try {
+    return new Date(iso).toLocaleDateString('en-US', opts)
+  } catch {
+    return new Date(iso).toLocaleDateString('en-US', { ...opts, timeZone: 'UTC' })
+  }
 }
 
 interface BillingSectionProps {
@@ -43,9 +50,11 @@ interface BillingSectionProps {
   returnState?: 'success' | 'cancelled'
   /** Shown after subscribing (the billing page) */
   dashboardHref?: string
+  /** The agency's IANA zone, for dates */
+  timeZone?: string
 }
 
-export function BillingSection({ subscription, trialDays, returnState, dashboardHref }: BillingSectionProps) {
+export function BillingSection({ subscription, trialDays, returnState, dashboardHref, timeZone }: BillingSectionProps) {
   const [period, setPeriod] = useState<BillingInterval>('month')
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -101,7 +110,7 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
                 <p className="text-base font-medium">
                   {current ? `${PLAN_LABELS[current.plan]} · ${current.interval === 'year' ? 'annual' : 'monthly'}` : 'Subscription'}
                 </p>
-                <p className="text-sm text-muted-foreground">{statusLine(subscription)}</p>
+                <p className="text-sm text-muted-foreground">{statusLine(subscription, timeZone)}</p>
               </div>
               <Button onClick={() => go('portal', openBillingPortal)} disabled={!!busy}>
                 {busy === 'portal' ? 'Opening…' : 'Manage billing'}
@@ -119,7 +128,7 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  Your last payment failed. Update your card by {formatDate(graceEndsAt(subscription)?.toISOString())} or your booking page closes to new bookings.
+                  Your last payment failed. Update your card by {formatDate(graceEndsAt(subscription)?.toISOString(), timeZone)} or your booking page closes to new bookings.
                 </AlertDescription>
               </Alert>
             )}
@@ -189,13 +198,13 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
   )
 }
 
-function statusLine(sub: AgencySubscription): string {
-  const end = formatDate(sub.subscription_current_period_end)
+function statusLine(sub: AgencySubscription, timeZone?: string): string {
+  const end = formatDate(sub.subscription_current_period_end, timeZone)
   switch (sub.subscription_status) {
     case 'trialing':
       return sub.subscription_cancel_at_period_end
-        ? `Free trial ends ${formatDate(sub.subscription_trial_end)}, then your subscription stops.`
-        : `Free trial until ${formatDate(sub.subscription_trial_end)}. Your first payment is on that day.`
+        ? `Free trial ends ${formatDate(sub.subscription_trial_end, timeZone)}, then your subscription stops.`
+        : `Free trial until ${formatDate(sub.subscription_trial_end, timeZone)}. Your first payment is on that day.`
     case 'active':
       return sub.subscription_cancel_at_period_end ? `Cancelled - active until ${end}.` : `Renews ${end}.`
     case 'past_due':
