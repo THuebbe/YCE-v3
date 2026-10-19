@@ -105,7 +105,7 @@ export function ReviewStep() {
     if (!node || node.offsetWidth === 0) return undefined;
     try {
       const { toJpeg } = await import('html-to-image');
-      const capture = toJpeg(node, { quality: 0.85, pixelRatio: Math.min(2, 1100 / node.offsetWidth), backgroundColor: '#ffffff' });
+      const capture = toJpeg(node, { quality: 0.85, pixelRatio: Math.min(3, Math.max(1, 1200 / node.offsetWidth)), backgroundColor: '#ffffff' });
       const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('capture timed out')), 8000));
       const dataUrl = await Promise.race([capture, timeout]);
       const saved = await saveDisplaySnapshot({ agencySlug, sessionId, holdId, dataUrl });
