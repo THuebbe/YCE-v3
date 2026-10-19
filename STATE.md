@@ -310,9 +310,12 @@ old verification notes) is in `git show aace018:STATE.md`.
   checklist, own policies + booking rules, dashboard revenue; Essentials =
   the rest incl. order summary. Unpaid = booking page closed, 7-day grace.
   Cancellation default $20 or 15%, 48h. Late $25/day, damage $5/sign.
-  Blackout dates on every plan (Claude's call 2026-10-19 - ask the user).
-- Split the shared PantryPro DB - trigger: first paying agency or
-  PantryPro resuming. Not before.
+  Blackout dates on every plan (user confirmed 2026-10-19).
+- Split the shared PantryPro DB: YCE becomes its own project AFTER the
+  Victory Store demo (goal: win at least their signs, maybe a partnership)
+  - user, 2026-10-19. Until then `users` and PantryPro tables stay as they
+  are (anon-readable `users` is known and accepted for now; PantryPro is
+  in development).
 
 ## Next steps
 1. (done - PR #8 merged 2026-10-16)

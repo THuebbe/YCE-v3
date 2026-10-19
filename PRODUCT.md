@@ -173,6 +173,8 @@ $29/$79/$149):
   - **Elite:** + the deployment paperwork (**pick ticket, pickup
     checklist**), **policy settings** (cancellation window and fees, late
     fee, damage fee, booking rules), **dashboard revenue** cards.
+  - **Blackout dates are on every plan** (confirmed by the user 2026-10-19:
+    an essential function).
   - Locks are enforced on the server, not only hidden in the UI
     (`features/billing/entitlements.ts`).
   - Not in either plan yet (later, unpriced): customer list, analytics
