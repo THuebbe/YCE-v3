@@ -110,6 +110,8 @@ interface CustomerConfirmationData {
 	agencyPhone: string | null;
 	/** The terms they agreed to (orders.terms_snapshot sections) */
 	terms: { title: string; text: string }[];
+	/** Their self-service cancel page (orders.cancel_token) */
+	cancelUrl: string | null;
 }
 
 /**
@@ -132,6 +134,7 @@ export async function sendCustomerConfirmationEmail(data: CustomerConfirmationDa
 					${data.displayImageUrl ? `<img src="${escapeHtml(data.displayImageUrl)}" alt="Your yard display" width="100%" style="display:block; width:100%; max-width:560px; height:auto; margin-top:16px; border-radius:6px;" />` : ''}
 				</div>
 				<p>Questions or changes? Contact ${escapeHtml(data.agencyName)}${contact ? `: ${contact}` : ''}. You can also reply to this email.</p>
+				${data.cancelUrl ? `<p style="font-size: 14px;">Need to cancel? <a href="${escapeHtml(data.cancelUrl)}" style="color: #4b5563;">Cancel your booking</a> (refund per the terms below).</p>` : ''}
 				<h2 style="font-size: 16px; margin-top: 28px;">Your booking terms</h2>
 				<div style="font-size: 14px; color: #4b5563;">${terms}</div>
 				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}.</p>
@@ -169,6 +172,8 @@ export async function sendCustomerCancellationEmail(data: {
 	eventDay: string;
 	refundAmount: number;
 	refundedToCard: boolean;
+	/** "You cancelled" vs "<agency> cancelled" */
+	cancelledByCustomer?: boolean;
 	agencyName: string;
 	agencyEmail: string | null;
 	agencyPhone: string | null;
@@ -183,7 +188,7 @@ export async function sendCustomerCancellationEmail(data: {
 		const html = `
 			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
 				<h1 style="font-size: 22px;">Your booking was cancelled</h1>
-				<p>${escapeHtml(data.agencyName)} cancelled order ${escapeHtml(data.orderNumber)} for ${escapeHtml(data.eventDay)}.</p>
+				<p>${data.cancelledByCustomer ? 'You cancelled' : `${escapeHtml(data.agencyName)} cancelled`} order ${escapeHtml(data.orderNumber)} for ${escapeHtml(data.eventDay)}.</p>
 				${refund}
 				<p>Questions? Contact ${escapeHtml(data.agencyName)}${contact ? `: ${contact}` : ''}, or reply to this email.</p>
 				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}.</p>
@@ -206,6 +211,35 @@ export async function sendCustomerCancellationEmail(data: {
 	} catch (error) {
 		console.error('❌ Cancellation email failed:', error);
 		return { success: false, error };
+	}
+}
+
+/** Tells the agency a customer cancelled online (their order is already cancelled and refunded) */
+export async function sendAgencyCancellationNotice(data: {
+	to: string;
+	orderNumber: string;
+	customerName: string;
+	eventDay: string;
+	refundAmount: number;
+}) {
+	try {
+		const resend = getResendClient();
+		const result = await resend.emails.send({
+			from: FROM_ADDRESS,
+			to: [data.to],
+			subject: `Cancelled by the customer: ${data.orderNumber}`,
+			html: `
+				<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
+					<h1 style="font-size: 20px;">${escapeHtml(data.customerName)} cancelled their booking</h1>
+					<p>Order ${escapeHtml(data.orderNumber)} for ${escapeHtml(data.eventDay)} is cancelled and its signs are free again.</p>
+					<p>${data.refundAmount > 0 ? `They were refunded $${data.refundAmount.toFixed(2)} under your booking terms.` : 'No refund was due under your booking terms.'} Nothing else to do.</p>
+				</div>`,
+		});
+		if (result.error) console.error('❌ Agency cancellation notice: Resend error:', result.error);
+		return { success: !result.error };
+	} catch (error) {
+		console.error('❌ Agency cancellation notice failed:', error);
+		return { success: false };
 	}
 }
 

@@ -8,6 +8,7 @@
 // Stripe webhook if the customer's browser goes away (3-D Secure, closed tab).
 // See migrations/20261016_stripe_checkout.sql for the status flow.
 
+import { randomBytes } from 'node:crypto';
 import type Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
 import { sendCustomerConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email';
@@ -49,6 +50,8 @@ export async function createOrderFromPayload(
   const year = new Date().getFullYear();
   const orderNumber = `YCE-${year}-${Math.floor(Math.random() * 900000) + 100000}`;
   const confirmationCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+  // The customer's cancel link (they have no account): unguessable
+  const cancelToken = randomBytes(24).toString('base64url');
 
   const { data: orderRecord, error: insertError } = await supabase
     .from('orders')
@@ -56,6 +59,7 @@ export async function createOrderFromPayload(
       ...payload.order,
       order_number: orderNumber,
       confirmation_code: confirmationCode,
+      cancel_token: cancelToken,
       payment_method: payment.method,
       payment_intent_id: payment.intentId,
       stripe_payment_intent_id: payment.intentId.startsWith('pi_') && !payment.intentId.startsWith('pi_mock') ? payment.intentId : null,
@@ -124,6 +128,7 @@ export async function createOrderFromPayload(
   }
 
   // The customer's confirmation (the order stands if it fails)
+  const origin = await requestOrigin().catch(() => null);
   const order = payload.order as { customer_email?: string; event_address?: string; display_image_url?: string | null; terms_snapshot?: { sections?: { title: string; text: string }[] } };
   if (order.customer_email) {
     try {
@@ -141,6 +146,7 @@ export async function createOrderFromPayload(
         agencyEmail: payload.agency.email,
         agencyPhone: payload.agency.phone ?? null,
         terms: order.terms_snapshot?.sections ?? [],
+        cancelUrl: origin ? `${origin}/${payload.agency.slug}/cancel/${orderRecord.id}?t=${cancelToken}` : null,
       });
     } catch (emailError) {
       console.error('Customer confirmation email failed (order stands):', emailError);
