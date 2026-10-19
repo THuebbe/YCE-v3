@@ -246,6 +246,18 @@ export async function POST(
 					? formData.display.customMessage
 					: formData.display.eventMessage,
 			theme: formData.display.characterTheme || null,
+			// The choices behind the layout, so the agency's "Edit display" starts from them
+			display_config: {
+				eventMessage: formData.display.eventMessage,
+				customMessage: formData.display.customMessage ?? null,
+				eventNumber: formData.display.eventNumber ?? null,
+				recipientName: formData.display.recipientName ?? null,
+				messageStyle: formData.display.messageStyle ?? null,
+				messageColorway: formData.display.messageColorway ?? null,
+				nameColorway: formData.display.nameColorway ?? null,
+				characterTheme: formData.display.characterTheme ?? null,
+				hobbies: formData.display.hobbies ?? [],
+			},
 			extra_days: extraDaysBefore + extraDaysAfter,
 			extra_day_fee: (extraDaysBefore + extraDaysAfter) * pricing.extraDayPrice,
 			extraDaysBefore,
