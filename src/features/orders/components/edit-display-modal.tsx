@@ -38,6 +38,7 @@ function initialDisplay(order: any): DisplayEdit {
   };
 }
 
+const capitalize = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
 const field = 'w-full rounded-lg border-2 border-neutral-300 px-3 py-2 focus:border-primary focus:outline-none';
 
 /**
@@ -64,9 +65,10 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
     if (!isOpen || !agencySlug) return;
     setD(initialDisplay(order));
     setLayout(null); setKeys(null); setError(null); setShortages([]);
+    // Capitalized like the booking step, which is how the order saved them
     getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
-      if (styles.length) setStyles(styles);
-      if (colorways.length) setColorways(colorways);
+      if (styles.length) setStyles(styles.map(capitalize));
+      if (colorways.length) setColorways(colorways.map(capitalize));
     }).catch(() => {});
   }, [isOpen, agencySlug, order]);
 
@@ -154,17 +156,17 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
           </label>
           <label className="text-sm">Style
             <select className={field} value={d.messageStyle ?? ''} onChange={e => set('messageStyle', e.target.value)}>
-              {styles.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+              {styles.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </label>
           <label className="text-sm">Message color
             <select className={field} value={d.messageColorway ?? ''} onChange={e => set('messageColorway', e.target.value)}>
-              {colorways.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              {colorways.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
           <label className="text-sm">Name color
             <select className={field} value={d.nameColorway ?? ''} onChange={e => set('nameColorway', e.target.value)}>
-              {colorways.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+              {colorways.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
           <label className="text-sm">Theme
