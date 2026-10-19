@@ -229,7 +229,27 @@ export async function generatePickTicketPDF(order: ReturnType<typeof toDocumentO
   });
 }
 
+/**
+ * The customer's display picture (orders.display_image_url) as bytes for
+ * PDFKit. Only our own Blob store is fetched; any failure just leaves the
+ * picture out.
+ */
+async function fetchDisplayImage(url: unknown): Promise<Buffer | null> {
+  if (typeof url !== 'string') return null;
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' || !u.hostname.endsWith('.public.blob.vercel-storage.com')) return null;
+    const response = await fetch(u, { signal: AbortSignal.timeout(5000) });
+    if (!response.ok) return null;
+    return Buffer.from(await response.arrayBuffer());
+  } catch (error) {
+    console.warn('Display picture not added to the order summary:', error);
+    return null;
+  }
+}
+
 export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumentOrder>): Promise<Buffer> {
+  const displayImage = await fetchDisplayImage(order.display_image_url);
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({
@@ -271,6 +291,20 @@ export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumen
         .text(`Phone: ${order.customer_phone || 'Not provided'}`)
         .text(`Event Address: ${formatAddress(order.event_address)}`);
       doc.moveDown();
+
+      // The display as the customer saw it when booking
+      if (displayImage) {
+        doc.fontSize(16).text('Display', { underline: true });
+        doc.moveDown(0.5);
+        try {
+          doc.image(displayImage, 50, doc.y, { fit: [495, 260], align: 'center' });
+          doc.y += 270;
+        } catch (error) {
+          console.warn('Display picture could not be drawn:', error);
+        }
+        doc.x = 50;
+        doc.moveDown();
+      }
 
       // Order items
       doc.fontSize(16).text('Order Items', { underline: true });

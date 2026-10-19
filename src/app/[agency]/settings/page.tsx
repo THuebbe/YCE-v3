@@ -5,6 +5,7 @@ import { Header } from '@/shared/components/layout/Header'
 import { AgencyProfileSection } from './components/AgencyProfileSection'
 import FinancialManagementSection from './components/FinancialManagementSection'
 import AgencySettingsSection from './components/AgencySettingsSection'
+import { resolveTimeZone } from '@/features/booking/booking-rules'
 import { BillingSection } from './components/BillingSection'
 import { trialDays } from '@/features/billing/stripe-billing'
 import { PoliciesCard } from './components/PoliciesCard'
@@ -82,6 +83,7 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
                   subscription_past_due_since: agency.subscription_past_due_since,
                 }}
                 trialDays={trialDays()}
+                timeZone={resolveTimeZone(agency.operating_hours)}
               />
             </section>
 

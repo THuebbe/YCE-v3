@@ -9,6 +9,7 @@
  */
 import { createHash } from 'crypto';
 import { headers } from 'next/headers';
+import { put } from '@vercel/blob';
 import { supabase, getAgencyBySlug } from '@/lib/db/supabase-client';
 import { subscriptionAllowsBookings } from '@/features/billing/subscription';
 import { canTakePayments } from '@/features/agency/readiness';
@@ -167,4 +168,51 @@ export async function touchBookingHold(input: {
   });
   if (error) console.error('yce_touch_booking_hold failed:', error.message);
   return { ok: Boolean((data as { ok?: boolean } | null)?.ok) };
+}
+
+const MAX_SNAPSHOT_BYTES = 700 * 1024;
+
+/**
+ * Saves the Review step's picture of the display (JPEG data URL) to Vercel
+ * Blob; the URL goes on the order for the confirmation email and the Order
+ * Summary PDF. Anyone can call this, so it only accepts an image for a live
+ * hold belonging to this session, and caps the size. The random suffix
+ * keeps the URL unguessable (it shows the customer's names).
+ */
+export async function saveDisplaySnapshot(input: {
+  agencySlug: string;
+  sessionId: string;
+  holdId: string;
+  dataUrl: string;
+}): Promise<{ ok: true; url: string } | { ok: false; error: string }> {
+  const prefix = 'data:image/jpeg;base64,';
+  if (!input.dataUrl?.startsWith(prefix)) return { ok: false, error: 'Not a JPEG image' };
+  const bytes = Buffer.from(input.dataUrl.slice(prefix.length), 'base64');
+  if (bytes.length === 0 || bytes.length > MAX_SNAPSHOT_BYTES) return { ok: false, error: 'Image too large' };
+  // JPEG files start with FF D8 FF
+  if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) return { ok: false, error: 'Not a JPEG image' };
+
+  const agency = await getAgencyBySlug(input.agencySlug);
+  if (!agency?.is_active) return { ok: false, error: 'Agency not found' };
+  const { data: hold } = await supabase
+    .from('inventory_holds')
+    .select('id')
+    .eq('id', input.holdId)
+    .eq('agency_id', agency.id)
+    .eq('session_id', input.sessionId)
+    .eq('hold_type', 'temporary')
+    .maybeSingle();
+  if (!hold) return { ok: false, error: 'Your sign reservation has ended' };
+
+  try {
+    const blob = await put(`displays/${input.holdId}.jpg`, bytes, {
+      access: 'public',
+      contentType: 'image/jpeg',
+      addRandomSuffix: true,
+    });
+    return { ok: true, url: blob.url };
+  } catch (error) {
+    console.error('saveDisplaySnapshot upload failed:', error);
+    return { ok: false, error: 'Upload failed' };
+  }
 }
