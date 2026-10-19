@@ -5,10 +5,8 @@ import { getOrderWithDetails, updateOrderDocuments } from './utils';
 import { revalidatePath } from 'next/cache';
 import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
-import { getStripe, toCents } from '@/lib/stripe';
 import { requireFeature } from '@/features/billing/server';
-import { sendCustomerCancellationEmail } from '@/lib/email';
-import { formatDay } from '@/features/booking/booking-rules';
+import { performCancellation } from './cancellation';
 import type { OrderAction } from './stateMachine';
 import type { CancelOrderInput } from './types';
 
@@ -128,31 +126,6 @@ export async function advanceOrderStatus(orderId: string, action: OrderAction): 
   }
 }
 
-/** Emails the customer; the cancellation stands if it fails */
-async function notifyCustomerOfCancellation(orderId: string, agencyId: string, refundAmount: number, refundedToCard: boolean) {
-  try {
-    const { data } = await supabase
-      .from('orders')
-      .select('order_number, customer_name, customer_email, event_date, agency:agencies(name, email, phone)')
-      .eq('id', orderId).eq('agency_id', agencyId).single();
-    const agency = (Array.isArray(data?.agency) ? data?.agency[0] : data?.agency) as { name: string; email: string | null; phone: string | null } | undefined;
-    if (!data?.customer_email || !agency) return;
-    await sendCustomerCancellationEmail({
-      to: data.customer_email,
-      customerName: data.customer_name ?? '',
-      orderNumber: data.order_number,
-      eventDay: data.event_date ? formatDay(String(data.event_date).slice(0, 10), true) : 'your event',
-      refundAmount,
-      refundedToCard,
-      agencyName: agency.name,
-      agencyEmail: agency.email,
-      agencyPhone: agency.phone,
-    });
-  } catch (error) {
-    console.error('Cancellation email failed (order stays cancelled):', orderId, error);
-  }
-}
-
 const CHECK_IN_ERRORS: Record<string, string> = {
   not_deployed: 'Only deployed orders can be checked in',
   count_mismatch: 'Every sign must be counted as good, damaged or missing',
@@ -211,66 +184,17 @@ export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult
     const refundAmount = input.refundType === 'none' ? 0
       : Math.round(Math.min(Math.max(Number(input.refundAmount) || 0, 0), total) * 100) / 100;
 
-    // Paid by card through Stripe? (the checkout that created this order)
-    const { data: checkout } = await supabase
-      .from('booking_checkouts')
-      .select('id, payment_intent_id, stripe_account_id')
-      .eq('order_id', order.id).eq('agency_id', order.agency_id).eq('status', 'completed')
-      .maybeSingle();
-
-    let refunded = false;
-    if (checkout?.payment_intent_id && refundAmount > 0) {
-      try {
-        await getStripe().refunds.create(
-          {
-            payment_intent: checkout.payment_intent_id,
-            amount: toCents(refundAmount),
-            refund_application_fee: false,
-            reason: 'requested_by_customer',
-            metadata: { yce_order_id: order.id, yce_cancelled_by: user.id },
-          },
-          { stripeAccount: checkout.stripe_account_id, idempotencyKey: `order-${order.id}-refund-${toCents(refundAmount)}` }
-        );
-        refunded = true;
-      } catch (error) {
-        const reason = (error as { message?: string })?.message ?? 'Stripe refused the refund';
-        console.error('Cancel refund failed:', order.id, reason);
-        return { success: false, error: `The refund didn't go through (${reason}). The order was not cancelled.` };
-      }
-    }
-
-    const { data, error } = await supabase.rpc('yce_cancel_order', {
-      p_order_id: input.orderId,
-      p_agency_id: order.agency_id,
-      p_user_id: user.id,
-      p_reason: input.reason ?? '',
-      p_refund_type: input.refundType,
+    const outcome = await performCancellation({
+      orderId: order.id,
+      agencyId: order.agency_id,
+      total,
+      refundAmount,
+      refundType: input.refundType,
+      actorUserId: user.id,
+      reason: input.reason ?? '',
     });
-    const result = data as { ok?: boolean; reason?: string; status?: string } | null;
-    if (error || !result?.ok) {
-      if (refunded) console.error('REFUNDED BUT NOT CANCELLED - cancel it by hand:', order.id, error?.message ?? result);
-      return {
-        success: false,
-        error: refunded
-          ? 'The refund was issued, but the order could not be marked cancelled. Please try cancelling again.'
-          : result?.reason === 'not_cancellable' ? `A ${result.status} order can't be cancelled` : 'Cancel failed',
-      };
-    }
-
-    const { error: refundError } = await supabase
-      .from('orders')
-      .update({
-        refund_amount: refundAmount,
-        ...(refunded ? { payment_status: refundAmount >= total ? 'refunded' : 'partially_refunded' } : {}),
-      })
-      .eq('id', input.orderId).eq('agency_id', order.agency_id);
-    if (refundError) console.error('refund_amount not saved:', input.orderId, refundError.message);
-    if (refunded) {
-      await supabase.from('booking_checkouts')
-        .update({ status: 'refunded', updated_at: new Date().toISOString() })
-        .eq('id', checkout!.id);
-    }
-    await notifyCustomerOfCancellation(order.id, order.agency_id, refundAmount, refunded);
+    if (!outcome.success) return outcome;
+    const { refunded } = outcome;
     revalidateOrder(input.orderId);
     return { success: true, refunded };
   } catch (error) {
