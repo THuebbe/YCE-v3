@@ -181,6 +181,22 @@ export async function syncFromCheckoutSession(sessionId: string, agencyId: strin
   if (subscriptionId) await syncSubscription(subscriptionId, `checkout ${session.id}`);
 }
 
+/**
+ * Finds the agency's subscription from its Stripe customer and syncs it.
+ * For when no event or return URL told us: the webhook was missed, or the
+ * return from Checkout lost its ?session_id (sign-in refresh on the way back).
+ */
+export async function syncCustomerSubscription(agencyId: string, source: string): Promise<void> {
+  const agency = await loadAgency(agencyId);
+  if (!agency.stripe_customer_id) return;
+  const { data } = await getStripe().subscriptions.list({ customer: agency.stripe_customer_id, status: 'all', limit: 5 });
+  if (data.length === 0) return;
+  // Prefer one that's still running; else the newest (list is newest first)
+  const over = new Set(['canceled', 'incomplete_expired']);
+  const pick = data.find(s => !over.has(s.status)) ?? data[0];
+  await syncSubscription(pick.id, source);
+}
+
 /** The subscription id an invoice or other billing object belongs to */
 export function subscriptionIdOf(object: Stripe.Invoice | Stripe.Subscription | Stripe.Checkout.Session): string | null {
   if (object.object === 'subscription') return object.id;

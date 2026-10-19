@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 import { Header } from '@/shared/components/layout/Header'
 import { BillingSection } from '../settings/components/BillingSection'
-import { syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
+import { syncCustomerSubscription, syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
+import { hasLiveSubscription } from '@/features/billing/subscription'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,16 +31,21 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
   if (!ADMIN_ROLES.includes(user.role)) redirect(`/${agencySlug}/dashboard`)
 
   let agency = found
-  // Back from Stripe Checkout: sync now rather than wait for the webhook,
-  // so this page (and the booking page) reflect the new subscription
-  if (billing === 'success' && session_id) {
+  // Sync now rather than wait for the webhook, so this page (and the booking
+  // page) show the new subscription: back from Checkout, or a customer with
+  // no subscription on record yet (the return's ?session_id can get lost)
+  const fromCheckout = billing === 'success' && !!session_id
+  if (fromCheckout || (agency.stripe_customer_id && !hasLiveSubscription(agency))) {
     try {
-      await syncFromCheckoutSession(session_id, agency.id)
+      if (fromCheckout) await syncFromCheckoutSession(session_id!, agency.id)
+      else await syncCustomerSubscription(agency.id, 'billing page')
       agency = (await getAgencyBySlug(agencySlug)) ?? agency
     } catch (error) {
-      console.error('Billing return sync failed (the webhook will retry):', error)
+      console.error('Billing sync on the billing page failed (the webhook will retry):', error)
     }
   }
+  // Just subscribed (whichever way the sync happened)
+  const justSubscribed = fromCheckout || (!hasLiveSubscription(found) && hasLiveSubscription(agency))
 
   return (
     <div className="min-h-screen bg-background-light">
@@ -66,7 +72,7 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
             subscription_past_due_since: agency.subscription_past_due_since,
           }}
           trialDays={trialDays()}
-          returnState={billing === 'success' ? 'success' : billing === 'cancelled' ? 'cancelled' : undefined}
+          returnState={justSubscribed ? 'success' : billing === 'cancelled' ? 'cancelled' : undefined}
           dashboardHref={`/${agencySlug}/dashboard`}
         />
       </main>
