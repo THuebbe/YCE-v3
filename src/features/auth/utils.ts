@@ -1,5 +1,4 @@
 import { currentUser } from '@clerk/nextjs/server'
-import { User } from '@clerk/nextjs/server'
 import { getCurrentTenant, withCurrentTenantContext } from '@/lib/tenant-context'
 import { supabase } from '@/lib/db/supabase-client'
 
@@ -83,13 +82,6 @@ export async function validateUserTenantAccess(userId?: string): Promise<boolean
   }
 }
 
-// Create or update user in the current tenant context
-export async function ensureUserInTenant(clerkUser: User, tenantId: string): Promise<AuthenticatedUser | null> {
-  // TODO: Implement with Supabase
-  console.warn('ensureUserInTenant not implemented for Supabase')
-  return null
-}
-
 // Check if user has required role in current tenant
 export async function hasRole(requiredRole: 'SUPER_ADMIN' | 'SUPER_USER' | 'ADMIN' | 'MANAGER' | 'USER'): Promise<boolean> {
   const user = await getCurrentAuthenticatedUser()
@@ -116,28 +108,4 @@ export async function isAdmin(): Promise<boolean> {
 // Check if user is super admin (global admin)
 export async function isSuperAdmin(): Promise<boolean> {
   return await hasRole('SUPER_ADMIN')
-}
-
-// Get all users in the current tenant (admin only)
-export async function getTenantUsers(): Promise<AuthenticatedUser[]> {
-  // TODO: Implement with Supabase
-  console.warn('getTenantUsers not implemented for Supabase')
-  return []
-}
-
-// Update user role in current tenant (admin only)
-export async function updateUserRole(
-  userId: string, 
-  newRole: 'SUPER_USER' | 'ADMIN' | 'MANAGER' | 'USER'
-): Promise<boolean> {
-  // TODO: Implement with Supabase
-  console.warn('updateUserRole not implemented for Supabase')
-  return false
-}
-
-// Remove user from current tenant (admin only)
-export async function removeUserFromTenant(userId: string): Promise<boolean> {
-  // TODO: Implement with Supabase
-  console.warn('removeUserFromTenant not implemented for Supabase')
-  return false
 }

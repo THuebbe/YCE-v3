@@ -5,6 +5,7 @@ import { createAgency, checkSubdomainAvailability, completeOnboarding } from '..
 import { createAgencySchema } from '@/lib/validation'
 import { AGENCY_TIME_ZONES, guessAgencyTimeZone } from '@/lib/time-zones'
 import { Building2, Check, X, AlertCircle, Loader2, Plus, Trash2 } from 'lucide-react'
+import { SITE_HOST } from '@/lib/site'
 
 // Debounce hook for real-time validation
 function useDebounce<T>(value: T, delay: number): T {
@@ -322,7 +323,7 @@ export function CreateAgencyForm() {
               </label>
               <div className="flex items-center">
                 <div className="px-3 py-3 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg text-gray-600 text-sm whitespace-nowrap">
-                  yce-v3.vercel.app/
+                  {SITE_HOST}/
                 </div>
                 <input
                   id="slug"

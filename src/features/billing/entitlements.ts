@@ -11,9 +11,10 @@ export type Plan = 'essentials' | 'elite';
 export type Feature =
   | 'deploymentDocs' // pick ticket + pickup checklist (order summary is Essentials)
   | 'revenueMetrics' // dashboard revenue cards
-  | 'policySettings'; // own cancellation / late / damage fees and booking rules
+  | 'policySettings' // own cancellation / late / damage fees and booking rules
+  | 'popularDisplays'; // dashboard card: most-booked occasions and themes
 
-const ELITE_ONLY: ReadonlySet<Feature> = new Set(['deploymentDocs', 'revenueMetrics', 'policySettings']);
+const ELITE_ONLY: ReadonlySet<Feature> = new Set(['deploymentDocs', 'revenueMetrics', 'policySettings', 'popularDisplays']);
 
 export const PLAN_LABELS: Record<Plan, string> = { essentials: 'Essentials', elite: 'Elite' };
 

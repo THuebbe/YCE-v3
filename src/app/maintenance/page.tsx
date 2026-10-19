@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { SUPPORT_EMAIL } from '@/lib/site'
 
 export default function MaintenancePage() {
   return (
@@ -37,10 +38,10 @@ export default function MaintenancePage() {
             <div>
               <span className="font-medium text-gray-700">Email:</span>{' '}
               <a 
-                href="mailto:support@yardcardelite.com" 
+                href={`mailto:${SUPPORT_EMAIL}`} 
                 className="text-blue-600 hover:text-blue-800"
               >
-                support@yardcardelite.com
+                {SUPPORT_EMAIL}
               </a>
             </div>
             <div>

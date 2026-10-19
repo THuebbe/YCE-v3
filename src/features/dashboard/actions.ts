@@ -10,8 +10,6 @@ import { getDashboardMetrics as getSupabaseDashboardMetrics, getOrdersByAgency }
 import type { 
   DashboardMetrics, 
   RecentOrder, 
-  PopularSign, 
-  UpcomingDeployment,
   RevenueComparison,
   DashboardDataParams,
   OrderStatus 
@@ -45,13 +43,8 @@ export const getDashboardMetrics = cache(async (agencyId: string): Promise<Dashb
       monthlyRevenue: revenueLocked ? 0 : metrics.monthlyRevenue,
       monthlyRevenueChange: revenueLocked ? 0 : monthlyRevenueChange,
       last30DaysRevenue: revenueLocked ? 0 : metrics.last30DaysRevenue || 0,
-      popularSigns: [], // TODO: Implement popular signs with Supabase
-      upcomingDeployments: [], // TODO: Implement upcoming deployments with Supabase
       completedOrdersThisMonth: metrics.completedOrdersCount,
       averageOrderValue: revenueLocked ? 0 : metrics.averageOrderValue,
-      pendingOrdersCount: 0, // TODO: Implement with Supabase
-      processingOrdersCount: 0, // TODO: Implement with Supabase
-      deployedOrdersCount: 0, // TODO: Implement with Supabase
     };
 
   } catch (error) {
@@ -59,20 +52,6 @@ export const getDashboardMetrics = cache(async (agencyId: string): Promise<Dashb
     throw new Error('Failed to fetch dashboard metrics');
   }
 });
-
-// Get popular signs with order data (TODO: Implement with Supabase)
-async function getPopularSigns(agencyId: string): Promise<PopularSign[]> {
-  // Temporarily return empty array until we implement Supabase queries
-  console.log('📊 Dashboard: Popular signs not yet implemented with Supabase for agency:', agencyId);
-  return [];
-}
-
-// Get upcoming deployments (TODO: Implement with Supabase)
-async function getUpcomingDeployments(agencyId: string, endDate: Date): Promise<UpcomingDeployment[]> {
-  // Temporarily return empty array until we implement Supabase queries
-  console.log('📊 Dashboard: Upcoming deployments not yet implemented with Supabase for agency:', agencyId);
-  return [];
-}
 
 // Get recent orders with caching
 export const getRecentOrders = cache(async (agencyId: string, params: { limit?: number } = {}): Promise<RecentOrder[]> => {
@@ -102,12 +81,6 @@ export const getRecentOrders = cache(async (agencyId: string, params: { limit?: 
     console.error('Error fetching recent orders:', error);
     throw new Error('Failed to fetch recent orders');
   }
-});
-
-// Get platform-wide popular signs for comparison (TODO: Implement with Supabase)
-export const getPlatformPopularSigns = cache(async (): Promise<PopularSign[]> => {
-  console.log('📊 Dashboard: Platform popular signs not yet implemented with Supabase');
-  return [];
 });
 
 // Force revalidation of dashboard cache

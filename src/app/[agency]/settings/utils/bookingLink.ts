@@ -1,3 +1,5 @@
+import { agencyBookingUrl } from '@/lib/site'
+
 /**
  * Utility functions for booking link management
  */
@@ -5,8 +7,8 @@
 /**
  * Generate booking URL for an agency
  */
-export function generateBookingUrl(agencySlug: string, domain: string = 'yardcard-elite.com'): string {
-  return `https://${domain}/${agencySlug}/booking`
+export function generateBookingUrl(agencySlug: string): string {
+  return agencyBookingUrl(agencySlug)
 }
 
 /**

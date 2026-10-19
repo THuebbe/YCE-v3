@@ -10,7 +10,6 @@ import {
   type CreateAgencyResult,
   type SubdomainCheckResult 
 } from '@/lib/validation'
-// import { hasPermission, Permissions } from '@/lib/auth/roles' // TODO: Implement with Supabase
 
 // Check if a slug is available
 export async function checkSubdomainAvailability(slug: string): Promise<SubdomainCheckResult> {
@@ -241,19 +240,3 @@ export async function completeOnboarding(agencySlug: string) {
 
   redirect(`/${agencySlug}/billing?welcome=1`)
 }
-
-// TODO: Implement user role management with Supabase
-// Server action to update user role (protected) - DISABLED until Supabase implementation
-/*
-export async function updateUserRoleAction(
-  userId: string,
-  newRole: 'SUPER_USER' | 'ADMIN' | 'MANAGER' | 'USER'
-): Promise<{ success: boolean; error?: string }> {
-  return { success: false, error: 'Not implemented with Supabase yet' }
-}
-
-// Server action to remove user from agency (protected) - DISABLED until Supabase implementation
-export async function removeUserAction(userId: string): Promise<{ success: boolean; error?: string }> {
-  return { success: false, error: 'Not implemented with Supabase yet' }
-}
-*/
