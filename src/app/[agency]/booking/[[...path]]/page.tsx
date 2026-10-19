@@ -1,6 +1,7 @@
 import { BookingWizard } from '@/features/booking/components/booking-wizard';
 import { parseBookingPricing } from '@/features/booking/pricing';
-import { parseBookingRules, resolveTimeZone } from '@/features/booking/booking-rules';
+import { resolveTimeZone } from '@/features/booking/booking-rules';
+import { effectiveBookingRules, effectivePolicies } from '@/features/booking/policies';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
 import { subscriptionAllowsBookings } from '@/features/billing/subscription';
@@ -36,6 +37,8 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
     );
   }
 
+  const policies = effectivePolicies(agency);
+
   return (
     <div className="min-h-screen">
       <BookingWizard 
@@ -47,8 +50,9 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
           phone: agency.phone || undefined,
           website: agency.domain || undefined,
         }}
-        pricing={pricing}
-        bookingRules={parseBookingRules(agency.booking_rules, agency.blackout_dates)}
+        pricing={{ ...pricing, lateFee: policies.lateFee }}
+        policies={policies}
+        bookingRules={effectiveBookingRules(agency)}
         agencyTimeZone={resolveTimeZone(agency.operating_hours)}
       />
     </div>

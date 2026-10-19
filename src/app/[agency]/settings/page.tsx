@@ -7,6 +7,9 @@ import FinancialManagementSection from './components/FinancialManagementSection'
 import AgencySettingsSection from './components/AgencySettingsSection'
 import { BillingSection } from './components/BillingSection'
 import { trialDays } from '@/features/billing/stripe-billing'
+import { PoliciesCard } from './components/PoliciesCard'
+import { parsePolicies } from '@/features/booking/policies'
+import { hasFeature, planOf } from '@/features/billing/entitlements'
 
 interface SettingsPageProps {
   params: Promise<{
@@ -101,9 +104,18 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
               />
             </section>
 
+            {/* Cancellation / late / damage fees (Elite) */}
+            <section>
+              <PoliciesCard
+                policies={parsePolicies(agency.policy_config, agency.pricing_config)}
+                canEdit={hasFeature(planOf(agency), 'policySettings')}
+                billingHref={`/${agencySlug}/billing`}
+              />
+            </section>
+
             {/* Agency Settings Section */}
             <section>
-              <AgencySettingsSection agency={agency} />
+              <AgencySettingsSection agency={agency} canEditBookingRules={hasFeature(planOf(agency), 'policySettings')} />
             </section>
 
             {/* Team Management Section - Future Feature */}

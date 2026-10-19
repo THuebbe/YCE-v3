@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { WizardProvider, useWizard } from '../context/wizard-context';
 import type { BookingPricing } from '../pricing';
+import type { AgencyPolicies } from '../policies';
 import type { BookingRules } from '../booking-rules';
 import type { AgencyContact } from '../types';
 import { ProgressIndicator } from './progress-indicator';
@@ -129,14 +130,15 @@ interface BookingWizardProps {
   agencySlug: string;
   agency: AgencyContact;
   pricing: BookingPricing;
+  policies: AgencyPolicies;
   bookingRules: BookingRules;
   agencyTimeZone?: string;
   initialStep?: number;
 }
 
-export function BookingWizard({ agencyId, agencySlug, agency, pricing, bookingRules, agencyTimeZone, initialStep = 1 }: BookingWizardProps) {
+export function BookingWizard({ agencyId, agencySlug, agency, pricing, policies, bookingRules, agencyTimeZone, initialStep = 1 }: BookingWizardProps) {
   return (
-    <WizardProvider agencyId={agencyId} agencySlug={agencySlug} agency={agency} pricing={pricing} bookingRules={bookingRules} agencyTimeZone={agencyTimeZone} totalSteps={wizardSteps.length} initialStep={initialStep}>
+    <WizardProvider agencyId={agencyId} agencySlug={agencySlug} agency={agency} pricing={pricing} policies={policies} bookingRules={bookingRules} agencyTimeZone={agencyTimeZone} totalSteps={wizardSteps.length} initialStep={initialStep}>
       <BookingWizardContent agencyId={agencyId} />
     </WizardProvider>
   );

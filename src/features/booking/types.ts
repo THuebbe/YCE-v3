@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { BookingPricing } from './pricing';
+import type { AgencyPolicies } from './policies';
 import { DEFAULT_BOOKING_RULES, toDayKey, validateBookingDates, type BookingRules } from './booking-rules';
 
 // Contact Information Step
@@ -133,6 +134,8 @@ export interface WizardContextType {
   agencySlug: string;
   agency: AgencyContact;
   pricing: BookingPricing;
+  /** Cancellation, late and damage fees for the booking terms */
+  policies: AgencyPolicies;
   bookingRules: BookingRules;
   /** Identifies this browser's wizard run to the server; holds belong to it. */
   sessionId: string;

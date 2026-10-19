@@ -4,7 +4,8 @@ import { BookingOrderResult } from "@/features/booking/types";
 import { createOrderFromPayload, resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
 import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
 import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
-import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
+import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
+import { effectiveBookingRules, effectivePolicies, policyKey } from "@/features/booking/policies";
 import { z } from "zod";
 import { subscriptionAllowsBookings } from "@/features/billing/subscription";
 
@@ -72,6 +73,8 @@ const createOrderInputSchema = z.object({
 	termsAccepted: z.literal(true, { errorMap: () => ({ message: "Please agree to the booking terms" }) }),
 	termsVersion: z.string().min(1),
 	termsLateFee: z.number().min(0),
+	/** policies.ts policyKey of the terms the customer saw (cancellation, late, damage) */
+	termsPolicy: z.string().max(100).optional(),
 });
 
 export async function POST(
@@ -115,7 +118,7 @@ export async function POST(
 			);
 		}
 
-		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee } =
+		const { formData, holdId, sessionId, timeZone, paymentIntentId, confirmationTokenId, agencySlug, totalAmount, termsVersion, termsLateFee, termsPolicy } =
 			validationResult.data;
 
 		// Convert agency slug to UUID
@@ -164,7 +167,9 @@ export async function POST(
 
 		// The terms are the agency's too: the customer must have agreed to the
 		// ones in force now (a late-fee change mid-booking means a new text)
-		if (termsVersion !== TERMS_VERSION || Math.abs(termsLateFee - pricing.lateFee) > 0.005) {
+		const policies = effectivePolicies(agency);
+		if (termsVersion !== TERMS_VERSION || Math.abs(termsLateFee - policies.lateFee) > 0.005
+			|| (termsPolicy !== undefined && termsPolicy !== policyKey(policies))) {
 			return NextResponse.json({
 				success: false,
 				error: "This agency's booking terms were updated while you were booking. Please refresh the page and review them."
@@ -172,7 +177,7 @@ export async function POST(
 		}
 		const method = formData.payment?.paymentMethod || "card";
 		const stripeReady = Boolean(agency.stripe_account_id && agency.stripe_charges_enabled);
-		const terms = buildBookingTerms({ agencyName: agency.name, pricing, paysByCard: stripeReady && method === "card" });
+		const terms = buildBookingTerms({ agencyName: agency.name, policies, paysByCard: stripeReady && method === "card" });
 
 		// Convert eventDate string to Date object manually
 		const eventDate = new Date(formData.event.eventDate);
@@ -188,7 +193,7 @@ export async function POST(
 
 		// The agency's booking rules (order cutoff before delivery, rental length)
 		const { extraDaysBefore, extraDaysAfter } = formData.event;
-		const rules = parseBookingRules(agency.booking_rules, agency.blackout_dates);
+		const rules = effectiveBookingRules(agency);
 		const dateError = validateBookingDates(
 			rules,
 			eventDate,

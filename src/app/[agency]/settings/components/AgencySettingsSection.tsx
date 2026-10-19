@@ -41,6 +41,8 @@ interface BlackoutDatesTabProps {
 
 // BookingPoliciesTab Props
 interface BookingPoliciesTabProps {
+	/** Elite only; Essentials sees the standard rules */
+	canEdit: boolean;
 	bookingRules: BookingRules;
 	setBookingRules: React.Dispatch<React.SetStateAction<BookingRules>>;
 }
@@ -181,9 +183,11 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 
 // Separate BookingPoliciesTab Component
 const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
-	bookingRules,
+	canEdit,
+	bookingRules: storedRules,
 	setBookingRules,
 }) => {
+	const bookingRules = canEdit ? storedRules : DEFAULT_BOOKING_RULES;
 	const updateBookingRule = useCallback((field: keyof BookingRules, value: number | boolean) => {
 		setBookingRules(prev => ({
 			...prev,
@@ -200,9 +204,15 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 				<p className="text-sm text-gray-600 mb-6">
 					Set rules and restrictions for how customers can book your services.
 				</p>
+				{!canEdit && (
+					<p className="mb-6 rounded-lg bg-neutral-50 p-3 text-sm text-neutral-700">
+						🔒 Your bookings use the standard rules below. Setting your own is part of the Elite plan (Billing).
+						Blackout dates work on every plan.
+					</p>
+				)}
 			</div>
 
-			<div className="space-y-6">
+			<fieldset disabled={!canEdit} className="space-y-6 disabled:opacity-60">
 				{/* Order Cutoff */}
 				<div>
 					<label className="block text-sm font-medium text-gray-700 mb-2">
@@ -288,13 +298,15 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 						<li>• Rental period: <strong>{bookingRules.minimumRentalDays} - {bookingRules.maximumRentalDays} days</strong></li>
 					</ul>
 				</div>
-			</div>
+			</fieldset>
 		</div>
 	);
 };
 
 interface AgencySettingsSectionProps {
 	agency: AgencyWithProfile;
+	/** Elite: the agency sets its own booking rules */
+	canEditBookingRules: boolean;
 }
 
 interface Tab {
@@ -317,6 +329,7 @@ const defaultOperatingHours: OperatingHours = {
 
 export default function AgencySettingsSection({
 	agency,
+	canEditBookingRules,
 }: AgencySettingsSectionProps) {
 	const { user } = useUser();
 	const [activeTab, setActiveTab] = useState("operating-hours");
@@ -605,7 +618,7 @@ export default function AgencySettingsSection({
 		{ 
 			id: "policies", 
 			name: "Policies", 
-			content: <BookingPoliciesTab bookingRules={bookingRules} setBookingRules={setBookingRules} /> 
+			content: <BookingPoliciesTab canEdit={canEditBookingRules} bookingRules={bookingRules} setBookingRules={setBookingRules} /> 
 		},
 		// Future features - hidden for now
 		// {
@@ -646,6 +659,10 @@ export default function AgencySettingsSection({
 				endpoint = `/api/agency/blackout-dates?agencyId=${agency.id}`;
 				successMessage = "Blackout dates saved successfully!";
 			} else if (activeTab === 'policies') {
+				if (!canEditBookingRules) {
+					setSaveMessage("Setting your own booking rules is part of the Elite plan");
+					return;
+				}
 				// Save booking policies
 				dataToSave = bookingRules;
 				endpoint = `/api/agency/booking-rules?agencyId=${agency.id}`;

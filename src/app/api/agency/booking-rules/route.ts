@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
 import { bookingRulesSchema } from '@/app/[agency]/settings/validation/agencySettings'
 import { parseBookingRules } from '@/features/booking/booking-rules'
+import { getAgencyPlan } from '@/features/billing/server'
+import { hasFeature } from '@/features/billing/entitlements'
 
 // One schema for the settings form and this route; the booking wizard reads
 // the same shape via parseBookingRules (features/booking/booking-rules.ts)
@@ -83,6 +85,11 @@ export async function PUT(request: NextRequest) {
     const user = await getUserById(userId)
     if (!user || user.agency_id !== agencyId) {
       return NextResponse.json({ success: false, error: 'Access denied' }, { status: 403 })
+    }
+
+    // Own booking rules are Elite (Essentials runs on the defaults)
+    if (!hasFeature(await getAgencyPlan(agencyId), 'policySettings')) {
+      return NextResponse.json({ success: false, error: 'Setting your own booking rules is part of the Elite plan' }, { status: 403 })
     }
 
     // Parse and validate request body

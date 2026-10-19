@@ -12,14 +12,15 @@ import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 import { stripeForAccount } from '../payment-methods/StripeCardForm';
 import { buildBookingTerms } from '../../terms';
+import { policyKey } from '../../policies';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, bookingRules, sessionId, timeZone } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone } = useWizard();
   // The agency's booking terms: the customer must agree before Place Order
   // (consent for later late/damage charges); the server saves its own copy
   const terms = buildBookingTerms({
     agencyName: agency.name,
-    pricing,
+    policies,
     paysByCard: formData.payment?.paymentMethod === 'card' && Boolean(formData.payment?.stripeAccountId),
   });
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -125,7 +126,8 @@ export function ReviewStep() {
         totalAmount: calculateTotal(),
         termsAccepted,
         termsVersion: terms.version,
-        termsLateFee: pricing.lateFee,
+        termsLateFee: policies.lateFee,
+        termsPolicy: policyKey(policies),
       };
       const send = async (extra: { paymentIntentId: string; confirmationTokenId?: string }) => {
         const response = await fetch('/api/orders/create', {
