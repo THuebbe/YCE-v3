@@ -10,6 +10,7 @@
 import { createHash } from 'crypto';
 import { headers } from 'next/headers';
 import { supabase, getAgencyBySlug } from '@/lib/db/supabase-client';
+import { subscriptionAllowsBookings } from '@/features/billing/subscription';
 import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from './booking-rules';
 
 const MAX_SIGNS_PER_HOLD = 200;
@@ -24,9 +25,10 @@ export type CreateHoldResult =
   | { ok: true; holdId: string; rentalStart: string; rentalEnd: string }
   | { ok: false; error: string; shortages?: Shortage[] };
 
+/** The agency, if it's taking bookings (active and subscription paid up) */
 async function resolveAgency(agencySlug: string) {
   const agency = await getAgencyBySlug(agencySlug);
-  return agency?.is_active
+  return agency?.is_active && subscriptionAllowsBookings(agency)
     ? (agency as { id: string; booking_rules: unknown; operating_hours: unknown; blackout_dates: unknown })
     : null;
 }

@@ -5,6 +5,8 @@ import { Header } from '@/shared/components/layout/Header'
 import { AgencyProfileSection } from './components/AgencyProfileSection'
 import FinancialManagementSection from './components/FinancialManagementSection'
 import AgencySettingsSection from './components/AgencySettingsSection'
+import { BillingSection } from './components/BillingSection'
+import { syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
 
 interface SettingsPageProps {
   params: Promise<{
@@ -15,13 +17,15 @@ interface SettingsPageProps {
     refresh?: string
     braintree_success?: string
     braintree_refresh?: string
+    billing?: string
+    session_id?: string
   }>
 }
 
 export default async function SettingsPage({ params, searchParams }: SettingsPageProps) {
   const { userId } = await auth()
   const { agency: agencySlug } = await params
-  const { success, refresh, braintree_success, braintree_refresh } = await searchParams
+  const { success, refresh, braintree_success, braintree_refresh, billing, session_id } = await searchParams
 
   if (!userId) {
     redirect('/auth/sign-in')
@@ -33,7 +37,8 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
       getAgencyBySlug(agencySlug),
       getUserById(userId),
     ])
-    const [agency, user] = results
+    let [agency] = results
+    const user = results[1]
 
     if (!agency || !user || user.agency?.slug !== agencySlug) {
       redirect('/routing')
@@ -46,6 +51,17 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
     
     if (!hasSettingsPermission) {
       redirect(`/${agencySlug}/dashboard`)
+    }
+
+    // Back from Stripe Checkout: sync now rather than wait for the webhook,
+    // so the page (and the booking page) reflect the new subscription
+    if (billing === 'success' && session_id) {
+      try {
+        await syncFromCheckoutSession(session_id, agency.id)
+        agency = (await getAgencyBySlug(agencySlug)) ?? agency
+      } catch (error) {
+        console.error('Billing return sync failed (the webhook will retry):', error)
+      }
     }
 
     return (
@@ -64,6 +80,23 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
 
           {/* Settings Sections */}
           <div className="space-y-8">
+            {/* Subscription */}
+            <section>
+              <BillingSection
+                subscription={{
+                  stripe_subscription_id: agency.stripe_subscription_id,
+                  subscription_status: agency.subscription_status,
+                  subscription_price: agency.subscription_price,
+                  subscription_current_period_end: agency.subscription_current_period_end,
+                  subscription_trial_end: agency.subscription_trial_end,
+                  subscription_cancel_at_period_end: agency.subscription_cancel_at_period_end,
+                  subscription_past_due_since: agency.subscription_past_due_since,
+                }}
+                trialDays={trialDays()}
+                returnState={billing === 'success' ? 'success' : billing === 'cancelled' ? 'cancelled' : undefined}
+              />
+            </section>
+
             {/* Agency Profile Section */}
             <section>
               <AgencyProfileSection 

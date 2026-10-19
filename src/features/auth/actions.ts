@@ -162,7 +162,7 @@ export async function createAgency(formData: FormData): Promise<CreateAgencyResu
         settings: { serviceAreas },
         stripe_connect_status: 'pending',
         subscription_start_date: now,
-        subscription_status: 'trial' // Match schema default instead of 'active'
+        subscription_status: 'none', // set by Stripe Billing once they subscribe
       })
       .select()
       .single()

@@ -6,6 +6,7 @@ import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/p
 import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
 import { parseBookingRules, rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { z } from "zod";
+import { subscriptionAllowsBookings } from "@/features/billing/subscription";
 
 // Relaxed input validation schema - only validate essential fields
 const createOrderInputSchema = z.object({
@@ -128,6 +129,16 @@ export async function POST(
 		}
 		const actualAgencyId = agency.id;
 		console.log('✅ Agency UUID found:', actualAgencyId);
+
+		// No new bookings without a paid-up subscription. A card payment already
+		// made (3-D Secure return) is still finished below, so it gets its order.
+		const resumingPayment = paymentIntentId.startsWith("pi_") && !paymentIntentId.startsWith("pi_mock");
+		if (!resumingPayment && !subscriptionAllowsBookings(agency)) {
+			return NextResponse.json({
+				success: false,
+				error: "This agency isn't taking online bookings right now, so nothing was charged. Please contact them directly."
+			}, { status: 409 });
+		}
 
 		// The price is the agency's, not the browser's: recompute it and refuse
 		// an order whose quoted total doesn't match (tampering or a stale page)

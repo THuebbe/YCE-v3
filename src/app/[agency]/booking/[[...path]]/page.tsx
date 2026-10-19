@@ -3,6 +3,7 @@ import { parseBookingPricing } from '@/features/booking/pricing';
 import { parseBookingRules, resolveTimeZone } from '@/features/booking/booking-rules';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
+import { subscriptionAllowsBookings } from '@/features/billing/subscription';
 
 interface BookingPageProps {
   params: Promise<{
@@ -22,9 +23,10 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
     notFound();
   }
 
-  // Refuse to quote rather than invent a price when the agency hasn't set one
+  // Refuse to quote rather than invent a price when the agency hasn't set
+  // one. An agency without a paid-up subscription doesn't take bookings.
   const pricing = parseBookingPricing(agency.pricing_config);
-  if (!pricing) {
+  if (!pricing || !subscriptionAllowsBookings(agency)) {
     return (
       <div className="min-h-screen flex items-center justify-center p-8 text-center">
         <p className="text-neutral-700">
