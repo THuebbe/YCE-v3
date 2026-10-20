@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { SignUp } from '@clerk/nextjs'
 import { headers } from 'next/headers'
 
@@ -40,6 +41,12 @@ export default async function SignUpPage() {
             }}
           />
         </div>
+        <p className="text-center text-sm text-neutral-600">
+          By creating an account you agree to the{' '}
+          <Link href="/terms" className="font-medium text-primary hover:text-primary-dark">Terms of Service</Link>{' '}
+          and{' '}
+          <Link href="/privacy" className="font-medium text-primary hover:text-primary-dark">Privacy Policy</Link>.
+        </p>
       </div>
     </div>
   )

@@ -199,7 +199,8 @@ export function ContactInfoStep({ custom }: { custom?: string }) {
       {/* Privacy Notice */}
       <div className="mt-6 text-center">
         <p className="text-body-small text-neutral-500">
-          Your information is kept secure and will be retained for 3 years for order history.
+          Your details are used only for this booking and shared with the sign company you&apos;re booking with.{' '}
+          <a href="/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">Privacy Policy</a>
         </p>
       </div>
     </motion.div>

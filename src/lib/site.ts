@@ -11,7 +11,14 @@ export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://yardcard-el
 /** For display: "yardcard-elite.com" */
 export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, '');
 
-/** Must be a mailbox that receives mail (the domain had no MX record on 2026-10-19) */
-export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@yardcard-elite.com';
+/** Trad Tech's helpdesk (yardcard-elite.com has no mailbox yet; decided 2026-10-20) */
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'helpdesk@tradtechie.com';
+
+/**
+ * The company that runs YardCard Elite and is the party to the Terms and
+ * Privacy Policy. Trad Tech LLC for now; YardCard Elite may later move to
+ * its own LLC owned by Trad Tech (the Terms allow assigning to it).
+ */
+export const LEGAL_ENTITY = 'Trad Tech LLC';
 
 export const agencyBookingUrl = (agencySlug: string) => `${SITE_URL}/${agencySlug}/booking`;

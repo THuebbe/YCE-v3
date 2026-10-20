@@ -132,11 +132,17 @@ export default function PricingPage() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">How do my customers pay me?</h3>
-              <p className="text-gray-600">Connect your own Stripe, Venmo, or PayPal account at no extra cost, or let us set up card payments for you in a few minutes for $3 per booking. Payments go directly to you either way.</p>
+              <p className="text-gray-600">By card, through Stripe. Connect your own Stripe account at no extra cost, or let us set up card payments for you in a few minutes for $3 per booking. Payments go directly to you either way. Venmo and PayPal are coming soon.</p>
             </div>
           </div>
         </div>
       </main>
+      <footer className="border-t border-gray-200 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-center gap-6 text-sm text-gray-500">
+          <Link href="/terms" className="hover:text-gray-900">Terms of Service</Link>
+          <Link href="/privacy" className="hover:text-gray-900">Privacy Policy</Link>
+        </div>
+      </footer>
     </div>
   )
 }
