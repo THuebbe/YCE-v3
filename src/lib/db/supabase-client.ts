@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { clerkClient } from '@clerk/nextjs/server'
 import { countOrderSigns } from '@/features/orders/client-utils'
 
 // Create Supabase client with service role key for server-side operations
@@ -97,6 +98,9 @@ export async function getUserById(userId: string): Promise<any | null> {
       .single()
     
     if (error) {
+      // No row for this Clerk id: maybe an existing user signing in on a
+      // new Clerk instance (dev -> production gives everyone new ids)
+      if (error.code === 'PGRST116') return await relinkByVerifiedEmail(userId)
       console.error('❌ Supabase: Error fetching user by ID:', error)
       return null
     }
@@ -105,6 +109,47 @@ export async function getUserById(userId: string): Promise<any | null> {
     return data
   } catch (error) {
     console.error('❌ Supabase: Exception in getUserById:', error)
+    return null
+  }
+}
+
+/**
+ * Moving Clerk from its development to its production instance (2026-10)
+ * gives every user a new Clerk id. The first time an existing YCE user
+ * signs in on the new instance, find their row by their *verified* email
+ * and store the new id, so they keep their agency. Only YCE users (with an
+ * agency) are touched: `users` is shared with PantryPro.
+ */
+async function relinkByVerifiedEmail(userId: string): Promise<any | null> {
+  try {
+    const clerkUser = await (await clerkClient()).users.getUser(userId)
+    const primary = clerkUser.emailAddresses.find(e => e.id === clerkUser.primaryEmailAddressId)
+    if (!primary || primary.verification?.status !== 'verified') return null
+
+    const { data: rows } = await supabase
+      .from('users')
+      .select('id')
+      .ilike('email', primary.emailAddress)
+      .not('agency_id', 'is', null)
+    if (!rows || rows.length !== 1) return null // none, or ambiguous: leave it to onboarding
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ clerk_user_id: userId })
+      .eq('id', rows[0].id)
+      .select(`
+        *,
+        agency:agencies(*)
+      `)
+      .single()
+    if (error) {
+      console.error('❌ Supabase: Relinking user to new Clerk id failed:', error.message)
+      return null
+    }
+    console.log('🔗 Supabase: Relinked existing user to new Clerk id:', data.id)
+    return data
+  } catch (error) {
+    console.error('❌ Supabase: Exception relinking user:', error)
     return null
   }
 }

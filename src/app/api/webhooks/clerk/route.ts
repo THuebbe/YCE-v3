@@ -100,6 +100,13 @@ export async function POST(req: NextRequest) {
           .select()
           .single()
 
+        // Email already has a row (users.email is unique): an existing user on
+        // a new Clerk instance. Sign-in relinks it (getUserById); don't make
+        // Clerk retry an insert that can never succeed.
+        if (error?.code === '23505') {
+          console.log('🔗 Clerk webhook: Email already has a user row, relinked at sign-in:', id)
+          return new Response('User already exists', { status: 200 })
+        }
         if (error) {
           console.error('🔗 Clerk webhook: Error creating user in Supabase:', error)
           return new Response('Error creating user in database', { status: 500 })
