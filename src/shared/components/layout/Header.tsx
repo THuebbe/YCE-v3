@@ -24,8 +24,6 @@ export function Header() {
   const publicNavigation = [
     { name: 'Features', href: '/#features' },
     { name: 'Pricing', href: '/pricing' },
-    { name: 'About', href: '/about' },
-    { name: 'Contact', href: '/contact' },
   ]
 
   return (
@@ -104,10 +102,10 @@ export function Header() {
             ) : (
               <div className="flex items-center space-x-3">
                 <Button variant="ghost" asChild>
-                  <Link href="/sign-in">Sign In</Link>
+                  <Link href="/auth/sign-in">Sign In</Link>
                 </Button>
                 <Button asChild>
-                  <Link href="/sign-up">Get Started</Link>
+                  <Link href="/auth/sign-up">Get Started</Link>
                 </Button>
               </div>
             )}
@@ -174,14 +172,14 @@ export function Header() {
                   ))}
                   <div className="border-t border-neutral-200 pt-4 mt-4 space-y-2">
                     <Link
-                      href="/sign-in"
+                      href="/auth/sign-in"
                       className="block px-3 py-2 text-base font-medium text-neutral-700 hover:text-primary hover:bg-neutral-50 rounded-lg transition-colors duration-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       Sign In
                     </Link>
                     <Link
-                      href="/sign-up"
+                      href="/auth/sign-up"
                       className="block px-3 py-2 text-base font-medium bg-primary text-white hover:bg-primary-dark rounded-lg transition-colors duration-200"
                       onClick={() => setMobileMenuOpen(false)}
                     >

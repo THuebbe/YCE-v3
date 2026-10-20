@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
 import { agencyProfileSchema } from '../../../[agency]/settings/validation/agencyProfile'
+import { agencyBookingUrl } from '@/lib/site'
 
 // GET handler - Retrieve agency profile data
 export async function GET(request: NextRequest) {
@@ -78,8 +79,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Generate booking URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://yardcard-elite.com'
-    const bookingUrl = `${baseUrl}/${agency.slug}/booking`
+    const bookingUrl = agencyBookingUrl(agency.slug)
 
     // Map database fields to API response format
     const profileData = {

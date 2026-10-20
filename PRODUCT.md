@@ -194,9 +194,30 @@ trial and any promotion/coupon **on and off** ourselves: coupons via the
 Stripe dashboard, the trial via one platform setting (no admin UI yet).
 
 **Subscriptions are the main income.** Agencies pay us via Stripe
-Billing (subscription), separate from Connect. Not built yet — the
-settings page shows mock subscription data. Per-booking application
-fees on Express accounts are optional, secondary revenue.
+Billing (subscription), separate from Connect (built in milestone 3).
+Per-booking application fees on Express accounts are optional,
+secondary revenue.
+
+## Future features — not at launch (recorded 2026-10-19)
+Kept here so the ideas survive; the placeholder pages that described
+them (`/[agency]/customers`, `/[agency]/reports`) were removed because
+agencies could open them by URL. Git history has the full mockups.
+- **Popular signs (Elite):** the dashboard card. Count displays by
+  message and theme, not individual letters (letters always "win").
+- **Customers:** customer list and search, profiles with order history,
+  contact details, notes. Later: lifetime value and repeat rate,
+  segments (high value, seasonal, inactive), booking reminders and
+  follow-up emails/SMS, a customer portal (track, rebook), export.
+- **Reports and analytics (Elite):** revenue trends, payment and refund
+  analysis, sign utilization and seasonal trends, deployment times,
+  forecasting, a report builder, scheduled reports, bulk document
+  printing. PDF export with the existing PDF code.
+- **Team management (enterprise):** several users and locations per
+  agency, with roles. The old not-implemented stubs were removed; the
+  shared `users` table needs the PantryPro split first.
+- **Venmo and PayPal at checkout:** after Victory Store, before go-live.
+- **Public website:** about, contact, marketing. Built last, on purpose:
+  no traffic before the product is ready.
 
 ## Deliberate non-goals right now
 Multi-location per agency · white-label branding · advanced analytics ·

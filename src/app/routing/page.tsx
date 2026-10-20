@@ -73,7 +73,7 @@ export default async function RoutingPage() {
           <p className="text-red-700 mb-4">There was an error during authentication routing.</p>
           <p className="text-sm text-red-600 mb-4">Error: {error instanceof Error ? error.message : String(error)}</p>
           <div className="space-y-2">
-            <Link href="/sign-in" className="block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+            <Link href="/auth/sign-in" className="block bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
               Try Sign In Again
             </Link>
             <Link href="/onboarding" className="block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">

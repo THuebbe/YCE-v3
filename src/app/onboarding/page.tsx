@@ -1,6 +1,7 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { CreateAgencyForm } from '@/features/auth/components/CreateAgencyForm'
+import { SUPPORT_EMAIL } from '@/lib/site'
 
 export default async function OnboardingPage() {
   // Ensure user is authenticated
@@ -46,8 +47,8 @@ export default async function OnboardingPage() {
           <div className="text-center mt-8">
             <p className="text-sm text-gray-500">
               Need help? Contact our support team at{' '}
-              <a href="mailto:support@yardcardelite.com" className="text-green-600 hover:text-green-700">
-                support@yardcardelite.com
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-green-600 hover:text-green-700">
+                {SUPPORT_EMAIL}
               </a>
             </p>
           </div>

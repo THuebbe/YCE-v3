@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SignIn } from "@clerk/nextjs";
 import { headers } from "next/headers";
 
@@ -16,6 +17,7 @@ export default async function SignInPage() {
 				<div className="mt-8">
 					<SignIn
 						fallbackRedirectUrl="/routing"
+						signUpUrl="/auth/sign-up"
 						appearance={{
 							elements: {
 								formButtonPrimary:
@@ -32,6 +34,13 @@ export default async function SignInPage() {
 						}}
 					/>
 				</div>
+				{/* No account yet: the plans first, then sign up (decided 2026-10-19) */}
+				<p className="text-center text-sm text-neutral-600">
+					New to YardCard Elite?{" "}
+					<Link href="/pricing" className="font-medium text-primary hover:text-primary-dark">
+						See plans and start a free trial
+					</Link>
+				</p>
 			</div>
 		</div>
 	);

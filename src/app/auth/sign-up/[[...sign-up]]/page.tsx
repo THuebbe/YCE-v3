@@ -23,6 +23,7 @@ export default async function SignUpPage() {
         <div className="mt-8">
           <SignUp 
             redirectUrl={redirectUrl}
+            signInUrl="/auth/sign-in"
             appearance={{
               elements: {
                 formButtonPrimary: 

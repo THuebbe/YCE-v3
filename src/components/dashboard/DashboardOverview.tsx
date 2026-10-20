@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useAgencySlug } from "@/lib/navigation";
+import type { PopularDisplays } from "@/features/dashboard/types";
 import { MetricCard } from "./MetricCard";
 
 interface DashboardData {
@@ -12,10 +15,8 @@ interface DashboardData {
 		status: "pending" | "processing" | "deployed";
 		signCount: number;
 	}>;
-	popularSigns: Array<{
-		name: string;
-		count: number;
-	}>;
+	/** Elite only; null on Essentials */
+	popular: PopularDisplays | null;
 	revenue: {
 		current: number;
 		previous: number;
@@ -31,6 +32,8 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 	const [data, setData] = useState<DashboardData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [popularView, setPopularView] = useState<"occasions" | "themes">("occasions");
+	const agencySlug = useAgencySlug();
 
 	useEffect(() => {
 		async function fetchDashboardData() {
@@ -51,7 +54,7 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 				const dashboardData: DashboardData = {
 					openOrders: apiData.openOrders || 0,
 					upcomingOrders: apiData.upcomingOrders || [],
-					popularSigns: apiData.popularSigns || [],
+					popular: apiData.popular ?? null,
 					revenue: {
 						current: apiData.revenue?.current || 0,
 						previous: apiData.revenue?.previous || 0,
@@ -64,11 +67,11 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 				console.error("Dashboard data fetch error:", err);
 				setError("Failed to load dashboard data");
 
-				// Fallback to mock data if API fails
+				// Show empty cards if the API fails
 				const fallbackData: DashboardData = {
 					openOrders: 0,
 					upcomingOrders: [],
-					popularSigns: [],
+					popular: null,
 					revenue: {
 						current: 0,
 						previous: 0,
@@ -89,6 +92,8 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 		if (count <= 10) return "warning";
 		return "error";
 	};
+
+	const popularItems = data?.popular?.[popularView] ?? [];
 
 	if (error) {
 		return (
@@ -185,21 +190,29 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 					</div>
 				</div>
 
-				{/* Popular Signs Card */}
+				{/* Popular Displays Card (Elite) */}
 				<div className="bg-white rounded-2xl shadow-default p-6 border border-neutral-100 h-full flex flex-col">
 					<div className="flex items-center justify-between mb-6">
 						<h3 className="text-xl font-semibold text-neutral-900">
-							Popular Signs
+							Popular Displays
 						</h3>
-						<div className="flex items-center space-x-2">
-							<button className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors">
-								My Signs
-							</button>
-							<span className="text-neutral-300">|</span>
-							<button className="text-sm text-primary hover:text-primary-hover transition-colors">
-								Platform Trends
-							</button>
-						</div>
+						{data?.popular && (
+							<div className="flex items-center space-x-2" role="group" aria-label="Group by">
+								{(["occasions", "themes"] as const).map((v, i) => (
+									<span key={v} className="flex items-center space-x-2">
+										{i > 0 && <span className="text-neutral-300">|</span>}
+										<button
+											type="button"
+											onClick={() => setPopularView(v)}
+											aria-pressed={popularView === v}
+											className={`text-sm transition-colors ${popularView === v ? "text-primary font-medium" : "text-neutral-600 hover:text-neutral-900"}`}
+										>
+											{v === "occasions" ? "Occasions" : "Themes"}
+										</button>
+									</span>
+								))}
+							</div>
+						)}
 					</div>
 
 					<div className="flex-1">
@@ -215,11 +228,26 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 									</div>
 								))}
 							</div>
-						) : data?.popularSigns.length ? (
+						) : !data?.popular ? (
+							<div className="text-center py-8">
+								<div className="text-4xl mb-4">📊</div>
+								<h4 className="text-lg font-medium text-neutral-900 mb-2">
+									An Elite feature
+								</h4>
+								<p className="text-neutral-600">
+									See which occasions and themes your customers book most.{" "}
+									{agencySlug && (
+										<Link href={`/${agencySlug}/billing`} className="font-medium text-primary underline">
+											Upgrade to Elite
+										</Link>
+									)}
+								</p>
+							</div>
+						) : popularItems.length ? (
 							<div className="space-y-3">
-								{data.popularSigns.map((sign, index) => (
+								{popularItems.map((item, index) => (
 									<div
-										key={sign.name}
+										key={item.name}
 										className="flex items-center justify-between"
 									>
 										<div className="flex items-center space-x-3">
@@ -227,7 +255,7 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 												#{index + 1}
 											</span>
 											<span className="font-medium text-neutral-900">
-												{sign.name}
+												{item.name}
 											</span>
 										</div>
 										<div className="flex items-center space-x-2">
@@ -235,14 +263,12 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 												<div
 													className="bg-primary h-2 rounded-full transition-all duration-500"
 													style={{
-														width: `${
-															(sign.count / data.popularSigns[0].count) * 100
-														}%`,
+														width: `${(item.count / popularItems[0].count) * 100}%`,
 													}}
 												/>
 											</div>
 											<span className="text-sm font-medium text-neutral-700 w-8 text-right">
-												{sign.count}
+												{item.count}
 											</span>
 										</div>
 									</div>
@@ -252,10 +278,10 @@ export function DashboardOverview({ className = "" }: DashboardOverviewProps) {
 							<div className="text-center py-8">
 								<div className="text-4xl mb-4">📊</div>
 								<h4 className="text-lg font-medium text-neutral-900 mb-2">
-									No data yet
+									No bookings yet
 								</h4>
 								<p className="text-neutral-600">
-									Add inventory to see popular signs!
+									Your most-booked {popularView === "occasions" ? "occasions" : "themes"} from the last 12 months show here.
 								</p>
 							</div>
 						)}

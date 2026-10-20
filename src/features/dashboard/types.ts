@@ -7,36 +7,19 @@ export interface DashboardMetrics {
   monthlyRevenue: number;
   monthlyRevenueChange: number; // Percentage change from previous month
   last30DaysRevenue: number; // Rolling 30-day revenue
-  popularSigns: PopularSign[];
-  upcomingDeployments: UpcomingDeployment[];
   completedOrdersThisMonth: number;
   averageOrderValue: number;
-  pendingOrdersCount: number;
-  processingOrdersCount: number;
-  deployedOrdersCount: number;
 }
 
-export interface PopularSign {
-  id: string;
+/** Elite dashboard card (features/dashboard/popular-displays.ts) */
+export interface PopularItem {
   name: string;
-  category: string;
-  image_url: string;
-  totalOrdered: number;
-  revenue: number;
-  isMySign?: boolean; // Differentiates between agency's signs vs platform-wide
+  count: number;
 }
 
-export interface UpcomingDeployment {
-  id: string;
-  order_number: string;
-  customer_name: string;
-  customer_email: string;
-  event_date: Date;
-  delivery_time: string | null;
-  status: OrderStatus;
-  signCount: number;
-  address: string;
-  total: number;
+export interface PopularDisplays {
+  occasions: PopularItem[];
+  themes: PopularItem[];
 }
 
 export interface RecentOrder {
@@ -80,13 +63,6 @@ export interface RevenueComparison {
   previous: number;
   changePercent: number;
   trend: 'up' | 'down' | 'neutral';
-}
-
-// Popular signs comparison data
-export interface PopularSignsData {
-  myAgency: PopularSign[];
-  platformWide: PopularSign[];
-  selectedView: 'agency' | 'platform';
 }
 
 // Loading and error states

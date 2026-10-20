@@ -11,19 +11,17 @@ export default function MarketingHomePage() {
               <h1 className="text-2xl font-bold text-gray-900">YardCard Elite</h1>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <Link href="/about" className="text-gray-500 hover:text-gray-900">About</Link>
               <Link href="/pricing" className="text-gray-500 hover:text-gray-900">Pricing</Link>
-              <Link href="/contact" className="text-gray-500 hover:text-gray-900">Contact</Link>
             </nav>
             <div className="flex items-center space-x-4">
               <Link 
-                href="/sign-in" 
+                href="/auth/sign-in" 
                 className="text-gray-500 hover:text-gray-900"
               >
                 Sign In
               </Link>
               <Link 
-                href="/sign-up" 
+                href="/auth/sign-up" 
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
                 Get Started
@@ -46,7 +44,7 @@ export default function MarketingHomePage() {
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <Link
-              href="/sign-up"
+              href="/auth/sign-up"
               className="rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
             >
               Start Free Trial
