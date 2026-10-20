@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import { SITE_URL } from '@/lib/site';
 
 // Lazy-load Resend client
 function getResendClient() {
@@ -137,7 +138,7 @@ export async function sendCustomerConfirmationEmail(data: CustomerConfirmationDa
 				${data.cancelUrl ? `<p style="font-size: 14px;">Need to cancel? <a href="${escapeHtml(data.cancelUrl)}" style="color: #4b5563;">Cancel your booking</a> (refund per the terms below).</p>` : ''}
 				<h2 style="font-size: 16px; margin-top: 28px;">Your booking terms</h2>
 				<div style="font-size: 14px; color: #4b5563;">${terms}</div>
-				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}.</p>
+				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}. <a href="${SITE_URL}/privacy" style="color: #9ca3af;">Privacy Policy</a></p>
 			</div>
 		`;
 		// "Texas Sign Solutions via YardCard Elite <orders@...>": the agency's
@@ -191,7 +192,7 @@ export async function sendCustomerCancellationEmail(data: {
 				<p>${data.cancelledByCustomer ? 'You cancelled' : `${escapeHtml(data.agencyName)} cancelled`} order ${escapeHtml(data.orderNumber)} for ${escapeHtml(data.eventDay)}.</p>
 				${refund}
 				<p>Questions? Contact ${escapeHtml(data.agencyName)}${contact ? `: ${contact}` : ''}, or reply to this email.</p>
-				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}.</p>
+				<p style="font-size: 12px; color: #9ca3af; margin-top: 28px;">Sent by YardCard Elite for ${escapeHtml(data.agencyName)}. <a href="${SITE_URL}/privacy" style="color: #9ca3af;">Privacy Policy</a></p>
 			</div>
 		`;
 		const address = FROM_ADDRESS.match(/<([^>]+)>/)?.[1] ?? FROM_ADDRESS;

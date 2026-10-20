@@ -532,6 +532,12 @@ export function ReviewStep() {
               {terms.agreement} I understand that my display will be installed during the selected time window and removed {pickupDay ? `on ${formatDay(pickupDay, true)}` : 'after my event'}.
             </span>
           </label>
+          <p className="text-body-small text-neutral-500">
+            Bookings are made through YardCard Elite:{' '}
+            <a href="/terms" target="_blank" rel="noopener" className="text-primary hover:underline">Terms of Service</a>{' '}
+            and{' '}
+            <a href="/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">Privacy Policy</a>.
+          </p>
         </div>
       </div>
 

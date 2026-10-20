@@ -189,7 +189,8 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
               {offerTrial
                 ? `A card is needed to start. You won't be charged until the trial ends, and you can cancel any time before then.`
                 : 'You can cancel any time; your plan runs to the end of the period you paid for.'}
-              {' '}Have a promo code? Enter it at checkout.
+              {' '}Have a promo code? Enter it at checkout. Subscribing means you agree to the{' '}
+              <a href="/terms" target="_blank" rel="noopener" className="underline">Terms of Service</a>.
             </p>
           </>
         )}

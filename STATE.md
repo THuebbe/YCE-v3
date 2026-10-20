@@ -253,7 +253,8 @@ old verification notes) is in `git show aace018:STATE.md`.
 5. (done 2026-10-19, PR #21) RLS backstop on YCE tables. STILL OPEN, the
    user's call: `users` (shared with PantryPro) and PantryPro's tables are
    readable/writable with the public anon key (advisor: rls_disabled_in_public).
-6. Customers can't self-cancel; late/damage fees not built - milestone 5.
+6. (done 2026-10-19, PRs #27-#29) Customer self-cancel, late/damage fees,
+   agency display edits - milestone 5.
 7. Venmo and PayPal checkout aren't real: Venmo's `processVenmoPayment`
    requires a signed-in agency user (customers got "Unauthorized") and
    takes the amount from the browser; PayPal's form is a stub. Both used
@@ -261,10 +262,16 @@ old verification notes) is in `git show aace018:STATE.md`.
    cards; the setup tabs still work. Building them = new milestone.
 8. Vercel Pro + Stripe live: only when the first real agency pays (user's
    call to wait).
+9. **Terms and Privacy are drafts** (`/terms`, `/privacy`, 2026-10-20, the
+   user's working draft): Trad Tech LLC, Iowa law, helpdesk@tradtechie.com.
+   Before go-live: research/compare, then professional review. The privacy
+   policy promises deletion on request (by hand - no tooling) and no fixed
+   retention period; the 3-year promise on the booking form was removed.
+   Moving YCE to its own LLC later: check with Stripe first whether the
+   platform account's legal entity can change - Connect accounts can't be
+   moved to a new platform account.
 
 ## Known gaps (not blockers)
-- "Edit signs" isn't built; the buttons are disabled (needs stock
-  re-check and re-hold).
 - Booking (after the m1c branch): the Customize preview is blank after a
   refresh until regenerated (the hold survives); changing dates leaves
   the old hold until it expires or is replaced; customers sharing an IP
