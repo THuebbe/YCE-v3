@@ -58,12 +58,13 @@ const TYPE = [
   ['text-fine', '', 'Free cancellation up to 48 hours before setup.'],
 ] as const
 
-// Sample agency picks to show the contrast fixing; real ones come from agency settings
+// Sample agency picks to show the contrast fixing; real ones come from agency settings.
+// Blue Ribbon's accent is deliberately too close to its brand color.
 /* eslint-disable no-restricted-syntax */
 const AGENCIES = [
-  { name: 'Lucky Lawn Signs', color: '#6B2D8C' },
-  { name: 'Sunny Side Cards', color: '#FFE14D' },
-  { name: 'Blue Ribbon Yard Greetings', color: '#3B82F6' },
+  { name: 'Lucky Lawn Signs', brand: '#6B2D8C', accent: '#FFB703' },
+  { name: 'Sunny Side Cards', brand: '#FFE14D', accent: '#E63946' },
+  { name: 'Blue Ribbon Yard Greetings', brand: '#1E40AF', accent: '#2F5BD3' },
 ]
 /* eslint-enable no-restricted-syntax */
 
@@ -248,7 +249,7 @@ export default function BrandPage() {
         <Section
           id="voice"
           title="Voice"
-          intro={<><strong>Draft for Tobi to mark up.</strong> Plain, upbeat, short. We sound like a friendly neighbor who runs a tight operation: excited about the party, precise about the details.</>}
+          intro={<>Plain, upbeat, short. We sound like a friendly neighbor who runs a tight operation: excited about the party, precise about the details.</>}
         >
           <div className="grid gap-4 md:grid-cols-2 [&>*]:min-w-0">
             {[
@@ -290,49 +291,55 @@ export default function BrandPage() {
         <Section
           id="white-label"
           title="White label"
-          intro={<><strong>Draft for Tobi to decide.</strong> On booking pages the agency is the brand. Agencies choose a color and a logo; YardCard Elite fixes contrast and keeps the layout, so every booking page stays easy to use.</>}
+          intro="On booking pages the agency is the brand. Agencies choose two colors and a logo; YardCard Elite fixes contrast and keeps the layout and wording, so every booking page stays easy to use."
         >
           <div className="grid gap-4 md:grid-cols-3">
-            {AGENCIES.map(a => (
-              <div key={a.name} data-agency="" style={agencyThemeVars(a.color) as CSSProperties} className="rounded-card border border-line bg-surface p-5">
-                <div className="flex items-center gap-2">
-                  <span className="h-6 w-6 rounded-control" style={{ background: a.color }} aria-hidden />
-                  <span className="font-display text-heading font-semibold">{a.name}</span>
+            {AGENCIES.map(a => {
+              const accentKept = contrast(a.accent, a.brand) >= 3
+              return (
+                <div key={a.name} data-agency="" style={agencyThemeVars(a) as CSSProperties} className="overflow-hidden rounded-card border border-line bg-surface">
+                  <div className="bg-brand px-5 py-4 text-on-brand">
+                    <span className="block font-display text-heading font-semibold">{a.name}</span>
+                    <span className="text-fine font-bold text-brand-accent">Step 2 of 4 · Pick your signs</span>
+                  </div>
+                  <div className="p-5">
+                    <p className="text-fine text-fg-muted tabular-nums">
+                      Brand {a.brand} · accent {a.accent}
+                      {!accentKept && <> · accent too close to brand, so the band uses {readableOn(a.brand) === PALETTE.ink[0] ? 'white' : 'dark'} instead</>}
+                    </p>
+                    <button type="button" className="mt-4 h-11 w-full rounded-control bg-action font-bold text-on-action hover:bg-action-hover">
+                      Book a display
+                    </button>
+                    <a href="#white-label" className="mt-3 inline-block font-bold text-action-text underline underline-offset-4">Booking terms</a>
+                    <div className="mt-4 flex items-center gap-1.5 border-t border-line pt-3 text-fine text-fg-muted">
+                      Powered by <Logo variant="icon" className="h-4 w-4" title="" /> <span className="font-semibold">{BRAND.name}</span>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-1 text-fine text-fg-muted tabular-nums">Picked {a.color} · text on it: {readableOn(a.color) === PALETTE.ink[0] ? 'white' : 'dark'}</p>
-                <button type="button" className="mt-4 h-11 w-full rounded-control bg-action font-bold text-on-action hover:bg-action-hover">
-                  Book a display
-                </button>
-                <a href="#white-label" className="mt-3 inline-block font-bold text-action-text underline underline-offset-4">Booking terms</a>
-                <div className="mt-4 flex items-center gap-1.5 border-t border-line pt-3 text-fine text-fg-muted">
-                  Powered by <Logo variant="icon" className="h-4 w-4" title="" /> <span className="font-semibold">{BRAND.name}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <div className="rounded-card border border-line bg-surface p-6 text-copy">
-              <h3 className="font-display text-heading font-semibold">Agencies can change</h3>
+              <h3 className="font-display text-heading font-semibold">Agencies choose</h3>
               <ul className="mt-2 grid gap-1">
-                <li>Their main color (buttons, links, highlights)</li>
+                <li><strong>Brand color</strong>: header and bands</li>
+                <li><strong>Accent color</strong>: buttons and links. Optional; without it the brand color does both</li>
                 <li>Their logo and business name in the header</li>
-                <li>Their wording for terms, policies and confirmation messages</li>
+                <li>Their policy values (Elite): cancellation notice and fee, late fee, damage fee per sign. The terms text is generated from them</li>
               </ul>
             </div>
             <div className="rounded-card border border-line bg-surface p-6 text-copy">
               <h3 className="font-display text-heading font-semibold">Fixed by YardCard Elite</h3>
               <ul className="mt-2 grid gap-1">
-                <li>Contrast: a too-light or too-dark color is adjusted automatically</li>
-                <li>Layout, steps, fonts and the yard scene</li>
+                <li>Contrast: text on each color is picked automatically, and an accent that blends into the brand color is replaced on brand bands</li>
+                <li>All wording: steps, buttons, messages and the generated terms</li>
+                <li>Layout, fonts and the yard scene</li>
                 <li>Status colors (paid, failed, cancelled)</li>
-                <li>A small &ldquo;Powered by YardCard Elite&rdquo; line in the footer</li>
+                <li>&ldquo;Powered by YardCard Elite&rdquo; in the footer, on every plan</li>
               </ul>
             </div>
           </div>
-          <p className="mt-4 max-w-prose rounded-card bg-caution-soft p-4 text-fine text-caution">
-            <strong>Open question:</strong> can an agency hide &ldquo;Powered by&rdquo;? Common options: never; Elite
-            only; or a paid add-on. That line is free marketing on every booking, so I&apos;d keep it on every plan.
-          </p>
         </Section>
 
         <Section
