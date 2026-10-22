@@ -29,7 +29,7 @@ export async function cancelBookingAsCustomer(input: { agencySlug: string; order
       cancelledBy: 'customer',
     });
     if (!outcome.success) return { success: false, error: outcome.error.replace('The order was not cancelled.', 'Your booking was not cancelled. Please try again or contact the agency.') };
-    revalidatePath('/[agency]/orders', 'page');
+    revalidatePath('/[agency]/(app)/orders', 'page');
     return { success: true, refund: quote.refund, refunded: outcome.refunded };
   } catch (error) {
     console.error('cancelBookingAsCustomer failed:', input.orderId, error);

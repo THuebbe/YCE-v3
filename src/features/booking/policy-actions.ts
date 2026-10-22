@@ -60,7 +60,7 @@ export async function savePolicies(input: PoliciesInput): Promise<Result> {
       console.error('savePolicies failed:', error.message);
       return { success: false, error: 'Could not save your policies' };
     }
-    revalidatePath('/[agency]/settings', 'page');
+    revalidatePath('/[agency]/(app)/settings', 'page');
     return { success: true, policies: parsePolicies(policyConfig, pricingConfig) };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : 'Could not save your policies' };

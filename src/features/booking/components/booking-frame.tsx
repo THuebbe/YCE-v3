@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Logo } from '@/shared/components/brand/Logo';
 import { BRAND } from '@/lib/brand';
 import { brandingStyle, type AgencyBranding } from '@/features/agency/branding';
+import { AgencyMark } from '@/features/agency/components/agency-mark';
 
 /**
  * Everything around an agency's booking page: its colors (white label, on
@@ -22,17 +23,7 @@ export function BookingFrame({
     <div data-agency="" style={brandingStyle(branding)} className="flex min-h-screen flex-col bg-canvas font-body text-fg">
       <header className="bg-brand text-on-brand">
         <div className="mx-auto flex w-full max-w-4xl items-center gap-3 px-4 py-4 sm:px-6">
-          {branding.logoUrl ? (
-            // Agency-supplied image from any https host, so a plain img (no next/image domain list)
-            <img src={branding.logoUrl} alt="" className="h-10 w-auto max-w-[9rem] rounded-control bg-surface object-contain p-1" />
-          ) : (
-            <span
-              aria-hidden
-              className="flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-accent font-display text-heading font-semibold text-brand"
-            >
-              {initials(agencyName)}
-            </span>
-          )}
+          <AgencyMark name={agencyName} logoUrl={branding.logoUrl} />
           <span className="min-w-0 truncate font-display text-heading font-semibold">{agencyName}</span>
         </div>
       </header>
@@ -55,8 +46,3 @@ export function BookingFrame({
   );
 }
 
-/** "Lucky Lawn Signs" -> "LL": a stand-in until the agency uploads a logo */
-function initials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(w => /[a-z0-9]/i.test(w));
-  return (words.slice(0, 2).map(w => w[0]).join('') || '?').toUpperCase();
-}

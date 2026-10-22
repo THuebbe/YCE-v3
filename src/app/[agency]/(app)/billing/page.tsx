@@ -1,7 +1,7 @@
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
-import { Header } from '@/shared/components/layout/Header'
+import { PageHeader } from '@/features/dashboard/components/page-header'
 import { resolveTimeZone } from '@/features/booking/booking-rules'
 import { BillingSection } from '../settings/components/BillingSection'
 import { syncCustomerSubscription, syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
@@ -49,20 +49,14 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
   const justSubscribed = fromCheckout || (!hasLiveSubscription(found) && hasLiveSubscription(agency))
 
   return (
-    <div className="min-h-screen bg-background-light">
-      <Header />
-      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-neutral-900 mb-2">
-            {welcome ? 'Last step: choose your plan' : 'Billing'}
-          </h1>
-          <p className="text-neutral-600">
-            {welcome
-              ? 'Your agency is set up. Pick a plan to open your booking page to customers.'
-              : 'Your YardCard Elite subscription.'}
-          </p>
-        </div>
-        <BillingSection
+    <div className="mx-auto max-w-4xl">
+      <PageHeader
+        title={welcome ? 'Last step: choose your plan' : 'Plan & billing'}
+        description={welcome
+          ? 'Your agency is set up. Pick a plan to open your booking page to customers.'
+          : 'Your YardCard Elite subscription.'}
+      />
+      <BillingSection
           subscription={{
             stripe_subscription_id: agency.stripe_subscription_id,
             subscription_status: agency.subscription_status,
@@ -77,7 +71,6 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
           returnState={justSubscribed ? 'success' : billing === 'cancelled' ? 'cancelled' : undefined}
           dashboardHref={`/${agencySlug}/dashboard`}
         />
-      </main>
     </div>
   )
 }

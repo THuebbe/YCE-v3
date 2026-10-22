@@ -1,7 +1,6 @@
-import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
-import { Header } from '@/shared/components/layout/Header'
+import { requireAgencyPage } from '@/features/dashboard/access'
+import { PageHeader } from '@/features/dashboard/components/page-header'
 import { AgencyProfileSection } from './components/AgencyProfileSection'
 import FinancialManagementSection from './components/FinancialManagementSection'
 import AgencySettingsSection from './components/AgencySettingsSection'
@@ -25,48 +24,18 @@ interface SettingsPageProps {
 }
 
 export default async function SettingsPage({ params, searchParams }: SettingsPageProps) {
-  const { userId } = await auth()
   const { agency: agencySlug } = await params
   const { success, refresh, braintree_success, braintree_refresh } = await searchParams
+  const { agency, user } = await requireAgencyPage(agencySlug)
 
-  if (!userId) {
-    redirect('/auth/sign-in')
+  // Settings are for the agency's admins
+  if (!['ADMIN', 'SUPER_USER', 'SUPER_ADMIN'].includes(user.role)) {
+    redirect(`/${agencySlug}/dashboard`)
   }
 
-  // Verify agency access and permissions
-  try {
-    const results = await Promise.all([
-      getAgencyBySlug(agencySlug),
-      getUserById(userId),
-    ])
-    const [agency, user] = results
-
-    if (!agency || !user || user.agency?.slug !== agencySlug) {
-      redirect('/routing')
-    }
-
-    // Check if user has permission to manage agency settings
-    const hasSettingsPermission = user.role === 'ADMIN' || 
-                                 user.role === 'SUPER_USER' || 
-                                 user.role === 'SUPER_ADMIN'
-    
-    if (!hasSettingsPermission) {
-      redirect(`/${agencySlug}/dashboard`)
-    }
-
     return (
-      <div className="min-h-screen bg-background-light">
-        <Header />
-        <main className="mx-auto max-w-7xl px-6 py-8 lg:px-8">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-neutral-900 mb-2">
-              Manage Agency Settings
-            </h1>
-            <p className="text-neutral-600">
-              Configure your agency profile, payment settings, and operational preferences.
-            </p>
-          </div>
+      <>
+          <PageHeader title="Settings" description="Your business, booking page, payments and plan." />
 
           {/* Settings Sections */}
           <div className="space-y-8">
@@ -142,11 +111,6 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
               </div>
             </section>
           </div>
-        </main>
-      </div>
+      </>
     )
-  } catch (error) {
-    console.error('Error loading settings page:', error)
-    redirect('/routing')
-  }
 }

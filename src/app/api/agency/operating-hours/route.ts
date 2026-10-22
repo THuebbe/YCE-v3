@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { operatingHoursSchema } from '@/app/[agency]/settings/validation/agencySettings'
+import { operatingHoursSchema } from '@/app/[agency]/(app)/settings/validation/agencySettings'
 
 // Default operating hours for new agencies
 const defaultOperatingHours = {

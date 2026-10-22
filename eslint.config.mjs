@@ -31,6 +31,17 @@ export const COLOR_ENFORCED = [
   'src/app/page.tsx',
   'src/app/pricing/**/*.{ts,tsx}',
   'src/features/marketing/**/*.{ts,tsx}',
+  // Dashboard shell, home and sign-in (redesigned 2026-10-22). Orders,
+  // signs and settings join as their PRs land.
+  'src/app/[[]agency]/(app)/{layout,loading}.tsx',
+  'src/app/[[]agency]/(app)/dashboard/**/*.{ts,tsx}',
+  'src/app/[[]agency]/(app)/{orders,inventory,billing}/page.tsx',
+  'src/app/auth/**/*.{ts,tsx}',
+  'src/features/dashboard/**/*.{ts,tsx}',
+  'src/features/agency/components/**/*.{ts,tsx}',
+  'src/features/auth/components/auth-frame.tsx',
+  'src/features/billing/components/billing-banner.tsx',
+  'src/lib/clerk-theme.ts',
 ];
 
 /** Files whose job is to define colors */

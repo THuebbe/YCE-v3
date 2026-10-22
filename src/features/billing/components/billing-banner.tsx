@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AlertTriangle } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import { graceEndsAt, subscriptionAllowsBookings, type AgencySubscription } from '../subscription';
 
 /**
@@ -17,12 +17,15 @@ export function BillingBanner({ agency, slug }: { agency: AgencySubscription; sl
       : 'Your booking page is closed to new bookings because your subscription is not paid up.';
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900">
-      <p className="flex items-start gap-2 text-sm">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-        {message} Existing orders aren&apos;t affected.
+    <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-caution bg-caution-soft p-4 text-caution">
+      <p className="flex min-w-0 flex-1 basis-64 items-start gap-2 text-fine">
+        <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+        <span>{message} Existing orders aren&apos;t affected.</span>
       </p>
-      <Link href={`/${slug}/billing`} className="rounded-md bg-amber-900 px-3 py-2 text-sm font-medium text-white">
+      <Link
+        href={`/${slug}/billing`}
+        className="inline-flex h-11 items-center rounded-control bg-caution px-4 text-fine font-bold text-on-strong transition-opacity hover:opacity-90 focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
+      >
         Fix billing
       </Link>
     </div>

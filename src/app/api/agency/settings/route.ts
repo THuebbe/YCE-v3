@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { agencySettingsSchema, defaultAgencySettings } from '@/app/[agency]/settings/validation/agencySettings'
+import { agencySettingsSchema, defaultAgencySettings } from '@/app/[agency]/(app)/settings/validation/agencySettings'
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Check, Circle } from 'lucide-react';
+import { Circle, CircleCheck } from 'lucide-react';
 import type { ReadinessItem } from '../readiness';
 
 const ITEMS: { key: ReadinessItem; title: string; detail: string; href: (slug: string) => string; action: string }[] = [
@@ -17,27 +17,37 @@ export function SetupChecklist({ missing, slug }: { missing: ReadinessItem[]; sl
   if (missing.length === 0) return null;
   const done = ITEMS.length - missing.length;
   return (
-    <section className="mb-8 rounded-xl border border-primary/20 bg-white p-5 shadow-default">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-semibold text-neutral-900">Get ready to take bookings</h2>
-        <p className="text-sm text-neutral-600">{done} of {ITEMS.length} done · your booking page opens when all are</p>
+    <section aria-labelledby="setup-title" className="rounded-card border border-line bg-surface p-4 sm:p-5">
+      <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="setup-title" className="font-display text-heading font-semibold">Get ready to take bookings</h2>
+        <p className="text-fine font-semibold text-fg-muted">{done} of {ITEMS.length} done</p>
       </div>
-      <ol className="space-y-3">
+      <p className="mb-4 text-fine text-fg-muted">Your booking page opens to customers when all four are done.</p>
+      <div className="mb-4 h-2 rounded-full bg-surface-sunken" aria-hidden>
+        <div className="h-2 rounded-full bg-lawn transition-[width] duration-500" style={{ width: `${(done / ITEMS.length) * 100}%` }} />
+      </div>
+      <ol className="grid gap-2">
         {ITEMS.map(item => {
           const todo = missing.includes(item.key);
           return (
-            <li key={item.key} className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-neutral-50 p-3">
+            <li key={item.key} className="flex flex-wrap items-center justify-between gap-3 rounded-control border border-line p-3">
               <div className="flex min-w-0 flex-1 basis-56 items-start gap-3">
                 {todo
-                  ? <Circle className="mt-0.5 h-5 w-5 shrink-0 text-neutral-400" />
-                  : <Check className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />}
+                  ? <Circle className="mt-0.5 size-5 shrink-0 text-fg-muted" aria-hidden />
+                  : <CircleCheck className="mt-0.5 size-5 shrink-0 text-positive" aria-hidden />}
                 <div>
-                  <p className={`font-medium ${todo ? 'text-neutral-900' : 'text-neutral-500 line-through'}`}>{item.title}</p>
-                  {todo && <p className="text-sm text-neutral-600">{item.detail}</p>}
+                  <p className={todo ? 'font-semibold' : 'text-fg-muted line-through'}>
+                    {!todo && <span className="sr-only">Done: </span>}
+                    {item.title}
+                  </p>
+                  {todo && <p className="text-fine text-fg-muted">{item.detail}</p>}
                 </div>
               </div>
               {todo && (
-                <Link href={item.href(slug)} className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-white">
+                <Link
+                  href={item.href(slug)}
+                  className="inline-flex h-11 items-center rounded-control bg-action px-4 text-fine font-bold text-on-action transition-colors hover:bg-action-hover focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
+                >
                   {item.action}
                 </Link>
               )}
