@@ -168,3 +168,13 @@
     --drop-stagger: 0ms;
   }
 }
+
+/* Utilities ----------------------------------------------------------------- */
+/* Rows of chips that scroll sideways on phones: no scrollbar to look at or
+   catch a tap (they still scroll by swipe, and wrap from sm up) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

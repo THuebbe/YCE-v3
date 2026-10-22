@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ChipNav } from '@/shared/components/ui/chip-nav';
 
 /** A page's sections as pill links (in the URL, so Back and deep links work) */
 export function SectionTabs({ label, items, active }: {
@@ -8,7 +9,7 @@ export function SectionTabs({ label, items, active }: {
   active: string;
 }) {
   return (
-    <nav aria-label={label} className="-mx-4 mb-5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+    <ChipNav label={label} className="mb-5">
       <ul className="flex gap-2">
         {items.map(item => {
           const on = item.id === active;
@@ -28,6 +29,6 @@ export function SectionTabs({ label, items, active }: {
           );
         })}
       </ul>
-    </nav>
+    </ChipNav>
   );
 }

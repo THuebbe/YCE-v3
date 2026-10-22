@@ -8,6 +8,8 @@ import FinancialManagementSection from '@/app/[agency]/(app)/settings/components
 import AgencySettingsSection from '@/app/[agency]/(app)/settings/components/AgencySettingsSection'
 import { PoliciesCard } from '@/app/[agency]/(app)/settings/components/PoliciesCard'
 import { parsePolicies } from '@/features/booking/policies'
+import { BillingSection } from '@/app/[agency]/(app)/settings/components/BillingSection'
+import type { AgencySubscription } from '@/features/billing/subscription'
 import { LabShell } from '../lab-shell'
 
 export const metadata: Metadata = { title: 'Settings - lab' }
@@ -17,17 +19,23 @@ const AGENCY = {
   plan: 'elite', branding: {}, pricing_config: { basePrice: 95, extraDayPrice: 15, lateFee: 25 }, policy_config: null,
 }
 
+const ACTIVE: AgencySubscription = {
+  stripe_subscription_id: 'sub_lab', subscription_status: 'active', subscription_price: 'yce_elite_monthly',
+  subscription_current_period_end: new Date(Date.now() + 20 * 864e5).toISOString(),
+}
+
 /**
  * Settings with a demo agency (preview and dev only). The sections load and
  * save through the real APIs, which refuse here, so they show their
  * loading or error states; the branding card works fully in the browser.
- *   ?section=business|booking|payments
+ *   ?section=business|booking|payments|plan
+ *   ?sub=active            Plan & billing with a paid plan (default: none yet)
  *   ?plan=essentials       branding locked
  *   ?brand=6B2D8C&accent=FFB703&logo=https://...   start from these
  */
 export default async function SettingsLabPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const q = await searchParams
-  const section = q.section === 'business' || q.section === 'payments' ? q.section : 'booking'
+  const section = q.section === 'business' || q.section === 'payments' || q.section === 'plan' ? q.section : 'booking'
   const elite = q.plan !== 'essentials'
   const sections = [
     { id: 'business', label: 'Business', href: '/lab/settings?section=business' },
@@ -59,6 +67,9 @@ export default async function SettingsLabPage({ searchParams }: { searchParams: 
           </>
         )}
         {section === 'payments' && <FinancialManagementSection agency={AGENCY as any} show="payments" />}
+        {section === 'plan' && (
+          <BillingSection subscription={q.sub === 'active' ? ACTIVE : {}} trialDays={14} timeZone="America/Chicago" dashboardHref="/lab/dashboard" />
+        )}
       </div>
     </LabShell>
   )
