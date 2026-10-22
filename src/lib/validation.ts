@@ -11,19 +11,19 @@ export const createAgencySchema = z.object({
   
   slug: z
     .string()
-    .min(3, 'Subdomain must be at least 3 characters')
-    .max(30, 'Subdomain must be less than 30 characters')
-    .regex(/^[a-z0-9-]+$/, 'Subdomain can only contain lowercase letters, numbers, and hyphens')
-    .regex(/^[a-z0-9]/, 'Subdomain must start with a letter or number')
-    .regex(/[a-z0-9]$/, 'Subdomain must end with a letter or number')
-    .refine(slug => !slug.includes('--'), 'Subdomain cannot contain consecutive hyphens')
+    .min(3, 'Use at least 3 characters')
+    .max(30, 'Use 30 characters or fewer')
+    .regex(/^[a-z0-9-]+$/, 'Use only lowercase letters, numbers and hyphens')
+    .regex(/^[a-z0-9]/, 'Start with a letter or number')
+    .regex(/[a-z0-9]$/, 'End with a letter or number')
+    .refine(slug => !slug.includes('--'), 'Use single hyphens only')
     // Infrastructure names plus the app's own top-level routes (src/app/*):
     // /<slug>/... would collide with them
     .refine(slug => ![
       'www', 'api', 'admin', 'app', 'mail', 'ftp', 'localhost', 'staging', 'dev', 'test',
       'auth', 'maintenance', 'marketing', 'onboarding', 'pricing', 'routing', 'dashboard', 'not-found',
       'terms', 'privacy', 'lab',
-    ].includes(slug), 'This name is reserved'),
+    ].includes(slug), 'That address is reserved'),
 
   description: z
     .string()
@@ -63,7 +63,7 @@ export type CreateAgencyInput = z.infer<typeof createAgencySchema>
 
 // Subdomain availability check schema
 export const checkSubdomainSchema = z.object({
-  slug: z.string().min(1, 'Subdomain is required')
+  slug: z.string().min(1, 'Choose an address')
 })
 
 export type CheckSubdomainInput = z.infer<typeof checkSubdomainSchema>

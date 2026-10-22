@@ -4,8 +4,12 @@ import { useState, useCallback, useEffect } from 'react'
 import { createAgency, checkSubdomainAvailability, completeOnboarding } from '../actions'
 import { createAgencySchema } from '@/lib/validation'
 import { AGENCY_TIME_ZONES, guessAgencyTimeZone } from '@/lib/time-zones'
-import { Building2, Check, X, AlertCircle, Loader2, Plus, Trash2 } from 'lucide-react'
+import { Building2, Check, X, Loader2, Plus, Trash2 } from 'lucide-react'
 import { SITE_HOST } from '@/lib/site'
+import { cn } from '@/lib/utils'
+import { Button } from '@/shared/components/ui/button'
+import { NumberField } from '@/shared/components/ui/number-field'
+import { Field, TextArea } from '@/features/booking/components/step-kit'
 
 // Debounce hook for real-time validation
 function useDebounce<T>(value: T, delay: number): T {
@@ -60,22 +64,13 @@ const STEPS: { title: string; fields: (keyof FormData)[] }[] = [
   { title: 'Pricing', fields: ['basePrice', 'extraDayPrice'] },
 ]
 
-const inputClass = (hasError: boolean) =>
-  `w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
-    hasError ? 'border-red-300' : 'border-gray-300'
-  }`
+const input = (hasError: boolean) => cn(
+  'h-12 w-full rounded-control border bg-surface px-4 text-copy text-fg placeholder:text-fg-muted focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
+  hasError ? 'border-danger' : 'border-line-strong',
+)
 
-function FieldError({ message }: { message?: string }) {
-  if (!message) return null
-  return (
-    <p className="mt-1 text-sm text-red-600 flex items-center">
-      <AlertCircle className="h-4 w-4 mr-1" />
-      {message}
-    </p>
-  )
-}
-
-export function CreateAgencyForm() {
+/** `demo` (the /lab page): every step works, but the last one creates nothing */
+export function CreateAgencyForm({ demo = false }: { demo?: boolean } = {}) {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     phone: '',
@@ -203,6 +198,11 @@ export function CreateAgencyForm() {
       }
     }
 
+    if (demo) {
+      setSubmitError('Demo: this is where your agency would be created. Nothing was saved.')
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitError(null)
 
@@ -244,226 +244,192 @@ export function CreateAgencyForm() {
     switch (step) {
       case 1:
         return (
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                Business Name *
-              </label>
+          <div className="grid gap-5">
+            <Field id="name" label="Business name" error={errors.name}>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                <Building2 className="pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2 text-fg-muted" aria-hidden />
                 <input
                   id="name"
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  className={`${inputClass(!!errors.name)} pl-10`}
-                  placeholder="Enter your business name"
+                  className={cn(input(!!errors.name), 'pl-10')}
+                  placeholder="Your business name"
                   maxLength={50}
+                  autoComplete="organization"
                 />
               </div>
-              <FieldError message={errors.name} />
-            </div>
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Business Phone *
-              </label>
+            </Field>
+            <Field id="phone" label="Business phone" error={errors.phone}>
               <input
                 id="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => set('phone', e.target.value)}
-                className={inputClass(!!errors.phone)}
+                className={input(!!errors.phone)}
                 placeholder="(303) 555-0142"
                 maxLength={20}
+                autoComplete="tel"
               />
-              <FieldError message={errors.phone} />
-            </div>
-            <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-2">
-                Website (Optional)
-              </label>
+            </Field>
+            <Field id="website" label="Website (optional)" error={errors.website} hint="Customers are sent back here after they book">
               <input
                 id="website"
                 type="url"
                 value={formData.website}
                 onChange={(e) => set('website', e.target.value)}
-                className={inputClass(!!errors.website)}
+                className={input(!!errors.website)}
                 placeholder="https://www.yourbusiness.com"
                 maxLength={200}
               />
-              <FieldError message={errors.website} />
-              <p className="mt-1 text-sm text-gray-500">
-                Customers are sent back here after they book
-              </p>
-            </div>
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Business Description (Optional)
-              </label>
-              <textarea
+            </Field>
+            <Field id="description" label="About your business (optional)" error={errors.description}>
+              <TextArea
                 id="description"
                 rows={3}
                 value={formData.description}
                 onChange={(e) => set('description', e.target.value)}
-                className={`${inputClass(!!errors.description)} resize-none`}
-                placeholder="Tell your clients about your services..."
+                className={errors.description ? 'border-danger' : undefined}
+                placeholder="Birthday and graduation yard signs in the Denver area"
                 maxLength={200}
               />
-              <FieldError message={errors.description} />
-            </div>
+            </Field>
           </div>
         )
 
       case 2:
         return (
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-2">
-                Your Booking Page Address *
-              </label>
-              <div className="flex items-center">
-                <div className="px-3 py-3 bg-gray-50 border border-r-0 border-gray-300 rounded-l-lg text-gray-600 text-sm whitespace-nowrap">
-                  {SITE_HOST}/
-                </div>
-                <input
-                  id="slug"
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => handleSlugChange(e.target.value)}
-                  className={`${inputClass(!!errors.slug)} rounded-l-none`}
-                  placeholder="your-business"
-                  maxLength={30}
-                />
-              </div>
-              {formData.slug && (
-                <div className="flex items-center space-x-2 mt-2">
-                  {slugStatus.checking ? (
-                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                  ) : slugStatus.available === true ? (
-                    <Check className="h-4 w-4 text-green-500" />
-                  ) : slugStatus.available === false ? (
-                    <X className="h-4 w-4 text-red-500" />
-                  ) : null}
-                  <span className={`text-sm ${
-                    slugStatus.checking ? 'text-blue-600' :
-                    slugStatus.available === true ? 'text-green-600' :
-                    slugStatus.available === false ? 'text-red-600' :
-                    'text-gray-600'
-                  }`}>
-                    {slugStatus.message || 'Enter an address to check availability'}
-                  </span>
-                </div>
-              )}
-              <FieldError message={errors.slug} />
-              <p className="mt-1 text-sm text-gray-500">
-                Customers book at <span className="font-mono">/{formData.slug || 'your-business'}/booking</span>
-              </p>
+          <Field
+            id="slug"
+            label="Your booking page address"
+            error={errors.slug}
+            hint={<>Customers book at <span className="font-mono">{SITE_HOST}/{formData.slug || 'your-business'}/booking</span></>}
+          >
+            <div className="flex">
+              <span className="flex items-center rounded-l-control border border-r-0 border-line-strong bg-surface-sunken px-3 text-fine whitespace-nowrap text-fg-muted">
+                {SITE_HOST}/
+              </span>
+              <input
+                id="slug"
+                type="text"
+                value={formData.slug}
+                onChange={(e) => handleSlugChange(e.target.value)}
+                className={cn(input(!!errors.slug), 'min-w-0 rounded-l-none')}
+                placeholder="your-business"
+                maxLength={30}
+                autoCapitalize="none"
+                spellCheck={false}
+              />
             </div>
-          </div>
+            {formData.slug && (
+              <p
+                aria-live="polite"
+                className={cn(
+                  'flex items-center gap-1.5 text-fine font-semibold',
+                  slugStatus.checking ? 'text-fg-muted' : slugStatus.available === true ? 'text-positive' : slugStatus.available === false ? 'text-danger' : 'text-fg-muted',
+                )}
+              >
+                {slugStatus.checking ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                ) : slugStatus.available === true ? (
+                  <Check className="size-4" aria-hidden />
+                ) : slugStatus.available === false ? (
+                  <X className="size-4" aria-hidden />
+                ) : null}
+                {slugStatus.checking ? 'Checking…' : slugStatus.message || 'Type at least 3 characters'}
+              </p>
+            )}
+          </Field>
         )
 
       case 3:
         return (
-          <div className="space-y-6">
-            <div>
-              <p className="block text-sm font-medium text-gray-700 mb-2">Cities You Serve *</p>
-              <div className="space-y-3">
-                {formData.serviceAreas.map((area, index) => (
-                  <div key={index} className="flex gap-2">
-                    <input
-                      aria-label={`City ${index + 1}`}
-                      type="text"
-                      value={area.city}
-                      onChange={(e) => updateArea(index, { city: e.target.value })}
-                      className={inputClass(!!errors.serviceAreas)}
-                      placeholder="City"
-                      maxLength={60}
-                    />
-                    <input
-                      aria-label={`State ${index + 1}`}
-                      type="text"
-                      value={area.state}
-                      onChange={(e) => updateArea(index, { state: e.target.value.toUpperCase().slice(0, 2) })}
-                      className={`${inputClass(!!errors.serviceAreas)} w-20`}
-                      placeholder="ST"
-                      maxLength={2}
-                    />
-                    {formData.serviceAreas.length > 1 && (
-                      <button
-                        type="button"
-                        aria-label={`Remove city ${index + 1}`}
-                        onClick={() => set('serviceAreas', formData.serviceAreas.filter((_, i) => i !== index))}
-                        className="px-3 text-gray-500 hover:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <FieldError message={errors.serviceAreas} />
-              <button
+          <div className="grid gap-5">
+            <fieldset className="grid gap-2">
+              <legend className="mb-1 text-fine font-bold text-fg">Cities you serve</legend>
+              {formData.serviceAreas.map((area, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    aria-label={`City ${index + 1}`}
+                    type="text"
+                    value={area.city}
+                    onChange={(e) => updateArea(index, { city: e.target.value })}
+                    className={input(!!errors.serviceAreas)}
+                    placeholder="City"
+                    maxLength={60}
+                  />
+                  <input
+                    aria-label={`State ${index + 1}`}
+                    type="text"
+                    value={area.state}
+                    onChange={(e) => updateArea(index, { state: e.target.value.toUpperCase().slice(0, 2) })}
+                    className={cn(input(!!errors.serviceAreas), 'w-20 shrink-0')}
+                    placeholder="ST"
+                    maxLength={2}
+                  />
+                  {formData.serviceAreas.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Remove city ${index + 1}`}
+                      onClick={() => set('serviceAreas', formData.serviceAreas.filter((_, i) => i !== index))}
+                      className="h-12 shrink-0 text-fg-muted hover:text-danger"
+                    >
+                      <Trash2 className="size-4" aria-hidden />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              {errors.serviceAreas ? (
+                <p className="text-fine text-danger" role="alert">{errors.serviceAreas}</p>
+              ) : (
+                <p className="text-fine text-fg-muted">Shown to customers for reference; it never blocks a booking</p>
+              )}
+              <Button
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => set('serviceAreas', [...formData.serviceAreas, { city: '', state: '' }])}
-                className="mt-3 text-sm text-green-700 hover:text-green-800 flex items-center"
+                className="justify-self-start px-2"
               >
-                <Plus className="h-4 w-4 mr-1" /> Add another city
-              </button>
-              <p className="mt-1 text-sm text-gray-500">
-                Shown to customers for reference; it never blocks a booking
-              </p>
-            </div>
-            <div>
-              <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700 mb-2">
-                Time Zone *
-              </label>
+                <Plus className="size-4" aria-hidden /> Add another city
+              </Button>
+            </fieldset>
+            <Field id="timeZone" label="Time zone" error={errors.timeZone} hint={<>Booking cutoffs (&quot;order by end of day&quot;) use your time zone</>}>
               <select
                 id="timeZone"
                 value={formData.timeZone}
                 onChange={(e) => set('timeZone', e.target.value)}
-                className={inputClass(!!errors.timeZone)}
+                className={input(!!errors.timeZone)}
               >
                 <option value="" disabled>Choose your time zone</option>
                 {AGENCY_TIME_ZONES.map(zone => (
                   <option key={zone.value} value={zone.value}>{zone.label}</option>
                 ))}
               </select>
-              <FieldError message={errors.timeZone} />
-              <p className="mt-1 text-sm text-gray-500">
-                Booking cutoffs (&quot;order by end of day&quot;) use your time zone
-              </p>
-            </div>
+            </Field>
           </div>
         )
 
       case 4:
         return (
-          <div className="space-y-6">
+          <div className="grid gap-5">
             {([
-              ['basePrice', 'Base Price *', 'One display for the event day, including delivery and pickup'],
-              ['extraDayPrice', 'Extra Day Price *', 'Charged for each extra day a customer adds before or after the event'],
-            ] as const).map(([field, label, hint]) => (
-              <div key={field}>
-                <label htmlFor={field} className="block text-sm font-medium text-gray-700 mb-2">
-                  {label}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                  <input
-                    id={field}
-                    type="number"
-                    inputMode="decimal"
-                    min="0"
-                    step="1"
-                    value={formData[field]}
-                    onChange={(e) => set(field, e.target.value)}
-                    className={`${inputClass(!!errors[field])} pl-8`}
-                    placeholder={field === 'basePrice' ? '95' : '10'}
-                  />
-                </div>
-                <FieldError message={errors[field]} />
-                <p className="mt-1 text-sm text-gray-500">{hint}. You can change it any time in Settings.</p>
-              </div>
+              ['basePrice', 'Rental price', 'One display for the event day, including delivery and pickup', '95'],
+              ['extraDayPrice', 'Each extra day', 'For each day a customer adds before or after the event', '10'],
+            ] as const).map(([field, label, hint, placeholder]) => (
+              <Field key={field} id={field} label={label} error={errors[field]} hint={`${hint}. You can change it any time in Settings.`}>
+                <NumberField
+                  id={field}
+                  value={formData[field]}
+                  onValueChange={(v) => set(field, v)}
+                  prefix="$"
+                  placeholder={placeholder}
+                  aria-invalid={!!errors[field]}
+                  className={errors[field] ? 'border-danger' : undefined}
+                />
+              </Field>
             ))}
           </div>
         )
@@ -482,77 +448,43 @@ export function CreateAgencyForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-8">
-      {/* Progress Indicator */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          {STEPS.map((_, i) => i + 1).map((stepNumber) => (
-            <div key={stepNumber} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  stepNumber <= step ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                {stepNumber}
-              </div>
-              {stepNumber < totalSteps && (
-                <div className={`w-16 h-0.5 mx-2 ${stepNumber < step ? 'bg-green-600' : 'bg-gray-200'}`} />
-              )}
-            </div>
+    <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="grid gap-6">
+      <div className="grid gap-2">
+        <p className="text-fine font-bold text-fg-muted">
+          Step {step} of {totalSteps} · <span className="text-fg">{STEPS[step - 1].title}</span>
+        </p>
+        <div className="flex gap-1.5" aria-hidden>
+          {STEPS.map((s, i) => (
+            <span key={s.title} className={cn('h-1.5 flex-1 rounded-full', i < step ? 'bg-brand' : 'bg-surface-sunken')} />
           ))}
         </div>
-        <p className="mt-4 text-sm text-gray-600">
-          Step {step} of {totalSteps}: {STEPS[step - 1].title}
-        </p>
       </div>
 
       {renderStepContent()}
 
       {submitError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-700 flex items-center">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            {submitError}
-          </p>
-        </div>
+        <p role="alert" className="rounded-control bg-danger-soft p-3 text-fine font-semibold text-danger">
+          {submitError}
+        </p>
       )}
 
-      <div className="flex justify-between pt-6">
-        <button
-          type="button"
-          onClick={handlePrevious}
-          disabled={step === 1}
-          className={`px-6 py-3 border border-gray-300 rounded-lg font-medium transition-colors ${
-            step === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-50'
-          }`}
-        >
-          Previous
-        </button>
+      <div className="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-between">
+        {step > 1 ? (
+          <Button type="button" variant="secondary" onClick={handlePrevious}>Back</Button>
+        ) : <span className="hidden sm:block" />}
 
         {step < totalSteps ? (
-          <button
+          <Button
             type="button"
             onClick={handleNext}
             disabled={step === 2 && (!formData.slug || !slugStatus.available || slugStatus.checking)}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
             Next
-          </button>
+          </Button>
         ) : (
-          <button
-            type="submit"
-            disabled={isSubmitting || !slugStatus.available || slugStatus.checking}
-            className="px-8 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Creating Agency...</span>
-              </>
-            ) : (
-              <span>Create Agency</span>
-            )}
-          </button>
+          <Button type="submit" loading={isSubmitting} disabled={isSubmitting || !slugStatus.available || slugStatus.checking}>
+            {isSubmitting ? 'Creating your agency…' : 'Create my agency'}
+          </Button>
         )}
       </div>
     </form>

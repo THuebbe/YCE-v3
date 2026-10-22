@@ -9,52 +9,22 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-/** Folders already on the brand tokens; raw colors there fail lint. Add each folder as the redesign reaches it. */
+/** Where raw colors fail lint: they must come from the brand tokens */
 export const COLOR_ENFORCED = [
-  'src/app/lab/**/*.{ts,tsx}',
-  'src/features/yard-scene/**/*.{ts,tsx}',
-  // Booking flow (redesigned 2026-10-22). Its display/* preview pieces and
-  // the layout calculator's dev colors move with the dashboard redesign.
-  'src/app/[[]agency]/booking/**/*.{ts,tsx}',
-  'src/features/booking/components/*.{ts,tsx}',
-  'src/features/booking/components/steps/**/*.{ts,tsx}',
-  'src/features/booking/components/payment-methods/**/*.{ts,tsx}',
-  'src/features/booking/components/display/BookingYardPreview.tsx',
-  'src/features/booking/components/display/scene-from-layout.ts',
-  'src/features/booking/context/**/*.{ts,tsx}',
-  'src/features/agency/branding.ts',
-  'src/components/payments/**/*.{ts,tsx}',
-  'src/components/ui/**/*.{ts,tsx}',
-  'src/shared/components/ui/**/*.{ts,tsx}',
-  'src/shared/components/feedback/**/*.{ts,tsx}',
-  // Marketing site (redesigned 2026-10-22)
-  'src/app/page.tsx',
-  'src/app/pricing/**/*.{ts,tsx}',
-  'src/features/marketing/**/*.{ts,tsx}',
-  // Dashboard shell, home and sign-in (redesigned 2026-10-22)
-  'src/app/[[]agency]/(app)/{layout,loading}.tsx',
-  'src/app/[[]agency]/(app)/dashboard/**/*.{ts,tsx}',
-  // Settings and Plan & billing (redesigned 2026-10-22); validation/ holds
-  // an unused old settings schema with color defaults
-  'src/app/[[]agency]/(app)/billing/page.tsx',
-  'src/app/[[]agency]/(app)/settings/*.{ts,tsx}',
-  'src/app/[[]agency]/(app)/settings/components/**/*.{ts,tsx}',
-  // Signs (redesigned 2026-10-22)
-  'src/app/[[]agency]/(app)/inventory/**/*.{ts,tsx}',
-  'src/features/inventory/**/*.{ts,tsx}',
-  // Orders (redesigned 2026-10-22). Order PDFs keep their own print colors.
-  'src/app/[[]agency]/(app)/orders/**/*.{ts,tsx}',
-  'src/features/orders/**/*.{ts,tsx}',
-  'src/app/auth/**/*.{ts,tsx}',
-  'src/features/dashboard/**/*.{ts,tsx}',
-  'src/features/agency/components/**/*.{ts,tsx}',
-  'src/features/auth/components/auth-frame.tsx',
-  'src/features/billing/components/billing-banner.tsx',
-  'src/lib/clerk-theme.ts',
+  // Everywhere, since the redesign finished (2026-10-22). Exceptions go in
+  // COLOR_EXEMPT with a reason.
+  'src/**/*.{ts,tsx}',
 ];
 
 /** Files whose job is to define colors, and printed documents (PDF/HTML outside the app's theme) */
-export const COLOR_EXEMPT = ['src/lib/brand.ts', 'src/shared/components/brand/**', 'src/features/orders/documents/**'];
+export const COLOR_EXEMPT = [
+  'src/lib/brand.ts',
+  'src/shared/components/brand/**',
+  'src/features/orders/documents/**',
+  // Colored stand-in boxes for signs without art, shown only in development
+  'src/features/booking/services/layout-calculator.ts',
+  'src/features/booking/components/display/{LetterStake,DecorationSign,BookendSign,BackdropElement}.tsx',
+];
 
 /** Bans raw hex colors, Tailwind palette classes and the legacy purple theme (DESIGN.md, Color) */
 export function colorRules() {
@@ -91,8 +61,7 @@ const eslintConfig = [
     },
   },
   {
-    // Colors come from the brand tokens. `pnpm lint:colors` lists what's
-    // left to migrate outside COLOR_ENFORCED.
+    // Colors come from the brand tokens (DESIGN.md, Color)
     files: COLOR_ENFORCED,
     ignores: COLOR_EXEMPT,
     rules: {

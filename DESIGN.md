@@ -163,26 +163,23 @@ No scroll-triggered fade-ins, no parallax, nothing that loops.
 
 ## Email and PDF
 
-Use `COLORS` and `BRAND.logo.emailPng` (600px wide, shown at 300px) from
-`src/lib/brand.ts`. Email clients don't load our CSS or SVG.
+Use `COLORS` and `BRAND.logo.emailPng` (600px wide) from
+`src/lib/brand.ts`. Email clients don't load our CSS or SVG. Every email
+is built from the shared layout in `src/lib/email.ts` (inline styles, tables);
+see them all with sample data at `/lab/emails`.
 
-## Migrating from the purple theme
+## Color lint
 
-The legacy purple tokens in `globals.css` stay until every screen has moved.
-Each redesign PR:
-1. Rebuilds its screens on the meaning tokens.
-2. Adds its folders to `COLOR_ENFORCED` in `eslint.config.mjs`, so raw colors there fail lint from then on.
-3. Checks `pnpm lint:colors`: the count only goes down.
+The purple theme is gone (deleted 2026-10-22, when the redesign finished).
+Every file under `src/` is on the meaning tokens, and `eslint.config.mjs`
+fails lint on a raw hex color, a Tailwind palette class (`bg-blue-600`) or
+an old purple class anywhere. `COLOR_EXEMPT` lists the few files allowed
+raw colors, each with its reason: the brand definitions, printed order
+documents, and the development-only stand-in boxes for signs without art.
+`pnpm lint:colors` should report nothing.
 
-Order: booking flow (done 2026-10-22), then marketing site, then
-dashboard. When the count reaches zero, delete the legacy block in
-`globals.css` and enforce everywhere.
-
-The shared UI (`src/shared/components/ui`, `src/components/ui`,
-`src/shared/components/feedback`) is already on the tokens, so the
-dashboard shows orange buttons before its own redesign. That's expected.
 `src/components/ui/{button,badge,card,input,label}` re-export the shared
-ones: one component set.
+ones in `src/shared/components/ui`: one component set.
 
 ## Not decided yet (on purpose)
 

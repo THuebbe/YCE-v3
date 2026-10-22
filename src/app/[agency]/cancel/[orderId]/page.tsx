@@ -1,6 +1,8 @@
 import { getAgencyBySlug } from '@/lib/db/supabase-client'
 import { loadCancelQuote } from '@/features/orders/customer-cancel'
 import { formatDay } from '@/features/booking/booking-rules'
+import { activeBranding } from '@/features/agency/branding'
+import { BookingFrame } from '@/features/booking/components/booking-frame'
 import { CancelBookingButton } from './cancel-button'
 
 export const dynamic = 'force-dynamic'
@@ -24,20 +26,19 @@ export default async function CancelBookingPage({ params, searchParams }: Cancel
   const contact = [agency?.phone, agency?.email].filter(Boolean).join(' · ')
 
   const shell = (body: React.ReactNode) => (
-    <div className="min-h-screen bg-neutral-50 px-4 py-10">
-      <main className="mx-auto max-w-lg rounded-xl bg-white p-6 shadow-default">
-        <p className="text-sm font-medium text-neutral-500">{agency?.name ?? 'Your booking'}</p>
+    <BookingFrame agencyName={agency?.name ?? 'Your booking'} branding={activeBranding(agency)}>
+      <main className="mx-auto grid w-full max-w-lg gap-4 px-4 py-10">
         {body}
-        {contact && <p className="mt-6 text-sm text-neutral-600">Questions? {contact}</p>}
+        {contact && <p className="text-fine text-fg-muted">Questions? {contact}</p>}
       </main>
-    </div>
+    </BookingFrame>
   )
 
   if (!quote) {
     return shell(
       <>
-        <h1 className="mt-1 text-2xl font-bold text-neutral-900">This link isn&apos;t valid</h1>
-        <p className="mt-3 text-neutral-700">Please use the link from your confirmation email, or contact the agency to cancel.</p>
+        <h1 className="font-display text-title font-semibold">This link isn&apos;t valid</h1>
+        <p className="text-fg-muted">Please use the link from your confirmation email, or contact the agency to cancel.</p>
       </>
     )
   }
@@ -47,10 +48,10 @@ export default async function CancelBookingPage({ params, searchParams }: Cancel
   if (!quote.canCancel) {
     return shell(
       <>
-        <h1 className="mt-1 text-2xl font-bold text-neutral-900">
+        <h1 className="font-display text-title font-semibold">
           {quote.status === 'cancelled' ? 'This booking is cancelled' : 'This booking can’t be cancelled online'}
         </h1>
-        <p className="mt-3 text-neutral-700">
+        <p className="text-fg-muted">
           {quote.status === 'cancelled'
             ? `Order ${quote.orderNumber} for ${eventDay} was cancelled.`
             : `Your signs for order ${quote.orderNumber} are already out. Please contact the agency.`}
@@ -62,26 +63,26 @@ export default async function CancelBookingPage({ params, searchParams }: Cancel
   const { policy } = quote
   return shell(
     <>
-      <h1 className="mt-1 text-2xl font-bold text-neutral-900">Cancel your booking?</h1>
-      <div className="mt-4 space-y-1 rounded-lg bg-neutral-50 p-4 text-sm text-neutral-800">
-        <p><strong>Order:</strong> {quote.orderNumber}</p>
-        <p><strong>Event day:</strong> {eventDay}</p>
-        <p><strong>Paid:</strong> {money(quote.total)}</p>
-      </div>
-      <div className="mt-4 rounded-lg border border-neutral-200 p-4">
+      <h1 className="font-display text-title font-semibold">Cancel your booking?</h1>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-card bg-surface-sunken p-4">
+        <dt className="text-fg-muted">Order</dt><dd className="font-semibold">{quote.orderNumber}</dd>
+        <dt className="text-fg-muted">Event day</dt><dd className="font-semibold">{eventDay}</dd>
+        <dt className="text-fg-muted">Paid</dt><dd className="font-semibold">{money(quote.total)}</dd>
+      </dl>
+      <div className="rounded-card border border-line bg-surface p-4">
         {quote.insideNotice ? (
-          <p className="text-neutral-800">
+          <p>
             Your delivery is less than {policy.noticeHours} hours away, so under your booking terms <strong>no refund</strong> is due.
           </p>
         ) : (
-          <p className="text-neutral-800">
+          <p>
             You&apos;ll get <strong>{money(quote.refund)}</strong> back{quote.paidByCard ? ' to your card' : ''}
             {quote.fee > 0 ? ` (${money(quote.total)} minus the ${money(quote.fee)} cancellation fee in your booking terms)` : ''}.
           </p>
         )}
       </div>
       <CancelBookingButton agencySlug={slug} orderId={quote.orderId} token={t} refund={quote.refund} />
-      <p className="mt-3 text-xs text-neutral-500">
+      <p className="text-fine text-fg-muted">
         If {agency?.name ?? 'the agency'} can&apos;t deliver or install your display, including because of weather, contact them: you get a full refund.
       </p>
     </>

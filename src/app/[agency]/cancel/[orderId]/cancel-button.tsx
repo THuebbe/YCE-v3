@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { cancelBookingAsCustomer } from '@/features/orders/customer-actions'
+import { Button } from '@/shared/components/ui/button'
 
 export function CancelBookingButton({ agencySlug, orderId, token, refund }: { agencySlug: string; orderId: string; token: string; refund: number }) {
   const [state, setState] = useState<'idle' | 'working' | 'done'>('idle')
@@ -23,19 +24,14 @@ export function CancelBookingButton({ agencySlug, orderId, token, refund }: { ag
   }
 
   if (state === 'done') {
-    return <p className="mt-5 rounded-lg bg-green-50 p-4 text-green-800" role="status">{message}</p>
+    return <p className="rounded-card bg-positive-soft p-4 font-semibold text-positive" role="status">{message}</p>
   }
   return (
-    <div className="mt-5">
-      <button
-        type="button"
-        onClick={cancel}
-        disabled={state === 'working'}
-        className="w-full rounded-lg bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:opacity-60"
-      >
+    <div className="grid gap-3">
+      <Button type="button" variant="error" size="lg" onClick={cancel} loading={state === 'working'} disabled={state === 'working'} className="w-full">
         {state === 'working' ? 'Cancelling…' : refund > 0 ? 'Yes, cancel and refund me' : 'Yes, cancel my booking'}
-      </button>
-      {message && <p className="mt-3 text-sm text-red-700" role="alert">{message}</p>}
+      </Button>
+      {message && <p className="text-fine text-danger" role="alert">{message}</p>}
     </div>
   )
 }
