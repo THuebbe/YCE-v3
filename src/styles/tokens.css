@@ -109,6 +109,13 @@
 
   --color-focus: var(--bluebird-700);
 
+  /* payment providers' own button colors (their brand rules, not ours) */
+  --color-paypal: #0070BA;
+  --color-paypal-hover: #005EA6;
+  --color-venmo: #3D95CE;
+  --color-venmo-hover: #2E7BA6;
+  --color-apple-pay: #000000;
+
   /* type: Fredoka for display (headings, numbers, the wordmark), Nunito Sans for reading */
   --font-display: var(--font-fredoka), ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
   --font-body: var(--font-nunito-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;

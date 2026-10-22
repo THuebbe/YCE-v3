@@ -5,6 +5,8 @@ import { effectiveBookingRules, effectivePolicies } from '@/features/booking/pol
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
 import { getBookingBlockers } from '@/features/agency/readiness-server';
+import { parseBranding } from '@/features/agency/branding';
+import { BookingFrame } from '@/features/booking/components/booking-frame';
 
 interface BookingPageProps {
   params: Promise<{
@@ -28,26 +30,24 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
   // payments, signs in stock and prices (never an invented price)
   const pricing = parseBookingPricing(agency.pricing_config);
   const blockers = await getBookingBlockers(agency);
+  const branding = parseBranding(agency.branding);
   if (!pricing || blockers.length > 0) {
-    const contact = [agency.phone, agency.email].filter(Boolean).join(' · ');
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 text-center">
-        <div className="max-w-md space-y-2">
-          <p className="text-lg font-medium text-neutral-900">{agency.name}</p>
-          <p className="text-neutral-700">
-            This agency isn&apos;t taking online bookings yet. Please contact them directly.
-          </p>
-          {contact && <p className="text-neutral-600">{contact}</p>}
+      <BookingFrame agencyName={agency.name} branding={branding}>
+        <div className="mx-auto grid max-w-md gap-2 px-4 py-16 text-center">
+          <h1 className="font-display text-title font-semibold">Online booking isn&apos;t open yet</h1>
+          <p className="text-copy text-fg-muted">{agency.name} isn&apos;t taking bookings here yet. Reach them directly:</p>
+          {agency.phone && <a href={`tel:${agency.phone}`} className="font-bold text-action-text underline underline-offset-4">{agency.phone}</a>}
+          {agency.email && <a href={`mailto:${agency.email}`} className="font-bold text-action-text underline underline-offset-4">{agency.email}</a>}
         </div>
-      </div>
+      </BookingFrame>
     );
   }
 
   const policies = effectivePolicies(agency);
 
   return (
-    <div className="min-h-screen">
-      <BookingWizard 
+    <BookingWizard
         agencyId={agency.id}
         agencySlug={agency.slug}
         agency={{
@@ -60,7 +60,7 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
         policies={policies}
         bookingRules={effectiveBookingRules(agency)}
         agencyTimeZone={resolveTimeZone(agency.operating_hours)}
+        branding={branding}
       />
-    </div>
   );
 }

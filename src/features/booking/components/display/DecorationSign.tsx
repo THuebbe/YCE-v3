@@ -40,7 +40,7 @@ export function DecorationSign({ name, style, className = '' }: DecorationSignPr
       title={name} // Tooltip for accessibility
     >
       {isDevelopment && (
-        <span className="text-xs text-white font-medium">
+        <span className="text-fine text-white font-medium">
           {name.substring(0, 2).toUpperCase()}
         </span>
       )}

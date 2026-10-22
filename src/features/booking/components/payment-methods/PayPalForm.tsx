@@ -63,37 +63,37 @@ export function PayPalForm({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <DollarSign className="w-5 h-5 text-[#0070BA]" />
-        <h3 className="text-h5 text-neutral-900">PayPal Payment</h3>
+        <DollarSign className="w-5 h-5 text-paypal" />
+        <h3 className="font-display text-heading font-semibold text-fg">PayPal Payment</h3>
         <Badge variant={isProduction ? 'default' : 'secondary'}>
           {isProduction ? 'Live' : 'Sandbox'} Mode
         </Badge>
       </div>
       
       {/* Payment Amount */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-surface-sunken rounded-card p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Amount:</span>
+          <span className="text-fine text-fg-muted">Amount:</span>
           <span className="text-lg font-semibold">${amount.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between mt-1">
-          <span className="text-sm text-gray-600">Payment Method:</span>
-          <span className="text-sm text-gray-900">PayPal</span>
+          <span className="text-fine text-fg-muted">Payment Method:</span>
+          <span className="text-fine text-fg">PayPal</span>
         </div>
       </div>
 
       {/* PayPal Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-notice-soft border border-notice/30 rounded-card p-4">
         <div className="flex items-start space-x-3">
-          <DollarSign className="w-5 h-5 text-[#0070BA] mt-0.5" />
+          <DollarSign className="w-5 h-5 text-paypal mt-0.5" />
           <div className="flex-1">
-            <h4 className="text-body-small font-medium text-blue-800 mb-1">
+            <h4 className="text-fine font-medium text-notice mb-1">
               Secure PayPal Payment
             </h4>
-            <p className="text-body-small text-blue-700 mb-2">
+            <p className="text-fine text-notice mb-2">
               You'll be redirected to PayPal to complete your payment securely.
             </p>
-            <ul className="text-xs text-blue-600 space-y-1">
+            <ul className="text-fine text-notice space-y-1">
               <li>• Pay with your PayPal balance, bank account, or card</li>
               <li>• PayPal Buyer Protection included</li>
               <li>• No need to share your financial information</li>
@@ -106,7 +106,7 @@ export function PayPalForm({
       <Button
         onClick={handlePayPalPayment}
         disabled={isProcessing || disabled}
-        className="w-full bg-[#0070BA] hover:bg-[#005EA6] text-white py-3"
+        className="w-full bg-paypal hover:bg-paypal-hover text-on-strong py-3"
         size="lg"
       >
         {isProcessing ? (
@@ -124,7 +124,7 @@ export function PayPalForm({
 
       {/* Account Info */}
       {processorConfig?.accountId && (
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-fine text-fg-muted text-center">
           Connected PayPal Account: ••••{processorConfig.accountId.slice(-4)}
         </div>
       )}
@@ -141,7 +141,7 @@ export function PayPalForm({
       )}
 
       {/* Payment Flow Info */}
-      <div className="text-xs text-gray-500 text-center space-y-1">
+      <div className="text-fine text-fg-muted text-center space-y-1">
         <p>• You will be redirected to PayPal to complete payment</p>
         <p>• Return to this page after successful payment</p>
         <p>• PayPal supports multiple payment sources</p>

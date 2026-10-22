@@ -1,28 +1,20 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React from 'react';
 import { useWizard, clearSavedWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
 import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
-import { Check, Calendar, MapPin, Mail, Phone, Download, Home } from 'lucide-react';
+import { Check, Printer } from 'lucide-react';
+import { StepMotion, money } from '../step-kit';
 
-export function ConfirmationStep() {
+export function ConfirmationStep({ custom }: { custom?: string }) {
   const { formData, pricing, bookingRules, agency, agencySlug } = useWizard();
-  const [showConfetti, setShowConfetti] = useState(false);
 
   // Get order details from the form data
   const orderResult = formData.orderResult;
   const orderNumber = orderResult?.orderNumber || 'ORDER-NOT-FOUND';
   const confirmationCode = orderResult?.confirmationCode || 'N/A';
-
-  useEffect(() => {
-    // Trigger confetti animation
-    setShowConfetti(true);
-    const timer = setTimeout(() => setShowConfetti(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const calculateTotal = () => {
     return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
@@ -41,282 +33,89 @@ export function ConfirmationStep() {
   const getDeliveryDate = () => (signsOut ? formatDay(signsOut.start, true) : 'Date not set');
   const getRemovalDate = () => (signsOut ? formatDay(signsOut.end, true) : 'Date not set');
 
+  const display = formData.display;
+  const message = display?.eventMessage === 'Custom Message' ? display?.customMessage : display?.eventMessage;
+  const setupWindow = formData.event?.timeWindow?.replace('_', ' ');
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-4xl mx-auto px-4 py-8"
-    >
-      {/* Confetti Effect */}
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          {Array.from({ length: 50 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-primary rounded-full"
-              initial={{
-                x: Math.random() * window.innerWidth,
-                y: -10,
-                rotate: 0,
-              }}
-              animate={{
-                y: window.innerHeight + 10,
-                rotate: 360,
-              }}
-              transition={{
-                duration: Math.random() * 3 + 2,
-                ease: 'easeOut',
-              }}
-            />
-          ))}
-        </div>
-      )}
+    <StepMotion custom={custom}>
+      <section className="grid justify-items-center gap-3 pt-4 text-center">
+        <span className="flex size-16 items-center justify-center rounded-full bg-positive text-on-strong" aria-hidden>
+          <Check className="size-8" strokeWidth={3} />
+        </span>
+        <h1 className="font-display text-hero font-semibold">You&apos;re booked!</h1>
+        <p className="max-w-prose text-lead text-fg-muted">
+          {agency.name} has your booking{display?.recipientName ? ` for ${display.recipientName}` : ''}. A confirmation is on its way to {formData.contact?.email || 'your email'}.
+        </p>
+        <dl className="mt-2 grid grid-cols-2 gap-x-8 gap-y-1 rounded-card border border-line bg-surface px-6 py-4">
+          <dt className="text-fine text-fg-muted">Order number</dt>
+          <dt className="text-fine text-fg-muted">Confirmation code</dt>
+          <dd className="font-display text-heading font-semibold tabular-nums">{orderNumber}</dd>
+          <dd className="font-display text-heading font-semibold tabular-nums">{confirmationCode}</dd>
+        </dl>
+      </section>
 
-      {/* Success Animation */}
-      <div className="text-center mb-8">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          className="w-20 h-20 bg-success-green rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <motion.div
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-          >
-            <Check className="w-10 h-10 text-white" strokeWidth={3} />
-          </motion.div>
-        </motion.div>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-h1 text-neutral-900 mb-4"
-        >
-          Order Confirmed!
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-body-large text-neutral-700 mb-6"
-        >
-          Thank you for booking with {agency.name}! Your yard display is on its way.
-        </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-primary/10 border border-primary/20 rounded-lg p-4 inline-block"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
-            <div>
-              <p className="text-body-small text-neutral-600 mb-1">Order Number</p>
-              <p className="text-h5 font-bold text-primary font-mono">{orderNumber}</p>
-            </div>
-            <div>
-              <p className="text-body-small text-neutral-600 mb-1">Confirmation Code</p>
-              <p className="text-h5 font-bold text-primary font-mono">{confirmationCode}</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Order Details */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
-      >
-        {/* Order Summary */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
-            <Check className="w-5 h-5 text-success-green mr-2" />
-            Order Summary
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-body">Base Package</span>
-              <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
-            </div>
-            
-            {((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) > 0 && (
-              <div className="flex justify-between text-body-small">
-                <span className="text-neutral-600">
-                  Extra Days ({(formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)})
-                </span>
-                <span className="text-neutral-900">
-                  ${(((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
-                </span>
-              </div>
-            )}
-            
-            <div className="border-t pt-3 flex justify-between text-h5 font-bold">
-              <span>Order Total</span>
-              <span className="text-success-green">${calculateTotal().toFixed(2)}</span>
-            </div>
-
-            <div className="bg-neutral-50 p-3 rounded-lg mt-4">
-              <p className="text-body-small text-neutral-700">
-                <strong>Message:</strong> {formData.display?.eventMessage}
-              </p>
-              <p className="text-body-small text-neutral-700">
-                <strong>Recipient:</strong> {formData.display?.recipientName}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Contact Information */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
-            <Mail className="w-5 h-5 text-primary mr-2" />
-            Contact Information
-          </h3>
-          <div className="space-y-3 text-body-small">
-            <div className="flex items-center">
-              <Mail className="w-4 h-4 text-neutral-500 mr-3" />
-              <span>{formData.contact?.email}</span>
-            </div>
-            <div className="flex items-center">
-              <Phone className="w-4 h-4 text-neutral-500 mr-3" />
-              <span>{formData.contact?.phone}</span>
-            </div>
-            <div className="flex items-start">
-              <MapPin className="w-4 h-4 text-neutral-500 mr-3 mt-0.5" />
+      <section className="grid gap-4 rounded-card border border-line bg-surface p-4 sm:p-6">
+        <h2 className="font-display text-heading font-semibold">What happens next</h2>
+        <ol className="grid gap-4">
+          {[
+            ['Setup', <>Your display goes up on <strong>{getDeliveryDate()}</strong>{setupWindow ? <> in the <strong>{setupWindow}</strong></> : null}.</>],
+            ['Pickup', <>It comes down on <strong>{getRemovalDate()}</strong>. You don&apos;t need to be home.</>],
+            ['Questions', <>Keep your order number handy if you contact {agency.name}.</>],
+          ].map(([title, body], i) => (
+            <li key={i} className="flex gap-3">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand text-fine font-bold text-on-brand" aria-hidden>{i + 1}</span>
               <div>
-                <p>{formData.event?.deliveryAddress.street}</p>
-                <p>
-                  {formData.event?.deliveryAddress.city}, {formData.event?.deliveryAddress.state} {formData.event?.deliveryAddress.zipCode}
-                </p>
+                <p className="font-bold">{title}</p>
+                <p className="text-fine">{body}</p>
               </div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-      {/* What Happens Next */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8"
-      >
-        <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
-          <Calendar className="w-5 h-5 text-blue-600 mr-2" />
-          What Happens Next
-        </h3>
-        <div className="space-y-4">
-          <div className="flex items-start space-x-4">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-body-small font-bold">
-              1
+      <section className="grid gap-3 rounded-card border border-line bg-surface p-4 sm:p-6">
+        <h2 className="font-display text-heading font-semibold">Your booking</h2>
+        <dl className="grid gap-x-6 gap-y-2 text-fine sm:grid-cols-[8rem_1fr]">
+          {([
+            ['Display', [message, display?.recipientName].filter(Boolean).join(', ')],
+            ['Address', formData.event ? `${formData.event.deliveryAddress.street}, ${formData.event.deliveryAddress.city}, ${formData.event.deliveryAddress.state} ${formData.event.deliveryAddress.zipCode}` : ''],
+            ['Phone', formData.contact?.phone ?? ''],
+            ['Paid', money(calculateTotal())],
+          ] as const).filter(([, v]) => v).map(([label, value]) => (
+            <div key={label} className="contents">
+              <dt className="text-fg-muted">{label}</dt>
+              <dd className="mb-1 font-semibold sm:mb-0">{value}</dd>
             </div>
-            <div>
-              <h4 className="text-body font-medium text-neutral-900 mb-1">Keep Your Order Number</h4>
-              <p className="text-body-small text-neutral-700">
-                {agency.name} has your order. Save or print this page; they'll contact you if anything needs confirming.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-body-small font-bold">
-              2
-            </div>
-            <div>
-              <h4 className="text-body font-medium text-neutral-900 mb-1">Display Installation</h4>
-              <p className="text-body-small text-neutral-700">
-                Your display will be installed on <strong>{getDeliveryDate()}</strong> during the{' '}
-                <strong>{formData.event?.timeWindow?.replace('_', ' ')}</strong> time window.
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-start space-x-4">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-body-small font-bold">
-              3
-            </div>
-            <div>
-              <h4 className="text-body font-medium text-neutral-900 mb-1">Display Removal</h4>
-              <p className="text-body-small text-neutral-700">
-                Your display will be removed on <strong>{getRemovalDate()}</strong>. 
-                No need to be present for removal.
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+          ))}
+        </dl>
+      </section>
 
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="flex flex-col md:flex-row gap-4 justify-center"
-      >
-        <Button
-          variant="secondary"
-          className="px-8"
-          onClick={() => window.print()}
-        >
-          <Download className="w-4 h-4 mr-2" />
-          Download Order Summary
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+        <Button variant="secondary" onClick={() => window.print()}>
+          <Printer className="size-4" aria-hidden />
+          Print this page
         </Button>
-        
         <Button
-          className="px-8"
           onClick={() => {
             // The next visit starts a new booking, not this finished one
             clearSavedWizard(agencySlug);
             window.location.href = agency.website || `/${agencySlug}/booking`;
           }}
         >
-          <Home className="w-4 h-4 mr-2" />
-          {agency.website ? `Back to ${agency.name}` : 'Book Another Display'}
+          {agency.website ? `Back to ${agency.name}` : 'Book another display'}
         </Button>
-      </motion.div>
+      </div>
 
-      {/* Support Information */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="text-center mt-8 p-4 bg-neutral-50 rounded-lg"
-      >
-        <p className="text-body-small text-neutral-600 mb-2">
-          Questions about your order? Need to make changes?
+      {(agency.email || agency.phone) && (
+        <p className="text-center text-fine text-fg-muted">
+          Need a change? Contact {agency.name}
+          {agency.email && <> at <a href={`mailto:${agency.email}`} className="font-bold text-action-text underline underline-offset-4">{agency.email}</a></>}
+          {agency.email && agency.phone && ' or'}
+          {agency.phone && <> <a href={`tel:${agency.phone.replace(/[^\d+]/g, '')}`} className="font-bold text-action-text underline underline-offset-4">{agency.phone}</a></>}
+          .
         </p>
-        {(agency.email || agency.phone) && (
-          <p className="text-body-small text-neutral-700">
-            Contact {agency.name}
-            {agency.email && (
-              <>
-                {' '}at{' '}
-                <a href={`mailto:${agency.email}`} className="text-primary hover:underline">{agency.email}</a>
-              </>
-            )}
-            {agency.email && agency.phone && ' or'}
-            {agency.phone && (
-              <>
-                {' '}
-                <a href={`tel:${agency.phone.replace(/[^\d+]/g, '')}`} className="text-primary hover:underline">{agency.phone}</a>
-              </>
-            )}
-          </p>
-        )}
-        <p className="text-body-small text-neutral-500 mt-2">
-          Reference your order number: <span className="font-mono">{orderNumber}</span>
-          {confirmationCode !== 'N/A' && (
-            <span> or confirmation code: <span className="font-mono">{confirmationCode}</span></span>
-          )}
-        </p>
-      </motion.div>
-    </motion.div>
+      )}
+    </StepMotion>
   );
 }

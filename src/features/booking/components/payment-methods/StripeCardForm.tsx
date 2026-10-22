@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import type { Appearance } from '@stripe/stripe-js';
+import { COLORS } from '@/lib/brand';
 import { loadStripe, type Stripe as StripeJs } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js';
 
@@ -35,16 +37,53 @@ interface StripeCardFormProps {
  * the card into a one-time ConfirmationToken, and Place Order (Review step)
  * charges it on the server after the customer has seen the summary.
  */
+/**
+ * Stripe's fields live in its own iframe, which can't see our CSS variables,
+ * so read the resolved meaning tokens (including an agency's white label)
+ * from the page and hand Stripe plain values.
+ */
+function useStripeAppearance(): [React.RefObject<HTMLDivElement | null>, Appearance | null] {
+  const ref = useRef<HTMLDivElement>(null);
+  const [appearance, setAppearance] = useState<Appearance | null>(null);
+  useEffect(() => {
+    const css = ref.current ? getComputedStyle(ref.current) : null;
+    const token = (name: string, fallback: string) => css?.getPropertyValue(name).trim() || fallback;
+    const focus = token('--color-focus', COLORS.info);
+    setAppearance({
+      theme: 'stripe',
+      variables: {
+        colorPrimary: token('--color-action-text', COLORS.actionText),
+        colorText: token('--color-fg', COLORS.text),
+        colorTextSecondary: token('--color-fg-muted', COLORS.textMuted),
+        colorDanger: token('--color-danger', COLORS.danger),
+        colorBackground: token('--color-surface', COLORS.surface),
+        fontFamily: '"Nunito Sans", system-ui, sans-serif',
+        fontSizeBase: '16px',
+        borderRadius: '8px',
+      },
+      rules: {
+        '.Input': { borderColor: token('--color-line-strong', COLORS.line), boxShadow: 'none' },
+        '.Input:focus': { borderColor: focus, boxShadow: `0 0 0 2px ${focus}` },
+        '.Label': { fontWeight: '700' },
+      },
+    });
+  }, []);
+  return [ref, appearance];
+}
+
 export function StripeCardForm({ accountId, amountCents, billing, onReady }: StripeCardFormProps) {
   const stripePromise = stripeForAccount(accountId);
+  const [ref, appearance] = useStripeAppearance();
   if (!stripePromise) {
     return (
-      <p className="text-body-small text-error-red">
-        Card payments aren&apos;t configured on this site yet. Please contact the agency.
+      <p className="text-fine text-danger">
+        Card payments aren&apos;t set up on this site yet. Please contact the agency.
       </p>
     );
   }
   return (
+    <div ref={ref}>
+      {appearance && (
     <Elements
       stripe={stripePromise}
       options={{
@@ -54,11 +93,14 @@ export function StripeCardForm({ accountId, amountCents, billing, onReady }: Str
         // Saved to the agency's customer for later fees (late return, damage)
         setupFutureUsage: 'off_session',
         paymentMethodTypes: ['card'],
-        appearance: { theme: 'stripe', variables: { colorPrimary: '#7c3aed', borderRadius: '8px' } },
+        appearance,
+        fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700&display=swap' }],
       }}
     >
       <CardFields billing={billing} onReady={onReady} />
     </Elements>
+      )}
+    </div>
   );
 }
 

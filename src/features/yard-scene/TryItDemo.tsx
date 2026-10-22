@@ -1,8 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import type { SignAsset } from '@/features/booking/services/sign-assets'
-import { YardScene, type SceneRow } from './YardScene'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { indexManifest, type SignAsset, type SignAssetManifest } from '@/features/booking/services/sign-assets'
+import { YardScene, textToItems } from './YardScene'
+
+interface SceneRow {
+  text: string
+  colorway: string
+}
 
 /**
  * The homepage hero: our name on the lawn, and a field to try your own.
@@ -29,6 +34,7 @@ export function TryItDemo({ assets }: { assets: SignAsset[] }) {
   const [focused, setFocused] = useState(false)
   const [announced, setAnnounced] = useState('')
   const frame = useRef<HTMLDivElement>(null)
+  const index = useMemo(() => indexManifest({ assets } as SignAssetManifest), [assets])
 
   const shown = name.trim()
   const rows: SceneRow[] = shown ? [{ text: MESSAGE, colorway: 'gold' }, { text: shown, colorway: 'red' }] : BRAND_ROWS
@@ -60,7 +66,11 @@ export function TryItDemo({ assets }: { assets: SignAsset[] }) {
 
   return (
     <div ref={frame} className="grid gap-4">
-      <YardScene rows={rows} assets={assets} className="block w-full overflow-hidden rounded-sheet" />
+      <YardScene
+        rows={rows.map(r => textToItems(index, r.text, 'classic', r.colorway))}
+        description={label}
+        className="block w-full overflow-hidden rounded-sheet"
+      />
       <label className="grid gap-1">
         <span className="font-display text-heading font-semibold">Try it: type a name</span>
         <span className="relative max-w-sm">

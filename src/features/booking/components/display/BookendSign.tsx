@@ -42,7 +42,7 @@ export function BookendSign({ name, style, position, className = '' }: BookendSi
       title={`${name} (${position} bookend)`} // Tooltip for accessibility
     >
       {isDevelopment && (
-        <span className="text-xs text-white font-bold transform -rotate-90">
+        <span className="text-fine text-white font-bold transform -rotate-90">
           {position === 'left' ? '◀' : '▶'}
         </span>
       )}

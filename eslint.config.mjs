@@ -10,7 +10,24 @@ const compat = new FlatCompat({
 });
 
 /** Folders already on the brand tokens; raw colors there fail lint. Add each folder as the redesign reaches it. */
-export const COLOR_ENFORCED = ['src/app/lab/**/*.{ts,tsx}', 'src/features/yard-scene/**/*.{ts,tsx}'];
+export const COLOR_ENFORCED = [
+  'src/app/lab/**/*.{ts,tsx}',
+  'src/features/yard-scene/**/*.{ts,tsx}',
+  // Booking flow (redesigned 2026-10-22). Its display/* preview pieces and
+  // the layout calculator's dev colors move with the dashboard redesign.
+  'src/app/[[]agency]/booking/**/*.{ts,tsx}',
+  'src/features/booking/components/*.{ts,tsx}',
+  'src/features/booking/components/steps/**/*.{ts,tsx}',
+  'src/features/booking/components/payment-methods/**/*.{ts,tsx}',
+  'src/features/booking/components/display/BookingYardPreview.tsx',
+  'src/features/booking/components/display/scene-from-layout.ts',
+  'src/features/booking/context/**/*.{ts,tsx}',
+  'src/features/agency/branding.ts',
+  'src/components/payments/**/*.{ts,tsx}',
+  'src/components/ui/**/*.{ts,tsx}',
+  'src/shared/components/ui/**/*.{ts,tsx}',
+  'src/shared/components/feedback/**/*.{ts,tsx}',
+];
 
 /** Files whose job is to define colors */
 export const COLOR_EXEMPT = ['src/lib/brand.ts', 'src/shared/components/brand/**'];

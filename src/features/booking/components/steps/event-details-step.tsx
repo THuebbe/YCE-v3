@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { createEventSchema, EventFormData, TimeWindow } from '../../types';
 import { addDays, earliestEventDay, formatDay, maxExtraDays, rentalWindow, todayIn, validateBookingDates } from '../../booking-rules';
 import { calculateBookingTotal } from '../../pricing';
-import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { ChoiceCard, Field, StepIntro, StepMotion, StepNav, StepSection, Stepper, TextArea, money } from '../step-kit';
 
 export function EventDetailsStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep, bookingRules, pricing, timeZone } = useWizard();
+  const { formData, updateFormData, nextStep, bookingRules, pricing, timeZone } = useWizard();
   // "Today" where the order cutoff is decided (agency zone, else browser)
   const today = useMemo(() => todayIn(timeZone), [timeZone]);
   const eventSchema = useMemo(() => createEventSchema(bookingRules, today), [bookingRules, today]);
@@ -106,286 +105,148 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
     handleInputChange('eventDate', date);
   };
 
+  const extraDays = localData.extraDaysBefore + localData.extraDaysAfter;
+  const fieldError = (field: string) => errors[field] || undefined;
+
   return (
-    <motion.div
-      initial={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: custom === 'backward' ? -300 : 300 } // Mobile: slide from left/right
-          : { opacity: 0, x: 20 } // Desktop: fade with slight slide
-      }
-      animate={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: 0 } // Mobile: slide to center
-          : { opacity: 1, x: 0 } // Desktop: fade in
-      }
-      exit={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: custom === 'backward' ? 300 : -300 } // Mobile: slide out opposite direction
-          : { opacity: 0, x: -20 } // Desktop: fade out
-      }
-      transition={{ 
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        duration: 0.4
-      }}
-      className="max-w-2xl mx-auto px-4 py-8"
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-h2 text-neutral-900 mb-4">Event Details</h1>
-        <p className="text-body text-neutral-700">
-          Tell us about your special event so we can create the perfect display.
-        </p>
-      </div>
+    <StepMotion custom={custom}>
+      <StepIntro>Pick the day you&apos;re celebrating and where the display goes.</StepIntro>
 
-      {/* Form Card Container */}
-      <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-        <div className="space-y-6">
-          {/* Event Date */}
-          <div>
-            <label htmlFor="eventDate" className="text-label text-neutral-700 mb-2 block">
-              Event Date
-            </label>
-            <Input
-              id="eventDate"
-              type="date"
-              value={formatDateForInput(localData.eventDate)}
-              onChange={(e) => handleDateChange(e.target.value)}
-              min={earliestEventDay(bookingRules, localData.extraDaysBefore, today)}
-              className={errors.eventDate ? 'border-error' : ''}
-            />
-            {(errors.eventDate || dateIssue) && (
-              <p className="text-body-small text-error-red mt-1">{errors.eventDate || dateIssue}</p>
-            )}
-            <p className="text-body-small text-neutral-500 mt-1">
-              Earliest available: {formatDay(earliestEventDay(bookingRules, localData.extraDaysBefore, today))}
-            </p>
+      <StepSection title="The big day">
+        <Field
+          id="eventDate"
+          label="Event date"
+          error={errors.eventDate || dateIssue}
+          hint={`Earliest available: ${formatDay(earliestEventDay(bookingRules, localData.extraDaysBefore, today))}`}
+        >
+          <Input
+            id="eventDate"
+            type="date"
+            value={formatDateForInput(localData.eventDate)}
+            onChange={(e) => handleDateChange(e.target.value)}
+            min={earliestEventDay(bookingRules, localData.extraDaysBefore, today)}
+            className={errors.eventDate ? 'border-danger' : ''}
+          />
+        </Field>
+
+        {/* Extra display days (paid): chosen here so the display step
+            reserves signs for the right dates */}
+        <div className="grid gap-3 border-t border-line pt-4">
+          <div className="flex items-baseline justify-between gap-4">
+            <span>Display up for the event day</span>
+            <span className="font-bold tabular-nums">{money(pricing.basePrice)}</span>
           </div>
-
-          {/* Extra display days (paid) - chosen here so the configurator
-              reserves signs for the right dates */}
-          <div className="border-t pt-4 space-y-3">
-            <div className="flex justify-between">
-              <span className="text-body">Base Package (event day)</span>
-              <span className="text-body font-medium">${pricing.basePrice.toFixed(2)}</span>
+          {([
+            ['extraDaysBefore', 'Extra days before', 'days before', 'extraDaysAfter'],
+            ['extraDaysAfter', 'Extra days after', 'days after', 'extraDaysBefore'],
+          ] as const).map(([field, label, unit, other]) => (
+            <div key={field} className="flex items-center justify-between gap-4">
+              <span className="grid">
+                <span>{label}</span>
+                <span className="text-fine text-fg-muted tabular-nums">{money(pricing.extraDayPrice)} each</span>
+              </span>
+              <Stepper
+                label={unit}
+                value={localData[field]}
+                max={maxExtraDays(bookingRules, localData[other])}
+                onChange={(v) => handleInputChange(field, v)}
+              />
             </div>
-            {([
-              ['extraDaysBefore', 'Extra Days Before', 'extraDaysAfter'],
-              ['extraDaysAfter', 'Extra Days After', 'extraDaysBefore'],
-            ] as const).map(([field, label, other]) => {
-              const max = maxExtraDays(bookingRules, localData[other]);
-              return (
-                <div key={field} className="flex items-center justify-between">
-                  <span className="text-body-small">{label}</span>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      type="button"
-                      aria-label={`Fewer ${label.toLowerCase()}`}
-                      onClick={() => handleInputChange(field, Math.max(0, localData[field] - 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData[field] <= 0}
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center">{localData[field]}</span>
-                    <button
-                      type="button"
-                      aria-label={`More ${label.toLowerCase()}`}
-                      onClick={() => handleInputChange(field, Math.min(max, localData[field] + 1))}
-                      className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center"
-                      disabled={localData[field] >= max}
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-            {(localData.extraDaysBefore + localData.extraDaysAfter) > 0 && (
-              <div className="flex justify-between text-body-small">
-                <span>Extra Days ({localData.extraDaysBefore + localData.extraDaysAfter} × ${pricing.extraDayPrice.toFixed(2)})</span>
-                <span>${((localData.extraDaysBefore + localData.extraDaysAfter) * pricing.extraDayPrice).toFixed(2)}</span>
-              </div>
-            )}
-            <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
-              <span>Total</span>
-              <span className="text-primary">${calculateBookingTotal(pricing, localData.extraDaysBefore, localData.extraDaysAfter).toFixed(2)}</span>
-            </div>
+          ))}
+          <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
+            <span className="font-bold">Total{extraDays > 0 && <span className="font-normal text-fg-muted"> · includes {extraDays} extra day{extraDays === 1 ? '' : 's'}</span>}</span>
+            <span className="font-display text-heading font-semibold tabular-nums">
+              {money(calculateBookingTotal(pricing, localData.extraDaysBefore, localData.extraDaysAfter))}
+            </span>
           </div>
+        </div>
+      </StepSection>
 
-          {/* Delivery Address */}
-          <div className="space-y-4">
-            <h3 className="text-h5 text-neutral-900">Delivery Address</h3>
-          
-          {/* Street Address */}
-          <div>
-            <label htmlFor="street" className="text-label text-neutral-700 mb-2 block">
-              Street Address
-            </label>
-            <Input
-              id="street"
-              type="text"
-              value={localData.deliveryAddress.street}
-              onChange={(e) => handleInputChange('deliveryAddress.street', e.target.value)}
-              placeholder="123 Main Street"
-              className={errors['deliveryAddress.street'] ? 'border-error' : ''}
-              autoComplete="street-address"
-            />
-            {errors['deliveryAddress.street'] && (
-              <p className="text-body-small text-error-red mt-1">{errors['deliveryAddress.street']}</p>
-            )}
-          </div>
-
-          {/* City, State, ZIP */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="city" className="text-label text-neutral-700 mb-2 block">
-                City
-              </label>
+      <StepSection title="Where it goes">
+        <Field id="street" label="Street address" error={fieldError('deliveryAddress.street')}>
+          <Input
+            id="street"
+            type="text"
+            value={localData.deliveryAddress.street}
+            onChange={(e) => handleInputChange('deliveryAddress.street', e.target.value)}
+            placeholder="123 Main Street"
+            className={errors['deliveryAddress.street'] ? 'border-danger' : ''}
+            autoComplete="street-address"
+          />
+        </Field>
+        <div className="grid grid-cols-6 gap-3">
+          <div className="col-span-6 sm:col-span-3">
+            <Field id="city" label="City" error={fieldError('deliveryAddress.city')}>
               <Input
                 id="city"
                 type="text"
                 value={localData.deliveryAddress.city}
                 onChange={(e) => handleInputChange('deliveryAddress.city', e.target.value)}
-                placeholder="City"
-                className={errors['deliveryAddress.city'] ? 'border-error' : ''}
+                className={errors['deliveryAddress.city'] ? 'border-danger' : ''}
                 autoComplete="address-level2"
               />
-              {errors['deliveryAddress.city'] && (
-                <p className="text-body-small text-error-red mt-1">{errors['deliveryAddress.city']}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="state" className="text-label text-neutral-700 mb-2 block">
-                State
-              </label>
+            </Field>
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <Field id="state" label="State" error={fieldError('deliveryAddress.state')}>
               <Input
                 id="state"
                 type="text"
                 value={localData.deliveryAddress.state}
                 onChange={(e) => handleInputChange('deliveryAddress.state', e.target.value.toUpperCase())}
-                placeholder="CA"
+                placeholder="IA"
                 maxLength={2}
-                className={errors['deliveryAddress.state'] ? 'border-error' : ''}
+                className={errors['deliveryAddress.state'] ? 'border-danger' : ''}
                 autoComplete="address-level1"
               />
-              {errors['deliveryAddress.state'] && (
-                <p className="text-body-small text-error-red mt-1">{errors['deliveryAddress.state']}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="zipCode" className="text-label text-neutral-700 mb-2 block">
-                ZIP Code
-              </label>
+            </Field>
+          </div>
+          <div className="col-span-4 sm:col-span-2">
+            <Field id="zipCode" label="ZIP code" error={fieldError('deliveryAddress.zipCode')}>
               <Input
                 id="zipCode"
                 type="text"
+                inputMode="numeric"
                 value={localData.deliveryAddress.zipCode}
                 onChange={(e) => handleInputChange('deliveryAddress.zipCode', e.target.value)}
-                placeholder="12345"
-                className={errors['deliveryAddress.zipCode'] ? 'border-error' : ''}
+                className={errors['deliveryAddress.zipCode'] ? 'border-danger' : ''}
                 autoComplete="postal-code"
               />
-              {errors['deliveryAddress.zipCode'] && (
-                <p className="text-body-small text-error-red mt-1">{errors['deliveryAddress.zipCode']}</p>
-              )}
-            </div>
+            </Field>
           </div>
         </div>
+      </StepSection>
 
-        {/* Time Window */}
-        <div>
-          <label className="text-label text-neutral-700 mb-3 block">
-            Preferred Installation Time
-          </label>
-          <div className="space-y-3">
-            {[
-              { value: 'morning', label: 'Morning (8AM - 12PM)', description: 'Early setup' },
-              { value: 'afternoon', label: 'Afternoon (12PM - 4PM)', description: 'Midday setup' },
-              { value: 'evening', label: 'Evening (4PM - 8PM)', description: 'Late setup' },
-            ].map((option) => (
-              <label
-                key={option.value}
-                className={`
-                  flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors
-                  ${
-                    localData.timeWindow === option.value
-                      ? 'border-primary bg-secondary-pale'
-                      : 'border-neutral-200 hover:border-neutral-300'
-                  }
-                `}
-              >
-                <input
-                  type="radio"
-                  name="timeWindow"
-                  value={option.value}
-                  checked={localData.timeWindow === option.value}
-                  onChange={(e) => handleInputChange('timeWindow', e.target.value as TimeWindow)}
-                  className="sr-only"
-                />
-                <div className="flex-1">
-                  <div className="text-body font-medium text-neutral-900">
-                    {option.label}
-                  </div>
-                  <div className="text-body-small text-neutral-600">
-                    {option.description}
-                  </div>
-                </div>
-                <div
-                  className={`
-                    w-5 h-5 rounded-full border-2 flex items-center justify-center
-                    ${
-                      localData.timeWindow === option.value
-                        ? 'border-primary'
-                        : 'border-neutral-300'
-                    }
-                  `}
-                >
-                  {localData.timeWindow === option.value && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                  )}
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
-
-          {/* Delivery Notes */}
-          <div>
-            <label htmlFor="deliveryNotes" className="text-label text-neutral-700 mb-2 block">
-              Delivery Notes (Optional)
-            </label>
-            <textarea
-              id="deliveryNotes"
-              value={localData.deliveryNotes || ''}
-              onChange={(e) => handleInputChange('deliveryNotes', e.target.value)}
-              placeholder="Any special instructions for setup, parking, or yard access..."
-              rows={3}
-              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none resize-none"
+      <StepSection title="Setup time" hint="When you'd like the display to go up.">
+        <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Setup time">
+          {[
+            { value: 'morning', label: 'Morning', detail: '8 AM to noon' },
+            { value: 'afternoon', label: 'Afternoon', detail: 'Noon to 4 PM' },
+            { value: 'evening', label: 'Evening', detail: '4 PM to 8 PM' },
+          ].map((option) => (
+            <ChoiceCard
+              key={option.value}
+              name="timeWindow"
+              value={option.value}
+              checked={localData.timeWindow === option.value}
+              onChange={(v) => handleInputChange('timeWindow', v as TimeWindow)}
+              title={option.label}
+              detail={option.detail}
             />
-          </div>
+          ))}
         </div>
-      </div>
+        <Field id="deliveryNotes" label="Notes for the setup crew (optional)">
+          <TextArea
+            id="deliveryNotes"
+            value={localData.deliveryNotes || ''}
+            onChange={(e) => handleInputChange('deliveryNotes', e.target.value)}
+            placeholder="Gate code, where to park, which side of the yard..."
+            rows={3}
+          />
+        </Field>
+      </StepSection>
 
-      {/* Navigation Buttons */}
-      <div className="mt-8 flex gap-4 justify-between">
-        <Button
-          onClick={prevStep}
-          variant="secondary"
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Back
-        </Button>
-        <Button
-          onClick={validateAndContinue}
-          disabled={!isValid}
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Continue
-        </Button>
-      </div>
-    </motion.div>
+      <StepNav onNext={validateAndContinue} nextDisabled={!isValid} />
+    </StepMotion>
   );
 }

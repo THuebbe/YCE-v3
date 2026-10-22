@@ -76,10 +76,10 @@ export function CreditCardForm({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <CreditCard className="w-5 h-5 text-neutral-600" />
-        <h3 className="text-h5 text-neutral-900">Card Information</h3>
+        <CreditCard className="w-5 h-5 text-fg-muted" />
+        <h3 className="font-display text-heading font-semibold text-fg">Card Information</h3>
         {isStripeProcessor && (
-          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+          <span className="text-fine text-positive bg-positive-soft px-2 py-1 rounded">
             Secure Stripe Processing
           </span>
         )}
@@ -87,7 +87,7 @@ export function CreditCardForm({
       
       {/* Card Number */}
       <div>
-        <Label htmlFor="cardNumber" className="text-label text-neutral-700 mb-2 block">
+        <Label htmlFor="cardNumber" className="text-fine font-bold text-fg mb-2 block">
           Card Number
         </Label>
         <Input
@@ -96,18 +96,18 @@ export function CreditCardForm({
           placeholder="1234 5678 9012 3456"
           value={cardNumber}
           onChange={(e) => handleCardNumberChange(e.target.value)}
-          className={`font-mono ${errors.cardNumber ? 'border-error' : ''}`}
+          className={`font-mono ${errors.cardNumber ? 'border-danger' : ''}`}
           disabled={disabled}
         />
         {errors.cardNumber && (
-          <p className="text-body-small text-error-red mt-1">{errors.cardNumber}</p>
+          <p className="text-fine text-danger mt-1">{errors.cardNumber}</p>
         )}
       </div>
 
       {/* Expiry and CVV */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="expiry" className="text-label text-neutral-700 mb-2 block">
+          <Label htmlFor="expiry" className="text-fine font-bold text-fg mb-2 block">
             Expiry Date
           </Label>
           <Input
@@ -116,15 +116,15 @@ export function CreditCardForm({
             placeholder="MM/YY"
             value={expiryDate}
             onChange={(e) => handleExpiryChange(e.target.value)}
-            className={`font-mono ${errors.expiryDate ? 'border-error' : ''}`}
+            className={`font-mono ${errors.expiryDate ? 'border-danger' : ''}`}
             disabled={disabled}
           />
           {errors.expiryDate && (
-            <p className="text-body-small text-error-red mt-1">{errors.expiryDate}</p>
+            <p className="text-fine text-danger mt-1">{errors.expiryDate}</p>
           )}
         </div>
         <div>
-          <Label htmlFor="cvv" className="text-label text-neutral-700 mb-2 block">
+          <Label htmlFor="cvv" className="text-fine font-bold text-fg mb-2 block">
             CVV
           </Label>
           <Input
@@ -133,18 +133,18 @@ export function CreditCardForm({
             placeholder="123"
             value={cvv}
             onChange={(e) => handleCvvChange(e.target.value)}
-            className={`font-mono ${errors.cvv ? 'border-error' : ''}`}
+            className={`font-mono ${errors.cvv ? 'border-danger' : ''}`}
             disabled={disabled}
           />
           {errors.cvv && (
-            <p className="text-body-small text-error-red mt-1">{errors.cvv}</p>
+            <p className="text-fine text-danger mt-1">{errors.cvv}</p>
           )}
         </div>
       </div>
 
       {/* Billing ZIP */}
       <div>
-        <Label htmlFor="billingZip" className="text-label text-neutral-700 mb-2 block">
+        <Label htmlFor="billingZip" className="text-fine font-bold text-fg mb-2 block">
           Billing ZIP Code
         </Label>
         <Input
@@ -153,23 +153,23 @@ export function CreditCardForm({
           value={formData.billingAddress?.zipCode || ''}
           onChange={(e) => onFieldChange('billingAddress.zipCode', e.target.value)}
           placeholder="12345"
-          className={errors['billingAddress.zipCode'] ? 'border-error' : ''}
+          className={errors['billingAddress.zipCode'] ? 'border-danger' : ''}
           disabled={disabled}
         />
         {errors['billingAddress.zipCode'] && (
-          <p className="text-body-small text-error-red mt-1">{errors['billingAddress.zipCode']}</p>
+          <p className="text-fine text-danger mt-1">{errors['billingAddress.zipCode']}</p>
         )}
       </div>
 
       {/* Processing Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-notice-soft border border-notice/30 rounded-card p-4">
         <div className="flex items-start space-x-3">
-          <CreditCard className="w-5 h-5 text-blue-600 mt-0.5" />
+          <CreditCard className="w-5 h-5 text-notice mt-0.5" />
           <div className="flex-1">
-            <h4 className="text-body-small font-medium text-blue-800 mb-1">
+            <h4 className="text-fine font-medium text-notice mb-1">
               {processorName}
             </h4>
-            <p className="text-body-small text-blue-700">
+            <p className="text-fine text-notice">
               {isStripeProcessor 
                 ? 'Your payment will be processed securely through Stripe.' 
                 : "This agency hasn't connected card payments yet, so your card won't be charged. The agency will arrange payment with you."
