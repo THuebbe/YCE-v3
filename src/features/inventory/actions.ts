@@ -14,10 +14,10 @@ import type {
   BulkAvailabilityResult,
   SignSearchFilters,
   InventoryFilters,
-  CreateBundleRequest,
   CustomSignUploadData
 } from './types'
-import { StorageService } from '@/lib/storage/supabase'
+import { put, del } from '@vercel/blob'
+import { SIGN_IMAGE_MAX_BYTES, SIGN_IMAGE_TYPES } from './limits'
 
 // Helper function to get current tenant context
 async function getCurrentTenant() {
@@ -63,10 +63,6 @@ export const getPlatformSignLibrary = unstable_cache(
 
       if (filters?.holidays && filters.holidays.length > 0) {
         query = query.overlaps('holidays', filters.holidays)
-      }
-
-      if (filters?.bundleOnly) {
-        query = query.not('bundle_id', 'is', null)
       }
 
       const { data, error } = await query
@@ -133,7 +129,7 @@ export async function addSignToInventory({ signId, quantity }: AddToInventoryReq
       }
     }
 
-    revalidatePath('/dashboard/inventory')
+    revalidatePath('/[agency]/(app)/inventory', 'page')
     return { success: true }
   } catch (error) {
     console.error('Exception in addSignToInventory:', error)
@@ -224,7 +220,7 @@ export async function updateInventoryQuantity({ id, quantity }: UpdateInventoryR
       return { success: false, error: 'Failed to update quantity' }
     }
 
-    revalidatePath('/dashboard/inventory')
+    revalidatePath('/[agency]/(app)/inventory', 'page')
     return { success: true }
   } catch (error) {
     console.error('Exception in updateInventoryQuantity:', error)
@@ -263,7 +259,7 @@ export async function removeFromInventory(inventoryId: string): Promise<{ succes
       return { success: false, error: 'Failed to remove from inventory' }
     }
 
-    revalidatePath('/dashboard/inventory')
+    revalidatePath('/[agency]/(app)/inventory', 'page')
     return { success: true }
   } catch (error) {
     console.error('Exception in removeFromInventory:', error)
@@ -387,73 +383,6 @@ export async function createSoftHold(
   }
 }
 
-// Bundle Operations
-export async function getBundles(): Promise<{ id: string; name: string; description?: string; signs: Sign[] }[]> {
-  try {
-    const { data, error } = await supabase
-      .from('bundles')
-      .select(`
-        *,
-        signs:sign_library(*)
-      `)
-      .order('name')
-
-    if (error) {
-      console.error('Error fetching bundles:', error)
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-    console.error('Exception in getBundles:', error)
-    return []
-  }
-}
-
-export async function createBundle({ name, description, signIds, bundlePositions }: CreateBundleRequest): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Create the bundle
-    const { data: bundle, error: bundleError } = await supabase
-      .from('bundles')
-      .insert({ name, description })
-      .select()
-      .single()
-
-    if (bundleError || !bundle) {
-      console.error('Error creating bundle:', bundleError)
-      return { success: false, error: 'Failed to create bundle' }
-    }
-
-    // Update signs to belong to this bundle
-    const signUpdates = signIds.map((signId, index) => ({
-      id: signId,
-      bundle_id: bundle.id,
-      bundle_position: bundlePositions[index] || index + 1
-    }))
-
-    for (const update of signUpdates) {
-      const { error } = await supabase
-        .from('sign_library')
-        .update({
-          bundle_id: update.bundle_id,
-          bundle_position: update.bundle_position
-        })
-        .eq('id', update.id)
-
-      if (error) {
-        console.error('Error updating sign for bundle:', error)
-        // Note: In production, you might want to implement rollback logic
-      }
-    }
-
-    revalidatePath('/dashboard/inventory')
-    return { success: true }
-  } catch (error) {
-    console.error('Exception in createBundle:', error)
-    return { success: false, error: 'Unexpected error occurred' }
-  }
-}
-
 // Utility functions for filtering
 export const getSignCategories = unstable_cache(
   async (): Promise<string[]> => {
@@ -551,12 +480,13 @@ export async function uploadCustomSign(formData: FormData): Promise<{ success: b
       return { success: false, error: 'Missing required fields' }
     }
 
-    // Upload image to storage
-    const uploadResult = await StorageService.uploadSignImage(file, agencyId, {
-      generateThumbnail: true,
-      maxWidth: 1200,
-      maxHeight: 1200
-    })
+    const fileError = signImageError(file)
+    if (fileError) return { success: false, error: fileError }
+
+    // Vercel Blob, like the order PDFs; one folder per agency
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').slice(-60)
+    const blob = await put(`signs/${agencyId}/${Date.now()}-${safeName}`, file, { access: 'public', contentType: file.type })
+    const uploadResult = { url: blob.url, thumbnailUrl: null as string | null }
 
     // Create sign record in database
     const { data: sign, error: signError } = await supabase
@@ -583,7 +513,7 @@ export async function uploadCustomSign(formData: FormData): Promise<{ success: b
     if (signError) {
       // Clean up uploaded image if sign creation failed
       try {
-        await StorageService.deleteSignImage(uploadResult.key)
+        await del(uploadResult.url)
       } catch (cleanupError) {
         console.error('Failed to cleanup uploaded image:', cleanupError)
       }
@@ -592,7 +522,7 @@ export async function uploadCustomSign(formData: FormData): Promise<{ success: b
       return { success: false, error: 'Failed to create sign record' }
     }
 
-    revalidatePath('/dashboard/inventory')
+    revalidatePath('/[agency]/(app)/inventory', 'page')
     return { success: true, signId: sign.id }
   } catch (error) {
     console.error('Exception in uploadCustomSign:', error)
@@ -634,7 +564,7 @@ export async function updateCustomSign(
       return { success: false, error: 'Failed to update sign' }
     }
 
-    revalidatePath('/dashboard/inventory')
+    revalidatePath('/[agency]/(app)/inventory', 'page')
     return { success: true }
   } catch (error) {
     console.error('Exception in updateCustomSign:', error)
@@ -684,22 +614,15 @@ export async function deleteCustomSign(signId: string): Promise<{ success: boole
       return { success: false, error: 'Failed to delete sign' }
     }
 
-    // Clean up uploaded images
+    // Clean up the uploaded image (only ours: Vercel Blob URLs)
     try {
-      if (sign.image_url) {
-        const imageKey = sign.image_url.split('/').slice(-2).join('/') // Extract key from URL
-        await StorageService.deleteSignImage(imageKey)
-      }
-      if (sign.thumbnail_url) {
-        const thumbnailKey = sign.thumbnail_url.split('/').slice(-2).join('/') // Extract key from URL
-        await StorageService.deleteSignImage(thumbnailKey)
-      }
+      if (sign.image_url && /\.blob\.vercel-storage\.com\//.test(sign.image_url)) await del(sign.image_url)
     } catch (storageError) {
-      console.warn('Failed to cleanup storage files:', storageError)
+      console.warn('Failed to clean up the sign image:', storageError)
       // Continue - sign record is already deleted
     }
 
-    revalidatePath('/dashboard/inventory')
+    revalidatePath('/[agency]/(app)/inventory', 'page')
     return { success: true }
   } catch (error) {
     console.error('Exception in deleteCustomSign:', error)
@@ -728,4 +651,11 @@ export async function getCustomSigns(): Promise<Sign[]> {
     console.error('Exception in getCustomSigns:', error)
     return []
   }
+}
+/** Why this file can't be a sign image, or null. Shared limit with the upload form. */
+function signImageError(file: File | null): string | null {
+  if (!file || typeof file === 'string') return 'Choose an image'
+  if (!SIGN_IMAGE_TYPES.includes(file.type)) return 'Use a JPEG, PNG, WebP or GIF image'
+  if (file.size > SIGN_IMAGE_MAX_BYTES) return `Images can be up to ${SIGN_IMAGE_MAX_BYTES / 1024 / 1024} MB`
+  return null
 }

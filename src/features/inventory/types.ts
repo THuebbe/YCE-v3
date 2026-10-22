@@ -14,20 +14,9 @@ export interface Sign {
   thumbnail_url?: string
   is_platform: boolean
   created_by?: string
-  bundle_id?: string
-  bundle_position?: number
   rental_price: number
   created_at: string
   updated_at: string
-}
-
-export interface Bundle {
-  id: string
-  name: string
-  description?: string
-  created_at: string
-  updated_at: string
-  signs?: Sign[]
 }
 
 export interface InventoryItem {
@@ -70,7 +59,6 @@ export interface SignSearchFilters {
   holidays?: string[]
   sizes?: string[]
   is_platform?: boolean
-  bundleOnly?: boolean
 }
 
 export interface InventoryFilters {
@@ -89,13 +77,6 @@ export interface AddToInventoryRequest {
 export interface UpdateInventoryRequest {
   id: string
   quantity: number
-}
-
-export interface CreateBundleRequest {
-  name: string
-  description?: string
-  signIds: string[]
-  bundlePositions: number[]
 }
 
 export interface UploadCustomSignRequest {
@@ -188,10 +169,4 @@ export interface SearchBarProps {
   suggestions?: string[]
 }
 
-export type InventoryTab = 'library' | 'inventory' | 'bundles' | 'custom'
-
-export interface InventoryLayoutProps {
-  activeTab: InventoryTab
-  onTabChange: (tab: InventoryTab) => void
-  children: React.ReactNode
-}
+export type InventoryTab = 'mine' | 'library' | 'custom'
