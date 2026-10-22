@@ -24,7 +24,8 @@ export const orderStateMachine: Record<OrderStatus, OrderStateDefinition> = {
     description: 'Order received and awaiting preparation'
   },
   processing: {
-    actions: ['printOrderSummary', 'markDeployed', 'cancel'],
+    // First action is the main button; the summary PDF is the optional extra
+    actions: ['markDeployed', 'printOrderSummary', 'cancel'],
     nextStates: ['deployed', 'cancelled'],
     description: 'Order being prepared for deployment'
   },
@@ -79,27 +80,33 @@ export function getNextStatusForAction(currentStatus: OrderStatus, action: Order
   return null;
 }
 
-export function getStatusColor(status: OrderStatus): string {
-  const colors: Record<OrderStatus, string> = {
-    pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    processing: 'bg-blue-100 text-blue-800 border-blue-200',
-    deployed: 'bg-purple-100 text-purple-800 border-purple-200',
-    completed: 'bg-green-100 text-green-800 border-green-200',
-    cancelled: 'bg-red-100 text-red-800 border-red-200'
-  };
-  
-  return colors[status];
-}
+/** What an agency calls each status (DESIGN.md voice: plain words) */
+export const STATUS_LABELS: Record<OrderStatus, string> = {
+  pending: 'New',
+  processing: 'Getting ready',
+  deployed: 'Out',
+  completed: 'Done',
+  cancelled: 'Cancelled',
+};
+
+/** Badge colors: always shown with the label, never color alone */
+export const STATUS_TONES: Record<OrderStatus, string> = {
+  pending: 'bg-notice-soft text-notice',
+  processing: 'bg-caution-soft text-caution',
+  deployed: 'bg-brand text-on-brand',
+  completed: 'bg-positive-soft text-positive',
+  cancelled: 'bg-danger-soft text-danger',
+};
 
 export function getActionLabel(action: OrderAction): string {
   const labels: Record<OrderAction, string> = {
-    startProcessing: 'Start Processing',
-    generatePickTicket: 'Generate Pick Ticket',
-    printOrderSummary: 'Print Order Summary',
-    markDeployed: 'Mark as Deployed',
-    checkInSigns: 'Check In Signs',
-    complete: 'Complete Order',
-    cancel: 'Cancel Order'
+    startProcessing: 'Start getting ready',
+    generatePickTicket: 'Make pick ticket',
+    printOrderSummary: 'Print summary and mark set up',
+    markDeployed: 'Mark as set up',
+    checkInSigns: 'Check in signs',
+    complete: 'Complete order',
+    cancel: 'Cancel order'
   };
   
   return labels[action];

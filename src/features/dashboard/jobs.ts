@@ -3,7 +3,7 @@
 // rental window booking reserved), so they match what the calendar blocks.
 import { supabase } from '@/lib/db/supabase-client';
 import { addDays, resolveTimeZone, todayIn } from '@/features/booking/booking-rules';
-import { countOrderSigns, formatAddress } from '@/features/orders/client-utils';
+import { countOrderSigns, formatAddress, formatTimeWindow } from '@/features/orders/client-utils';
 
 export type JobKind = 'setup' | 'pickup';
 
@@ -74,7 +74,7 @@ export async function getJobsOverview(agency: { id: string; operating_hours?: un
       customerName: (order.customer_name as string) || 'Customer',
       address: formatAddress(order.event_address),
       signs: countOrderSigns(order),
-      timeWindow: ((order.timeWindow ?? order.delivery_time) as string | null) || null,
+      timeWindow: formatTimeWindow(order as { delivery_time?: string | null; timeWindow?: string | null }),
     };
     const start = hold.rental_start as string;
     const end = hold.rental_end as string;

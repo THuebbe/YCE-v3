@@ -17,7 +17,7 @@ interface OrderDetailPageProps {
   }>;
 }
 
-async function OrderDetailsData({ orderId, plan }: { orderId: string; plan: Plan }) {
+async function OrderDetailsData({ orderId, plan, slug }: { orderId: string; plan: Plan; slug: string }) {
   try {
     const order = await getOrderWithDetails(orderId)
     
@@ -27,7 +27,7 @@ async function OrderDetailsData({ orderId, plan }: { orderId: string; plan: Plan
 
     // Checked in: the late/damage fees the agency may charge
     const feeQuote = order.status === 'completed' ? await getFeeQuote(order.id, order.agency_id) : null
-    return <OrderDetails order={order} plan={plan} feeQuote={feeQuote} />
+    return <OrderDetails order={order} plan={plan} slug={slug} feeQuote={feeQuote} />
   } catch (error) {
     console.error('Error fetching order details:', error)
     notFound()
@@ -40,7 +40,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
 
   return (
     <Suspense fallback={<OrderDetailsSkeleton />}>
-      <OrderDetailsData orderId={orderId} plan={planOf(agency)} />
+      <OrderDetailsData orderId={orderId} plan={planOf(agency)} slug={agencySlug} />
     </Suspense>
   )
 }

@@ -31,11 +31,14 @@ export const COLOR_ENFORCED = [
   'src/app/page.tsx',
   'src/app/pricing/**/*.{ts,tsx}',
   'src/features/marketing/**/*.{ts,tsx}',
-  // Dashboard shell, home and sign-in (redesigned 2026-10-22). Orders,
-  // signs and settings join as their PRs land.
+  // Dashboard shell, home and sign-in (redesigned 2026-10-22). Signs and
+  // settings join as their PRs land.
   'src/app/[[]agency]/(app)/{layout,loading}.tsx',
   'src/app/[[]agency]/(app)/dashboard/**/*.{ts,tsx}',
-  'src/app/[[]agency]/(app)/{orders,inventory,billing}/page.tsx',
+  'src/app/[[]agency]/(app)/{inventory,billing}/page.tsx',
+  // Orders (redesigned 2026-10-22). Order PDFs keep their own print colors.
+  'src/app/[[]agency]/(app)/orders/**/*.{ts,tsx}',
+  'src/features/orders/**/*.{ts,tsx}',
   'src/app/auth/**/*.{ts,tsx}',
   'src/features/dashboard/**/*.{ts,tsx}',
   'src/features/agency/components/**/*.{ts,tsx}',
@@ -44,8 +47,8 @@ export const COLOR_ENFORCED = [
   'src/lib/clerk-theme.ts',
 ];
 
-/** Files whose job is to define colors */
-export const COLOR_EXEMPT = ['src/lib/brand.ts', 'src/shared/components/brand/**'];
+/** Files whose job is to define colors, and printed documents (PDF/HTML outside the app's theme) */
+export const COLOR_EXEMPT = ['src/lib/brand.ts', 'src/shared/components/brand/**', 'src/features/orders/documents/**'];
 
 /** Bans raw hex colors, Tailwind palette classes and the legacy purple theme (DESIGN.md, Color) */
 export function colorRules() {

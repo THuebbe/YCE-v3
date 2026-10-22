@@ -1,73 +1,32 @@
-'use client';
+import Link from 'next/link';
+import { ClipboardList, ExternalLink } from 'lucide-react';
 
-import { Card } from '@/shared/components/ui/card';
-import { Button } from '@/shared/components/ui/button';
-import { Package, Plus, ArrowRight } from 'lucide-react';
-
-interface EmptyOrdersStateProps {
-  agencySlug: string;
-}
-
-export function EmptyOrdersState({ agencySlug }: EmptyOrdersStateProps) {
+/** No orders at all yet: what happens when the first one comes in */
+export function EmptyOrdersState({ agencySlug }: { agencySlug: string }) {
   return (
-    <Card className="text-center py-16">
-      <div className="space-y-6">
-        <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-          <Package className="h-12 w-12 text-gray-400" />
-        </div>
-        
-        <div className="space-y-2">
-          <h3 className="text-xl font-semibold text-gray-900">
-            No orders yet
-          </h3>
-          <p className="text-gray-600 max-w-md mx-auto">
-            Your first customer order will appear here once they complete their booking through your booking site.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <div className="bg-blue-50 rounded-lg p-4 max-w-md mx-auto">
-            <h4 className="font-medium text-blue-900 mb-2">
-              How orders work:
-            </h4>
-            <div className="space-y-2 text-sm text-blue-800">
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                <span>Customer books through your booking site</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                <span>Order appears in "Pending" column</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                <span>Progress orders through deployment</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mr-2"></div>
-                <span>Check in signs when completed</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
-              variant="primary"
-              onClick={() => window.open(`/${agencySlug}/booking`, '_blank')}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              View Booking Site
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => window.open(`/${agencySlug}/settings`, '_self')}
-            >
-              <ArrowRight className="h-4 w-4 mr-2" />
-              Configure Settings
-            </Button>
-          </div>
-        </div>
-      </div>
-    </Card>
+    <section className="rounded-card border border-line bg-surface p-6 text-center sm:p-10">
+      <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-surface-sunken text-fg-muted">
+        <ClipboardList className="size-7" aria-hidden />
+      </span>
+      <h2 className="mt-4 font-display text-heading font-semibold">No orders yet</h2>
+      <p className="mx-auto mt-2 max-w-md text-fg-muted">
+        When a customer books on your page, the order shows up here with every sign listed. You get an email too.
+      </p>
+      <ol className="mx-auto mt-6 grid max-w-sm gap-2 text-left text-fine">
+        {['A customer books and pays on your page', 'Get the signs ready, then set them up', 'Pick them up and check them in'].map((step, i) => (
+          <li key={step} className="flex items-center gap-3 rounded-control bg-surface-sunken p-3">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-on-brand">{i + 1}</span>
+            {step}
+          </li>
+        ))}
+      </ol>
+      <Link
+        href={`/${agencySlug}/booking`}
+        target="_blank"
+        className="mt-6 inline-flex h-11 items-center gap-2 rounded-control border border-line-strong bg-surface px-4 font-bold transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
+      >
+        <ExternalLink className="size-4" aria-hidden /> See your booking page
+      </Link>
+    </section>
   );
 }

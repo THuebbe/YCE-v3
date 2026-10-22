@@ -18,5 +18,5 @@ export default async function OrderCheckInPage({ params }: CheckInPageProps) {
   // Same agency as the URL and the signed-in member (RLS is off)
   if (!order || order.agency_id !== agency.id) notFound()
 
-  return <MobileCheckIn order={order} />
+  return <MobileCheckIn order={order} slug={agencySlug} />
 }

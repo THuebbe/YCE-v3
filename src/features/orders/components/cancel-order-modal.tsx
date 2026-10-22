@@ -6,7 +6,8 @@ import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
-import { AlertTriangle, DollarSign, Clock } from 'lucide-react';
+import { TriangleAlert, Clock } from 'lucide-react';
+import { formatDay } from '@/features/booking/booking-rules';
 import { formatCurrency, hoursUntilDelivery } from '../client-utils';
 import { cancellationFee, cancellationPolicyOf } from '@/features/booking/terms';
 import { cancelOrder } from '../actions';
@@ -98,47 +99,27 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
       className="max-w-2xl"
     >
       <ModalHeader>
-        <ModalTitle className="flex items-center text-red-600">
-          <AlertTriangle className="h-5 w-5 mr-2" />
-          Cancel Order #{order.order_number}
+        <ModalTitle className="flex items-center gap-2 text-danger">
+          <TriangleAlert className="size-5" aria-hidden />
+          Cancel order #{order.order_number}?
         </ModalTitle>
         <ModalDescription>
-          This action cannot be undone. Please review the cancellation details below.
+          This can&apos;t be undone. The signs are freed for other bookings.
         </ModalDescription>
       </ModalHeader>
 
       <ModalContent className="space-y-6">
         {/* Order Summary */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <h4 className="font-medium text-gray-900 mb-2">Order Summary</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-gray-600">Customer:</span>
-              <span className="ml-2 text-gray-900">{order.customer_name}</span>
-            </div>
-            <div>
-              <span className="text-gray-600">Event Date:</span>
-              <span className="ml-2 text-gray-900">
-                {new Date(order.event_date).toLocaleDateString()}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">Total Amount:</span>
-              <span className="ml-2 text-gray-900 font-medium">
-                {formatCurrency(order.total)}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-600">Status:</span>
-              <span className="ml-2 text-gray-900">{order.status}</span>
-            </div>
-          </div>
-        </div>
+        <dl className="grid grid-cols-1 gap-2 rounded-control bg-surface-sunken p-4 text-fine sm:grid-cols-2">
+          <div><dt className="text-fg-muted">Customer</dt><dd className="font-semibold">{order.customer_name}</dd></div>
+          <div><dt className="text-fg-muted">Event</dt><dd className="font-semibold">{order.event_date ? formatDay(String(order.event_date).slice(0, 10)) : 'Not set'}</dd></div>
+          <div><dt className="text-fg-muted">Paid</dt><dd className="font-semibold">{formatCurrency(order.total)}</dd></div>
+        </dl>
 
         {/* What this order's terms say */}
-        <div className={`${insideNotice ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-green-50 border-green-200 text-green-800'} border rounded-lg p-4`}>
-          <div className="flex items-start text-sm">
-            <Clock className="h-4 w-4 mr-2 mt-0.5 shrink-0" />
+        <div className={`${insideNotice ? 'border-caution bg-caution-soft text-caution' : 'border-line bg-positive-soft text-positive'} rounded-control border p-4`}>
+          <div className="flex items-start gap-2 text-fine">
+            <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
             <span>
               {insideNotice
                 ? `Delivery is less than ${policy.noticeHours} hours away. If the customer is cancelling, their terms say no refund.`
@@ -151,7 +132,7 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
 
         {/* Refund Options */}
         <div className="space-y-4">
-          <Label className="text-base font-medium">Refund Options</Label>
+          <Label className="text-copy font-bold">Refund</Label>
           <RadioGroup
             value={refundType}
             onValueChange={(value) => setRefundType(value as 'full' | 'partial' | 'none')}
@@ -161,23 +142,22 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
               <RadioGroupItem value="full" id="full" />
               <label 
                 htmlFor="full" 
-                className="text-sm cursor-pointer flex items-center"
+                className="cursor-pointer"
               >
-                <DollarSign className="h-4 w-4 mr-1 text-green-600" />
-                Full Refund ({formatCurrency(maxRefundAmount)})
+                Full refund ({formatCurrency(maxRefundAmount)})
               </label>
             </div>
 
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="partial" id="partial" />
-              <label htmlFor="partial" className="text-sm cursor-pointer">
+              <label htmlFor="partial" className="cursor-pointer">
                 Refund minus cancellation fee ({formatCurrency(maxRefundAmount - fee)})
               </label>
             </div>
 
             {refundType === 'partial' && (
               <div className="ml-6 space-y-2">
-                <Label htmlFor="partialAmount" className="text-sm">
+                <Label htmlFor="partialAmount" className="text-fine">
                   Refund amount (you can change it; max {formatCurrency(maxRefundAmount)})
                 </Label>
                 <Input
@@ -196,8 +176,8 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
 
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="none" id="none" />
-              <label htmlFor="none" className="text-sm cursor-pointer">
-                No Refund
+              <label htmlFor="none" className="cursor-pointer">
+                No refund
               </label>
             </div>
           </RadioGroup>
@@ -205,17 +185,16 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
 
         {/* Cancellation Reason */}
         <div className="space-y-2">
-          <Label htmlFor="reason">Cancellation Reason (Optional)</Label>
+          <Label htmlFor="reason">Reason (optional, kept with the order)</Label>
           <textarea
             id="reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Enter reason for cancellation..."
-            className="w-full p-3 border border-gray-300 rounded-md resize-none"
+            className="w-full resize-none rounded-control border border-line-strong bg-surface p-3 text-copy focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
             rows={3}
             maxLength={500}
           />
-          <div className="text-right text-xs text-gray-500">
+          <div className="text-right text-fine text-fg-muted">
             {reason.length}/500 characters
           </div>
         </div>
@@ -228,15 +207,14 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
           onClick={handleClose}
           disabled={isProcessing}
         >
-          Keep Order
+          Keep order
         </Button>
         <Button
           variant="error"
           onClick={handleCancel}
-          disabled={isProcessing}
-          className="bg-red-600 hover:bg-red-700"
+          loading={isProcessing}
         >
-          {isProcessing ? 'Cancelling...' : 'Cancel Order'}
+          {isProcessing ? 'Cancelling…' : 'Cancel order'}
         </Button>
       </ModalFooter>
     </Modal>
