@@ -6,6 +6,8 @@ import { COLORS, PALETTE } from '@/lib/brand'
  * (from brand.ts), not CSS variables. Fonts are the next/font variables set
  * on <html> in app/layout.tsx.
  */
+const DISPLAY_FONT = 'var(--font-fredoka), ui-rounded, system-ui, sans-serif'
+
 export const clerkTheme = {
   variables: {
     colorPrimary: COLORS.action,
@@ -23,16 +25,16 @@ export const clerkTheme = {
     fontFamily: 'var(--font-nunito-sans), ui-sans-serif, system-ui, sans-serif',
     fontSize: '16px',
   },
+  // Style objects, not class names: Clerk's own styles win over classes
   elements: {
-    // Class names use the meaning tokens (src/styles/tokens.css)
-    card: 'shadow-raised border border-line rounded-card',
-    headerTitle: 'font-display text-heading font-semibold text-fg',
-    headerSubtitle: 'text-fg-muted',
-    formButtonPrimary: 'h-11 text-copy font-bold normal-case shadow-none',
-    formFieldInput: 'h-11 border-line-strong',
-    footerActionLink: 'font-bold text-action-text hover:text-action-text',
-    socialButtonsBlockButton: 'h-11 border-line-strong',
-    userButtonAvatarBox: 'size-9',
-    userButtonPopoverCard: 'shadow-overlay border border-line rounded-card',
+    card: { boxShadow: '0 1px 2px rgb(21 29 24 / 0.06), 0 1px 3px rgb(21 29 24 / 0.08)', border: `1px solid ${COLORS.line}`, borderRadius: '12px' },
+    headerTitle: { fontFamily: DISPLAY_FONT, fontSize: '1.25rem', fontWeight: 600 },
+    formButtonPrimary: { height: '44px', fontSize: '1rem', fontWeight: 700, textTransform: 'none', boxShadow: 'none', backgroundImage: 'none' },
+    formFieldInput: { height: '44px', borderColor: PALETTE.ink[400] },
+    socialButtonsBlockButton: { height: '44px', borderColor: PALETTE.ink[400] },
+    // colorPrimary orange is too light for text on white (2.4:1); links use the darker action text
+    footerActionLink: { color: COLORS.actionText, fontWeight: 700, '&:hover': { color: COLORS.actionText } },
+    formFieldAction: { color: COLORS.actionText },
+    identityPreviewEditButton: { color: COLORS.actionText },
   },
 }
