@@ -13,10 +13,9 @@ import { LayoutCalculation, BookingOrderResult } from '../../types';
 import { stripeForAccount } from '../payment-methods/StripeCardForm';
 import { buildBookingTerms } from '../../terms';
 import { policyKey } from '../../policies';
-import { saveDisplaySnapshot } from '../../actions';
 
 export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone } = useWizard();
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone, actions } = useWizard();
   // The agency's booking terms: the customer must agree before Place Order
   // (consent for later late/damage charges); the server saves its own copy
   const terms = buildBookingTerms({
@@ -108,7 +107,7 @@ export function ReviewStep() {
       const capture = toJpeg(node, { quality: 0.85, pixelRatio: Math.min(3, Math.max(1, 1200 / node.offsetWidth)), backgroundColor: '#ffffff' });
       const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('capture timed out')), 8000));
       const dataUrl = await Promise.race([capture, timeout]);
-      const saved = await saveDisplaySnapshot({ agencySlug, sessionId, holdId, dataUrl });
+      const saved = await actions.saveDisplaySnapshot({ agencySlug, sessionId, holdId, dataUrl });
       if (!saved.ok) console.warn('Display picture not saved:', saved.error);
       return saved.ok ? saved.url : undefined;
     } catch (error) {

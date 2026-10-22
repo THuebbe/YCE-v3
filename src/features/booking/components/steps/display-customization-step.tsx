@@ -6,7 +6,6 @@ import { useWizard } from '../../context/wizard-context';
 import { displaySchema, DisplayFormData, Sign } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { createBookingHold, getBookingCatalog } from '../../actions';
 import { eventMessages, themes, hobbies } from '../../display-options';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { DisplayGrid } from '../display/DisplayGrid';
@@ -15,7 +14,7 @@ import { LayoutCalculation } from '../../types';
 import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function DisplayCustomizationStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone, actions } = useWizard();
   const [localData, setLocalData] = useState<DisplayFormData>(
     formData.display || {
       eventMessage: '',
@@ -47,7 +46,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
   useEffect(() => {
-    getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
+    actions.getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
       if (styles.length > 0) setAvailableStyles(styles.map(capitalize));
       if (colorways.length > 0) setAvailableColorways(colorways.map(capitalize));
       // The defaults ('Classic' / 'Red') may be something this agency doesn't
@@ -117,7 +116,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       setPreviewError('Please choose an event date first');
       return null;
     }
-    const result = await createBookingHold({
+    const result = await actions.createBookingHold({
       agencySlug,
       sessionId,
       timeZone,

@@ -64,7 +64,7 @@ const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
         ref={ref}
         type="button"
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-md shadow-sm bg-white px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          "flex h-12 w-full items-center justify-between rounded-control border border-line-strong bg-surface px-3 text-copy text-fg focus-visible:outline-none focus-visible:border-focus focus-visible:shadow-(--focus-ring) disabled:cursor-not-allowed disabled:opacity-50",
           className
         )}
         onClick={() => context.setOpen(!context.open)}
@@ -93,7 +93,7 @@ const SelectContent = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "absolute z-50 min-w-[8rem] overflow-hidden rounded-md bg-white p-1 text-gray-900 shadow-md animate-in fade-in-80 slide-in-from-top-1",
+        "absolute z-50 min-w-[8rem] overflow-hidden rounded-card border border-line bg-surface p-1 text-fg shadow-overlay",
         className
       )}
       {...props}
@@ -125,7 +125,7 @@ const SelectItem = React.forwardRef<HTMLDivElement, SelectItemProps>(
       <div
         ref={ref}
         className={cn(
-          "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+          "relative flex min-h-10 w-full cursor-pointer select-none items-center rounded-control px-2 text-copy outline-none hover:bg-surface-sunken focus:bg-surface-sunken data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
           className
         )}
         onClick={handleClick}

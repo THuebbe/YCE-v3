@@ -104,6 +104,9 @@
   --color-notice: var(--bluebird-700);
   --color-notice-soft: var(--bluebird-50);
 
+  /* text on the strong status fills (positive, caution, danger, notice): all >= 6:1 */
+  --color-on-strong: var(--ink-0);
+
   --color-focus: var(--bluebird-700);
 
   /* type: Fredoka for display (headings, numbers, the wordmark), Nunito Sans for reading */
