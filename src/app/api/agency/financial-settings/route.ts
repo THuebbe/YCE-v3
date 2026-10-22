@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { pricingConfigSchema } from '../../../[agency]/settings/validation/financialManagement'
+import { pricingConfigSchema } from '@/app/[agency]/(app)/settings/validation/financialManagement'
 
 // GET handler - Retrieve agency financial settings
 export async function GET(request: NextRequest) {

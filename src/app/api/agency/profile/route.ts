@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { agencyProfileSchema } from '../../../[agency]/settings/validation/agencyProfile'
+import { agencyProfileSchema } from '@/app/[agency]/(app)/settings/validation/agencyProfile'
 import { agencyBookingUrl } from '@/lib/site'
 
 // GET handler - Retrieve agency profile data

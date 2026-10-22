@@ -39,8 +39,8 @@ export async function generateDocument(orderId: string, type: DocumentType) {
     });
 
     // Revalidate order pages (note: revalidatePath will work for all agency routes)
-    revalidatePath('/[agency]/orders/[orderId]', 'page');
-    revalidatePath('/[agency]/orders', 'page');
+    revalidatePath('/[agency]/(app)/orders/[orderId]', 'page');
+    revalidatePath('/[agency]/(app)/orders', 'page');
 
     return {
       success: true,
@@ -88,8 +88,8 @@ async function requireOrderMember(orderId: string) {
 }
 
 function revalidateOrder(orderId: string) {
-  revalidatePath('/[agency]/orders', 'page');
-  revalidatePath('/[agency]/orders/[orderId]', 'page');
+  revalidatePath('/[agency]/(app)/orders', 'page');
+  revalidatePath('/[agency]/(app)/orders/[orderId]', 'page');
 }
 
 const ADVANCE: Partial<Record<OrderAction, { from: string; to: string; stamp?: string }>> = {

@@ -1,53 +1,21 @@
 import Link from 'next/link'
 import { SignUp } from '@clerk/nextjs'
-import { headers } from 'next/headers'
+import { AuthFrame } from '@/features/auth/components/auth-frame'
 
-export default async function SignUpPage() {
-  const headersList = await headers()
-  const hostname = headersList.get('host') || ''
-  
-  // Redirect to routing page to handle user flow after authentication
-  const redirectUrl = hostname.includes('.localhost') || hostname.includes('localhost')
-    ? `http://${hostname}/routing`
-    : `https://${hostname}/routing`
+export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background-white px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-neutral-900">
-            Join YardCard Elite
-          </h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Start managing your yard sign rentals today
-          </p>
-        </div>
-        <div className="mt-8">
-          <SignUp 
-            redirectUrl={redirectUrl}
-            signInUrl="/auth/sign-in"
-            appearance={{
-              elements: {
-                formButtonPrimary: 
-                  'bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200',
-                card: 'shadow-xl border border-neutral-200 rounded-xl',
-                headerTitle: 'text-2xl font-bold text-neutral-900',
-                headerSubtitle: 'text-neutral-600',
-                socialButtonsBlockButton: 
-                  'border border-neutral-300 hover:border-neutral-400 text-neutral-700 hover:bg-neutral-50 transition-colors duration-200',
-                formFieldInput: 
-                  'border border-neutral-300 focus:border-primary focus:ring-primary rounded-lg',
-                footerActionLink: 'text-primary hover:text-primary-dark',
-              }
-            }}
-          />
-        </div>
-        <p className="text-center text-sm text-neutral-600">
+    <AuthFrame
+      footer={
+        <>
           By creating an account you agree to the{' '}
-          <Link href="/terms" className="font-medium text-primary hover:text-primary-dark">Terms of Service</Link>{' '}
+          <Link href="/terms" className="font-bold text-action-text hover:underline">Terms of Service</Link>{' '}
           and{' '}
-          <Link href="/privacy" className="font-medium text-primary hover:text-primary-dark">Privacy Policy</Link>.
-        </p>
-      </div>
-    </div>
+          <Link href="/privacy" className="font-bold text-action-text hover:underline">Privacy Policy</Link>.
+        </>
+      }
+    >
+      {/* /routing sends new accounts on to onboarding */}
+      <SignUp fallbackRedirectUrl="/routing" signInUrl="/auth/sign-in" />
+    </AuthFrame>
   )
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { bookingRulesSchema } from '@/app/[agency]/settings/validation/agencySettings'
+import { bookingRulesSchema } from '@/app/[agency]/(app)/settings/validation/agencySettings'
 import { parseBookingRules } from '@/features/booking/booking-rules'
 import { getAgencyPlan } from '@/features/billing/server'
 import { hasFeature } from '@/features/billing/entitlements'

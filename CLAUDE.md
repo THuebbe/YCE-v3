@@ -65,7 +65,10 @@ Entity vs DTO. Don't merge them. What's missing is an explicit adapter.
 - Features in `src/features/<domain>/`; routes in `src/app/`
 - Server actions in `features/<domain>/actions.ts`
 - Zod schema per wizard step in `features/booking/types.ts`
-- Tenant routes are `src/app/[agency]/...`
+- Tenant routes are `src/app/[agency]/...`. Signed-in agency pages live
+  in the `(app)` route group (shared shell + tabs); every page there calls
+  `requireAgencyPage(slug)` (`features/dashboard/access.ts`) itself.
+  Public pages (booking, paid, cancel) stay outside the group.
 - UI follows `DESIGN.md`: meaning tokens (`bg-action`, `text-fg-muted`)
   from `src/styles/tokens.css`, never raw hex or `bg-purple-600`. The
   logo is `<Logo />`; brand values live in `src/lib/brand.ts`.

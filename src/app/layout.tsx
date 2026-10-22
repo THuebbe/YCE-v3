@@ -20,6 +20,7 @@ function ConditionalClerkProvider({ children }: { children: React.ReactNode }) {
     <ClerkProvider 
       publishableKey={clerkPublishableKey}
       appearance={clerkTheme}
+      afterSignOutUrl="/auth/sign-in"
     >
       {children}
     </ClerkProvider>
