@@ -152,12 +152,12 @@ export function PayPalSetupTab({
 
   const getStatusIcon = () => {
     if (paypalStatus?.hasCompletedOnboarding && paypalStatus?.paymentsReceivable) {
-      return <CheckCircle className="w-5 h-5 text-green-600" />
+      return <CheckCircle className="w-5 h-5 text-positive" />
     }
     if (paypalStatus?.isConnected) {
-      return <Clock className="w-5 h-5 text-orange-500" />
+      return <Clock className="w-5 h-5 text-caution" />
     }
-    return <CircleDollarSign className="w-5 h-5 text-gray-400" />
+    return <CircleDollarSign className="w-5 h-5 text-fg-muted" />
   }
 
   const getStatusText = () => {
@@ -172,21 +172,21 @@ export function PayPalSetupTab({
 
   const getStatusColor = () => {
     if (paypalStatus?.hasCompletedOnboarding && paypalStatus?.paymentsReceivable) {
-      return 'bg-green-100 text-green-800'
+      return 'bg-positive-soft text-positive'
     }
     if (paypalStatus?.isConnected) {
-      return 'bg-orange-100 text-orange-800'
+      return 'bg-caution-soft text-caution'
     }
-    return 'bg-gray-100 text-gray-600'
+    return 'bg-surface-sunken text-fg-muted'
   }
 
   return (
     <div className="space-y-6">
       {/* Processing Return State */}
       {isReturningFromPayPal && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-          <AlertDescription className="text-blue-800">
+        <Alert className="border-notice/30 bg-notice-soft">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-action mr-3"></div>
+          <AlertDescription className="text-notice">
             Processing your PayPal account connection... This may take a moment.
           </AlertDescription>
         </Alert>
@@ -199,7 +199,7 @@ export function PayPalSetupTab({
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">Error Loading PayPal Status</p>
-              <p className="text-sm">
+              <p className="text-fine">
                 {loadError.includes('Network') ? 'Network connection error. Please check your internet connection.' : 
                  loadError.includes('Unauthorized') ? 'Authentication error. Please try signing in again.' :
                  loadError.includes('PayPal account') ? 'Unable to fetch PayPal account status. This may be temporary.' :
@@ -221,7 +221,7 @@ export function PayPalSetupTab({
       )}
 
       {/* PayPal Connect Setup Card */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -254,9 +254,9 @@ export function PayPalSetupTab({
           {!paypalStatus?.isConnected ? (
             /* Initial Setup State */
             <div className="text-center py-8">
-              <CircleDollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">Set up PayPal Connect</h4>
-              <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
+              <CircleDollarSign className="w-12 h-12 text-fg-muted mx-auto mb-4" />
+              <h4 className="mb-2 font-display text-lead font-semibold text-fg">Set up PayPal Connect</h4>
+              <p className="text-fine text-fg-muted mb-6 max-w-md mx-auto">
                 Accept PayPal payments, Pay Later options, and reach millions of PayPal users worldwide. 
                 Fast setup with your existing PayPal business account.
               </p>
@@ -264,12 +264,12 @@ export function PayPalSetupTab({
                 onClick={handlePayPalConnect}
                 disabled={isLoading}
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-notice hover:bg-action-hover"
               >
                 {isLoading ? 'Connecting...' : 'Connect with PayPal'}
               </Button>
               
-              <div className="mt-4 text-xs text-gray-500">
+              <div className="mt-4 text-fine text-fg-muted">
                 Don't have a PayPal business account? We'll help you create one during setup.
               </div>
             </div>
@@ -278,41 +278,41 @@ export function PayPalSetupTab({
             <div className="space-y-6">
               {/* Account Status Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900 mb-1">PayPal Account</div>
-                    <div className="text-xs text-gray-600 mb-2">
+                    <div className="text-fine font-medium text-fg mb-1">PayPal Account</div>
+                    <div className="text-fine text-fg-muted mb-2">
                       {paypalStatus.accountId ? `ID: ${paypalStatus.accountId.substring(0, 12)}...` : 'Connected'}
                     </div>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700">Connected</Badge>
+                    <Badge variant="outline" className="bg-notice-soft text-notice">Connected</Badge>
                   </div>
                 </Card>
                 
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900 mb-1">Permissions</div>
-                    <div className={`text-xs mb-2 ${paypalStatus.permissionsGranted ? 'text-green-600' : 'text-orange-600'}`}>
+                    <div className="text-fine font-medium text-fg mb-1">Permissions</div>
+                    <div className={`text-fine mb-2 ${paypalStatus.permissionsGranted ? 'text-positive' : 'text-caution'}`}>
                       {paypalStatus.permissionsGranted ? 'Access granted' : 'Permissions pending'}
                     </div>
                     <Badge 
                       variant={paypalStatus.permissionsGranted ? 'default' : 'secondary'}
-                      className={paypalStatus.permissionsGranted ? 'bg-green-500' : 'bg-orange-500'}
+                      className={paypalStatus.permissionsGranted ? 'bg-positive' : 'bg-caution-soft text-caution'}
                     >
                       {paypalStatus.permissionsGranted ? 'Granted' : 'Pending'}
                     </Badge>
                   </div>
                 </Card>
                 
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900 mb-1">Accept Payments</div>
-                    <div className={`text-xs mb-2 ${paypalStatus.paymentsReceivable ? 'text-green-600' : 'text-orange-600'}`}>
+                    <div className="text-fine font-medium text-fg mb-1">Accept Payments</div>
+                    <div className={`text-fine mb-2 ${paypalStatus.paymentsReceivable ? 'text-positive' : 'text-caution'}`}>
                       {paypalStatus.paymentsReceivable ? 'Ready to accept payments' : 
                        paypalStatus.emailConfirmed ? 'Verification in progress' : 'Email verification required'}
                     </div>
                     <Badge 
                       variant={paypalStatus.paymentsReceivable ? 'default' : 'secondary'}
-                      className={paypalStatus.paymentsReceivable ? 'bg-green-500' : 'bg-orange-500'}
+                      className={paypalStatus.paymentsReceivable ? 'bg-positive' : 'bg-caution-soft text-caution'}
                     >
                       {paypalStatus.paymentsReceivable ? 'Enabled' : 'Pending'}
                     </Badge>
@@ -322,15 +322,15 @@ export function PayPalSetupTab({
               
               {/* Additional Status Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700">Email Verified:</span>
+                <div className="flex items-center justify-between p-3 bg-surface-sunken rounded-card">
+                  <span className="text-fine text-fg">Email Verified:</span>
                   <Badge variant={paypalStatus.emailConfirmed ? 'default' : 'secondary'}>
                     {paypalStatus.emailConfirmed ? 'Yes' : 'No'}
                   </Badge>
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700">Setup Complete:</span>
+                <div className="flex items-center justify-between p-3 bg-surface-sunken rounded-card">
+                  <span className="text-fine text-fg">Setup Complete:</span>
                   <Badge variant={paypalStatus.detailsSubmitted ? 'default' : 'secondary'}>
                     {paypalStatus.detailsSubmitted ? 'Yes' : 'In Progress'}
                   </Badge>
@@ -339,9 +339,9 @@ export function PayPalSetupTab({
               
               {/* Status-specific alerts */}
               {paypalStatus.permissionsGranted && !paypalStatus.paymentsReceivable && (
-                <Alert className="border-orange-200 bg-orange-50">
-                  <Clock className="h-4 w-4 text-orange-600" />
-                  <AlertDescription className="text-orange-800">
+                <Alert className="border-caution/30 bg-caution-soft">
+                  <Clock className="h-4 w-4 text-caution" />
+                  <AlertDescription className="text-caution">
                     <strong>Account Verification In Progress</strong>
                     <p className="mt-1">
                       Your PayPal account is connected and permissions are granted. PayPal is reviewing your account 
@@ -352,9 +352,9 @@ export function PayPalSetupTab({
               )}
               
               {!paypalStatus.emailConfirmed && (
-                <Alert className="border-blue-200 bg-blue-50">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800">
+                <Alert className="border-notice/30 bg-notice-soft">
+                  <Info className="h-4 w-4 text-notice" />
+                  <AlertDescription className="text-notice">
                     <strong>Email Verification Required</strong>
                     <p className="mt-1">
                       Please check your email and verify your PayPal account to complete the setup process.
@@ -370,7 +370,7 @@ export function PayPalSetupTab({
                     onClick={handlePayPalConnect}
                     disabled={isLoading}
                     size="lg"
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-notice hover:bg-action-hover"
                   >
                     {isLoading ? 'Connecting...' : 'Continue Setup'}
                   </Button>
@@ -391,7 +391,7 @@ export function PayPalSetupTab({
       </Card>
 
       {/* Features & Benefits */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle>PayPal Connect Features</CardTitle>
           <CardDescription>
@@ -401,40 +401,40 @@ export function PayPalSetupTab({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">PayPal & Pay Later</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">PayPal & Pay Later</div>
+                <div className="text-fine text-muted-foreground">
                   Accept PayPal payments and offer Pay in 4 or Pay Monthly options
                 </div>
               </div>
             </div>
             
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Global Reach</div>
-                <div className="text-xs text-muted-foregreen">
+                <div className="font-medium text-fine">Global Reach</div>
+                <div className="text-fine text-muted-foregreen">
                   Access to 400+ million active PayPal users worldwide
                 </div>
               </div>
             </div>
             
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Buyer Protection</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">Buyer Protection</div>
+                <div className="text-fine text-muted-foreground">
                   PayPal's seller and buyer protection reduces chargebacks and disputes
                 </div>
               </div>
             </div>
             
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Easy Checkout</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">Easy Checkout</div>
+                <div className="text-fine text-muted-foreground">
                   One-click payments for returning PayPal customers
                 </div>
               </div>
@@ -444,33 +444,33 @@ export function PayPalSetupTab({
       </Card>
 
       {/* Pricing Information */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle>PayPal Processing Fees</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-fine">
               <span>PayPal Payments:</span>
               <span className="font-medium">2.9% + $0.30</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-fine">
               <span>PayPal Pay Later:</span>
               <span className="font-medium">2.9% + $0.30</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-fine">
               <span>International Transactions:</span>
               <span className="font-medium">4.4% + $0.30</span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-fine text-muted-foreground mt-3">
             * Additional fees may apply for currency conversion, disputes, or premium features. 
             Visit{' '}
             <a 
               href="https://www.paypal.com/us/business/fees" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-notice hover:underline"
             >
               PayPal Business Fees
             </a>

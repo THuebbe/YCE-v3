@@ -31,11 +31,14 @@ export const COLOR_ENFORCED = [
   'src/app/page.tsx',
   'src/app/pricing/**/*.{ts,tsx}',
   'src/features/marketing/**/*.{ts,tsx}',
-  // Dashboard shell, home and sign-in (redesigned 2026-10-22). Settings
-  // joins when its PR lands.
+  // Dashboard shell, home and sign-in (redesigned 2026-10-22)
   'src/app/[[]agency]/(app)/{layout,loading}.tsx',
   'src/app/[[]agency]/(app)/dashboard/**/*.{ts,tsx}',
+  // Settings and Plan & billing (redesigned 2026-10-22); validation/ holds
+  // an unused old settings schema with color defaults
   'src/app/[[]agency]/(app)/billing/page.tsx',
+  'src/app/[[]agency]/(app)/settings/*.{ts,tsx}',
+  'src/app/[[]agency]/(app)/settings/components/**/*.{ts,tsx}',
   // Signs (redesigned 2026-10-22)
   'src/app/[[]agency]/(app)/inventory/**/*.{ts,tsx}',
   'src/features/inventory/**/*.{ts,tsx}',

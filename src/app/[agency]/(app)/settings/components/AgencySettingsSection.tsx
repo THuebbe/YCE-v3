@@ -78,32 +78,32 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold text-gray-900 mb-4">
+				<h3 className="mb-4 font-display text-lead font-semibold text-fg">
 					Blackout Dates
 				</h3>
-				<p className="text-sm text-gray-600 mb-6">
+				<p className="text-fine text-fg-muted mb-6">
 					Block specific dates when your agency is unavailable for deliveries or pickups.
 				</p>
 			</div>
 
 			<div className="space-y-4">
 				{blackoutDates.map((blackoutDate) => (
-					<div key={blackoutDate.id} className="p-4 border border-gray-200 rounded-lg">
+					<div key={blackoutDate.id} className="p-4 border border-line rounded-card">
 						<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
+								<label className="block text-fine font-medium text-fg mb-1">
 									Date
 								</label>
 								<input
 									type="date"
 									value={blackoutDate.date}
 									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'date', e.target.value)}
-									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+									className="w-full px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 								/>
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
+								<label className="block text-fine font-medium text-fg mb-1">
 									Title
 								</label>
 								<input
@@ -111,18 +111,18 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 									value={blackoutDate.title}
 									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'title', e.target.value)}
 									placeholder="e.g., Christmas Day"
-									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+									className="w-full px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 								/>
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-1">
+								<label className="block text-fine font-medium text-fg mb-1">
 									Type
 								</label>
 								<select
 									value={blackoutDate.type}
 									onChange={(e) => updateBlackoutDate(blackoutDate.id, 'type', e.target.value)}
-									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+									className="w-full px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 								>
 									<option value="holiday">Holiday</option>
 									<option value="maintenance">Maintenance</option>
@@ -134,7 +134,7 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 							<div className="flex items-end">
 								<button
 									onClick={() => removeBlackoutDate(blackoutDate.id)}
-									className="px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md text-sm font-medium"
+									className="px-3 py-2 text-danger hover:text-danger hover:bg-danger-soft rounded-control text-fine font-medium"
 								>
 									Remove
 								</button>
@@ -142,7 +142,7 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 						</div>
 
 						<div className="mt-4">
-							<label className="block text-sm font-medium text-gray-700 mb-1">
+							<label className="block text-fine font-medium text-fg mb-1">
 								Reason (Optional)
 							</label>
 							<textarea
@@ -150,18 +150,18 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 								onChange={(e) => updateBlackoutDate(blackoutDate.id, 'reason', e.target.value)}
 								placeholder="Optional description or reason for this blackout date"
 								rows={2}
-								className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+								className="w-full px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 							/>
 						</div>
 					</div>
 				))}
 
 				{blackoutDates.length === 0 && (
-					<div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
-						<p className="text-gray-500 mb-4">No blackout dates configured</p>
+					<div className="text-center py-8 border border-dashed border-line-strong rounded-card">
+						<p className="text-fg-muted mb-4">No blackout dates configured</p>
 						<button
 							onClick={addBlackoutDate}
-							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+							className="px-4 py-2 bg-action text-on-action rounded-card hover:bg-action-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
 						>
 							Add First Blackout Date
 						</button>
@@ -171,7 +171,7 @@ const BlackoutDatesTab: React.FC<BlackoutDatesTabProps> = ({
 				{blackoutDates.length > 0 && (
 					<button
 						onClick={addBlackoutDate}
-						className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						className="px-4 py-2 bg-action text-on-action rounded-card hover:bg-action-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
 					>
 						Add Another Blackout Date
 					</button>
@@ -198,14 +198,14 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold text-gray-900 mb-4">
+				<h3 className="mb-4 font-display text-lead font-semibold text-fg">
 					Booking Policies
 				</h3>
-				<p className="text-sm text-gray-600 mb-6">
+				<p className="text-fine text-fg-muted mb-6">
 					Set rules and restrictions for how customers can book your services.
 				</p>
 				{!canEdit && (
-					<p className="mb-6 rounded-lg bg-neutral-50 p-3 text-sm text-neutral-700">
+					<p className="mb-6 rounded-card bg-surface-sunken p-3 text-fine text-fg">
 						🔒 Your bookings use the standard rules below. Setting your own is part of the Elite plan (Billing).
 						Blackout dates work on every plan.
 					</p>
@@ -215,7 +215,7 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 			<fieldset disabled={!canEdit} className="space-y-6 disabled:opacity-60">
 				{/* Order Cutoff */}
 				<div>
-					<label className="block text-sm font-medium text-gray-700 mb-2">
+					<label className="block text-fine font-medium text-fg mb-2">
 						Order Cutoff
 					</label>
 					<div className="flex items-center space-x-3">
@@ -225,21 +225,21 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 							onChange={(e) => updateBookingRule('orderCutoffDays', Math.max(0, parseInt(e.target.value) || 0))}
 							min="0"
 							max="30"
-							className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+							className="w-24 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 						/>
-						<span className="text-sm text-gray-600">days before delivery</span>
+						<span className="text-fine text-fg-muted">days before delivery</span>
 					</div>
-					<p className="mt-1 text-xs text-gray-500">
+					<p className="mt-1 text-fine text-fg-muted">
 						Customers must order by the end of this day. With 1, a Saturday event (delivered Friday) can be booked until Thursday night. 0 allows ordering on the delivery day.
 					</p>
 				</div>
 
 				{/* Rental Duration Limits */}
 				<div className="border-t pt-6">
-					<h4 className="text-md font-medium text-gray-900 mb-4">Rental Duration Limits</h4>
+					<h4 className="text-md font-medium text-fg mb-4">Rental Duration Limits</h4>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
+							<label className="block text-fine font-medium text-fg mb-2">
 								Minimum Rental Period
 							</label>
 							<div className="flex items-center space-x-3">
@@ -249,17 +249,17 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 									onChange={(e) => updateBookingRule('minimumRentalDays', parseInt(e.target.value) || 1)}
 									min="1"
 									max="7"
-									className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+									className="w-24 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 								/>
-								<span className="text-sm text-gray-600">days</span>
+								<span className="text-fine text-fg-muted">days</span>
 							</div>
-							<p className="mt-1 text-xs text-gray-500">
+							<p className="mt-1 text-fine text-fg-muted">
 								Shortest rental period allowed (1-7 days)
 							</p>
 						</div>
 
 						<div>
-							<label className="block text-sm font-medium text-gray-700 mb-2">
+							<label className="block text-fine font-medium text-fg mb-2">
 								Maximum Rental Period
 							</label>
 							<div className="flex items-center space-x-3">
@@ -269,11 +269,11 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 									onChange={(e) => updateBookingRule('maximumRentalDays', parseInt(e.target.value) || 1)}
 									min="1"
 									max="30"
-									className="w-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+									className="w-24 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 								/>
-								<span className="text-sm text-gray-600">days</span>
+								<span className="text-fine text-fg-muted">days</span>
 							</div>
-							<p className="mt-1 text-xs text-gray-500">
+							<p className="mt-1 text-fine text-fg-muted">
 								Longest rental period allowed (1-30 days)
 							</p>
 						</div>
@@ -282,17 +282,17 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 
 				{/* Validation Warning */}
 				{bookingRules.maximumRentalDays < bookingRules.minimumRentalDays && (
-					<div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-						<div className="text-yellow-800 text-sm">
+					<div className="p-4 bg-caution-soft border border-caution/30 rounded-control">
+						<div className="text-caution text-fine">
 							⚠️ Maximum rental period must be greater than or equal to minimum rental period.
 						</div>
 					</div>
 				)}
 
 				{/* Business Rules Summary */}
-				<div className="bg-gray-50 p-4 rounded-lg">
-					<h4 className="text-sm font-medium text-gray-900 mb-2">Current Policy Summary</h4>
-					<ul className="text-sm text-gray-600 space-y-1">
+				<div className="bg-surface-sunken p-4 rounded-card">
+					<h4 className="text-fine font-medium text-fg mb-2">Current Policy Summary</h4>
+					<ul className="text-fine text-fg-muted space-y-1">
 						<li>• Orders close at the end of the day <strong>{bookingRules.orderCutoffDays} day{bookingRules.orderCutoffDays === 1 ? '' : 's'}</strong> before delivery</li>
 						<li>• Signs go out <strong>{bookingRules.setupDays} day{bookingRules.setupDays === 1 ? '' : 's'}</strong> before the event and come back <strong>{bookingRules.teardownDays} day{bookingRules.teardownDays === 1 ? '' : 's'}</strong> after (no charge)</li>
 						<li>• Rental period: <strong>{bookingRules.minimumRentalDays} - {bookingRules.maximumRentalDays} days</strong></li>
@@ -430,10 +430,10 @@ export default function AgencySettingsSection({
 	const OperatingHoursTab = () => (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold text-gray-900 mb-4">
+				<h3 className="mb-4 font-display text-lead font-semibold text-fg">
 					Operating Hours
 				</h3>
-				<p className="text-sm text-gray-600 mb-6">
+				<p className="text-fine text-fg-muted mb-6">
 					Configure your business hours and availability for each day of the
 					week.
 				</p>
@@ -453,10 +453,10 @@ export default function AgencySettingsSection({
 						return (
 							<div
 								key={day}
-								className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 border border-gray-200 rounded-lg"
+								className="flex flex-wrap items-center gap-x-4 gap-y-3 p-4 border border-line rounded-card"
 							>
 								<div className="w-24">
-									<label className="text-sm font-medium text-gray-700 capitalize">
+									<label className="text-fine font-medium text-fg capitalize">
 										{day}
 									</label>
 								</div>
@@ -475,9 +475,9 @@ export default function AgencySettingsSection({
 												}
 											}));
 										}}
-										className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+										className="h-4 w-4 text-notice focus:ring-focus border-line-strong rounded"
 									/>
-									<span className="text-sm text-gray-600">Open</span>
+									<span className="text-fine text-fg-muted">Open</span>
 								</div>
 
 								{/* On a phone From and To each get a full-width line; a time
@@ -488,7 +488,7 @@ export default function AgencySettingsSection({
 									}`}
 								>
 									<div className="flex items-center gap-2">
-										<label className="w-12 text-sm text-gray-600 sm:w-auto">From:</label>
+										<label className="w-12 text-fine text-fg-muted sm:w-auto">From:</label>
 										<input
 											type="time"
 											value={dayHours.open || ""}
@@ -504,12 +504,12 @@ export default function AgencySettingsSection({
 												}));
 											}}
 											data-testid={`${day}-open-time`}
-											className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed sm:flex-none"
+											className="min-w-0 flex-1 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus disabled:bg-surface-sunken disabled:cursor-not-allowed sm:flex-none"
 										/>
 									</div>
 
 									<div className="flex items-center gap-2">
-										<label className="w-12 text-sm text-gray-600 sm:w-auto">To:</label>
+										<label className="w-12 text-fine text-fg-muted sm:w-auto">To:</label>
 										<input
 											type="time"
 											value={dayHours.close || ""}
@@ -525,7 +525,7 @@ export default function AgencySettingsSection({
 												}));
 											}}
 											data-testid={`${day}-close-time`}
-											className="min-w-0 flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed sm:flex-none"
+											className="min-w-0 flex-1 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus disabled:bg-surface-sunken disabled:cursor-not-allowed sm:flex-none"
 										/>
 									</div>
 								</div>
@@ -535,7 +535,7 @@ export default function AgencySettingsSection({
 			</div>
 
 			<div className="mt-6">
-				<label className="block text-sm font-medium text-gray-700 mb-2">
+				<label className="block text-fine font-medium text-fg mb-2">
 					Time Zone
 				</label>
 				<select
@@ -546,7 +546,7 @@ export default function AgencySettingsSection({
 							timeZone: e.target.value,
 						}));
 					}}
-					className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+					className="px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
 				>
 					<option value="" disabled>
 						Not set - choose your time zone
@@ -557,15 +557,15 @@ export default function AgencySettingsSection({
 						</option>
 					))}
 				</select>
-				<p className="mt-1 text-xs text-gray-500">
+				<p className="mt-1 text-fine text-fg-muted">
 					Booking cutoffs (&quot;order by end of day&quot;) use this time zone.
 					{!operatingHours?.timeZone && " Until you set it, the customer's own time zone is used."}
 				</p>
 			</div>
 
 			{validationErrors.length > 0 && (
-				<div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-					<div className="text-red-800 text-sm">
+				<div className="mt-4 p-4 bg-danger-soft border border-danger/30 rounded-control">
+					<div className="text-danger text-fine">
 						{validationErrors.map((error, idx) => (
 							<div key={idx}>{error}</div>
 						))}
@@ -579,45 +579,45 @@ export default function AgencySettingsSection({
 
 	const PoliciesTab = () => (
 		<div className="text-center py-12">
-			<h3 className="text-lg font-semibold text-gray-900 mb-2">
+			<h3 className="mb-2 font-display text-lead font-semibold text-fg">
 				Booking Policies
 			</h3>
-			<p className="text-gray-600">Coming soon in Phase 3B</p>
+			<p className="text-fg-muted">Coming soon in Phase 3B</p>
 		</div>
 	);
 
 	const CustomerExperienceTab = () => (
 		<div className="text-center py-12">
-			<h3 className="text-lg font-semibold text-gray-900 mb-2">
+			<h3 className="mb-2 font-display text-lead font-semibold text-fg">
 				Customer Experience
 			</h3>
-			<p className="text-gray-600">Coming soon in Phase 3B</p>
+			<p className="text-fg-muted">Coming soon in Phase 3B</p>
 		</div>
 	);
 
 	const NotificationSettingsTab = () => (
 		<div className="text-center py-12">
-			<h3 className="text-lg font-semibold text-gray-900 mb-2">
+			<h3 className="mb-2 font-display text-lead font-semibold text-fg">
 				Notification Settings
 			</h3>
-			<p className="text-gray-600">Coming soon in Phase 3B</p>
+			<p className="text-fg-muted">Coming soon in Phase 3B</p>
 		</div>
 	);
 
 	const tabs: Tab[] = [
 		{
 			id: "operating-hours",
-			name: "Operating Hours",
+			name: "Hours",
 			content: <OperatingHoursTab />,
 		},
 		{
 			id: "blackout-dates",
-			name: "Blackout Dates",
+			name: "Days off",
 			content: <BlackoutDatesTab blackoutDates={blackoutDates} setBlackoutDates={setBlackoutDates} />,
 		},
 		{ 
 			id: "policies", 
-			name: "Policies", 
+			name: "Booking rules", 
 			content: <BookingPoliciesTab canEdit={canEditBookingRules} bookingRules={bookingRules} setBookingRules={setBookingRules} /> 
 		},
 		// Future features - hidden for now
@@ -716,13 +716,13 @@ export default function AgencySettingsSection({
 
 	if (isLoading) {
 		return (
-			<div className="bg-white rounded-lg border border-gray-200 p-6">
+			<div className="bg-surface rounded-card border border-line p-6">
 				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+					<div className="h-8 bg-surface-sunken rounded w-1/4 mb-6"></div>
 					<div className="space-y-4">
-						<div className="h-4 bg-gray-200 rounded w-3/4"></div>
-						<div className="h-4 bg-gray-200 rounded w-1/2"></div>
-						<div className="h-4 bg-gray-200 rounded w-2/3"></div>
+						<div className="h-4 bg-surface-sunken rounded w-3/4"></div>
+						<div className="h-4 bg-surface-sunken rounded w-1/2"></div>
+						<div className="h-4 bg-surface-sunken rounded w-2/3"></div>
 					</div>
 				</div>
 			</div>
@@ -730,18 +730,18 @@ export default function AgencySettingsSection({
 	}
 
 	return (
-		<div className="bg-white rounded-lg border border-gray-200">
-			<div className="border-b border-gray-200 p-6">
-				<h2 className="text-xl font-semibold text-gray-900 mb-2">
-					Agency Settings
+		<div className="bg-surface rounded-card border border-line">
+			<div className="border-b border-line p-6">
+				<h2 className="mb-1 font-display text-heading font-semibold text-fg">
+					Hours and availability
 				</h2>
-				<p className="text-gray-600">
-					Configure your agency's operational parameters and business rules.
+				<p className="text-fg-muted">
+					When you work, the days you're closed, and how far ahead customers can book.
 				</p>
 			</div>
 
 			{/* Tab Navigation */}
-			<div className="border-b border-gray-200">
+			<div className="border-b border-line">
 				<nav
 					className="-mb-px flex space-x-8 px-6"
 					aria-label="Tabs"
@@ -750,10 +750,10 @@ export default function AgencySettingsSection({
 						<button
 							key={tab.id}
 							onClick={() => setActiveTab(tab.id)}
-							className={`py-4 px-1 border-b-2 font-medium text-sm ${
+							className={`py-4 px-1 border-b-2 font-medium text-fine ${
 								activeTab === tab.id
-									? "border-blue-500 text-blue-600"
-									: "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+									? "border-action text-notice"
+									: "border-transparent text-fg-muted hover:text-fg hover:border-line-strong"
 							}`}
 							role="tab"
 							aria-selected={activeTab === tab.id}
@@ -770,22 +770,22 @@ export default function AgencySettingsSection({
 			</div>
 
 			{/* Save Button */}
-			<div className="border-t border-gray-200 p-6">
+			<div className="border-t border-line p-6">
 				<div className="flex items-center justify-between">
 					<div>
 						{saveMessage && (
 							<div
-								className={`text-sm ${
+								className={`text-fine ${
 									saveMessage.includes("success")
-										? "text-green-600"
-										: "text-red-600"
+										? "text-positive"
+										: "text-danger"
 								}`}
 							>
 								{saveMessage}
 							</div>
 						)}
 						{validationErrors.length > 0 && (
-							<div className="text-sm text-red-600">
+							<div className="text-fine text-danger">
 								Please fix validation errors before saving.
 							</div>
 						)}
@@ -794,11 +794,11 @@ export default function AgencySettingsSection({
 					<button
 						onClick={handleSave}
 						disabled={isSaving}
-						className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+						className="px-6 py-2 bg-action text-on-action rounded-card hover:bg-action-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
 						role="button"
 						aria-label="Save Settings"
 					>
-						{isSaving ? "Saving..." : "Save Settings"}
+						{isSaving ? "Saving…" : "Save"}
 					</button>
 				</div>
 			</div>

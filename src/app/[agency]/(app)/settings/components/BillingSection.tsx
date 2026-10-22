@@ -78,7 +78,7 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
   }
 
   return (
-    <Card id="billing" className="shadow-sm border-0">
+    <Card id="billing" className="shadow-raised border-0">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
@@ -105,12 +105,12 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
 
         {live ? (
           <>
-            <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg p-4 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-3 rounded-card p-4 shadow-raised">
               <div>
                 <p className="text-base font-medium">
                   {current ? `${PLAN_LABELS[current.plan]} · ${current.interval === 'year' ? 'annual' : 'monthly'}` : 'Subscription'}
                 </p>
-                <p className="text-sm text-muted-foreground">{statusLine(subscription, timeZone)}</p>
+                <p className="text-fine text-muted-foreground">{statusLine(subscription, timeZone)}</p>
               </div>
               <Button onClick={() => go('portal', openBillingPortal)} disabled={!!busy}>
                 {busy === 'portal' ? 'Opening…' : 'Manage billing'}
@@ -132,7 +132,7 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
                 </AlertDescription>
               </Alert>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-fine text-muted-foreground">
               Change plan, update your card, see invoices or cancel in Manage billing.
             </p>
           </>
@@ -147,14 +147,14 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
               </AlertDescription>
             </Alert>
 
-            <div className="inline-flex rounded-lg bg-muted p-1 text-sm" role="group" aria-label="Billing period">
+            <div className="inline-flex rounded-card bg-muted p-1 text-fine" role="group" aria-label="Billing period">
               {(['month', 'year'] as BillingInterval[]).map(i => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setPeriod(i)}
                   aria-pressed={period === i}
-                  className={`rounded-md px-3 py-1.5 ${period === i ? 'bg-white shadow-sm font-medium' : 'text-muted-foreground'}`}
+                  className={`rounded-control px-3 py-1.5 ${period === i ? 'bg-surface shadow-raised font-medium' : 'text-muted-foreground'}`}
                 >
                   {i === 'month' ? 'Monthly' : 'Annual (save ~15%)'}
                 </button>
@@ -163,15 +163,15 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
 
             <div className="grid gap-4 md:grid-cols-2">
               {(['essentials', 'elite'] as Plan[]).map(plan => (
-                <div key={plan} className="flex flex-col rounded-lg p-4 shadow-sm">
+                <div key={plan} className="flex flex-col rounded-card p-4 shadow-raised">
                   <p className="text-base font-medium">{PLAN_LABELS[plan]}</p>
                   <p className="mt-1 text-2xl font-bold">
                     ${PLAN_PRICES[plan][period]}
-                    <span className="text-sm font-normal text-muted-foreground">/{period === 'month' ? 'month' : 'year'}</span>
+                    <span className="text-fine font-normal text-muted-foreground">/{period === 'month' ? 'month' : 'year'}</span>
                   </p>
-                  <ul className="mt-3 flex-1 space-y-1 text-sm text-muted-foreground">
+                  <ul className="mt-3 flex-1 space-y-1 text-fine text-muted-foreground">
                     {PLAN_FEATURES[plan].map(f => (
-                      <li key={f} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />{f}</li>
+                      <li key={f} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-positive" />{f}</li>
                     ))}
                   </ul>
                   <Button
@@ -185,7 +185,7 @@ export function BillingSection({ subscription, trialDays, returnState, dashboard
                 </div>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-fine text-muted-foreground">
               {offerTrial
                 ? `A card is needed to start. You won't be charged until the trial ends, and you can cancel any time before then.`
                 : 'You can cancel any time; your plan runs to the end of the period you paid for.'}

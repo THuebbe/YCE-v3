@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { agencyThemeVars } from '@/lib/brand'
+import { hasFeature, planOf } from '@/features/billing/entitlements'
 
 /**
  * An agency's white label for its booking page (DESIGN.md "White label"),
@@ -7,8 +8,9 @@ import { agencyThemeVars } from '@/lib/brand'
  * anything missing or malformed falls back to the YardCard Elite defaults,
  * so a bad value can never break a booking page.
  *
- * The dashboard settings screen that saves it comes with the dashboard
- * redesign; the booking page already reads it.
+ * Saved from Settings > Booking page (features/agency/branding-actions.ts).
+ * Display code reads it through activeBranding(), never parseBranding()
+ * directly: white label is Elite.
  */
 export interface AgencyBranding {
   /** Header and bands, #RRGGBB */
@@ -47,6 +49,15 @@ export function parseBranding(raw: unknown): AgencyBranding {
     branding.accentColor = undefined
   }
   return branding
+}
+
+/**
+ * The branding to show for an agency: its saved branding on Elite, none on
+ * Essentials. A downgraded agency keeps what it saved; it shows again if it
+ * upgrades.
+ */
+export function activeBranding(agency: { plan?: string | null; branding?: unknown } | null | undefined): AgencyBranding {
+  return hasFeature(planOf(agency), 'whiteLabel') ? parseBranding(agency?.branding) : {}
 }
 
 /**

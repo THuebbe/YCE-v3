@@ -30,6 +30,8 @@ interface FinancialManagementSectionProps {
   braintreeReturnRefresh?: boolean
   onSuccess?: () => void
   onError?: (error: string) => void
+  /** Settings shows prices under Booking page and the processors under Payments */
+  show: 'pricing' | 'payments'
 }
 
 export default function FinancialManagementSection({ 
@@ -41,7 +43,8 @@ export default function FinancialManagementSection({
   braintreeReturnSuccess = false,
   braintreeReturnRefresh = false,
   onSuccess, 
-  onError 
+  onError,
+  show,
 }: FinancialManagementSectionProps) {
   const [pricingConfig, setPricingConfig] = useState<PricingConfig>({
     basePrice: agency.basePrice ?? 50,
@@ -156,7 +159,7 @@ export default function FinancialManagementSection({
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="bg-gray-200 rounded-lg h-96"></div>
+          <div className="bg-surface-sunken rounded-card h-96"></div>
         </div>
       </div>
     )
@@ -164,8 +167,7 @@ export default function FinancialManagementSection({
 
   return (
     <div className="space-y-6">
-      {/* Payment Processors Card - New Tabbed Interface */}
-      <PaymentProcessorsCard 
+      {show === 'payments' && <PaymentProcessorsCard 
         agency={agency}
         stripeStatus={stripeStatus}
         paypalStatus={paypalStatus}
@@ -178,14 +180,13 @@ export default function FinancialManagementSection({
         braintreeReturnRefresh={braintreeReturnRefresh}
         onSuccess={onSuccess}
         onError={onError}
-      />
+      />}
 
-      {/* Pricing Configuration */}
-      <Card className="shadow-sm border-0">
+      {show === 'pricing' && <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
-            Pricing Configuration
+            Prices
           </CardTitle>
           <CardDescription>
             Your rental prices. Cancellation, late and damage fees are under Booking policies.
@@ -194,7 +195,7 @@ export default function FinancialManagementSection({
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="base-price">Base Price</Label>
+              <Label htmlFor="base-price">Rental price</Label>
               <Input
                 id="base-price"
                 type="number"
@@ -205,12 +206,12 @@ export default function FinancialManagementSection({
                 placeholder="50.00"
               />
               {errors.pricingConfig?.basePrice && (
-                <p className="text-sm text-red-600">{errors.pricingConfig.basePrice[0]}</p>
+                <p className="text-fine text-danger">{errors.pricingConfig.basePrice[0]}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="extra-day-price">Extra Day Price</Label>
+              <Label htmlFor="extra-day-price">Each extra day</Label>
               <Input
                 id="extra-day-price"
                 type="number"
@@ -221,37 +222,36 @@ export default function FinancialManagementSection({
                 placeholder="10.00"
               />
               {errors.pricingConfig?.extraDayPrice && (
-                <p className="text-sm text-red-600">{errors.pricingConfig.extraDayPrice[0]}</p>
+                <p className="text-fine text-danger">{errors.pricingConfig.extraDayPrice[0]}</p>
               )}
             </div>
 
           </div>
 
           {/* Preview */}
-          <div className="bg-gray-50 shadow-sm rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-900 mb-2">Pricing Preview</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="bg-surface-sunken shadow-raised rounded-card p-4">
+            <h4 className="text-fine font-medium text-fg mb-2">What customers see</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-fine">
               <div>
-                <span className="text-gray-600">Standard rental:</span>
+                <span className="text-fg-muted">Standard rental:</span>
                 <span className="font-medium ml-2">${pricingConfig.basePrice.toFixed(2)}</span>
               </div>
               <div>
-                <span className="text-gray-600">Each extra day:</span>
+                <span className="text-fg-muted">Each extra day:</span>
                 <span className="font-medium ml-2">+${pricingConfig.extraDayPrice.toFixed(2)}</span>
               </div>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            {savedMessage && <p className="text-sm text-green-700">{savedMessage}</p>}
+            {savedMessage && <p className="text-fine text-positive">{savedMessage}</p>}
             <Button onClick={handleSavePricing} disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Pricing'}
+              {isSaving ? 'Saving…' : 'Save prices'}
             </Button>
           </div>
         </CardContent>
-      </Card>
-
+      </Card>}
     </div>
   )
 }

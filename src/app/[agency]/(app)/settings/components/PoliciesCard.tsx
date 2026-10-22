@@ -68,12 +68,12 @@ export function PoliciesCard({ policies, canEdit, billingHref }: PoliciesCardPro
   }
 
   return (
-    <Card className="shadow-sm border-0">
+    <Card className="shadow-raised border-0">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ScrollText className="w-5 h-5" />
           Booking policies
-          {!canEdit && <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600"><Lock className="h-3 w-3" />Elite</span>}
+          {!canEdit && <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2 py-0.5 text-fine font-medium text-fg-muted"><Lock className="h-3 w-3" />Elite</span>}
         </CardTitle>
         <CardDescription>
           The cancellation, late and damage fees your customers agree to when they book.
@@ -93,7 +93,7 @@ export function PoliciesCard({ policies, canEdit, billingHref }: PoliciesCardPro
             <div key={field} className="space-y-1.5">
               <Label htmlFor={`policy-${field}`}>{label}</Label>
               <div className="flex items-center gap-2">
-                {prefix && <span className="text-sm text-muted-foreground">{prefix}</span>}
+                {prefix && <span className="text-fine text-muted-foreground">{prefix}</span>}
                 <Input
                   id={`policy-${field}`}
                   type="number"
@@ -106,13 +106,13 @@ export function PoliciesCard({ policies, canEdit, billingHref }: PoliciesCardPro
                   onChange={e => setValues(v => ({ ...v, [field]: e.target.value }))}
                   className="max-w-32"
                 />
-                {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
+                {suffix && <span className="text-fine text-muted-foreground">{suffix}</span>}
               </div>
-              <p className="text-xs text-muted-foreground">{help}</p>
+              <p className="text-fine text-muted-foreground">{help}</p>
             </div>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-fine text-muted-foreground">
           Example: a $100 order cancelled in time gets ${(100 - exampleFee).toFixed(2)} back (fee ${exampleFee.toFixed(2)}).
         </p>
         {message && (

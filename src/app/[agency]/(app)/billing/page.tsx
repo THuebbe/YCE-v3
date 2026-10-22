@@ -2,6 +2,8 @@ import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import { getAgencyBySlug, getUserById } from '@/lib/db/supabase-client'
 import { PageHeader } from '@/features/dashboard/components/page-header'
+import { SectionTabs } from '@/features/dashboard/components/section-tabs'
+import { settingsSections } from '../settings/sections'
 import { resolveTimeZone } from '@/features/booking/booking-rules'
 import { BillingSection } from '../settings/components/BillingSection'
 import { syncCustomerSubscription, syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
@@ -49,13 +51,15 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
   const justSubscribed = fromCheckout || (!hasLiveSubscription(found) && hasLiveSubscription(agency))
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <PageHeader
-        title={welcome ? 'Last step: choose your plan' : 'Plan & billing'}
+        title={welcome ? 'Last step: choose your plan' : 'Settings'}
         description={welcome
           ? 'Your agency is set up. Pick a plan to open your booking page to customers.'
-          : 'Your YardCard Elite subscription.'}
+          : undefined}
       />
+      {/* Signup's last step stands alone; otherwise this is Settings > Plan & billing */}
+      {!welcome && <SectionTabs label="Settings sections" active="plan" items={settingsSections(agencySlug)} />}
       <BillingSection
           subscription={{
             stripe_subscription_id: agency.stripe_subscription_id,

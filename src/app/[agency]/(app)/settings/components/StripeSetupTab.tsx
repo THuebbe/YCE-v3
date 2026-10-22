@@ -141,12 +141,12 @@ export function StripeSetupTab({
 
   const getStatusIcon = () => {
     if (stripeStatus?.hasCompletedOnboarding) {
-      return <CheckCircle className="w-5 h-5 text-green-600" />
+      return <CheckCircle className="w-5 h-5 text-positive" />
     }
     if (stripeStatus?.isConnected) {
-      return <AlertTriangle className="w-5 h-5 text-orange-500" />
+      return <AlertTriangle className="w-5 h-5 text-caution" />
     }
-    return <CreditCard className="w-5 h-5 text-gray-400" />
+    return <CreditCard className="w-5 h-5 text-fg-muted" />
   }
 
   const getStatusText = () => {
@@ -161,21 +161,21 @@ export function StripeSetupTab({
 
   const getStatusColor = () => {
     if (stripeStatus?.hasCompletedOnboarding) {
-      return 'bg-green-100 text-green-800'
+      return 'bg-positive-soft text-positive'
     }
     if (stripeStatus?.isConnected) {
-      return 'bg-orange-100 text-orange-800'
+      return 'bg-caution-soft text-caution'
     }
-    return 'bg-gray-100 text-gray-600'
+    return 'bg-surface-sunken text-fg-muted'
   }
 
   return (
     <div className="space-y-6">
       {/* Processing Return State */}
       {isReturningFromStripe && (
-        <Alert className="border-blue-200 bg-blue-50">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-          <AlertDescription className="text-blue-800">
+        <Alert className="border-notice/30 bg-notice-soft">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-action mr-3"></div>
+          <AlertDescription className="text-notice">
             Processing your Stripe account setup... This may take a moment.
           </AlertDescription>
         </Alert>
@@ -188,7 +188,7 @@ export function StripeSetupTab({
           <AlertDescription>
             <div className="space-y-2">
               <p className="font-medium">Error Loading Stripe Status</p>
-              <p className="text-sm">
+              <p className="text-fine">
                 {loadError.includes('Network') ? 'Network connection error. Please check your internet connection.' : 
                  loadError.includes('Unauthorized') ? 'Authentication error. Please try signing in again.' :
                  loadError.includes('Stripe account') ? 'Unable to fetch Stripe account status. This may be temporary.' :
@@ -210,7 +210,7 @@ export function StripeSetupTab({
       )}
 
       {/* Stripe Connect Setup Card */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -243,16 +243,16 @@ export function StripeSetupTab({
           {!stripeStatus?.isConnected ? (
             /* Initial Setup State */
             <div className="text-center py-8">
-              <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h4 className="text-lg font-medium text-gray-900 mb-2">Accept card payments</h4>
-              <p className="text-sm text-gray-600 mb-6 max-w-md mx-auto">
+              <CreditCard className="w-12 h-12 text-fg-muted mx-auto mb-4" />
+              <h4 className="mb-2 font-display text-lead font-semibold text-fg">Accept card payments</h4>
+              <p className="text-fine text-fg-muted mb-6 max-w-md mx-auto">
                 Customer payments go straight to your bank account through Stripe.
                 Stripe handles card security and fraud protection.
               </p>
               <div className="flex flex-col gap-4 max-w-md mx-auto text-left">
-                <div className="rounded-lg border border-gray-200 p-4">
-                  <div className="font-medium text-gray-900">Set it up for me</div>
-                  <p className="text-sm text-gray-600 mt-1 mb-3">
+                <div className="rounded-card border border-line p-4">
+                  <div className="font-medium text-fg">Set it up for me</div>
+                  <p className="text-fine text-fg-muted mt-1 mb-3">
                     A short Stripe signup (your ID and bank account), about 5 minutes.
                     YardCard Elite keeps $3 per booking; it shows on your Stripe statement.
                   </p>
@@ -260,9 +260,9 @@ export function StripeSetupTab({
                     {isLoading ? 'Connecting...' : 'Set up payments'}
                   </Button>
                 </div>
-                <div className="rounded-lg border border-gray-200 p-4">
-                  <div className="font-medium text-gray-900">I already have a Stripe account</div>
-                  <p className="text-sm text-gray-600 mt-1 mb-3">
+                <div className="rounded-card border border-line p-4">
+                  <div className="font-medium text-fg">I already have a Stripe account</div>
+                  <p className="text-fine text-fg-muted mt-1 mb-3">
                     Connect your own Stripe account. No per-booking fee from YardCard Elite.
                   </p>
                   <Button onClick={() => handleStripeConnect('standard')} disabled={isLoading} variant="secondary" className="w-full">
@@ -274,7 +274,7 @@ export function StripeSetupTab({
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
                       <p className="font-medium">Stripe setup didn&apos;t start</p>
-                      <p className="text-sm mt-1">{connectError}</p>
+                      <p className="text-fine mt-1">{connectError}</p>
                     </AlertDescription>
                   </Alert>
                 )}
@@ -285,42 +285,42 @@ export function StripeSetupTab({
             <div className="space-y-6">
               {/* Account Status Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900 mb-1">Stripe Account</div>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-fine font-medium text-fg mb-1">Stripe Account</div>
+                    <div className="text-fine text-fg-muted">
                       ID: {stripeStatus.accountId?.substring(0, 12)}...
                     </div>
                     <Badge variant="secondary" className="mt-2">Connected</Badge>
                   </div>
                 </Card>
                 
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900 mb-1">Charge Payments</div>
-                    <div className={`text-xs mb-2 ${stripeStatus.chargesEnabled ? 'text-green-600' : 'text-orange-600'}`}>
+                    <div className="text-fine font-medium text-fg mb-1">Charge Payments</div>
+                    <div className={`text-fine mb-2 ${stripeStatus.chargesEnabled ? 'text-positive' : 'text-caution'}`}>
                       {stripeStatus.chargesEnabled ? 'Ready to accept payments' : 
                        stripeStatus.hasCompletedOnboarding ? 'Additional verification needed' : 'Verification required'}
                     </div>
                     <Badge 
                       variant={stripeStatus.chargesEnabled ? 'default' : 'secondary'}
-                      className={stripeStatus.chargesEnabled ? 'bg-green-500' : 'bg-orange-500'}
+                      className={stripeStatus.chargesEnabled ? 'bg-positive' : 'bg-caution-soft text-caution'}
                     >
                       {stripeStatus.chargesEnabled ? 'Enabled' : 'Disabled'}
                     </Badge>
                   </div>
                 </Card>
                 
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <div className="text-sm font-medium text-gray-900 mb-1">Receive Payouts</div>
-                    <div className={`text-xs mb-2 ${stripeStatus.payoutsEnabled ? 'text-green-600' : 'text-orange-600'}`}>
+                    <div className="text-fine font-medium text-fg mb-1">Receive Payouts</div>
+                    <div className={`text-fine mb-2 ${stripeStatus.payoutsEnabled ? 'text-positive' : 'text-caution'}`}>
                       {stripeStatus.payoutsEnabled ? 'Bank account connected' : 
                        stripeStatus.hasCompletedOnboarding ? 'Additional verification needed' : 'Bank setup required'}
                     </div>
                     <Badge 
                       variant={stripeStatus.payoutsEnabled ? 'default' : 'secondary'}
-                      className={stripeStatus.payoutsEnabled ? 'bg-green-500' : 'bg-orange-500'}
+                      className={stripeStatus.payoutsEnabled ? 'bg-positive' : 'bg-caution-soft text-caution'}
                     >
                       {stripeStatus.payoutsEnabled ? 'Enabled' : 'Disabled'}
                     </Badge>
@@ -330,9 +330,9 @@ export function StripeSetupTab({
               
               {/* Status-specific alerts */}
               {stripeStatus.hasCompletedOnboarding && (!stripeStatus.chargesEnabled || !stripeStatus.payoutsEnabled) && (
-                <Alert className="border-blue-200 bg-blue-50">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800">
+                <Alert className="border-notice/30 bg-notice-soft">
+                  <Info className="h-4 w-4 text-notice" />
+                  <AlertDescription className="text-notice">
                     <strong>Setup Complete - Additional Verification Needed</strong>
                     <p className="mt-1">
                       Your Stripe account onboarding is complete, but some features require additional verification. 
@@ -376,7 +376,7 @@ export function StripeSetupTab({
       </Card>
 
       {/* Features & Benefits */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle>Stripe Connect Features</CardTitle>
           <CardDescription>
@@ -386,40 +386,40 @@ export function StripeSetupTab({
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Direct Bank Deposits</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">Direct Bank Deposits</div>
+                <div className="text-fine text-muted-foreground">
                   Payments go directly to your bank account, typically within 2 business days
                 </div>
               </div>
             </div>
             
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Multiple Payment Methods</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">Multiple Payment Methods</div>
+                <div className="text-fine text-muted-foreground">
                   Accept credit cards, debit cards, Apple Pay, Google Pay, and more
                 </div>
               </div>
             </div>
             
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Advanced Security</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">Advanced Security</div>
+                <div className="text-fine text-muted-foreground">
                   PCI DSS compliant with advanced fraud detection and dispute management
                 </div>
               </div>
             </div>
             
             <div className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-positive mt-0.5 flex-shrink-0" />
               <div>
-                <div className="font-medium text-sm">Detailed Reporting</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-medium text-fine">Detailed Reporting</div>
+                <div className="text-fine text-muted-foreground">
                   Comprehensive transaction reports and analytics through Stripe Dashboard
                 </div>
               </div>
@@ -429,33 +429,33 @@ export function StripeSetupTab({
       </Card>
 
       {/* Pricing Information */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle>Stripe Processing Fees</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-fine">
               <span>Credit & Debit Cards:</span>
               <span className="font-medium">2.9% + $0.30</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-fine">
               <span>Digital Wallets (Apple Pay, Google Pay):</span>
               <span className="font-medium">2.9% + $0.30</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-fine">
               <span>ACH Direct Debit:</span>
               <span className="font-medium">0.8% (capped at $5)</span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-3">
+          <p className="text-fine text-muted-foreground mt-3">
             * Additional fees may apply for international cards, disputes, or premium features. 
             Visit{' '}
             <a 
               href="https://stripe.com/pricing" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-blue-600 hover:underline"
+              className="text-notice hover:underline"
             >
               stripe.com/pricing
             </a>

@@ -73,16 +73,16 @@ export function PaymentProcessorsCard({
 
   const getStatusBadge = (enabled: boolean, pending?: boolean) => {
     if (enabled) {
-      return <Badge variant="default" className="bg-green-500 text-white ml-2">Active</Badge>
+      return <Badge variant="default" className="bg-positive text-on-strong ml-2">Active</Badge>
     }
     if (pending) {
-      return <Badge variant="secondary" className="bg-orange-500 text-white ml-2">Pending</Badge>
+      return <Badge variant="secondary" className="bg-caution-soft text-caution ml-2">Pending</Badge>
     }
     return <Badge variant="outline" className="ml-2">Inactive</Badge>
   }
 
   return (
-    <Card className="w-full shadow-sm border-0">
+    <Card className="w-full shadow-raised border-0">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="w-5 h-5" />
