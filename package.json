@@ -8,7 +8,9 @@
     "vercel-build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test-email": "tsx scripts/test-email.ts --"
+    "test-email": "tsx scripts/test-email.ts --",
+    "brand:logo": "tsx --tsconfig scripts/brand/tsconfig.json scripts/brand/build-logo-files.tsx",
+    "lint:colors": "eslint -c eslint.colors.config.mjs src"
   },
   "dependencies": {
     "@clerk/clerk-sdk-node": "^4.13.23",

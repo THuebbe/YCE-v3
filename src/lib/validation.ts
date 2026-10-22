@@ -22,6 +22,7 @@ export const createAgencySchema = z.object({
     .refine(slug => ![
       'www', 'api', 'admin', 'app', 'mail', 'ftp', 'localhost', 'staging', 'dev', 'test',
       'auth', 'maintenance', 'marketing', 'onboarding', 'pricing', 'routing', 'dashboard', 'not-found',
+      'terms', 'privacy', 'lab',
     ].includes(slug), 'This name is reserved'),
 
   description: z

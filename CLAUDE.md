@@ -66,6 +66,9 @@ Entity vs DTO. Don't merge them. What's missing is an explicit adapter.
 - Server actions in `features/<domain>/actions.ts`
 - Zod schema per wizard step in `features/booking/types.ts`
 - Tenant routes are `src/app/[agency]/...`
+- UI follows `DESIGN.md`: meaning tokens (`bg-action`, `text-fg-muted`)
+  from `src/styles/tokens.css`, never raw hex or `bg-purple-600`. The
+  logo is `<Logo />`; brand values live in `src/lib/brand.ts`.
 
 ## Working style
 Show the plan before writing code. Challenge decisions rather than
