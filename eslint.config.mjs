@@ -27,6 +27,10 @@ export const COLOR_ENFORCED = [
   'src/components/ui/**/*.{ts,tsx}',
   'src/shared/components/ui/**/*.{ts,tsx}',
   'src/shared/components/feedback/**/*.{ts,tsx}',
+  // Marketing site (redesigned 2026-10-22)
+  'src/app/page.tsx',
+  'src/app/pricing/**/*.{ts,tsx}',
+  'src/features/marketing/**/*.{ts,tsx}',
 ];
 
 /** Files whose job is to define colors */
