@@ -123,10 +123,12 @@ On booking pages the agency is the brand.
 
 - **Agencies choose**: a **brand color** (header and bands) and an
   **accent color** (buttons and links; optional, the brand color does both
-  without it), their logo and business name, and their policies (fees,
-  cancellation window, terms). Policies are business terms, not interface
-  wording.
-- **We keep fixed**: all interface wording (steps, buttons, messages),
+  without it), their logo and business name, and (Elite) their policy
+  values: cancellation notice and fee, late fee, damage fee per sign. The
+  terms wording is generated from those values (`features/booking/terms.ts`);
+  agencies never write terms text.
+- **We keep fixed**: all wording, including the generated terms (steps,
+  buttons, messages, policy text),
   layout, fonts, the yard scene, status colors, and "Powered by YardCard
   Elite" in the footer **on every plan**.
 - Contrast is automatic: `agencyThemeVars({ brand, accent })` in `brand.ts`

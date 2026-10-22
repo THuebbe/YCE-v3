@@ -326,14 +326,14 @@ export default function BrandPage() {
                 <li><strong>Brand color</strong>: header and bands</li>
                 <li><strong>Accent color</strong>: buttons and links. Optional; without it the brand color does both</li>
                 <li>Their logo and business name in the header</li>
-                <li>Their policies: fees, cancellation window and terms. These are business terms, not interface wording</li>
+                <li>Their policy values (Elite): cancellation notice and fee, late fee, damage fee per sign. The terms text is generated from them</li>
               </ul>
             </div>
             <div className="rounded-card border border-line bg-surface p-6 text-copy">
               <h3 className="font-display text-heading font-semibold">Fixed by YardCard Elite</h3>
               <ul className="mt-2 grid gap-1">
                 <li>Contrast: text on each color is picked automatically, and an accent that blends into the brand color is replaced on brand bands</li>
-                <li>All interface wording: steps, buttons, messages</li>
+                <li>All wording: steps, buttons, messages and the generated terms</li>
                 <li>Layout, fonts and the yard scene</li>
                 <li>Status colors (paid, failed, cancelled)</li>
                 <li>&ldquo;Powered by YardCard Elite&rdquo; in the footer, on every plan</li>
