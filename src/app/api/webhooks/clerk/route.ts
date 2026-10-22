@@ -6,24 +6,21 @@ import { supabase } from '@/lib/db/supabase-client'
 // Disable body parser to get raw body for webhook verification
 export const runtime = 'nodejs'
 
-const webhookSecret = process.env.CLERK_WEBHOOK_SECRET
-
-if (!webhookSecret) {
-  throw new Error('Please add CLERK_WEBHOOK_SECRET from Clerk Dashboard to .env or environment variables')
-}
-
-// TypeScript assertion since we've already checked it exists
-const secret: string = webhookSecret
-
 export async function POST(req: NextRequest) {
+  // Checked per request, not at import: the secret is Production-only, and
+  // a module-level throw fails `next build` for every Preview deployment.
+  const secret = process.env.CLERK_WEBHOOK_SECRET
+  if (!secret) {
+    console.error('🔗 Clerk webhook: CLERK_WEBHOOK_SECRET is not set in this environment')
+    return new Response('Webhook not configured', { status: 500 })
+  }
+
   const url = new URL(req.url)
   console.log('🔗 Clerk webhook: Received webhook request', {
     host: req.headers.get('host'),
     url: url.href,
-    hasSecret: !!webhookSecret,
-    secretPrefix: webhookSecret ? webhookSecret.substring(0, 10) + '...' : 'none'
   })
-  
+
   try {
     // Get the headers
     const headerPayload = await headers()
