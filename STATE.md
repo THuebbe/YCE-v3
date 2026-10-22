@@ -51,8 +51,12 @@ old verification notes) is in `git show aace018:STATE.md`.
     until Stripe Connect works (blocker above), so the redesign was tested
     in the lab with stand-in server calls. Re-test the real flow once an
     agency can take payments.
-  - Next: marketing page (hero = yard scene + type-a-name demo, copy in a
-    config file), then the dashboard (incl. the branding settings screen).
+  - Marketing site (PR from `claude/marketing-site`): `/` rebuilt with the
+    yard-scene hero and live type-a-name demo, `/pricing` on the same parts,
+    stale `/marketing` deleted. All copy in `src/features/marketing/content.ts`
+    (prices from PLAN_PRICES, trial from BILLING_TRIAL_DAYS). Headline is a
+    placeholder Tobi may rewrite. No testimonials until real ones exist.
+  - Next: the dashboard redesign (incl. the branding settings screen).
   - Quiz funnels: later, not launch (PRODUCT.md "Future features").
   - `pnpm lint:colors` = legacy colors left to migrate.
 - **2026-10-19 overnight (user asleep, pre-approved "do as much as you can
