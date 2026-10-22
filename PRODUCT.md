@@ -218,10 +218,23 @@ agencies could open them by URL. Git history has the full mockups.
 - **Venmo and PayPal at checkout:** after Victory Store, before go-live.
 - **Public website:** about, contact, marketing. Built last, on purpose:
   no traffic before the product is ready.
+- **Funnel landing pages with a quiz (decided 2026-10-22):** not the main
+  marketing page (that leads with the live yard demo and self-serve
+  signup). Later, for visitors not ready to sign up: e.g. "Is a yard sign
+  business right for you?" or a checkup that recommends Essentials or
+  Elite. Build on a TypeScript port of PantryPro's `scoring.js` with its
+  fixes (unanswered questions inflate the score; lead fields hardcoded to
+  q11-q14; two insight systems; unused minImpact/priority; invented
+  stats in the copy) and its own leads table with RLS on. Never reuse the
+  shared `quiz_submissions` table.
 
 ## Deliberate non-goals right now
-Multi-location per agency · white-label branding · advanced analytics ·
+Multi-location per agency · advanced analytics ·
 public API · enterprise multi-agency management. All post-MVP.
+(White label moved in: booking pages wear the agency's brand and accent
+colors and logo from `agencies.branding`, decided 2026-10-22; the settings
+screen to save them comes with the dashboard redesign. Plan gating, Elite
+or a $5 add-on, is still open.)
 
 ## Superseded — do not resurrect
 - **Prisma.** Removed early for causing more problems than it solved.

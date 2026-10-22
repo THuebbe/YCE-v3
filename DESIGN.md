@@ -136,13 +136,14 @@ On booking pages the agency is the brand.
   enough for white button text to pass, darkens the accent for links, and
   replaces an accent that blends into the brand color (under 3:1) on brand
   bands.
-- How: the booking layout sets `data-agency` and
-  `style={agencyThemeVars(...)}` on its wrapper; everything built on meaning
-  tokens re-skins itself.
-- Not built yet: storing the two colors (agency settings validation has
-  `primaryColor` / `secondaryColor`, but no column or settings screen) comes
-  with the booking redesign. Plan gating (Elite feature vs $5 add-on) is
-  still open.
+- How: `BookingFrame` (booking flow) sets `data-agency` and
+  `brandingStyle(parseBranding(agency.branding))` on its wrapper; everything
+  built on meaning tokens re-skins itself, including Stripe's card form
+  (it reads the resolved tokens). Stored in `agencies.branding` (jsonb:
+  brandColor, accentColor, logoUrl), validated by
+  `src/features/agency/branding.ts`. Try it at `/lab/booking?brand=6B2D8C&accent=FFB703`.
+- Not built yet: the dashboard screen to save branding (dashboard
+  redesign). Plan gating (Elite feature vs $5 add-on) is still open.
 
 ## Motion
 
@@ -170,9 +171,15 @@ Each redesign PR:
 2. Adds its folders to `COLOR_ENFORCED` in `eslint.config.mjs`, so raw colors there fail lint from then on.
 3. Checks `pnpm lint:colors`: the count only goes down.
 
-Order: booking flow, then marketing site, then dashboard. When the count
-reaches zero, delete the legacy block in `globals.css` and enforce
-everywhere.
+Order: booking flow (done 2026-10-22), then marketing site, then
+dashboard. When the count reaches zero, delete the legacy block in
+`globals.css` and enforce everywhere.
+
+The shared UI (`src/shared/components/ui`, `src/components/ui`,
+`src/shared/components/feedback`) is already on the tokens, so the
+dashboard shows orange buttons before its own redesign. That's expected.
+`src/components/ui/{button,badge,card,input,label}` re-export the shared
+ones: one component set.
 
 ## Not decided yet (on purpose)
 

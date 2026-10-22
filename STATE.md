@@ -34,15 +34,27 @@ old verification notes) is in `git show aace018:STATE.md`.
     (owner or tester) can connect Stripe, so no booking page can open.
     Waiting on the plastic license (or a passport).
 - **Front end (2026-10-22, while blocked):** order = booking flow, then
-  marketing site, then dashboard. Brand: exciting, easy, modern; greens and
-  blues, no purple (the current `--color-primary #7b3ff2` goes). Palette
-  options: https://claude.ai/artifact/7UgN3aziEoigZy56P83FLT (owner
-  shortlisting). Plan: brand config file (`src/lib/brand.ts`: name, logo
-  URLs, palette hex for emails/PDF) generating three-layer `:root` tokens
-  (palette -> meaning -> components); agency white label = override the
-  meaning tokens on the `[data-agency]` wrapper, auto-adjusted for
-  contrast. 789 hardcoded palette classes + 171 hex values to move onto
-  tokens. No dark mode in v1. Mobbin connector needs a paid plan.
+  marketing site, then dashboard. Brand is **Golden Hour** (orange action,
+  pine brand, a little sky blue) and the **staked-Y logo**; rules in
+  `DESIGN.md`, living style guide at `/lab/brand` (previews only).
+  - Merged: #34 brand foundation (tokens, `brand.ts`, `<Logo />`, lint
+    ratchet), #35 white label decisions, #36 yard scene hero prototype
+    (`/lab/yard-scene`).
+  - **Booking redesign (overnight 2026-10-22, PR from
+    `claude/booking-redesign`):** new step order (When and where → Design
+    → Your details → Payment → Review), live yard preview while designing,
+    shared UI reskinned (dashboard gets orange buttons early, expected),
+    white label read from `agencies.branding` (migration
+    `20261022_agency_branding.sql` APPLIED; column added, all empty).
+    Whole flow testable without a database at `/lab/booking`.
+  - **Not verified against a real agency**: every booking page is closed
+    until Stripe Connect works (blocker above), so the redesign was tested
+    in the lab with stand-in server calls. Re-test the real flow once an
+    agency can take payments.
+  - Next: marketing page (hero = yard scene + type-a-name demo, copy in a
+    config file), then the dashboard (incl. the branding settings screen).
+  - Quiz funnels: later, not launch (PRODUCT.md "Future features").
+  - `pnpm lint:colors` = legacy colors left to migrate.
 - **2026-10-19 overnight (user asleep, pre-approved "do as much as you can
   toward launch"): milestones 3 + 4, security, customer emails.** Stacked
   PRs, merge in order: **#16** (STATE) → **#17** plans → **#18** billing +
