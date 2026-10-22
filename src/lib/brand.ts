@@ -112,16 +112,30 @@ export function darkenTo(hex: string, against: string, target = 4.5): string {
 }
 
 /**
- * CSS variables that re-skin the meaning layer with an agency's own color
- * (white label). Applied as inline style on the [data-agency] wrapper. The
- * agency picks the color; contrast is fixed for them, so a pale yellow still
- * gets readable buttons and links.
+ * CSS variables that re-skin the meaning layer with an agency's own colors
+ * (white label). Applied as inline style on the [data-agency] wrapper.
+ *
+ * - brand: headers and bands (our pine's job)
+ * - accent: buttons and links, the thing customers click (our orange's job).
+ *   Optional; without it the brand color does both jobs.
+ *
+ * Agencies pick freely; contrast is fixed for them. A pale yellow still gets
+ * readable text, and an accent too close to the brand color is replaced on
+ * brand bands so it can't disappear there.
  */
-export function agencyThemeVars(primary: string): Record<string, string> {
+export function agencyThemeVars({ brand, accent }: { brand: string; accent?: string }): Record<string, string> {
+  const picked = accent ?? brand
+  const onBrand = readableOn(brand)
+  // Mid-tones (a bright red) can fail with both dark and white text; darken
+  // those just enough for white text to pass AA
+  const action = contrast(picked, readableOn(picked)) >= 4.5 ? picked : darkenTo(picked, '#FFFFFF', 4.5)
   return {
-    '--color-action': primary,
-    '--color-action-hover': toHex(channels(primary).map(v => v * 0.9) as [number, number, number]),
-    '--color-on-action': readableOn(primary),
-    '--color-action-text': darkenTo(primary, '#FFFFFF', 4.5),
+    '--color-brand': brand,
+    '--color-on-brand': onBrand,
+    '--color-brand-accent': contrast(picked, brand) >= 3 ? picked : onBrand,
+    '--color-action': action,
+    '--color-action-hover': toHex(channels(action).map(v => v * 0.9) as [number, number, number]),
+    '--color-on-action': readableOn(action),
+    '--color-action-text': darkenTo(picked, '#FFFFFF', 4.5),
   }
 }

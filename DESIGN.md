@@ -94,7 +94,7 @@ None of these, unless there's a specific reason:
 - Copy like "Supercharge", "Seamless", "Unlock", "Elevate", "Effortless"
 - Fake testimonials, fake logos, fake stats
 
-## Voice (draft: Tobi to mark up)
+## Voice (approved 2026-10-22)
 
 Plain, upbeat, short. A friendly neighbor who runs a tight operation:
 excited about the party, precise about the details.
@@ -117,15 +117,30 @@ removal), *signs* or *letters* (not cards or inventory) with customers.
 no emoji. Buttons say exactly what they do ("Book this display", not
 "Submit").
 
-## White label (draft: Tobi to decide)
+## White label (decided 2026-10-22)
 
 On booking pages the agency is the brand.
 
-- **Agencies change**: their main color (`agencies` settings `primaryColor`), their logo and name in the header, their wording for terms and messages.
-- **We keep fixed**: contrast (`agencyThemeVars()` in `brand.ts` picks dark or white text and darkens link colors automatically), layout, steps, fonts, the yard scene, status colors, and a small "Powered by YardCard Elite" footer line.
-- How: the booking layout sets `data-agency` and `style={agencyThemeVars(primaryColor)}` on its wrapper; everything built on meaning tokens re-skins itself.
-- **Open question**: can an agency hide "Powered by"? Options: never, Elite only, or a paid add-on. Recommendation: keep it on every plan; it's free marketing on every booking.
-- Plan gating for white label (Elite feature vs $5 add-on) is still open.
+- **Agencies choose**: a **brand color** (header and bands) and an
+  **accent color** (buttons and links; optional, the brand color does both
+  without it), their logo and business name, and their policies (fees,
+  cancellation window, terms). Policies are business terms, not interface
+  wording.
+- **We keep fixed**: all interface wording (steps, buttons, messages),
+  layout, fonts, the yard scene, status colors, and "Powered by YardCard
+  Elite" in the footer **on every plan**.
+- Contrast is automatic: `agencyThemeVars({ brand, accent })` in `brand.ts`
+  picks dark or white text for each color, darkens a mid-tone accent just
+  enough for white button text to pass, darkens the accent for links, and
+  replaces an accent that blends into the brand color (under 3:1) on brand
+  bands.
+- How: the booking layout sets `data-agency` and
+  `style={agencyThemeVars(...)}` on its wrapper; everything built on meaning
+  tokens re-skins itself.
+- Not built yet: storing the two colors (agency settings validation has
+  `primaryColor` / `secondaryColor`, but no column or settings screen) comes
+  with the booking redesign. Plan gating (Elite feature vs $5 add-on) is
+  still open.
 
 ## Motion
 
