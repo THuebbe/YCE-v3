@@ -5,6 +5,7 @@ import { useWizard } from '../../context/wizard-context';
 import { displaySchema, DisplayFormData, Sign } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { NumberField } from '@/shared/components/ui/number-field';
 import { Field, StepIntro, StepMotion, StepNav, StepSection } from '../step-kit';
 import { BookingYardPreview } from '../display/BookingYardPreview';
 import { cn } from '@/lib/utils';
@@ -353,15 +354,12 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
           </Field>
           {showNumberField && (
             <Field id="eventNumber" label={selectedMessageConfig?.numberLabel || 'Number (optional)'}>
-              <Input
+              <NumberField
                 id="eventNumber"
-                type="number"
-                inputMode="numeric"
-                value={localData.eventNumber || ''}
-                onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
+                value={localData.eventNumber}
+                onValueChange={(v) => handleInputChange('eventNumber', v ? parseInt(v) : undefined)}
                 placeholder={selectedMessageConfig?.numberPlaceholder || ''}
-                min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
-                max={selectedMessageConfig?.numberType === 'year' ? 2100 : 100}
+                maxLength={4}
               />
             </Field>
           )}

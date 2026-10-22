@@ -1,4 +1,6 @@
 "use client";
+import { NumberField } from "@/shared/components/ui/number-field";
+import { useToast } from "@/shared/components/feedback/toast";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
@@ -219,13 +221,11 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 						Order Cutoff
 					</label>
 					<div className="flex items-center space-x-3">
-						<input
-							type="number"
+						<NumberField
+							aria-label="Order cutoff, days before delivery"
 							value={bookingRules.orderCutoffDays}
-							onChange={(e) => updateBookingRule('orderCutoffDays', Math.max(0, parseInt(e.target.value) || 0))}
-							min="0"
-							max="30"
-							className="w-24 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
+							onValueChange={(v) => updateBookingRule('orderCutoffDays', Math.max(0, parseInt(v) || 0))}
+							className="w-24"
 						/>
 						<span className="text-fine text-fg-muted">days before delivery</span>
 					</div>
@@ -243,14 +243,12 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 								Minimum Rental Period
 							</label>
 							<div className="flex items-center space-x-3">
-								<input
-									type="number"
-									value={bookingRules.minimumRentalDays}
-									onChange={(e) => updateBookingRule('minimumRentalDays', parseInt(e.target.value) || 1)}
-									min="1"
-									max="7"
-									className="w-24 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
-								/>
+								<NumberField
+							aria-label="Minimum rental, days"
+							value={bookingRules.minimumRentalDays}
+							onValueChange={(v) => updateBookingRule('minimumRentalDays', parseInt(v) || 1)}
+							className="w-24"
+						/>
 								<span className="text-fine text-fg-muted">days</span>
 							</div>
 							<p className="mt-1 text-fine text-fg-muted">
@@ -263,14 +261,12 @@ const BookingPoliciesTab: React.FC<BookingPoliciesTabProps> = ({
 								Maximum Rental Period
 							</label>
 							<div className="flex items-center space-x-3">
-								<input
-									type="number"
-									value={bookingRules.maximumRentalDays}
-									onChange={(e) => updateBookingRule('maximumRentalDays', parseInt(e.target.value) || 1)}
-									min="1"
-									max="30"
-									className="w-24 px-3 py-2 border border-line-strong rounded-control shadow-raised focus:outline-none focus:ring-focus focus:border-focus"
-								/>
+								<NumberField
+							aria-label="Maximum rental, days"
+							value={bookingRules.maximumRentalDays}
+							onValueChange={(v) => updateBookingRule('maximumRentalDays', parseInt(v) || 1)}
+							className="w-24"
+						/>
 								<span className="text-fine text-fg-muted">days</span>
 							</div>
 							<p className="mt-1 text-fine text-fg-muted">
@@ -342,6 +338,14 @@ export default function AgencySettingsSection({
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveMessage, setSaveMessage] = useState<string | null>(null);
+	const { toast } = useToast();
+	// Save results show as toasts; the field-by-field list stays below
+	useEffect(() => {
+		if (!saveMessage) return;
+		const ok = /saved|success/i.test(saveMessage);
+		toast({ variant: ok ? "success" : "error", title: ok ? "Saved" : "Couldn’t save", description: ok ? undefined : saveMessage });
+		setSaveMessage(null);
+	}, [saveMessage]);
 
 	// Load agency operating hours on mount
 	useEffect(() => {
@@ -773,17 +777,6 @@ export default function AgencySettingsSection({
 			<div className="border-t border-line p-6">
 				<div className="flex items-center justify-between">
 					<div>
-						{saveMessage && (
-							<div
-								className={`text-fine ${
-									saveMessage.includes("success")
-										? "text-positive"
-										: "text-danger"
-								}`}
-							>
-								{saveMessage}
-							</div>
-						)}
 						{validationErrors.length > 0 && (
 							<div className="text-fine text-danger">
 								Please fix validation errors before saving.

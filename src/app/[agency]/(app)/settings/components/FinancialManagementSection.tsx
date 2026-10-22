@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { PaymentProcessorsCard } from './PaymentProcessorsCard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { NumberField } from '@/shared/components/ui/number-field'
+import { useToast } from '@/shared/components/feedback/toast'
 import { Label } from '@/shared/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -58,7 +59,7 @@ export default function FinancialManagementSection({
   const [errors, setErrors] = useState<FinancialValidationErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [savedMessage, setSavedMessage] = useState<string | null>(null)
+  const { toast } = useToast()
 
   // Load pricing configuration and subscription info on component mount
   useEffect(() => {
@@ -143,12 +144,11 @@ export default function FinancialManagementSection({
         throw new Error(errorData.error || 'Failed to save pricing configuration')
       }
 
-      setSavedMessage('Prices saved. New bookings use them right away.')
+      toast({ variant: 'success', title: 'Prices saved', description: 'New bookings use them right away.' })
       onSuccess?.()
     } catch (error) {
       console.error('Error saving pricing configuration:', error)
-      setSavedMessage(null)
-      setErrors({ pricingConfig: { basePrice: [error instanceof Error ? error.message : 'Failed to save pricing configuration'] } })
+      toast({ variant: 'error', title: 'Couldn’t save your prices', description: error instanceof Error ? error.message : undefined })
       onError?.(error instanceof Error ? error.message : 'Failed to save pricing configuration')
     } finally {
       setIsSaving(false)
@@ -196,13 +196,12 @@ export default function FinancialManagementSection({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="base-price">Rental price</Label>
-              <Input
+              <NumberField
                 id="base-price"
-                type="number"
-                step="0.01"
-                min="0.01"
+                decimals
+                prefix="$"
                 value={pricingConfig.basePrice}
-                onChange={(e) => handlePricingChange('basePrice', e.target.value)}
+                onValueChange={(v) => handlePricingChange('basePrice', v)}
                 placeholder="50.00"
               />
               {errors.pricingConfig?.basePrice && (
@@ -212,13 +211,12 @@ export default function FinancialManagementSection({
 
             <div className="space-y-2">
               <Label htmlFor="extra-day-price">Each extra day</Label>
-              <Input
+              <NumberField
                 id="extra-day-price"
-                type="number"
-                step="0.01"
-                min="0"
+                decimals
+                prefix="$"
                 value={pricingConfig.extraDayPrice}
-                onChange={(e) => handlePricingChange('extraDayPrice', e.target.value)}
+                onValueChange={(v) => handlePricingChange('extraDayPrice', v)}
                 placeholder="10.00"
               />
               {errors.pricingConfig?.extraDayPrice && (
@@ -244,7 +242,6 @@ export default function FinancialManagementSection({
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-3">
-            {savedMessage && <p className="text-fine text-positive">{savedMessage}</p>}
             <Button onClick={handleSavePricing} disabled={isSaving}>
               <Save className="w-4 h-4 mr-2" />
               {isSaving ? 'Saving…' : 'Save prices'}

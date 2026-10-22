@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ImagePlus, X } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
+import { NumberField } from '@/shared/components/ui/number-field'
 import { Field, TextArea } from '@/features/booking/components/step-kit'
 import { useToast } from '@/shared/components/feedback/toast'
 import { cn } from '@/lib/utils'
@@ -165,10 +166,10 @@ export function CustomSignUploadForm({ onSuccess, onCancel }: { onSuccess?: (sig
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field id="sign-w" label="Width (in)">
-            <input id="sign-w" className={input} type="number" min={1} inputMode="numeric" value={data.size_width ?? ''} onChange={e => set('size_width', parseInt(e.target.value) || undefined)} placeholder="24" />
+            <NumberField id="sign-w" value={data.size_width} onValueChange={v => set('size_width', parseInt(v) || undefined)} placeholder="24" maxLength={3} />
           </Field>
           <Field id="sign-h" label="Height (in)">
-            <input id="sign-h" className={input} type="number" min={1} inputMode="numeric" value={data.size_height ?? ''} onChange={e => set('size_height', parseInt(e.target.value) || undefined)} placeholder="18" />
+            <NumberField id="sign-h" value={data.size_height} onValueChange={v => set('size_height', parseInt(v) || undefined)} placeholder="18" maxLength={3} />
           </Field>
         </div>
         <div className="sm:col-span-2">

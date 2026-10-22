@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalContent, ModalFooter } from '@/shared/components/feedback/modal';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { NumberField } from '@/shared/components/ui/number-field';
 import { Label } from '@/shared/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/shared/components/ui/radio-group';
 import { TriangleAlert, Clock } from 'lucide-react';
@@ -160,16 +161,14 @@ export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalPro
                 <Label htmlFor="partialAmount" className="text-fine">
                   Refund amount (you can change it; max {formatCurrency(maxRefundAmount)})
                 </Label>
-                <Input
+                <NumberField
                   id="partialAmount"
-                  type="number"
-                  min="0"
-                  max={maxRefundAmount}
-                  step="0.01"
+                  decimals
+                  prefix="$"
                   value={partialAmount}
-                  onChange={(e) => setPartialAmount(e.target.value)}
+                  onValueChange={setPartialAmount}
                   placeholder="0.00"
-                  className="w-32"
+                  className="w-36"
                 />
               </div>
             )}

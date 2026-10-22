@@ -39,6 +39,9 @@ export default async function SettingsLabPage({ searchParams }: { searchParams: 
     <LabShell>
       <PageHeader title="Settings" />
       <SectionTabs label="Settings sections" active={section} items={sections} />
+      <p className="mb-5 rounded-control bg-notice-soft p-3 text-fine text-notice">
+        Demo agency: saving is switched off here, so saves say you don&apos;t have access. Use your own Settings page to save for real.
+      </p>
       <div className="grid gap-6">
         {section === 'business' && <AgencyProfileSection agency={AGENCY as any} agencySlug="lab" />}
         {section === 'booking' && (

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/shared/components/feedback/toast'
 import { 
   agencyProfileSchema, 
   type AgencyProfileFormData, 
@@ -51,6 +52,13 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
   const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const { toast } = useToast()
+  // Save and load results show as toasts; field errors stay under their fields
+  useEffect(() => {
+    if (!message) return
+    toast({ variant: message.type === 'success' ? 'success' : 'error', title: message.text })
+    setMessage(null)
+  }, [message])
   const [copyMessage, setCopyMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isDirty, setIsDirty] = useState(false)
 
@@ -383,23 +391,6 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
         <div className="mb-6 p-3 bg-caution-soft border border-caution/30 rounded-card">
           <p className="text-caution text-fine">
             You have unsaved changes
-          </p>
-        </div>
-      )}
-
-      {/* Success/Error Messages */}
-      {message && (
-        <div className={cn(
-          "mb-6 p-4 rounded-card",
-          message.type === 'success' 
-            ? 'bg-positive-soft border border-positive/30' 
-            : 'bg-danger-soft border border-danger/30'
-        )}>
-          <p className={cn(
-            "text-fine",
-            message.type === 'success' ? 'text-positive' : 'text-danger'
-          )}>
-            {message.text}
           </p>
         </div>
       )}

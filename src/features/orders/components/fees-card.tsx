@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/components/ui/button';
+import { NumberField } from '@/shared/components/ui/number-field';
 import { assessOrderFees } from '../actions';
 import type { FeeQuote } from '../fees';
 
@@ -69,9 +70,8 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
             <span>
               Late pickup: back {day(quote.checkInDay)}, due {day(quote.pickupDay)} · {quote.lateDays} day{quote.lateDays === 1 ? '' : 's'} × {money(quote.lateFee)}
             </span>
-            <span className="mt-1 flex items-center gap-2">$
-              <input type="number" min={0} max={quote.lateMax} step="0.01" value={late} onChange={e => setLate(e.target.value)}
-                className="h-11 w-28 rounded-control border border-line-strong bg-surface px-3 text-copy focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none" disabled={busy} />
+            <span className="mt-1 flex items-center gap-2">
+              <NumberField decimals prefix="$" value={late} onValueChange={setLate} disabled={busy} className="w-36" />
               <span className="text-fine text-fg-muted">max {money(quote.lateMax)}</span>
             </span>
           </label>
@@ -79,9 +79,8 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
         {quote.damageMax > 0 && (
           <label className="block text-fine">
             <span>Damaged or missing: {quote.damagedSigns} sign{quote.damagedSigns === 1 ? '' : 's'} × {money(quote.damageFeePerSign)}</span>
-            <span className="mt-1 flex items-center gap-2">$
-              <input type="number" min={0} max={quote.damageMax} step="0.01" value={damage} onChange={e => setDamage(e.target.value)}
-                className="h-11 w-28 rounded-control border border-line-strong bg-surface px-3 text-copy focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none" disabled={busy} />
+            <span className="mt-1 flex items-center gap-2">
+              <NumberField decimals prefix="$" value={damage} onValueChange={setDamage} disabled={busy} className="w-36" />
               <span className="text-fine text-fg-muted">max {money(quote.damageMax)}</span>
             </span>
           </label>
