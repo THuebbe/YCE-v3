@@ -376,8 +376,10 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Split the shared PantryPro DB: YCE becomes its own project AFTER the
   Victory Store demo (goal: win at least their signs, maybe a partnership)
   - user, 2026-10-19. Until then `users` and PantryPro tables stay as they
-  are (anon-readable `users` is known and accepted for now; PantryPro is
-  in development).
+  are. `users` got RLS on 2026-10-22 (`migrations/20261022_users_rls.sql`,
+  applied; anon reads nothing, a Supabase Auth user reads only their own
+  row; both apps use the service role, so neither changed). The 26
+  PantryPro tables still without RLS are the owner's to fix in PantryPro.
 
 ## Next steps
 1. (done - PR #8 merged 2026-10-16)
