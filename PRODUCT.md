@@ -227,6 +227,25 @@ agencies could open them by URL. Git history has the full mockups.
   q11-q14; two insight systems; unused minImpact/priority; invented
   stats in the copy) and its own leads table with RLS on. Never reuse the
   shared `quiz_submissions` table.
+- **Sign packages (was "bundles", recorded 2026-10-22):** a supplier's
+  package, e.g. Victory Store's sports pack (2 soccer balls, 2 footballs,
+  basketballs, baseballs...). Its purpose is receiving stock: add the
+  package once and every sign in it, in its quantities, goes into the
+  agency's inventory. Maybe later booking uses packages to find related
+  signs (football goes with baseball), but individual signs already
+  cover that. Needs its own tables: platform-curated packages with
+  package items (sign + quantity), never edits to shared
+  `sign_library` rows. The old agency-made bundle creator was removed
+  2026-10-22: no quantities, one bundle per sign, no agency scoping, and
+  an unauthenticated server action that rewrote shared library rows.
+  The empty `bundles` table and `sign_library.bundle_id/bundle_position`
+  columns are unused until then.
+- **Custom signs on the booking page (recorded 2026-10-22):** agencies
+  buy signs outside the platform library and upload them (Signs >
+  Custom). They can be stocked today but booking can't place them: the
+  layout uses the platform sign art. Needs a format check on upload
+  (cut-out PNG, size, maybe an editor or AI review) and a way to put a
+  custom sign into a display, e.g. as a decoration.
 
 ## Deliberate non-goals right now
 Multi-location per agency · advanced analytics ·

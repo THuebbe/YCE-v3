@@ -1,573 +1,224 @@
-"use client"
+'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { ImagePlus, X } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
-import { Input } from '@/shared/components/ui/input'
-import { Card } from '@/shared/components/ui/card'
-import { Badge } from '@/shared/components/ui/badge'
-import { Upload, X, Image as ImageIcon, AlertCircle, Check, Plus, Minus } from 'lucide-react'
-import Image from 'next/image'
+import { Field, TextArea } from '@/features/booking/components/step-kit'
 import { useToast } from '@/shared/components/feedback/toast'
+import { cn } from '@/lib/utils'
 import { uploadCustomSign, getSignCategories, getSignThemes, getSignHolidays } from '../actions'
-import { StorageService } from '@/lib/storage/supabase'
+import { SIGN_IMAGE_MAX_BYTES, SIGN_IMAGE_TYPES } from '../limits'
 import type { CustomSignUploadData } from '../types'
 
-interface CustomSignUploadFormProps {
-  onSuccess?: (signId: string) => void
-  onCancel?: () => void
+const input = 'h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-copy text-fg placeholder:text-fg-muted focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none'
+
+function fileError(file: File): string | null {
+  if (!SIGN_IMAGE_TYPES.includes(file.type)) return 'Use a JPEG, PNG, WebP or GIF image'
+  if (file.size > SIGN_IMAGE_MAX_BYTES) return `Images can be up to ${SIGN_IMAGE_MAX_BYTES / 1024 / 1024} MB`
+  return null
 }
 
-export function CustomSignUploadForm({ onSuccess, onCancel }: CustomSignUploadFormProps) {
+/**
+ * A sign the agency bought somewhere other than the platform library. It's
+ * saved to their custom signs, ready to add to stock. Booking can't place
+ * custom signs on a display yet (PRODUCT.md, custom signs).
+ */
+export function CustomSignUploadForm({ onSuccess, onCancel }: { onSuccess?: (signId: string) => void; onCancel?: () => void }) {
   const { toast } = useToast()
-  const [formData, setFormData] = useState<CustomSignUploadData>({
-    name: '',
-    description: '',
-    category: '',
-    themes: [],
-    holidays: [],
-    keywords: []
-  })
-  
+  const [data, setData] = useState<CustomSignUploadData>({ name: '', description: '', category: '', themes: [], holidays: [], keywords: [] })
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [busy, setBusy] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  
-  // Form options
-  const [categories, setCategories] = useState<string[]>([])
-  const [themes, setThemes] = useState<string[]>([])
-  const [holidays, setHolidays] = useState<string[]>([])
-  const [isLoadingOptions, setIsLoadingOptions] = useState(true)
-  
-  // UI state
-  const [keywordInput, setKeywordInput] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [options, setOptions] = useState<{ categories: string[]; themes: string[]; holidays: string[] }>({ categories: [], themes: [], holidays: [] })
+  const [newCategory, setNewCategory] = useState(false)
+  const [keyword, setKeyword] = useState('')
+  const fileInput = useRef<HTMLInputElement>(null)
 
-  // Load form options
   useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const [categoriesData, themesData, holidaysData] = await Promise.all([
-          getSignCategories(),
-          getSignThemes(),
-          getSignHolidays()
-        ])
-        setCategories(categoriesData)
-        setThemes(themesData)
-        setHolidays(holidaysData)
-      } catch (error) {
-        console.error('Error loading form options:', error)
-        toast({ variant: 'error', title: 'Failed to load form options' })
-      } finally {
-        setIsLoadingOptions(false)
-      }
-    }
-    loadOptions()
+    Promise.all([getSignCategories(), getSignThemes(), getSignHolidays()])
+      .then(([categories, themes, holidays]) => setOptions({ categories, themes, holidays }))
+      .catch(() => {})
   }, [])
 
-  const validateFile = useCallback((file: File): string | null => {
-    return StorageService.getFileValidationError(file)
-  }, [])
+  // Free the preview's object URL when it changes or the form closes
+  useEffect(() => () => { if (preview) URL.revokeObjectURL(preview) }, [preview])
 
-  const handleFileSelect = useCallback((selectedFile: File) => {
-    const error = validateFile(selectedFile)
-    if (error) {
-      setErrors(prev => ({ ...prev, file: error }))
-      return
-    }
+  const set = <K extends keyof CustomSignUploadData>(k: K, v: CustomSignUploadData[K]) => setData(prev => ({ ...prev, [k]: v }))
+  const toggle = (k: 'themes' | 'holidays', v: string) => set(k, data[k].includes(v) ? data[k].filter(x => x !== v) : [...data[k], v])
 
-    setFile(selectedFile)
-    setErrors(prev => ({ ...prev, file: '' }))
+  const pick = (picked: File | undefined) => {
+    if (!picked) return
+    const error = fileError(picked)
+    setErrors(prev => ({ ...prev, file: error ?? '' }))
+    if (error) return
+    setFile(picked)
+    setPreview(URL.createObjectURL(picked))
+  }
 
-    // Generate preview
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setPreview(e.target?.result as string)
-    }
-    reader.readAsDataURL(selectedFile)
-  }, [validateFile])
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-
-    const files = Array.from(e.dataTransfer.files)
-    if (files.length > 0) {
-      handleFileSelect(files[0])
-    }
-  }, [handleFileSelect])
-
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (files && files.length > 0) {
-      handleFileSelect(files[0])
-    }
-  }, [handleFileSelect])
+  const clearFile = () => {
+    setFile(null)
+    setPreview(null)
+    if (fileInput.current) fileInput.current.value = ''
+  }
 
   const addKeyword = () => {
-    if (keywordInput.trim() && !formData.keywords.includes(keywordInput.trim())) {
-      setFormData((prev: CustomSignUploadData) => ({
-        ...prev,
-        keywords: [...prev.keywords, keywordInput.trim()]
-      }))
-      setKeywordInput('')
-    }
+    const k = keyword.trim()
+    if (k && !data.keywords.includes(k)) set('keywords', [...data.keywords, k])
+    setKeyword('')
   }
 
-  const removeKeyword = (keyword: string) => {
-    setFormData((prev: CustomSignUploadData) => ({
-      ...prev,
-      keywords: prev.keywords.filter((k: string) => k !== keyword)
-    }))
-  }
-
-  const toggleTheme = (theme: string) => {
-    setFormData((prev: CustomSignUploadData) => ({
-      ...prev,
-      themes: prev.themes.includes(theme)
-        ? prev.themes.filter((t: string) => t !== theme)
-        : [...prev.themes, theme]
-    }))
-  }
-
-  const toggleHoliday = (holiday: string) => {
-    setFormData((prev: CustomSignUploadData) => ({
-      ...prev,
-      holidays: prev.holidays.includes(holiday)
-        ? prev.holidays.filter((h: string) => h !== holiday)
-        : [...prev.holidays, holiday]
-    }))
-  }
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
-
-    if (!file) {
-      newErrors.file = 'Please select an image file'
-    }
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Sign name is required'
-    }
-
-    if (!formData.category.trim()) {
-      newErrors.category = 'Category is required'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const next: Record<string, string> = {}
+    if (!file) next.file = 'Choose an image of the sign'
+    if (!data.name.trim()) next.name = 'Give the sign a name'
+    if (!data.category.trim()) next.category = 'Choose a category'
+    setErrors(next)
+    if (Object.keys(next).length) return
 
-    if (!validateForm()) {
-      return
-    }
+    const form = new FormData()
+    form.append('image', file!)
+    form.append('name', data.name.trim())
+    form.append('description', data.description || '')
+    form.append('category', data.category.trim())
+    form.append('themes', JSON.stringify(data.themes))
+    form.append('holidays', JSON.stringify(data.holidays))
+    form.append('keywords', JSON.stringify(data.keywords))
+    if (data.size_width) form.append('size_width', String(data.size_width))
+    if (data.size_height) form.append('size_height', String(data.size_height))
 
-    setIsUploading(true)
-    setUploadProgress(0)
-
+    setBusy(true)
     try {
-      const submitFormData = new FormData()
-      submitFormData.append('image', file!)
-      submitFormData.append('name', formData.name)
-      submitFormData.append('description', formData.description || '')
-      submitFormData.append('category', formData.category)
-      submitFormData.append('themes', JSON.stringify(formData.themes))
-      submitFormData.append('holidays', JSON.stringify(formData.holidays))
-      submitFormData.append('keywords', JSON.stringify(formData.keywords))
-      
-      if (formData.size_width) {
-        submitFormData.append('size_width', formData.size_width.toString())
+      const result = await uploadCustomSign(form)
+      if (!result.success) {
+        toast({ variant: 'error', title: 'Couldn’t upload the sign', description: result.error })
+        return
       }
-      if (formData.size_height) {
-        submitFormData.append('size_height', formData.size_height.toString())
-      }
-
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90))
-      }, 100)
-
-      const result = await uploadCustomSign(submitFormData)
-
-      clearInterval(progressInterval)
-      setUploadProgress(100)
-
-      if (result.success) {
-        toast({ variant: 'success', title: 'Custom sign uploaded successfully!' })
-        if (onSuccess && result.signId) {
-          onSuccess(result.signId)
-        }
-      } else {
-        toast({ variant: 'error', title: result.error || 'Failed to upload custom sign' })
-      }
-    } catch (error) {
-      console.error('Upload error:', error)
-      toast({ variant: 'error', title: 'Failed to upload custom sign' })
+      toast({ variant: 'success', title: `${data.name.trim()} added to your custom signs` })
+      if (result.signId) onSuccess?.(result.signId)
+    } catch {
+      toast({ variant: 'error', title: 'Couldn’t upload the sign', description: 'The image may be too large.' })
     } finally {
-      setIsUploading(false)
-      setUploadProgress(0)
+      setBusy(false)
     }
   }
+
+  const chip = (active: boolean) => cn(
+    'inline-flex min-h-11 items-center rounded-full border px-3 text-fine font-bold transition-colors focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
+    active ? 'border-brand bg-brand text-on-brand' : 'border-line-strong bg-surface hover:bg-surface-sunken',
+  )
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* File Upload */}
-      <Card className="p-6">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Upload Sign Image</h3>
-        
+    <form onSubmit={submit} className="grid gap-5 rounded-card border border-line bg-surface p-4 sm:p-5">
+      <h2 className="font-display text-heading font-semibold">Upload a sign</h2>
+
+      <div>
         <div
-          className={`
-            relative border-2 border-dashed rounded-lg p-8 text-center transition-colors
-            ${isDragging ? 'border-primary bg-primary/5' : 'border-neutral-300'}
-            ${file ? 'border-success bg-success/5' : ''}
-            ${errors.file ? 'border-error bg-error/5' : ''}
-          `}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
+          onDragOver={e => { e.preventDefault(); setDragging(true) }}
+          onDragLeave={e => { e.preventDefault(); setDragging(false) }}
+          onDrop={e => { e.preventDefault(); setDragging(false); pick(e.dataTransfer.files[0]) }}
+          className={cn(
+            'relative flex min-h-48 flex-col items-center justify-center gap-2 rounded-control border-2 border-dashed p-4 text-center transition-colors',
+            dragging ? 'border-focus bg-notice-soft' : errors.file ? 'border-danger bg-danger-soft' : 'border-line-strong bg-surface-sunken',
+          )}
         >
           {preview ? (
-            <div className="space-y-4">
-              <div className="relative w-48 h-48 mx-auto rounded-lg overflow-hidden">
-                <Image
-                  src={preview}
-                  alt="Preview"
-                  fill
-                  className="object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFile(null)
-                    setPreview(null)
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = ''
-                    }
-                  }}
-                  className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-neutral-50"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="flex items-center justify-center text-success">
-                <Check className="h-5 w-5 mr-2" />
-                <span className="text-sm">{file?.name}</span>
-              </div>
-            </div>
+            <>
+              <img src={preview} alt="The sign you picked" className="max-h-48 rounded-control object-contain" />
+              <button type="button" onClick={clearFile} aria-label="Choose a different image"
+                className="absolute top-2 right-2 flex size-11 items-center justify-center rounded-full bg-surface shadow-raised hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none">
+                <X className="size-5" aria-hidden />
+              </button>
+              <p className="text-fine text-fg-muted">{file?.name}</p>
+            </>
           ) : (
-            <div className="space-y-4">
-              <div className="mx-auto h-12 w-12 text-neutral-400">
-                <ImageIcon className="h-12 w-12" />
-              </div>
-              <div>
-                <p className="text-lg font-medium text-neutral-900">
-                  Drop your image here, or{' '}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="text-primary hover:text-primary-dark"
-                  >
-                    browse
-                  </button>
-                </p>
-                <p className="text-sm text-neutral-500 mt-1">
-                  Supports JPEG, PNG, WebP, GIF up to 10MB
-                </p>
-              </div>
-            </div>
+            <>
+              <ImagePlus className="size-8 text-fg-muted" aria-hidden />
+              <Button type="button" variant="secondary" onClick={() => fileInput.current?.click()}>Choose an image</Button>
+              <p className="text-fine text-fg-muted">or drop it here · JPEG, PNG, WebP or GIF, up to {SIGN_IMAGE_MAX_BYTES / 1024 / 1024} MB. A transparent PNG looks best.</p>
+            </>
           )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileInputChange}
-            className="hidden"
-          />
+          <input ref={fileInput} type="file" accept={SIGN_IMAGE_TYPES.join(',')} onChange={e => pick(e.target.files?.[0])} className="sr-only" tabIndex={-1} aria-hidden />
         </div>
+        {errors.file && <p role="alert" className="mt-1 text-fine text-danger">{errors.file}</p>}
+      </div>
 
-        {errors.file && (
-          <div className="mt-2 flex items-center text-error text-sm">
-            <AlertCircle className="h-4 w-4 mr-1" />
-            {errors.file}
-          </div>
-        )}
-      </Card>
-
-      {/* Sign Details */}
-      <Card className="p-6">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Sign Details</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Name */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Sign Name *
-            </label>
-            <Input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter sign name"
-              className={errors.name ? 'border-error' : ''}
-            />
-            {errors.name && (
-              <p className="mt-1 text-sm text-error">{errors.name}</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, description: e.target.value }))}
-              placeholder="Enter sign description"
-              rows={3}
-              className="w-full border border-neutral-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary"
-            />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Category *
-            </label>
-            {isLoadingOptions ? (
-              <div className="h-10 bg-neutral-200 animate-pulse rounded-lg"></div>
-            ) : (
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, category: e.target.value }))}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary ${
-                  errors.category ? 'border-error' : 'border-neutral-300'
-                }`}
-              >
-                <option value="">Select category</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-                <option value="custom">Custom Category</option>
-              </select>
-            )}
-            {errors.category && (
-              <p className="mt-1 text-sm text-error">{errors.category}</p>
-            )}
-          </div>
-
-          {/* Custom Category Input */}
-          {formData.category === 'custom' && (
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Custom Category
-              </label>
-              <Input
-                type="text"
-                placeholder="Enter custom category"
-                onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, category: e.target.value }))}
-              />
-            </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <Field id="sign-name" label="Name" error={errors.name}>
+            <input id="sign-name" className={input} value={data.name} onChange={e => set('name', e.target.value)} placeholder="Soccer ball" maxLength={80} />
+          </Field>
+        </div>
+        <Field id="sign-category" label="Category" error={errors.category}>
+          {newCategory ? (
+            <input id="sign-category" className={input} value={data.category} onChange={e => set('category', e.target.value)} placeholder="New category" maxLength={40} />
+          ) : (
+            <select id="sign-category" className={input} value={data.category}
+              onChange={e => { if (e.target.value === '__new') { setNewCategory(true); set('category', '') } else set('category', e.target.value) }}>
+              <option value="">Choose…</option>
+              {options.categories.map(c => <option key={c} value={c}>{c}</option>)}
+              <option value="__new">New category…</option>
+            </select>
           )}
-
-          {/* Dimensions */}
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Width (inches)
-            </label>
-            <Input
-              type="number"
-              value={formData.size_width || ''}
-              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, size_width: parseInt(e.target.value) || undefined }))}
-              placeholder="24"
-              min="1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Height (inches)
-            </label>
-            <Input
-              type="number"
-              value={formData.size_height || ''}
-              onChange={(e) => setFormData((prev: CustomSignUploadData) => ({ ...prev, size_height: parseInt(e.target.value) || undefined }))}
-              placeholder="18"
-              min="1"
-            />
-          </div>
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field id="sign-w" label="Width (in)">
+            <input id="sign-w" className={input} type="number" min={1} inputMode="numeric" value={data.size_width ?? ''} onChange={e => set('size_width', parseInt(e.target.value) || undefined)} placeholder="24" />
+          </Field>
+          <Field id="sign-h" label="Height (in)">
+            <input id="sign-h" className={input} type="number" min={1} inputMode="numeric" value={data.size_height ?? ''} onChange={e => set('size_height', parseInt(e.target.value) || undefined)} placeholder="18" />
+          </Field>
         </div>
-      </Card>
-
-      {/* Themes */}
-      <Card className="p-6">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Themes</h3>
-        {isLoadingOptions ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="h-8 bg-neutral-200 animate-pulse rounded-lg"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {themes.map((theme) => (
-              <button
-                key={theme}
-                type="button"
-                onClick={() => toggleTheme(theme)}
-                className={`
-                  px-3 py-2 text-sm rounded-lg border transition-colors text-left
-                  ${formData.themes.includes(theme)
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-white text-neutral-700 border-neutral-300 hover:border-primary'
-                  }
-                `}
-              >
-                {theme}
-              </button>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Holidays */}
-      <Card className="p-6">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Holidays</h3>
-        {isLoadingOptions ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-8 bg-neutral-200 animate-pulse rounded-lg"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {holidays.map((holiday) => (
-              <button
-                key={holiday}
-                type="button"
-                onClick={() => toggleHoliday(holiday)}
-                className={`
-                  px-3 py-2 text-sm rounded-lg border transition-colors text-left
-                  ${formData.holidays.includes(holiday)
-                    ? 'bg-primary text-white border-primary'
-                    : 'bg-white text-neutral-700 border-neutral-300 hover:border-primary'
-                  }
-                `}
-              >
-                {holiday}
-              </button>
-            ))}
-          </div>
-        )}
-      </Card>
-
-      {/* Keywords */}
-      <Card className="p-6">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Keywords</h3>
-        <div className="space-y-3">
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              value={keywordInput}
-              onChange={(e) => setKeywordInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addKeyword())}
-              placeholder="Add keywords for better searchability"
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              onClick={addKeyword}
-              variant="secondary"
-              disabled={!keywordInput.trim()}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          {formData.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {formData.keywords.map((keyword: string) => (
-                <Badge key={keyword} variant="secondary" className="text-sm">
-                  {keyword}
-                  <button
-                    type="button"
-                    onClick={() => removeKeyword(keyword)}
-                    className="ml-1 hover:text-error"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-          )}
+        <div className="sm:col-span-2">
+          <Field id="sign-desc" label="Description (optional)">
+            <TextArea id="sign-desc" rows={2} value={data.description} onChange={e => set('description', e.target.value)} />
+          </Field>
         </div>
-      </Card>
+      </div>
 
-      {/* Upload Progress */}
-      {isUploading && (
-        <Card className="p-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-neutral-900">Uploading...</span>
-              <span className="text-sm text-neutral-600">{uploadProgress}%</span>
-            </div>
-            <div className="w-full bg-neutral-200 rounded-full h-2">
-              <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${uploadProgress}%` }}
-              />
-            </div>
+      {options.themes.length > 0 && (
+        <fieldset>
+          <legend className="mb-2 font-semibold">Themes (optional)</legend>
+          <div className="flex flex-wrap gap-2">
+            {options.themes.map(t => <button key={t} type="button" aria-pressed={data.themes.includes(t)} onClick={() => toggle('themes', t)} className={chip(data.themes.includes(t))}>{t}</button>)}
           </div>
-        </Card>
+        </fieldset>
+      )}
+      {options.holidays.length > 0 && (
+        <fieldset>
+          <legend className="mb-2 font-semibold">Holidays (optional)</legend>
+          <div className="flex flex-wrap gap-2">
+            {options.holidays.map(h => <button key={h} type="button" aria-pressed={data.holidays.includes(h)} onClick={() => toggle('holidays', h)} className={chip(data.holidays.includes(h))}>{h}</button>)}
+          </div>
+        </fieldset>
       )}
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-4">
-        {onCancel && (
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onCancel}
-            disabled={isUploading}
-          >
-            Cancel
-          </Button>
-        )}
-        <Button
-          type="submit"
-          disabled={isUploading || !file}
-          className="min-w-32"
-        >
-          {isUploading ? (
-            <>
-              <Upload className="h-4 w-4 mr-2 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Sign
-            </>
-          )}
-        </Button>
+      <Field id="sign-keyword" label="Search words (optional)" hint="Words you'd type to find it later">
+        <div className="flex gap-2">
+          <input id="sign-keyword" className={input} value={keyword} onChange={e => setKeyword(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addKeyword() } }} />
+          <Button type="button" variant="secondary" onClick={addKeyword} disabled={!keyword.trim()}>Add</Button>
+        </div>
+      </Field>
+      {data.keywords.length > 0 && (
+        <ul className="-mt-3 flex flex-wrap gap-2">
+          {data.keywords.map(k => (
+            <li key={k} className="inline-flex items-center gap-1 rounded-full bg-surface-sunken py-1 pr-1 pl-3 text-fine font-semibold">
+              {k}
+              <button type="button" onClick={() => set('keywords', data.keywords.filter(x => x !== k))} aria-label={`Remove ${k}`}
+                className="flex size-7 items-center justify-center rounded-full hover:bg-surface focus-visible:shadow-(--focus-ring) focus-visible:outline-none">
+                <X className="size-4" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        {onCancel && <Button type="button" variant="secondary" onClick={onCancel} disabled={busy}>Cancel</Button>}
+        <Button type="submit" loading={busy} disabled={busy}>{busy ? 'Uploading…' : 'Upload sign'}</Button>
       </div>
     </form>
   )

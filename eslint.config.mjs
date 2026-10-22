@@ -31,11 +31,14 @@ export const COLOR_ENFORCED = [
   'src/app/page.tsx',
   'src/app/pricing/**/*.{ts,tsx}',
   'src/features/marketing/**/*.{ts,tsx}',
-  // Dashboard shell, home and sign-in (redesigned 2026-10-22). Signs and
-  // settings join as their PRs land.
+  // Dashboard shell, home and sign-in (redesigned 2026-10-22). Settings
+  // joins when its PR lands.
   'src/app/[[]agency]/(app)/{layout,loading}.tsx',
   'src/app/[[]agency]/(app)/dashboard/**/*.{ts,tsx}',
-  'src/app/[[]agency]/(app)/{inventory,billing}/page.tsx',
+  'src/app/[[]agency]/(app)/billing/page.tsx',
+  // Signs (redesigned 2026-10-22)
+  'src/app/[[]agency]/(app)/inventory/**/*.{ts,tsx}',
+  'src/features/inventory/**/*.{ts,tsx}',
   // Orders (redesigned 2026-10-22). Order PDFs keep their own print colors.
   'src/app/[[]agency]/(app)/orders/**/*.{ts,tsx}',
   'src/features/orders/**/*.{ts,tsx}',
