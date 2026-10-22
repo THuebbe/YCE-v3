@@ -147,7 +147,8 @@ On booking pages the agency is the brand.
 ## Motion
 
 One moment, done well: **signs drop into the lawn** one letter after another
-and settle with a little bounce (`sign-drop` keyframes, `--duration-drop`
+and settle with a little bounce (the `.drop` class in
+`features/yard-scene/YardScene.module.css`, `--duration-drop`
 450ms, `--drop-stagger` 60ms, `--ease-drop`). When the name changes, only the
 changed letters drop again.
 

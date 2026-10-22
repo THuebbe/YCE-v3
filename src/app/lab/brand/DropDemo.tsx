@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import styles from '@/features/yard-scene/YardScene.module.css'
 
 const LETTERS = ['P', 'A', 'R', 'T', 'Y']
 
@@ -13,11 +14,8 @@ export function DropDemo() {
         {LETTERS.map((ch, i) => (
           <span
             key={i}
-            className="flex h-16 w-12 items-center justify-center rounded-control bg-action font-display text-title font-bold text-on-action shadow-raised"
-            style={{
-              animation: `sign-drop var(--duration-drop) var(--ease-drop) both`,
-              animationDelay: `calc(${i} * var(--drop-stagger))`,
-            }}
+            className={`${styles.drop} flex h-16 w-12 items-center justify-center rounded-control bg-action font-display text-title font-bold text-on-action shadow-raised`}
+            style={{ animationDelay: `calc(${i} * var(--drop-stagger))` }}
           >
             {ch}
           </span>

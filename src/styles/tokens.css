@@ -152,13 +152,6 @@
   --drop-stagger: 60ms;       /* delay between letters */
 }
 
-/* A sign dropping into the lawn: falls, lands a touch low, settles */
-@keyframes sign-drop {
-  0% { transform: translateY(-120%) rotate(-4deg); opacity: 0; }
-  60% { transform: translateY(4%) rotate(1deg); opacity: 1; }
-  100% { transform: translateY(0) rotate(0); opacity: 1; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-drop: 0ms;
