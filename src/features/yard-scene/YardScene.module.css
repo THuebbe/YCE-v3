@@ -1,0 +1,23 @@
+/* A sign sliding to its new spot when the letters before it change */
+.slot {
+  transition: transform var(--duration-base) ease-out;
+}
+
+/* A sign dropping into the lawn: falls, lands a touch low, settles.
+   Timing tokens (--duration-drop, --drop-stagger, --ease-drop) live in
+   src/styles/tokens.css. Any sign that drops uses this class. */
+@keyframes sign-drop {
+  0% { transform: translateY(-120%) rotate(-4deg); opacity: 0; }
+  60% { transform: translateY(4%) rotate(1deg); opacity: 1; }
+  100% { transform: translateY(0) rotate(0); opacity: 1; }
+}
+
+.drop {
+  animation: sign-drop var(--duration-drop) var(--ease-drop) both;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot { transition: none; }
+}

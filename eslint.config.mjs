@@ -10,7 +10,7 @@ const compat = new FlatCompat({
 });
 
 /** Folders already on the brand tokens; raw colors there fail lint. Add each folder as the redesign reaches it. */
-export const COLOR_ENFORCED = ['src/app/lab/**/*.{ts,tsx}'];
+export const COLOR_ENFORCED = ['src/app/lab/**/*.{ts,tsx}', 'src/features/yard-scene/**/*.{ts,tsx}'];
 
 /** Files whose job is to define colors */
 export const COLOR_EXEMPT = ['src/lib/brand.ts', 'src/shared/components/brand/**'];
