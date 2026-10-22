@@ -161,7 +161,7 @@ export function VenmoCheckoutButton({
     return (
       <Button 
         disabled 
-        className={`w-full bg-gray-400 ${className}`}
+        className={`w-full bg-surface-sunken text-fg-muted ${className}`}
         size="lg"
       >
         <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -203,7 +203,7 @@ export function VenmoCheckoutButton({
       )}
 
       {/* Device Info */}
-      <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center justify-center gap-2 text-fine text-fg-muted">
         {isMobile ? (
           <>
             <Smartphone className="w-4 h-4" />
@@ -221,7 +221,7 @@ export function VenmoCheckoutButton({
       <Button
         onClick={handleVenmoPayment}
         disabled={!venmoInstance || isProcessing || disabled}
-        className={`w-full bg-[#3D95CE] hover:bg-[#2E7BA6] text-white ${className}`}
+        className={`w-full bg-venmo hover:bg-venmo-hover text-on-strong ${className}`}
         size="lg"
       >
         {isProcessing ? (
@@ -238,7 +238,7 @@ export function VenmoCheckoutButton({
       </Button>
 
       {/* Payment Info */}
-      <div className="text-xs text-gray-500 text-center">
+      <div className="text-fine text-fg-muted text-center">
         Secure payment powered by PayPal Braintree
       </div>
     </div>

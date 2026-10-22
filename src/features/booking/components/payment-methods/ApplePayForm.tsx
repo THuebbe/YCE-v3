@@ -123,35 +123,35 @@ export function ApplePayForm({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <Smartphone className="w-5 h-5 text-gray-900" />
-        <h3 className="text-h5 text-neutral-900">Apple Pay</h3>
+        <Smartphone className="w-5 h-5 text-fg" />
+        <h3 className="font-display text-heading font-semibold text-fg">Apple Pay</h3>
         <Badge variant="secondary">Touch ID / Face ID</Badge>
       </div>
       
       {/* Payment Amount */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-surface-sunken rounded-card p-4">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Amount:</span>
+          <span className="text-fine text-fg-muted">Amount:</span>
           <span className="text-lg font-semibold">${amount.toFixed(2)}</span>
         </div>
         <div className="flex items-center justify-between mt-1">
-          <span className="text-sm text-gray-600">Payment Method:</span>
-          <span className="text-sm text-gray-900">Apple Pay</span>
+          <span className="text-fine text-fg-muted">Payment Method:</span>
+          <span className="text-fine text-fg">Apple Pay</span>
         </div>
       </div>
 
       {/* Apple Pay Info */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <div className="bg-surface-sunken border border-line rounded-card p-4">
         <div className="flex items-start space-x-3">
-          <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+          <CheckCircle className="w-5 h-5 text-positive mt-0.5" />
           <div className="flex-1">
-            <h4 className="text-body-small font-medium text-gray-800 mb-1">
+            <h4 className="text-fine font-medium text-fg mb-1">
               Quick & Secure Payment
             </h4>
-            <p className="text-body-small text-gray-700 mb-2">
+            <p className="text-fine text-fg mb-2">
               Pay quickly using Touch ID, Face ID, or your Apple Watch.
             </p>
-            <ul className="text-xs text-gray-600 space-y-1">
+            <ul className="text-fine text-fg-muted space-y-1">
               <li>• No need to enter card details</li>
               <li>• Biometric authentication</li>
               <li>• Your payment info stays on your device</li>
@@ -164,7 +164,7 @@ export function ApplePayForm({
       <Button
         onClick={handleApplePayPayment}
         disabled={isProcessing || disabled}
-        className="w-full bg-black hover:bg-gray-900 text-white py-4 rounded-lg"
+        className="w-full bg-apple-pay hover:opacity-90 text-on-strong py-4 rounded-card"
         size="lg"
       >
         {isProcessing ? (
@@ -183,7 +183,7 @@ export function ApplePayForm({
 
       {/* Stripe Integration Info */}
       {processorConfig?.accountId && (
-        <div className="text-xs text-gray-500 text-center">
+        <div className="text-fine text-fg-muted text-center">
           Processed securely through Stripe
         </div>
       )}
@@ -200,7 +200,7 @@ export function ApplePayForm({
       )}
 
       {/* Payment Info */}
-      <div className="text-xs text-gray-500 text-center space-y-1">
+      <div className="text-fine text-fg-muted text-center space-y-1">
         <p>• Requires Touch ID, Face ID, or Apple Watch</p>
         <p>• Works with cards in your Apple Wallet</p>
         <p>• Instant authorization and payment</p>

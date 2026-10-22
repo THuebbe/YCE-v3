@@ -40,7 +40,7 @@ export function BackdropElement({ name, style, className = '' }: BackdropElement
       title={name} // Tooltip for accessibility
     >
       {isDevelopment && (
-        <span className="text-xs text-white font-bold">
+        <span className="text-fine text-white font-bold">
           {name === 'Balloon Cluster' ? '🎈' : '◆'}
         </span>
       )}

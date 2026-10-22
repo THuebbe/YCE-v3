@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils";
 import { CheckCircle, AlertCircle, AlertTriangle, Info, X } from "../ui/icons";
 
 const toastVariants = cva(
-  "relative flex items-center gap-3 w-full rounded-xl shadow-large border p-4 text-body font-medium transition-all duration-standard",
+  "relative flex items-center gap-3 w-full rounded-card shadow-overlay border border-l-4 bg-surface p-4 text-copy font-semibold text-fg",
   {
     variants: {
       variant: {
-        success: "bg-background-white border-success text-neutral-900",
-        error: "bg-background-white border-error text-neutral-900", 
-        warning: "bg-background-white border-warning text-neutral-900",
-        info: "bg-background-white border-info text-neutral-900",
-        default: "bg-background-white border-neutral-200 text-neutral-900",
+        success: "border-line border-l-positive",
+        error: "border-line border-l-danger",
+        warning: "border-line border-l-caution",
+        info: "border-line border-l-notice",
+        default: "border-line",
       },
     },
     defaultVariants: {
@@ -32,11 +32,11 @@ const iconVariants = {
 };
 
 const iconColorVariants = {
-  success: "text-success",
-  error: "text-error", 
-  warning: "text-warning",
-  info: "text-info",
-  default: "text-neutral-500",
+  success: "text-positive",
+  error: "text-danger",
+  warning: "text-caution",
+  info: "text-notice",
+  default: "text-fg-muted",
 };
 
 export interface ToastProps
@@ -79,10 +79,10 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         
         <div className="flex-1 min-w-0">
           {title && (
-            <div className="font-semibold text-neutral-900">{title}</div>
+            <div className="font-bold text-fg">{title}</div>
           )}
           {description && (
-            <div className="text-body-small text-neutral-600 mt-1">
+            <div className="mt-1 text-fine font-normal text-fg-muted">
               {description}
             </div>
           )}
@@ -98,7 +98,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         {closable && onClose && (
           <button
             onClick={onClose}
-            className="flex-shrink-0 ml-2 p-1 rounded-lg text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 transition-colors duration-standard focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            className="ml-2 flex size-8 shrink-0 items-center justify-center rounded-control text-fg-muted hover:bg-surface-sunken hover:text-fg focus-visible:outline-none focus-visible:shadow-(--focus-ring)"
             aria-label="Close notification"
           >
             <X className="h-4 w-4" />

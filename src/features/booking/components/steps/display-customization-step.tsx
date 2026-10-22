@@ -1,21 +1,20 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { displaySchema, DisplayFormData, Sign } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { createBookingHold, getBookingCatalog } from '../../actions';
+import { Field, StepIntro, StepMotion, StepNav, StepSection } from '../step-kit';
+import { BookingYardPreview } from '../display/BookingYardPreview';
+import { cn } from '@/lib/utils';
 import { eventMessages, themes, hobbies } from '../../display-options';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
-import { DisplayGrid } from '../display/DisplayGrid';
-import { LetterStake } from '../display/LetterStake';
 import { LayoutCalculation } from '../../types';
-import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function DisplayCustomizationStep({ custom }: { custom?: string }) {
-  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone, actions } = useWizard();
   const [localData, setLocalData] = useState<DisplayFormData>(
     formData.display || {
       eventMessage: '',
@@ -42,12 +41,12 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   // next preview replaces it instead of stacking a second hold.
   const lastHoldId = useRef(localData.holdId || localData.staleHoldId || '');
 
-  const layoutCalculatorService = new LayoutCalculatorService();
+  const layoutCalculatorService = useRef(new LayoutCalculatorService()).current;
 
   const capitalize = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
 
   useEffect(() => {
-    getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
+    actions.getBookingCatalog(agencySlug).then(({ styles, colorways }) => {
       if (styles.length > 0) setAvailableStyles(styles.map(capitalize));
       if (colorways.length > 0) setAvailableColorways(colorways.map(capitalize));
       // The defaults ('Classic' / 'Red') may be something this agency doesn't
@@ -117,7 +116,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       setPreviewError('Please choose an event date first');
       return null;
     }
-    const result = await createBookingHold({
+    const result = await actions.createBookingHold({
       agencySlug,
       sessionId,
       timeZone,
@@ -171,7 +170,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       setLayoutCalculation(layoutResult); // shown even when it can't be reserved
 
       if (!layoutResult.meetsMinimumFill) {
-        setPreviewError(`Zone 3 fill requirement not met (${Math.round((layoutResult.zone3.fillPercentage || 0) * 100)}% < 75% minimum)`);
+        setPreviewError('The name is short next to the message, which leaves gaps on the sides. Add a theme or a hobby to fill them.');
         return;
       }
 
@@ -180,7 +179,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       const unmatched = placed.filter(sign => !sign.catalogKey);
       if (unmatched.length > 0) {
         const chars = [...new Set(unmatched.map(sign => sign.character ?? sign.type))].join(' ');
-        setPreviewError(`We don't carry these characters in this style and color: ${chars}`);
+        setPreviewError(`These signs aren't available in this style and color: ${chars}. Try another color.`);
         return;
       }
 
@@ -191,7 +190,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       updateFormData({ display: updatedData });
     } catch (error) {
       console.error('Error generating layout preview:', error);
-      setPreviewError('Failed to generate preview');
+      setPreviewError('Your signs couldn\'t be reserved just now. Please try again.');
     } finally {
       setPreviewLoading(false);
     }
@@ -215,503 +214,239 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     nextStep();
   };
   
-  // Auto-generation removed - users now manually generate layout with button
+  const isValid = displaySchema.safeParse(localData).success;
 
+  // Live preview: the same layout calculator the reservation uses, run as
+  // the customer designs (debounced), so what they see is what gets held.
+  // Before they've chosen anything it shows an example.
+  const typedMessage = (localData.eventMessage === 'Custom Message' ? localData.customMessage : localData.eventMessage) || '';
+  const isExample = !typedMessage.trim() || !localData.recipientName.trim();
+  const previewTyped = { message: typedMessage.trim() || 'Happy Birthday', name: localData.recipientName.trim() || 'Your Name' };
+  const [liveLayout, setLiveLayout] = useState<LayoutCalculation | null>(null);
+  useEffect(() => {
+    let live = true;
+    const t = setTimeout(() => {
+      layoutCalculatorService
+        .calculateLayout({
+          message: previewTyped.message,
+          recipientName: previewTyped.name,
+          eventNumber: localData.eventNumber,
+          theme: localData.characterTheme,
+          hobbies: localData.hobbies,
+          agencyId,
+          style: localData.messageStyle,
+          messageColorway: localData.messageColorway,
+          nameColorway: localData.nameColorway,
+        })
+        .then(layout => live && setLiveLayout(layout))
+        .catch(() => {});
+    }, 250);
+    return () => { live = false; clearTimeout(t); };
+  }, [previewTyped.message, previewTyped.name, localData.eventNumber, localData.characterTheme, localData.hobbies, localData.messageStyle, localData.messageColorway, localData.nameColorway, agencyId]);
 
-  const validationData = { ...localData };
-  const validationResult = displaySchema.safeParse(validationData);
-  const isValid = validationResult.success;
-  
+  const shownLayout = (localData.holdId && layoutCalculation) || liveLayout;
+  const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
+  const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
+  const canReserve = Boolean(typedMessage.trim() && localData.recipientName.trim()) && !previewLoading;
+
+  // Keep the design when going back to change the date
+  const goBack = () => {
+    updateFormData({ display: localData });
+    prevStep();
+  };
+
+  const selectClass = (hasError?: boolean) => cn(
+    'h-12 w-full rounded-control border bg-surface px-3 text-copy text-fg focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
+    hasError ? 'border-danger' : 'border-line-strong',
+  );
+
+  const colorPicker = (field: 'messageColorway' | 'nameColorway', label: string) => (
+    <fieldset className="grid gap-2">
+      <legend className="text-fine font-bold">{label}</legend>
+      <div className="flex flex-wrap gap-2">
+        {availableColorways.map((colorway) => {
+          const checked = localData[field] === colorway;
+          return (
+            <label
+              key={colorway}
+              className={cn(
+                'flex h-11 cursor-pointer items-center gap-2 rounded-control border px-3 text-fine font-semibold has-[:focus-visible]:shadow-(--focus-ring)',
+                checked ? 'border-action bg-action/10' : 'border-line-strong bg-surface hover:bg-surface-sunken',
+              )}
+            >
+              <input type="radio" name={field} value={colorway} checked={checked} onChange={(e) => handleInputChange(field, e.target.value)} className="sr-only" />
+              {/* The sign's own color name, e.g. "gold" */}
+              <span aria-hidden className="size-5 shrink-0 rounded-full border border-line-strong" style={{ backgroundColor: colorway.toLowerCase() }} />
+              {colorway}
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
 
   return (
-    <motion.div
-      initial={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: custom === 'backward' ? -300 : 300 } // Mobile: slide from left/right
-          : { opacity: 0, x: 20 } // Desktop: fade with slight slide
-      }
-      animate={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: 0 } // Mobile: slide to center
-          : { opacity: 1, x: 0 } // Desktop: fade in
-      }
-      exit={
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? { x: custom === 'backward' ? 300 : -300 } // Mobile: slide out opposite direction
-          : { opacity: 0, x: -20 } // Desktop: fade out
-      }
-      transition={{ 
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        duration: 0.4
-      }}
-      className="max-w-6xl mx-auto px-4 py-8"
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-h2 text-neutral-900 mb-4">Customize Your Display</h1>
-        <p className="text-body text-neutral-700">
-          Design your perfect yard display with our collection of signs and themes.
-        </p>
-      </div>
+    <StepMotion custom={custom}>
+      <StepIntro>Pick a message, add their name, and watch the signs go up. Reserve them when it looks right.</StepIntro>
 
-      {/* Row 1: Preview (full width - dates and price live in Event Details) */}
-      <div className="mb-6">
-        <div>
-          {/* Preview Area */}
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-            <h3 className="text-h5 text-neutral-900 mb-4 flex items-center">
-              Preview
-              {previewLoading && (
-                <Loader2 className="w-4 h-4 ml-2 animate-spin text-primary" />
-              )}
-            </h3>
-            
-            {previewError ? (
-              <div className="mb-4">
-                <div className="aspect-[4/2] bg-red-50 border-2 border-red-200 rounded-lg flex items-center justify-center mb-2">
-                  <div className="text-center p-4">
-                    <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                    <p className="text-body-small text-red-700">{previewError}</p>
-                    {shortages.length > 0 && (
-                      <ul className="text-body-small text-red-700 mt-2">
-                        {shortages.map(item => (
-                          <li key={item.name}>{item.name}: need {item.requested}, {item.available} free</li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-                {layoutCalculation && (
-                  <div className="text-xs text-neutral-500 text-center">
-                    Showing debug layout - Zone 3 fill: {Math.round((layoutCalculation.zone3.fillPercentage || 0) * 100)}%
-                  </div>
+      <section className="grid gap-3">
+        <div className="relative overflow-hidden rounded-sheet border border-line bg-surface">
+          {shownLayout ? (
+            <BookingYardPreview layout={shownLayout} typed={previewTyped} className="block w-full" />
+          ) : (
+            <div className="aspect-[19/10] animate-pulse bg-surface-sunken" aria-hidden />
+          )}
+          {isExample && (
+            <span className="absolute left-3 top-3 rounded-control bg-surface/90 px-2 py-1 text-fine font-bold text-fg-muted">Example</span>
+          )}
+        </div>
+
+        <div aria-live="polite" className="grid gap-3">
+          {previewError ? (
+            <div className="flex gap-3 rounded-card border border-danger/30 bg-danger-soft p-4 text-danger" role="alert">
+              <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden />
+              <div className="grid gap-1 text-fine">
+                <p className="font-bold">{previewError}</p>
+                {shortages.length > 0 && (
+                  <ul className="grid gap-0.5">
+                    {shortages.map(item => (
+                      <li key={item.name}>{item.name}: need {item.requested}, {item.available} free on your dates</li>
+                    ))}
+                  </ul>
                 )}
               </div>
-            ) : null}
-            
-            {layoutCalculation ? (
-              <div className="mb-4">
-                <DisplayGrid layout={layoutCalculation} className="enhanced-preview" />
-              </div>
-            ) : (
-              <div 
-                className="aspect-[4/2] border-2 border-dashed border-neutral-300 rounded-lg relative overflow-hidden mb-4"
-                style={{
-                  backgroundImage: 'url(/preview-front-lawn.png)',
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'bottom',
-                  backgroundRepeat: 'no-repeat',
-                }}
-              >
-                {/* Static Placeholder Display */}
-                <div className="flex flex-col items-center justify-end w-full h-full px-6 pb-8 pt-4">
-                  {/* Top Row: "YOUR MESSAGE" */}
-                  <div className="flex items-center justify-center gap-0 mb-3">
-                    {['Y', 'O', 'U', 'R', ' ', 'M', 'E', 'S', 'S', 'A', 'G', 'E'].map((char, index) => (
-                      char === ' ' ? (
-                        <div key={index} className="w-2"></div>
-                      ) : (
-                        <LetterStake
-                          key={index}
-                          character={char}
-                          style={{
-                            dev: {
-                              width: 'clamp(1rem, 2.5vw, 1.5rem)',
-                              height: 'clamp(1rem, 2.5vw, 1.5rem)'
-                            }
-                          }}
-                          className="relative z-10"
-                        />
-                      )
-                    ))}
-                  </div>
-                  
-                  {/* Bottom Row: "HERE" */}
-                  <div className="flex items-center justify-center gap-0">
-                    {['H', 'E', 'R', 'E'].map((char, index) => (
-                      <LetterStake
-                        key={index}
-                        character={char}
-                        style={{
-                          dev: {
-                            width: 'clamp(1rem, 2.5vw, 1.5rem)',
-                            height: 'clamp(1rem, 2.5vw, 1.5rem)'
-                          }
-                        }}
-                        className="relative z-10"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <Button 
-              className="w-full mb-2 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard" 
-              onClick={generateLayoutPreview}
-              disabled={previewLoading || !localData.eventMessage || !localData.recipientName}
-            >
-              {previewLoading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : null}
-              {layoutCalculation ? 'Regenerate Layout' : 'Generate Layout'}
+            </div>
+          ) : localData.holdId ? (
+            <p className="flex items-center gap-2 rounded-card bg-positive-soft p-4 text-fine font-bold text-positive">
+              <CheckCircle2 className="size-5 shrink-0" aria-hidden />
+              Your signs are reserved for your dates. We hold them for an hour while you finish booking.
+            </p>
+          ) : null}
+
+          {!localData.holdId && (
+            <Button onClick={generateLayoutPreview} disabled={!canReserve} loading={previewLoading} className="w-full sm:w-auto sm:justify-self-start sm:px-8">
+              Reserve these signs
             </Button>
-            
-            {layoutCalculation && layoutCalculation.meetsMinimumFill && localData.holdId && (
-              <p className="text-body-small text-green-700 text-center flex items-center justify-center">
-                <CheckCircle2 className="w-3 h-3 mr-1" />
-                Layout generated & signs reserved (held while you book; released after 1 hour idle)
-              </p>
-            )}
-            
-            {!localData.holdId && (
-              <p className="text-body-small text-orange-700 text-center flex items-center justify-center mt-2">
-                <AlertCircle className="w-3 h-3 mr-1" />
-                Generate your layout to continue to payment
-              </p>
-            )}
-          </div>
+          )}
+          {!localData.holdId && !canReserve && !previewLoading && (
+            <p className="text-fine text-fg-muted">Choose a message and type a name to reserve your signs.</p>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Row 2: Form Fields (span 2 cols) + Options */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Form Fields - Spans 2 columns */}
-        <div className="lg:col-span-2">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard space-y-6">
-          {/* Event Info Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Event Message */}
-            <div>
-              <label htmlFor="eventMessage" className="text-label text-neutral-700 mb-2 block">
-                Event Message
-              </label>
-              <select
-                id="eventMessage"
-                value={localData.eventMessage}
-                onChange={(e) => handleInputChange('eventMessage', e.target.value)}
-                className={`
-                  w-full px-4 py-3 border-2 rounded-lg transition-colors focus:outline-none
-                  ${
-                    errors.eventMessage
-                      ? 'border-error focus:border-error'
-                      : 'border-neutral-300 focus:border-primary'
-                  }
-                `}
-              >
-                <option value="">Select an event message</option>
-                {eventMessages.map((messageConfig) => (
-                  <option key={messageConfig.message} value={messageConfig.message}>
-                    {messageConfig.message}
-                  </option>
-                ))}
-              </select>
-              {localData.eventMessage === 'Custom Message' && (
-                <div className="mt-3">
-                  <Input
-                    value={localData.customMessage || ''}
-                    onChange={(e) => handleInputChange('customMessage', e.target.value)}
-                    placeholder="Enter your custom message"
-                    className={errors.customMessage ? 'border-error' : ''}
-                  />
-                </div>
-              )}
-              {errors.eventMessage && (
-                <p className="text-body-small text-error-red mt-1">{errors.eventMessage}</p>
-              )}
-            </div>
-            
-            {/* Event Number - Conditional based on selected message */}
-            {(() => {
-              const selectedMessageConfig = eventMessages.find(config => config.message === localData.eventMessage);
-              const showNumberField = selectedMessageConfig?.supportsNumber || localData.eventMessage === 'Custom Message';
-              
-              if (!showNumberField) return <div></div>; // Empty div to maintain grid
-              
-              return (
-                <div>
-                  <label htmlFor="eventNumber" className="text-label text-neutral-700 mb-2 block">
-                    {selectedMessageConfig?.numberLabel || 'Number (Optional)'}
-                  </label>
-                  <Input
-                    id="eventNumber"
-                    type="number"
-                    value={localData.eventNumber || ''}
-                    onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
-                    placeholder={selectedMessageConfig?.numberPlaceholder || 'Enter a number'}
-                    min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
-                    max={selectedMessageConfig?.numberType === 'year' ? 2030 : 100}
-                  />
-                </div>
-              );
-            })()
-            }
-          </div>
-
-          {/* Recipient Name - Full Width */}
-          <div>
-            <label htmlFor="recipientName" className="text-label text-neutral-700 mb-2 block">
-              Recipient Name
-            </label>
-            <Input
-              id="recipientName"
-              type="text"
-              value={localData.recipientName}
-              onChange={(e) => handleInputChange('recipientName', e.target.value)}
-              placeholder="Who is this celebration for?"
-              className={errors.recipientName ? 'border-error' : ''}
-            />
-            {errors.recipientName && (
-              <p className="text-body-small text-error-red mt-1">{errors.recipientName}</p>
-            )}
-          </div>
-
-          {/* Message & Name Styles */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Message Style
-              </label>
-              <div className="space-y-2">
-                {availableStyles.map((style) => (
-                  <label
-                    key={style}
-                    className={`
-                      flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                      ${
-                        localData.messageStyle === style
-                          ? 'border-primary bg-secondary-pale'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="messageStyle"
-                      value={style}
-                      checked={localData.messageStyle === style}
-                      onChange={(e) => handleInputChange('messageStyle', e.target.value)}
-                      className="sr-only"
-                    />
-                    <span className="text-body-small font-medium">{style}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.messageStyle && (
-                <p className="text-body-small text-error-red mt-1">{errors.messageStyle}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Name Style
-              </label>
-              <div className="space-y-2">
-                {availableStyles.map((style) => (
-                  <label
-                    key={style}
-                    className={`
-                      flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                      ${
-                        localData.nameStyle === style
-                          ? 'border-primary bg-secondary-pale'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="nameStyle"
-                      value={style}
-                      checked={localData.nameStyle === style}
-                      onChange={(e) => handleInputChange('nameStyle', e.target.value)}
-                      className="sr-only"
-                    />
-                    <span className="text-body-small font-medium">{style}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.nameStyle && (
-                <p className="text-body-small text-error-red mt-1">{errors.nameStyle}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Message & Name Colorways */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Message Color
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {availableColorways.map((colorway) => (
-                  <label
-                    key={colorway}
-                    className={`
-                      flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                      ${
-                        localData.messageColorway === colorway
-                          ? 'border-primary bg-secondary-pale'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="messageColorway"
-                      value={colorway}
-                      checked={localData.messageColorway === colorway}
-                      onChange={(e) => handleInputChange('messageColorway', e.target.value)}
-                      className="sr-only"
-                    />
-                    <span
-                      className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
-                      style={{ backgroundColor: colorway.toLowerCase() }}
-                    />
-                    <span className="text-body-small font-medium">{colorway}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.messageColorway && (
-                <p className="text-body-small text-error-red mt-1">{errors.messageColorway}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-label text-neutral-700 mb-3 block">
-                Name Color
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {availableColorways.map((colorway) => (
-                  <label
-                    key={colorway}
-                    className={`
-                      flex items-center gap-2 p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                      ${
-                        localData.nameColorway === colorway
-                          ? 'border-primary bg-secondary-pale'
-                          : 'border-neutral-200 hover:border-neutral-300'
-                      }
-                    `}
-                  >
-                    <input
-                      type="radio"
-                      name="nameColorway"
-                      value={colorway}
-                      checked={localData.nameColorway === colorway}
-                      onChange={(e) => handleInputChange('nameColorway', e.target.value)}
-                      className="sr-only"
-                    />
-                    <span
-                      className="w-4 h-4 rounded-full border border-neutral-300 flex-shrink-0"
-                      style={{ backgroundColor: colorway.toLowerCase() }}
-                    />
-                    <span className="text-body-small font-medium">{colorway}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.nameColorway && (
-                <p className="text-body-small text-error-red mt-1">{errors.nameColorway}</p>
-              )}
-            </div>
-          </div>
-          </div>
-        </div>
-
-        {/* Options - Right column */}
-        <div className="lg:col-span-1">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard space-y-6">
-          {/* Character Theme */}
-          <div>
-            <label htmlFor="characterTheme" className="text-label text-neutral-700 mb-2 block">
-              Character Theme (Optional)
-            </label>
+      <StepSection title="The message">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field id="eventMessage" label="Message" error={errors.eventMessage || undefined}>
             <select
-              id="characterTheme"
-              value={localData.characterTheme || ''}
-              onChange={(e) => handleInputChange('characterTheme', e.target.value || '')}
-              className="w-full px-4 py-3 border-2 border-neutral-300 rounded-lg focus:border-primary focus:outline-none transition-colors"
+              id="eventMessage"
+              value={localData.eventMessage}
+              onChange={(e) => handleInputChange('eventMessage', e.target.value)}
+              className={selectClass(Boolean(errors.eventMessage))}
             >
-              <option value="">No theme</option>
-              {themes.map((theme) => (
-                <option key={theme} value={theme}>
-                  {theme}
+              <option value="">Choose a message</option>
+              {eventMessages.map((messageConfig) => (
+                <option key={messageConfig.message} value={messageConfig.message}>
+                  {messageConfig.message}
                 </option>
               ))}
             </select>
-          </div>
+          </Field>
+          {showNumberField && (
+            <Field id="eventNumber" label={selectedMessageConfig?.numberLabel || 'Number (optional)'}>
+              <Input
+                id="eventNumber"
+                type="number"
+                inputMode="numeric"
+                value={localData.eventNumber || ''}
+                onChange={(e) => handleInputChange('eventNumber', e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder={selectedMessageConfig?.numberPlaceholder || ''}
+                min={selectedMessageConfig?.numberType === 'year' ? 1900 : 1}
+                max={selectedMessageConfig?.numberType === 'year' ? 2100 : 100}
+              />
+            </Field>
+          )}
+        </div>
+        {localData.eventMessage === 'Custom Message' && (
+          <Field id="customMessage" label="Your message" error={errors.customMessage || undefined}>
+            <Input
+              id="customMessage"
+              value={localData.customMessage || ''}
+              onChange={(e) => handleInputChange('customMessage', e.target.value)}
+              placeholder="WELCOME HOME"
+              className={errors.customMessage ? 'border-danger' : ''}
+            />
+          </Field>
+        )}
+      </StepSection>
 
-          {/* Hobbies/Interests */}
-          <div>
-            <label className="text-label text-neutral-700 mb-3 block">
-              Hobbies/Interests (Optional)
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {hobbies.map((hobby) => (
-                <label
+      <StepSection title="Who are we celebrating?">
+        <Field id="recipientName" label="Their name" error={errors.recipientName || undefined}>
+          <Input
+            id="recipientName"
+            type="text"
+            value={localData.recipientName}
+            onChange={(e) => handleInputChange('recipientName', e.target.value)}
+            autoComplete="off"
+            className={errors.recipientName ? 'border-danger' : ''}
+          />
+        </Field>
+      </StepSection>
+
+      <StepSection title="Colors" hint={availableStyles.length > 1 ? 'Sign style and colors for each line.' : undefined}>
+        {availableStyles.length > 1 && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {(['messageStyle', 'nameStyle'] as const).map(field => (
+              <Field key={field} id={field} label={field === 'messageStyle' ? 'Message style' : 'Name style'} error={errors[field] || undefined}>
+                <select id={field} value={localData[field]} onChange={(e) => handleInputChange(field, e.target.value)} className={selectClass()}>
+                  {availableStyles.map(style => <option key={style} value={style}>{style}</option>)}
+                </select>
+              </Field>
+            ))}
+          </div>
+        )}
+        {colorPicker('messageColorway', 'Message color')}
+        {colorPicker('nameColorway', 'Name color')}
+      </StepSection>
+
+      <StepSection title="Extras (optional)" hint="Themed signs on either side of the name.">
+        <Field id="characterTheme" label="Theme">
+          <select
+            id="characterTheme"
+            value={localData.characterTheme || ''}
+            onChange={(e) => handleInputChange('characterTheme', e.target.value || '')}
+            className={selectClass()}
+          >
+            <option value="">No theme</option>
+            {themes.map((theme) => (
+              <option key={theme} value={theme}>{theme}</option>
+            ))}
+          </select>
+        </Field>
+        <fieldset className="grid gap-2">
+          <legend className="text-fine font-bold">Hobbies and interests</legend>
+          <div className="flex flex-wrap gap-2">
+            {hobbies.map((hobby) => {
+              const on = localData.hobbies?.includes(hobby) || false;
+              return (
+                <button
                   key={hobby}
-                  className={`
-                    flex items-center p-2 border-2 rounded-lg cursor-pointer transition-colors text-sm
-                    ${
-                      localData.hobbies?.includes(hobby)
-                        ? 'border-primary bg-secondary-pale text-primary'
-                        : 'border-neutral-200 hover:border-neutral-300'
-                    }
-                  `}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => handleHobbyToggle(hobby)}
+                  className={cn(
+                    'h-11 rounded-control border px-3 text-fine font-semibold focus-visible:outline-none focus-visible:shadow-(--focus-ring)',
+                    on ? 'border-action bg-action/10 text-fg' : 'border-line-strong bg-surface text-fg hover:bg-surface-sunken',
+                  )}
                 >
-                  <input
-                    type="checkbox"
-                    checked={localData.hobbies?.includes(hobby) || false}
-                    onChange={() => handleHobbyToggle(hobby)}
-                    className="sr-only"
-                  />
-                  <span className="text-body-small font-medium">{hobby}</span>
-                </label>
-              ))}
-            </div>
+                  {hobby}
+                </button>
+              );
+            })}
           </div>
-          </div>
-        </div>
-      </div>
+        </fieldset>
+      </StepSection>
 
-      {/* Hold ID Error Message */}
-      {!isValid && !localData.holdId && (
-        <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <div className="flex items-start space-x-3">
-            <AlertCircle className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="text-body font-medium text-orange-800 mb-1">Layout Generation Required</h4>
-              <p className="text-body-small text-orange-700">
-                You must generate your display layout before continuing. Click the "Generate Layout" button above to reserve your signs and see your preview.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Navigation Buttons */}
-      <div className="mt-8 flex gap-4 justify-between">
-        <Button
-          onClick={prevStep}
-          variant="secondary"
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Back
-        </Button>
-        <Button
-          onClick={() => {
-            if (!isValid) {
-              return;
-            }
-            validateAndContinue();
-          }}
-          disabled={!isValid}
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Continue to Payment
-        </Button>
-      </div>
-    </motion.div>
+      <StepNav onBack={goBack} onNext={validateAndContinue} nextDisabled={!isValid} />
+    </StepMotion>
   );
 }

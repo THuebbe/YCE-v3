@@ -31,25 +31,25 @@ export class BookingErrorBoundary extends React.Component<ErrorBoundaryProps, Er
     if (this.state.hasError) {
       return this.props.fallback || (
         <div className="max-w-2xl mx-auto px-4 py-8">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-red-800 mb-2">
+          <div className="bg-danger-soft border border-danger/30 rounded-card p-6">
+            <h2 className="text-lg font-semibold text-danger mb-2">
               Something went wrong
             </h2>
-            <p className="text-red-600 mb-4">
+            <p className="text-danger mb-4">
               There was an error loading this step of the booking form.
             </p>
             <button
               onClick={() => this.setState({ hasError: false })}
-              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              className="h-11 rounded-control bg-danger px-4 font-bold text-on-strong hover:opacity-90"
             >
               Try Again
             </button>
             {process.env.NODE_ENV === 'development' && (
               <details className="mt-4">
-                <summary className="text-sm text-red-700 cursor-pointer">
+                <summary className="text-fine text-danger cursor-pointer">
                   Error Details (Dev Mode)
                 </summary>
-                <pre className="mt-2 text-xs text-red-600 overflow-auto">
+                <pre className="mt-2 text-fine text-danger overflow-auto">
                   {this.state.error?.stack}
                 </pre>
               </details>

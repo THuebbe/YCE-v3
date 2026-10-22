@@ -7,18 +7,18 @@ import { X } from "../ui/icons";
 import { Button } from "../ui/button";
 
 const modalOverlayVariants = cva(
-  "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+  "fixed inset-0 z-50 bg-fg/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
 );
 
 const modalContentVariants = cva(
-  "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background-white p-6 shadow-large duration-standard data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
+  "fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 rounded-sheet border border-line bg-surface p-6 shadow-overlay duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
   {
     variants: {
       size: {
-        sm: "max-w-lg rounded-xl",
-        default: "max-w-2xl rounded-xl",
-        lg: "max-w-4xl rounded-xl",
-        xl: "max-w-6xl rounded-xl",
+        sm: "max-w-lg",
+        default: "max-w-2xl",
+        lg: "max-w-4xl",
+        xl: "max-w-6xl",
         full: "max-w-screen max-h-screen rounded-none",
       },
     },
@@ -116,12 +116,12 @@ const Modal = React.forwardRef<HTMLDivElement, ModalProps>(
             <div className="flex items-center justify-between">
               <div>
                 {title && (
-                  <h2 id="modal-title" className="text-h3 font-semibold text-neutral-900">
+                  <h2 id="modal-title" className="font-display text-heading font-semibold text-fg">
                     {title}
                   </h2>
                 )}
                 {description && (
-                  <p id="modal-description" className="text-body text-neutral-600 mt-1">
+                  <p id="modal-description" className="mt-1 text-copy text-fg-muted">
                     {description}
                   </p>
                 )}
@@ -171,7 +171,7 @@ const ModalTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-h3 font-semibold text-neutral-900", className)}
+    className={cn("font-display text-heading font-semibold text-fg", className)}
     {...props}
   />
 ));
@@ -183,7 +183,7 @@ const ModalDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-body text-neutral-600", className)}
+    className={cn("text-copy text-fg-muted", className)}
     {...props}
   />
 ));
@@ -207,7 +207,7 @@ const ModalFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t border-neutral-200", className)}
+    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:gap-2 gap-2 pt-4 border-t border-line", className)}
     {...props}
   />
 ));

@@ -1,319 +1,70 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import React from 'react';
+import { cn } from '@/lib/utils';
+import type { WizardStep } from '../types';
 
 interface ProgressIndicatorProps {
-	currentStep: number;
-	totalSteps: number;
-	furthestStep: number;
-	onStepClick?: (step: number) => void;
-	steps?: Array<{
-		id: number;
-		name: string;
-		title: string;
-	}>;
+  currentStep: number;
+  furthestStep: number;
+  /** Steps that count toward progress (not the confirmation page) */
+  steps: WizardStep[];
+  onStepClick: (step: number) => void;
 }
 
-const defaultSteps = [
-	{ id: 1, name: "contact", title: "Contact" },
-	{ id: 2, name: "event", title: "Event Details" },
-	{ id: 3, name: "customize", title: "Customize" },
-	{ id: 4, name: "payment", title: "Payment" },
-	{ id: 5, name: "review", title: "Review" },
-	{ id: 6, name: "confirm", title: "Confirm" },
-];
+/**
+ * Mobile first: "Step 2 of 5" and the step name, over a segmented bar.
+ * Segments for steps already reached are buttons back to that step; names
+ * show under the bar from tablet width up.
+ */
+export function ProgressIndicator({ currentStep, furthestStep, steps, onStepClick }: ProgressIndicatorProps) {
+  const index = steps.findIndex(s => s.id === currentStep);
+  const current = steps[index];
+  if (!current) return null;
 
-export function ProgressIndicator({
-	currentStep,
-	totalSteps,
-	furthestStep,
-	onStepClick,
-	steps = defaultSteps,
-}: ProgressIndicatorProps) {
-	const [isSnappingBack, setIsSnappingBack] = useState(false);
-	const [snapBackDirection, setSnapBackDirection] = useState<'left' | 'right' | null>(null);
-	const [isDragging, setIsDragging] = useState(false);
-	// Phone strip scrolls sideways: keep the current step in view
-	const mobileStripRef = useRef<HTMLDivElement>(null);
-	useEffect(() => {
-		const strip = mobileStripRef.current;
-		const current = strip?.querySelector<HTMLElement>(`[data-step="${currentStep}"]`);
-		if (!strip || !current) return;
-		strip.scrollTo({ left: current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2, behavior: "smooth" });
-	}, [currentStep]);
-	return (
-		<div className="w-full bg-background-white border-b border-neutral-200 px-4 py-6 select-none">
-			<div className="max-w-4xl mx-auto">
-				{/* Desktop Progress Bar */}
-				<div className="hidden md:block">
-					<div className="flex items-center justify-between">
-						{steps.slice(0, totalSteps).map((step, index) => (
-							<div
-								key={step.id}
-								className="flex items-center flex-1"
-							>
-								{/* Step Circle */}
-								<div className="relative flex items-center">
-									<motion.div
-										className={`
-                      w-10 h-10 rounded-full border-2 flex items-center justify-center
-                      transition-all duration-200 select-none
-                      ${
-												onStepClick && step.id <= furthestStep
-													? "cursor-pointer hover:shadow-medium"
-													: ""
-											}
-                      ${
-												step.id > furthestStep
-													? "cursor-not-allowed opacity-50"
-													: ""
-											}
-                      ${
-												currentStep > step.id
-													? "bg-primary border-primary text-white"
-													: currentStep === step.id
-													? "bg-primary border-primary text-white animate-pulse"
-													: step.id > furthestStep
-													? "bg-neutral-100 border-neutral-200 text-neutral-400"
-													: "bg-background-white border-neutral-300 text-neutral-500"
-											}
-                    `}
-										initial={{ scale: 0.8 }}
-										animate={{ scale: 1 }}
-										transition={{ duration: 0.2 }}
-										onClick={() => onStepClick?.(step.id)}
-										role={onStepClick ? "button" : undefined}
-										tabIndex={onStepClick ? 0 : undefined}
-										onKeyDown={(e) => {
-											if (onStepClick && (e.key === "Enter" || e.key === " ")) {
-												e.preventDefault();
-												onStepClick(step.id);
-											}
-										}}
-									>
-										{currentStep > step.id ? (
-											<Check className="w-5 h-5" />
-										) : (
-											<span className="text-body-small font-medium">
-												{step.id}
-											</span>
-										)}
-									</motion.div>
-
-									{/* Step Label */}
-									<div className="absolute top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-										<span
-											className={`
-                        text-body-small font-medium select-none
-                        ${
-													onStepClick && step.id <= furthestStep
-														? "cursor-pointer hover:underline"
-														: ""
-												}
-                        ${
-													step.id > furthestStep
-														? "cursor-not-allowed opacity-50"
-														: ""
-												}
-                        ${
-													currentStep >= step.id
-														? "text-primary"
-														: step.id > furthestStep
-														? "text-neutral-400"
-														: "text-neutral-500"
-												}
-                      `}
-											onClick={() => onStepClick?.(step.id)}
-											role={onStepClick ? "button" : undefined}
-											tabIndex={onStepClick ? 0 : undefined}
-											onKeyDown={(e) => {
-												if (
-													onStepClick &&
-													(e.key === "Enter" || e.key === " ")
-												) {
-													e.preventDefault();
-													onStepClick(step.id);
-												}
-											}}
-										>
-											{step.title}
-										</span>
-									</div>
-								</div>
-
-								{/* Connection Line */}
-								{index < totalSteps - 1 && (
-									<div className="flex-1 mx-4 select-none">
-										<div
-											className={`
-                        h-0.5 transition-colors duration-300 select-none
-                        ${
-													currentStep > step.id
-														? "bg-primary"
-														: "bg-neutral-200"
-												}
-                      `}
-										/>
-									</div>
-								)}
-							</div>
-						))}
-					</div>
-				</div>
-
-				{/* Mobile Horizontal Scrolling Progress Bar */}
-				<div className="md:hidden">
-					<div ref={mobileStripRef} className="relative overflow-x-auto">
-						{/* Horizontal scrolling container with same design as desktop */}
-						<div className="flex items-center justify-start gap-6 px-4 min-w-max">
-							{steps.slice(0, totalSteps).map((step, index) => (
-								<div
-									key={step.id}
-									data-step={step.id}
-									className="flex items-center flex-shrink-0"
-								>
-									{/* Step Circle - Same as desktop */}
-									<div className="relative flex items-center">
-										<motion.div
-											className={`
-												w-10 h-10 rounded-full border-2 flex items-center justify-center
-												transition-all duration-200 select-none
-												${
-													onStepClick && step.id <= furthestStep
-														? "cursor-pointer hover:shadow-medium"
-														: ""
-												}
-												${
-													step.id > furthestStep
-														? "cursor-not-allowed opacity-50"
-														: ""
-												}
-												${
-													currentStep > step.id
-														? "bg-primary border-primary text-white"
-														: currentStep === step.id
-														? "bg-primary border-primary text-white animate-pulse"
-														: step.id > furthestStep
-														? "bg-neutral-100 border-neutral-200 text-neutral-400"
-														: "bg-background-white border-neutral-300 text-neutral-500"
-												}
-											`}
-											initial={{ scale: 0.8 }}
-											animate={{ scale: 1 }}
-											transition={{ duration: 0.2 }}
-											onClick={() => onStepClick?.(step.id)}
-											role={onStepClick ? "button" : undefined}
-											tabIndex={onStepClick ? 0 : undefined}
-											onKeyDown={(e) => {
-												if (onStepClick && (e.key === "Enter" || e.key === " ")) {
-													e.preventDefault();
-													onStepClick(step.id);
-												}
-											}}
-										>
-											{currentStep > step.id ? (
-												<Check className="w-5 h-5" />
-											) : (
-												<span className="text-body-small font-medium">
-													{step.id}
-												</span>
-											)}
-										</motion.div>
-
-										{/* Step Label - Below circle on mobile */}
-										<div className="absolute top-12 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-											<span
-												className={`
-													text-xs font-medium select-none text-center
-													${
-														onStepClick && step.id <= furthestStep
-															? "cursor-pointer hover:underline"
-															: ""
-													}
-													${
-														step.id > furthestStep
-															? "cursor-not-allowed opacity-50"
-															: ""
-													}
-													${
-														currentStep >= step.id
-															? "text-primary"
-															: step.id > furthestStep
-															? "text-neutral-400"
-															: "text-neutral-500"
-													}
-												`}
-												onClick={() => onStepClick?.(step.id)}
-												role={onStepClick ? "button" : undefined}
-												tabIndex={onStepClick ? 0 : undefined}
-												onKeyDown={(e) => {
-													if (
-														onStepClick &&
-														(e.key === "Enter" || e.key === " ")
-													) {
-														e.preventDefault();
-														onStepClick(step.id);
-													}
-												}}
-											>
-												{step.title}
-											</span>
-										</div>
-									</div>
-
-									{/* Connection Line - Same as desktop but horizontal */}
-									{index < totalSteps - 1 && (
-										<div className="flex-shrink-0 mx-4">
-											<div
-												className={`
-													h-0.5 w-8 transition-colors duration-300 select-none
-													${
-														currentStep > step.id
-															? "bg-primary"
-															: "bg-neutral-200"
-													}
-												`}
-											/>
-										</div>
-									)}
-								</div>
-							))}
-						</div>
-					</div>
-					
-					{/* Progress indicator */}
-					<div className="text-center mt-4">
-						<p className="text-xs text-neutral-500">
-							Step {currentStep} of {totalSteps}
-							{steps[currentStep - 1] ? ` • ${steps[currentStep - 1].title}` : ""}
-						</p>
-					</div>
-				</div>
-
-				{/* Progress Percentage Bar */}
-				<div className="mt-6 md:mt-8">
-					<div className="w-full bg-neutral-100 rounded-full h-1">
-						<motion.div
-							className="bg-primary h-1 rounded-full"
-							initial={{ width: 0 }}
-							animate={{ width: `${(currentStep / totalSteps) * 100}%` }}
-							transition={{ duration: 0.3, ease: "easeOut" }}
-						/>
-					</div>
-
-					<div className="flex justify-between mt-2">
-						<span className="text-body-small text-neutral-500">
-							{Math.round((currentStep / totalSteps) * 100)}% Complete
-						</span>
-						<span className="text-body-small text-neutral-500">
-							{totalSteps - currentStep} step
-							{totalSteps - currentStep !== 1 ? "s" : ""} remaining
-						</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  return (
+    <nav aria-label="Booking progress" className="mx-auto w-full max-w-4xl px-4 pt-6 sm:px-6">
+      <p className="text-fine font-bold text-fg-muted tabular-nums">
+        Step {index + 1} of {steps.length}
+      </p>
+      <p className="font-display text-heading font-semibold text-fg">{current.title}</p>
+      <ol className="mt-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
+        {steps.map((step, i) => {
+          const reached = step.id <= furthestStep;
+          const done = step.id < currentStep;
+          const here = step.id === currentStep;
+          const bar = (
+            <span
+              className={cn(
+                'block h-2 rounded-control transition-colors',
+                here ? 'bg-action' : done || reached ? 'bg-brand' : 'bg-line',
+              )}
+            />
+          );
+          return (
+            <li key={step.id} className="min-w-0">
+              {reached && !here ? (
+                <button
+                  type="button"
+                  onClick={() => onStepClick(step.id)}
+                  className="group block w-full py-2 text-left focus-visible:outline-none"
+                  aria-label={`Back to step ${i + 1}: ${step.title}`}
+                >
+                  <span className="block rounded-control group-focus-visible:shadow-(--focus-ring)">{bar}</span>
+                  <span className="mt-2 hidden truncate text-fine text-fg-muted group-hover:text-fg md:block">{step.title}</span>
+                </button>
+              ) : (
+                <span className="block py-2" aria-current={here ? 'step' : undefined}>
+                  {bar}
+                  <span className={cn('mt-2 hidden truncate text-fine md:block', here ? 'font-bold text-fg' : 'text-fg-muted')}>
+                    {step.title}
+                  </span>
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
 }

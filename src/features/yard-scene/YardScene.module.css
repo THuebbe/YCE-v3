@@ -21,3 +21,9 @@
 @media (prefers-reduced-motion: reduce) {
   .slot { transition: none; }
 }
+
+/* While the booking preview is copied to a picture (review step), show
+   every sign in place: a copy taken mid-animation can catch them mid-fall */
+:global([data-capturing]) .drop {
+  animation: none;
+}

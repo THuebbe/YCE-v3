@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
 import { createPaymentSchema, PaymentFormData } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, AlertTriangle, CreditCard, Smartphone, DollarSign } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CreditCard, Smartphone, DollarSign, Lock } from 'lucide-react';
+import { ChoiceCard, StepIntro, StepMotion, StepNav, StepSection, money } from '../step-kit';
 
 // Payment method components
 import { CreditCardForm } from '../payment-methods/CreditCardForm';
@@ -23,7 +23,7 @@ function withoutCardData(fields: Record<string, any>) {
   return rest;
 }
 
-export function PaymentStep() {
+export function PaymentStep({ custom }: { custom?: string }) {
   const { 
     formData, 
     updateFormData, 
@@ -32,6 +32,7 @@ export function PaymentStep() {
     paymentMethods,
     loadPaymentMethods,
     agencyId,
+    agency,
     pricing
   } = useWizard();
   
@@ -290,274 +291,136 @@ export function PaymentStep() {
       
       default:
         return (
-          <div className="text-center text-gray-500 py-8">
-            Payment form not available for this method
-          </div>
+          <p className="py-8 text-center text-fg-muted">This payment option isn&apos;t available right now.</p>
         );
     }
   };
 
-  // Loading state
+  const extraDays = (formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0);
+  const message = formData.display?.eventMessage === 'Custom Message' ? formData.display?.customMessage : formData.display?.eventMessage;
+
+  // Loading, error and nothing-available all keep the step's frame and Back
+  const notice = (body: React.ReactNode) => (
+    <StepMotion custom={custom}>
+      <StepSection>{body}</StepSection>
+      <StepNav onBack={prevStep} hideNext />
+    </StepMotion>
+  );
+
   if (paymentMethods.isLoading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.3 }}
-        className="max-w-4xl mx-auto px-4 py-8"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-h2 text-neutral-900 mb-4">Payment Information</h1>
-          <div className="flex items-center justify-center">
-            <RefreshCw className="w-6 h-6 animate-spin mr-2" />
-            <span>Loading available payment methods...</span>
-          </div>
-        </div>
-      </motion.div>
+    return notice(
+      <p className="flex items-center gap-2 text-fg-muted" role="status">
+        <RefreshCw className="size-5 animate-spin" aria-hidden />
+        Loading payment options...
+      </p>
     );
   }
 
-  // Error state
   if (paymentMethods.error) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.3 }}
-        className="max-w-4xl mx-auto px-4 py-8"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-h2 text-neutral-900 mb-4">Payment Information</h1>
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              We couldn&apos;t load the payment options. Check your connection and try again.
-            </AlertDescription>
-          </Alert>
-          <Button className="mt-4" onClick={() => agencyId && loadPaymentMethods(agencyId)}>
-            Try again
-          </Button>
-        </div>
-      </motion.div>
+    return notice(
+      <div className="grid gap-4">
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden />
+          <AlertDescription>We couldn&apos;t load the payment options. Check your connection and try again.</AlertDescription>
+        </Alert>
+        <Button variant="secondary" className="justify-self-start" onClick={() => agencyId && loadPaymentMethods(agencyId)}>
+          Try again
+        </Button>
+      </div>
     );
   }
 
-  // No payment methods available
   if (paymentMethods.availablePaymentMethods.length === 0) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: -20 }}
-        transition={{ duration: 0.3 }}
-        className="max-w-4xl mx-auto px-4 py-8"
-      >
-        <div className="text-center mb-8">
-          <h1 className="text-h2 text-neutral-900 mb-4">Payment Information</h1>
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              No payment methods are currently available. Please contact support.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </motion.div>
+    return notice(
+      <Alert>
+        <AlertTriangle aria-hidden />
+        <AlertDescription>
+          {agency.name} isn&apos;t taking online payments right now. Please contact them to book.
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3 }}
-      className="max-w-4xl mx-auto px-4 py-8"
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-h2 text-neutral-900 mb-4">Payment Information</h1>
-        <p className="text-body text-neutral-700">
-          Select your preferred payment method to complete your yard display order.
-        </p>
-      </div>
+    <StepMotion custom={custom}>
+      <StepIntro>Nothing is charged yet. You&apos;ll see everything on the next screen before you book.</StepIntro>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Side - Payment Form */}
-        <div className="lg:col-span-2">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard space-y-6">
-            
-            {/* Payment Method Selection */}
-            <div>
-              <label className="text-label text-neutral-700 mb-4 block">
-                Payment Method
-              </label>
-              <div className="space-y-3">
-                {paymentMethods.availablePaymentMethods.map((method) => {
-                  const IconComponent = getIconComponent(method.icon);
-                  return (
-                    <label
-                      key={method.id}
-                      className={`
-                        flex items-center p-4 border-2 rounded-lg cursor-pointer transition-colors
-                        ${
-                          localData.paymentMethod === method.id
-                            ? 'border-primary bg-secondary-pale'
-                            : 'border-neutral-200 hover:border-neutral-300'
-                        }
-                      `}
-                    >
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value={method.id}
-                        checked={localData.paymentMethod === method.id}
-                        onChange={(e) => handlePaymentMethodChange(e.target.value)}
-                        className="sr-only"
-                      />
-                      <IconComponent className="w-6 h-6 text-neutral-600 mr-4" />
-                      <div className="flex-1">
-                        <div className="text-body font-medium text-neutral-900">
-                          {method.name}
-                        </div>
-                        <div className="text-body-small text-neutral-600">
-                          {method.description}
-                        </div>
-                      </div>
-                      <div
-                        className={`
-                          w-5 h-5 rounded-full border-2 flex items-center justify-center
-                          ${
-                            localData.paymentMethod === method.id
-                              ? 'border-primary'
-                              : 'border-neutral-300'
-                          }
-                        `}
-                      >
-                        {localData.paymentMethod === method.id && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                        )}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-              {errors.paymentMethod && (
-                <p className="text-body-small text-error-red mt-2">{errors.paymentMethod}</p>
-              )}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
+        <StepSection title="How would you like to pay?">
+          <div className="grid gap-2" role="radiogroup" aria-label="Payment method">
+            {paymentMethods.availablePaymentMethods.map((method) => {
+              const IconComponent = getIconComponent(method.icon);
+              return (
+                <ChoiceCard
+                  key={method.id}
+                  name="paymentMethod"
+                  value={method.id}
+                  checked={localData.paymentMethod === method.id}
+                  onChange={handlePaymentMethodChange}
+                  title={<span className="flex items-center gap-2"><IconComponent className="size-5 text-fg-muted" aria-hidden />{method.name}</span>}
+                  detail={method.description}
+                />
+              );
+            })}
+          </div>
+          {errors.paymentMethod && <p className="text-fine text-danger" role="alert">{errors.paymentMethod}</p>}
+
+          {localData.paymentMethod && <div>{renderPaymentForm()}</div>}
+
+          {errors.payment && (
+            <Alert variant="destructive">
+              <AlertTriangle aria-hidden />
+              <AlertDescription>{errors.payment}</AlertDescription>
+            </Alert>
+          )}
+
+          {stripeAccountId && localData.paymentMethod === 'card' && (
+            <p className="flex items-start gap-2 text-fine text-fg-muted">
+              <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />
+              Your card goes straight to Stripe, our payment processor. Neither {agency.name} nor we see the full number.
+            </p>
+          )}
+        </StepSection>
+
+        <StepSection title="Your booking">
+          <dl className="grid gap-2 text-fine">
+            <div className="flex justify-between gap-4">
+              <dt className="text-fg-muted">Event</dt>
+              <dd className="text-right font-semibold">{formData.event?.eventDate ? new Date(formData.event.eventDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'Not set'}</dd>
             </div>
-
-            {/* Payment Form - Only show after method selection */}
-            {localData.paymentMethod && (
-              <div>
-                {renderPaymentForm()}
+            <div className="flex justify-between gap-4">
+              <dt className="text-fg-muted">Display</dt>
+              <dd className="min-w-0 text-right font-semibold">{[message, formData.display?.recipientName].filter(Boolean).join(', ') || 'Not set'}</dd>
+            </div>
+          </dl>
+          <div className="grid gap-2 border-t border-line pt-3">
+            <div className="flex justify-between gap-4">
+              <span>Event day</span>
+              <span className="tabular-nums">{money(pricing.basePrice)}</span>
+            </div>
+            {extraDays > 0 && (
+              <div className="flex justify-between gap-4">
+                <span>{extraDays} extra day{extraDays === 1 ? '' : 's'}</span>
+                <span className="tabular-nums">{money(extraDays * pricing.extraDayPrice)}</span>
               </div>
             )}
-
-            {/* General Payment Error */}
-            {errors.payment && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{errors.payment}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Security Notice */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center mt-0.5">
-                  <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-body-small font-medium text-green-800 mb-1">
-                    Secure Payment Processing
-                  </h4>
-                  <p className="text-body-small text-green-700">
-                    Your payment information is encrypted and secure. We use industry-standard security measures to protect your data.
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
+              <span className="font-bold">Total</span>
+              <span className="font-display text-heading font-semibold tabular-nums">{money(calculateTotal())}</span>
             </div>
           </div>
-        </div>
-
-        {/* Right Side - Order Summary */}
-        <div className="space-y-6">
-          <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-            <h3 className="text-h5 text-neutral-900 mb-4">Order Summary</h3>
-            
-            {/* Event Details */}
-            <div className="space-y-3 mb-4 pb-4 border-b border-neutral-200">
-              <div className="flex justify-between text-body-small">
-                <span className="text-neutral-600">Event Date:</span>
-                <span className="text-neutral-900">
-                  {formData.event?.eventDate ? new Date(formData.event.eventDate).toLocaleDateString() : 'Not set'}
-                </span>
-              </div>
-              <div className="flex justify-between text-body-small">
-                <span className="text-neutral-600">Message:</span>
-                <span className="text-neutral-900">
-                  {formData.display?.eventMessage || 'Not set'}
-                </span>
-              </div>
-              <div className="flex justify-between text-body-small">
-                <span className="text-neutral-600">Recipient:</span>
-                <span className="text-neutral-900">
-                  {formData.display?.recipientName || 'Not set'}
-                </span>
-              </div>
-            </div>
-
-            {/* Pricing Breakdown */}
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-body">Base Package</span>
-                <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
-              </div>
-              
-              {((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) > 0 && (
-                <div className="flex justify-between text-body-small">
-                  <span className="text-neutral-600">
-                    Extra Days ({(formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)})
-                  </span>
-                  <span className="text-neutral-900">
-                    ${(((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) * pricing.extraDayPrice).toFixed(2)}
-                  </span>
-                </div>
-              )}
-              
-              <div className="border-t pt-3 flex justify-between text-h5 font-semibold">
-                <span>Total</span>
-                <span className="text-primary">${calculateTotal().toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </StepSection>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="mt-8 flex gap-4 justify-between">
-        <Button
-          onClick={prevStep}
-          variant="secondary"
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Back
-        </Button>
-        
-        {/* Only show continue button for credit cards or when no payment method selected */}
-        {(localData.paymentMethod === 'card' || !localData.paymentMethod) && (
-          <Button
-            onClick={validateAndContinue}
-            disabled={!localData.paymentMethod || collectingCard}
-            className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-          >
-            {collectingCard ? 'Checking card...' : 'Review Order'}
-          </Button>
-        )}
-      </div>
-    </motion.div>
+      {/* PayPal, Apple Pay and Venmo finish inside their own buttons */}
+      <StepNav
+        onBack={prevStep}
+        onNext={validateAndContinue}
+        nextLabel={collectingCard ? 'Checking card...' : 'Review booking'}
+        nextDisabled={!localData.paymentMethod || collectingCard}
+        busy={collectingCard}
+        hideNext={!(localData.paymentMethod === 'card' || !localData.paymentMethod)}
+      />
+    </StepMotion>
   );
 }

@@ -48,7 +48,7 @@ export function DisplayGrid({ layout, className = '' }: DisplayGridProps) {
   };
   
   const baseClasses = `
-    relative w-full border-2 border-green-200 rounded-lg
+    relative w-full border border-positive/30 rounded-card
     flex items-center justify-center overflow-hidden
     ${isMobile ? 'p-3' : 'p-6'}
     ${isMobile ? 'mobile-preview' : 'desktop-preview'}

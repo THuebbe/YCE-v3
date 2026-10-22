@@ -1,15 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { contactSchema, ContactFormData } from '../../types';
-import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
+import { Field, StepIntro, StepMotion, StepNav, StepSection } from '../step-kit';
 
 export function ContactInfoStep({ custom }: { custom?: string }) {
-  console.log('🔍 ContactInfoStep: Component rendering', { custom });
-  const { formData, updateFormData, nextStep } = useWizard();
+  const { formData, updateFormData, nextStep, prevStep } = useWizard();
   const [localData, setLocalData] = useState<ContactFormData>(
     formData.contact || {
       fullName: '',
@@ -75,134 +73,45 @@ export function ContactInfoStep({ custom }: { custom?: string }) {
     nextStep();
   };
 
-  const validationResult = contactSchema.safeParse(localData);
-  const isValid = validationResult.success;
-  
-  // Debug mobile detection and animation values
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  console.log('🔍 ContactInfoStep: Animation setup', { 
-    isMobile, 
-    custom, 
-    windowWidth: typeof window !== 'undefined' ? window.innerWidth : 'undefined' 
-  });
+  const isValid = contactSchema.safeParse(localData).success;
+
+  // Keep what's been typed when going back to the display
+  const goBack = () => {
+    updateFormData({ contact: localData });
+    prevStep();
+  };
+
+  const fields = [
+    { id: 'fullName', label: 'Your name', type: 'text', autoComplete: 'name', inputMode: undefined },
+    { id: 'email', label: 'Email', type: 'email', autoComplete: 'email', inputMode: 'email' },
+    { id: 'phone', label: 'Mobile phone', type: 'tel', autoComplete: 'tel', inputMode: 'tel' },
+  ] as const;
 
   return (
-    <motion.div
-      initial={
-        isMobile
-          ? { x: custom === 'backward' ? -50 : 50, opacity: 0.8 } // Mobile: smaller slide with opacity
-          : { opacity: 0, x: 20 } // Desktop: fade with slight slide
-      }
-      animate={
-        isMobile
-          ? { x: 0, opacity: 1 } // Mobile: slide to center with full opacity
-          : { opacity: 1, x: 0 } // Desktop: fade in
-      }
-      exit={
-        isMobile
-          ? { x: custom === 'backward' ? 50 : -50, opacity: 0.8 } // Mobile: smaller slide out
-          : { opacity: 0, x: -20 } // Desktop: fade out
-      }
-      transition={{ 
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        duration: 0.3
-      }}
-      className="max-w-2xl mx-auto px-4 py-8 min-h-[400px]"
-      style={{ 
-        // Ensure content is always positioned within viewport
-        transform: 'translateZ(0)', // Force hardware acceleration
-        willChange: 'transform, opacity' // Optimize for animations
-      }}
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-h2 text-neutral-900 mb-4">Contact Information</h1>
-        <p className="text-body text-neutral-700">
-          Let's start with your contact details so we can deliver your amazing yard display.
+    <StepMotion custom={custom}>
+      <StepIntro>Where should we send your confirmation, and how can the setup crew reach you on the day?</StepIntro>
+
+      <StepSection>
+        {fields.map(f => (
+          <Field key={f.id} id={f.id} label={f.label} error={errors[f.id] || undefined}>
+            <Input
+              id={f.id}
+              type={f.type}
+              inputMode={f.inputMode}
+              value={localData[f.id]}
+              onChange={(e) => handleInputChange(f.id, e.target.value)}
+              className={errors[f.id] ? 'border-danger' : ''}
+              autoComplete={f.autoComplete}
+            />
+          </Field>
+        ))}
+        <p className="text-fine text-fg-muted">
+          Used only for this booking and shared with the sign company you&apos;re booking with.{' '}
+          <a href="/privacy" target="_blank" rel="noopener" className="font-bold text-action-text underline underline-offset-4">Privacy Policy</a>
         </p>
-      </div>
+      </StepSection>
 
-      {/* Form Card Container */}
-      <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-        <div className="space-y-6">
-          {/* Full Name */}
-          <div>
-            <label htmlFor="fullName" className="text-label text-neutral-700 mb-2 block">
-              Full Name
-            </label>
-            <Input
-              id="fullName"
-              type="text"
-              value={localData.fullName}
-              onChange={(e) => handleInputChange('fullName', e.target.value)}
-              placeholder="Enter your full name"
-              className={errors.fullName ? 'border-error' : ''}
-              autoComplete="name"
-            />
-            {errors.fullName && (
-              <p className="text-body-small text-error-red mt-1">{errors.fullName}</p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label htmlFor="email" className="text-label text-neutral-700 mb-2 block">
-              Email Address
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={localData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="Enter your email address"
-              className={errors.email ? 'border-error' : ''}
-              autoComplete="email"
-            />
-            {errors.email && (
-              <p className="text-body-small text-error-red mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label htmlFor="phone" className="text-label text-neutral-700 mb-2 block">
-              Phone Number
-            </label>
-            <Input
-              id="phone"
-              type="tel"
-              value={localData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="Enter phone number"
-              className={errors.phone ? 'border-error' : ''}
-              autoComplete="tel"
-            />
-            {errors.phone && (
-              <p className="text-body-small text-error-red mt-1">{errors.phone}</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Continue Button */}
-      <div className="mt-8 flex justify-end">
-        <Button
-          onClick={validateAndContinue}
-          disabled={!isValid}
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Continue
-        </Button>
-      </div>
-
-      {/* Privacy Notice */}
-      <div className="mt-6 text-center">
-        <p className="text-body-small text-neutral-500">
-          Your details are used only for this booking and shared with the sign company you&apos;re booking with.{' '}
-          <a href="/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">Privacy Policy</a>
-        </p>
-      </div>
-    </motion.div>
+      <StepNav onBack={goBack} onNext={validateAndContinue} nextDisabled={!isValid} />
+    </StepMotion>
   );
 }

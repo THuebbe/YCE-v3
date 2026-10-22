@@ -22,18 +22,18 @@ export function MetricsSkeleton({
       {Array.from({ length: cards }).map((_, i) => (
         <Card key={i} className="animate-pulse min-w-[200px]">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="h-4 w-24 bg-neutral-200 rounded"></div>
-            <div className="h-4 w-4 bg-neutral-200 rounded"></div>
+            <div className="h-4 w-24 bg-surface-sunken rounded"></div>
+            <div className="h-4 w-4 bg-surface-sunken rounded"></div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="h-8 w-16 bg-neutral-200 rounded"></div>
+              <div className="h-8 w-16 bg-surface-sunken rounded"></div>
               <div className="flex items-center space-x-2">
-                <div className="h-3 w-3 bg-neutral-200 rounded"></div>
-                <div className="h-3 w-20 bg-neutral-200 rounded"></div>
+                <div className="h-3 w-3 bg-surface-sunken rounded"></div>
+                <div className="h-3 w-20 bg-surface-sunken rounded"></div>
               </div>
               {showChart && (
-                <div className="h-16 w-full bg-neutral-200 rounded mt-4"></div>
+                <div className="h-16 w-full bg-surface-sunken rounded mt-4"></div>
               )}
             </div>
           </CardContent>
@@ -46,13 +46,13 @@ export function MetricsSkeleton({
 // Compact metric skeleton for smaller spaces
 export function CompactMetricSkeleton() {
   return (
-    <div className="flex items-center space-x-3 p-3 bg-neutral-50 rounded-lg animate-pulse">
-      <div className="h-8 w-8 bg-neutral-200 rounded"></div>
+    <div className="flex items-center space-x-3 p-3 bg-surface-sunken rounded-card animate-pulse">
+      <div className="h-8 w-8 bg-surface-sunken rounded"></div>
       <div className="flex-1 space-y-1">
-        <div className="h-4 w-16 bg-neutral-200 rounded"></div>
-        <div className="h-3 w-12 bg-neutral-200 rounded"></div>
+        <div className="h-4 w-16 bg-surface-sunken rounded"></div>
+        <div className="h-3 w-12 bg-surface-sunken rounded"></div>
       </div>
-      <div className="h-6 w-12 bg-neutral-200 rounded"></div>
+      <div className="h-6 w-12 bg-surface-sunken rounded"></div>
     </div>
   );
 }

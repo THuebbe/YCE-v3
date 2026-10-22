@@ -141,6 +141,8 @@ export interface WizardContextType {
   sessionId: string;
   /** IANA zone that decides "end of day" for the order cutoff */
   timeZone: string | undefined;
+  /** Server calls (real actions, or demo ones in the design lab) */
+  actions: import('./context/wizard-context').BookingActions;
   currentStep: number;
   totalSteps: number;
   furthestStep: number;

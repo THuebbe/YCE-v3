@@ -1,22 +1,23 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useWizard } from '../../context/wizard-context';
 import { calculateBookingTotal } from '../../pricing';
 import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
-import { Edit, Calendar, MapPin, CreditCard, Palette, User, Loader2, AlertCircle } from 'lucide-react';
-import { DisplayGrid } from '../display/DisplayGrid';
+import { Edit, AlertCircle } from 'lucide-react';
+import { BookingYardPreview } from '../display/BookingYardPreview';
+import { StepIntro, StepMotion, StepNav, money } from '../step-kit';
+import { STEP } from '../../step-order';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
 import { stripeForAccount } from '../payment-methods/StripeCardForm';
 import { buildBookingTerms } from '../../terms';
 import { policyKey } from '../../policies';
-import { saveDisplaySnapshot } from '../../actions';
+import { COLORS } from '@/lib/brand';
 
-export function ReviewStep() {
-  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone } = useWizard();
+export function ReviewStep({ custom }: { custom?: string }) {
+  const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone, actions } = useWizard();
   // The agency's booking terms: the customer must agree before Place Order
   // (consent for later late/damage charges); the server saves its own copy
   const terms = buildBookingTerms({
@@ -103,28 +104,32 @@ export function ReviewStep() {
   const captureDisplay = async (holdId: string): Promise<string | undefined> => {
     const node = previewRef.current;
     if (!node || node.offsetWidth === 0) return undefined;
+    // Freeze the drop-in animation, or the copy can catch signs mid-fall
+    node.dataset.capturing = '';
     try {
       const { toJpeg } = await import('html-to-image');
-      const capture = toJpeg(node, { quality: 0.85, pixelRatio: Math.min(3, Math.max(1, 1200 / node.offsetWidth)), backgroundColor: '#ffffff' });
+      const capture = toJpeg(node, { quality: 0.85, pixelRatio: Math.min(3, Math.max(1, 1200 / node.offsetWidth)), backgroundColor: COLORS.surface });
       const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('capture timed out')), 8000));
       const dataUrl = await Promise.race([capture, timeout]);
-      const saved = await saveDisplaySnapshot({ agencySlug, sessionId, holdId, dataUrl });
+      const saved = await actions.saveDisplaySnapshot({ agencySlug, sessionId, holdId, dataUrl });
       if (!saved.ok) console.warn('Display picture not saved:', saved.error);
       return saved.ok ? saved.url : undefined;
     } catch (error) {
       console.warn('Display picture failed (order continues):', error);
       return undefined;
+    } finally {
+      delete node.dataset.capturing;
     }
   };
 
   const handlePlaceOrder = async () => {
     if (!formData.contact || !formData.event || !formData.display || !formData.payment) {
-      setOrderError('Missing required form data. Please complete all steps.');
+      setOrderError('Some details are missing. Please go back through the steps.');
       return;
     }
 
     if (!formData.display.holdId) {
-      setOrderError('No inventory hold found. Please go back to Step 3 and generate your display layout.');
+      setOrderError('Your signs aren\'t reserved yet. Go back to your display and reserve them.');
       return;
     }
 
@@ -201,7 +206,7 @@ export function ReviewStep() {
 
     } catch (error) {
       console.error('Unexpected error during order creation:', error);
-      setOrderError('An unexpected error occurred. Please try again.');
+      setOrderError('Your booking didn\'t go through. Nothing was charged. Please try again.');
     } finally {
       setOrderProcessing(false);
     }
@@ -209,7 +214,7 @@ export function ReviewStep() {
 
   const getPaymentMethodDisplay = (method: string) => {
     const methods = {
-      card: 'Credit/Debit Card',
+      card: 'Card',
       apple_pay: 'Apple Pay',
       paypal: 'PayPal',
       venmo: 'Venmo'
@@ -217,357 +222,167 @@ export function ReviewStep() {
     return methods[method as keyof typeof methods] || method;
   };
 
+  const event = formData.event;
+  const display = formData.display;
+  const typedMessage = (display?.eventMessage === 'Custom Message' ? display?.customMessage : display?.eventMessage) || '';
+  const total = calculateTotal();
+
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      transition={{ duration: 0.3 }}
-      className="max-w-4xl mx-auto px-4 py-8"
-    >
-      <div className="text-center mb-8">
-        <h1 className="text-h2 text-neutral-900 mb-4">Review Your Order</h1>
-        <p className="text-body text-neutral-700">
-          Please review all details before placing your order. You can edit any section by clicking the edit button.
-        </p>
-      </div>
+    <StepMotion custom={custom}>
+      <StepIntro>Check the details, then book. Tap Edit on anything that needs a change.</StepIntro>
 
-      <div className="space-y-6">
-        {/* Contact Information */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <User className="w-5 h-5 text-primary" />
-              <h3 className="text-h5 text-neutral-900">Contact Information</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => goToStep(1)}
-              className="text-primary hover:text-primary-hover"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
+      <ReviewCard title="Your display" onEdit={() => goToStep(STEP.display)}>
+        {!hasValidLayout ? (
+          <div className="grid gap-3 rounded-card border border-caution/30 bg-caution-soft p-4 text-caution">
+            <p className="flex items-center gap-2 font-bold"><AlertCircle className="size-5" aria-hidden />Your signs aren&apos;t reserved yet.</p>
+            <Button variant="secondary" className="justify-self-start" onClick={() => goToStep(STEP.display)}>Back to your display</Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-body-small">
-            <div>
-              <span className="text-neutral-600">Name:</span>
-              <p className="text-neutral-900 font-medium">{formData.contact?.fullName}</p>
-            </div>
-            <div>
-              <span className="text-neutral-600">Email:</span>
-              <p className="text-neutral-900 font-medium">{formData.contact?.email}</p>
-            </div>
-            <div>
-              <span className="text-neutral-600">Phone:</span>
-              <p className="text-neutral-900 font-medium">{formData.contact?.phone}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Event Details */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5 text-primary" />
-              <h3 className="text-h5 text-neutral-900">Event Details</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => goToStep(2)}
-              className="text-primary hover:text-primary-hover"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-body-small">
-            <div>
-              <span className="text-neutral-600">Event Date:</span>
-              <p className="text-neutral-900 font-medium">
-                {formData.event?.eventDate ? new Date(formData.event.eventDate).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                }) : 'Not set'}
-              </p>
-            </div>
-            <div>
-              <span className="text-neutral-600">Time Window:</span>
-              <p className="text-neutral-900 font-medium capitalize">
-                {formData.event?.timeWindow?.replace('_', ' ')}
-              </p>
-            </div>
-            <div className="md:col-span-2">
-              <span className="text-neutral-600">Delivery Address:</span>
-              <p className="text-neutral-900 font-medium">
-                {formData.event?.deliveryAddress.street}<br />
-                {formData.event?.deliveryAddress.city}, {formData.event?.deliveryAddress.state} {formData.event?.deliveryAddress.zipCode}
-              </p>
-            </div>
-            {formData.event?.deliveryNotes && (
-              <div className="md:col-span-2">
-                <span className="text-neutral-600">Delivery Notes:</span>
-                <p className="text-neutral-900 font-medium">{formData.event.deliveryNotes}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Display Customization */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <Palette className="w-5 h-5 text-primary" />
-              <h3 className="text-h5 text-neutral-900">Display Customization</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => goToStep(3)}
-              className="text-primary hover:text-primary-hover"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </div>
-          
-          {/* Display Preview */}
-          <div className="mb-6">
-            {!hasValidLayout ? (
-              <div className="aspect-[4/2] bg-orange-50 border-2 border-orange-200 rounded-lg flex items-center justify-center">
-                <div className="text-center p-6">
-                  <AlertCircle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-                  <h4 className="text-h5 font-medium text-orange-800 mb-2">Layout Not Generated</h4>
-                  <p className="text-body-small text-orange-700 mb-4">
-                    You need to generate your display layout in Step 3 before reviewing your order.
-                  </p>
-                  <Button
-                    onClick={() => goToStep(3)}
-                    variant="secondary"
-                    className="px-6"
-                  >
-                    Go to Step 3
-                  </Button>
-                </div>
-              </div>
-            ) : previewLoading ? (
-              <div className="aspect-[4/2] bg-neutral-50 border-2 border-neutral-200 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
-                  <p className="text-body-small text-neutral-600">Loading your display preview...</p>
-                </div>
-              </div>
-            ) : layoutCalculation ? (
-              <div className="aspect-[4/2]" ref={previewRef}>
-                <DisplayGrid layout={layoutCalculation} className="review-preview" />
-              </div>
-            ) : (
-              <div className="aspect-[4/2] bg-yellow-50 border-2 border-yellow-200 rounded-lg flex items-center justify-center">
-                <div className="text-center p-6">
-                  <AlertCircle className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-                  <p className="text-body-small text-yellow-700">
-                    Unable to load preview. Please go back to Step 3 and regenerate your layout.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-body-small">
-            <div>
-              <span className="text-neutral-600">Message:</span>
-              <p className="text-neutral-900 font-medium">
-                {formData.display?.eventMessage}
-                {formData.display?.eventMessage === 'Custom Message' && formData.display?.customMessage && 
-                  ` (${formData.display.customMessage})`
-                }
-              </p>
-            </div>
-            <div>
-              <span className="text-neutral-600">Recipient:</span>
-              <p className="text-neutral-900 font-medium">{formData.display?.recipientName}</p>
-            </div>
-            {formData.display?.eventNumber && (
-              <div>
-                <span className="text-neutral-600">Number:</span>
-                <p className="text-neutral-900 font-medium">{formData.display.eventNumber}</p>
-              </div>
-            )}
-            <div>
-              <span className="text-neutral-600">Message Style:</span>
-              <p className="text-neutral-900 font-medium">{formData.display?.messageStyle}</p>
-            </div>
-            <div>
-              <span className="text-neutral-600">Name Style:</span>
-              <p className="text-neutral-900 font-medium">{formData.display?.nameStyle}</p>
-            </div>
-            {formData.display?.characterTheme && (
-              <div>
-                <span className="text-neutral-600">Theme:</span>
-                <p className="text-neutral-900 font-medium">{formData.display.characterTheme}</p>
-              </div>
-            )}
-            {formData.display?.hobbies && formData.display.hobbies.length > 0 && (
-              <div className="md:col-span-2">
-                <span className="text-neutral-600">Hobbies/Interests:</span>
-                <p className="text-neutral-900 font-medium">{formData.display.hobbies.join(', ')}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Payment Information */}
-        <div className="bg-white border-2 border-neutral-200 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <CreditCard className="w-5 h-5 text-primary" />
-              <h3 className="text-h5 text-neutral-900">Payment Method</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => goToStep(4)}
-              className="text-primary hover:text-primary-hover"
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          </div>
-          <div className="text-body-small">
-            <span className="text-neutral-600">Payment Method:</span>
-            <p className="text-neutral-900 font-medium">
-              {getPaymentMethodDisplay(formData.payment?.paymentMethod || '')}
-              {formData.payment?.cardLast4 && (
-                <span className="ml-1 capitalize">({formData.payment.cardBrand ?? 'card'} ending {formData.payment.cardLast4})</span>
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* Order Summary */}
-        <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-6 shadow-default hover:shadow-medium transition-shadow duration-standard">
-          <h3 className="text-h5 text-neutral-900 mb-4">Order Summary</h3>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-body">Base Package</span>
-              <span className="text-body">${pricing.basePrice.toFixed(2)}</span>
-            </div>
-            
-            {((formData.event?.extraDaysBefore || 0) + (formData.event?.extraDaysAfter || 0)) > 0 && (
-              <>
-                {(formData.event?.extraDaysBefore ?? 0) > 0 && (
-                  <div className="flex justify-between text-body-small">
-                    <span className="text-neutral-600">Extra Days Before ({formData.event?.extraDaysBefore})</span>
-                    <span className="text-neutral-900">${((formData.event?.extraDaysBefore ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
-                  </div>
-                )}
-                {(formData.event?.extraDaysAfter ?? 0) > 0 && (
-                  <div className="flex justify-between text-body-small">
-                    <span className="text-neutral-600">Extra Days After ({formData.event?.extraDaysAfter})</span>
-                    <span className="text-neutral-900">${((formData.event?.extraDaysAfter ?? 0) * pricing.extraDayPrice).toFixed(2)}</span>
-                  </div>
-                )}
-              </>
-            )}
-            
-            <div className="border-t pt-3 flex justify-between text-h4 font-bold">
-              <span>Total</span>
-              <span className="text-primary">${calculateTotal().toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Order Error */}
-        {orderError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h4 className="text-body font-medium text-red-800 mb-1">Order Processing Error</h4>
-                <p className="text-body-small text-red-700">{orderError}</p>
-              </div>
-            </div>
+        ) : previewLoading || !layoutCalculation ? (
+          <div className="aspect-[19/10] animate-pulse rounded-sheet bg-surface-sunken" role="status" aria-label="Loading your display" />
+        ) : (
+          <div ref={previewRef} className="overflow-hidden rounded-sheet">
+            <BookingYardPreview
+              layout={layoutCalculation}
+              typed={{ message: typedMessage, name: display?.recipientName || '' }}
+              className="block w-full"
+            />
           </div>
         )}
+        <Details rows={[
+          ['Message', typedMessage],
+          ['Name', display?.recipientName],
+          ['Number', display?.eventNumber ? String(display.eventNumber) : undefined],
+          ['Colors', [...new Set([display?.messageColorway, display?.nameColorway].filter(Boolean))].join(' and ')],
+          ['Theme', display?.characterTheme || undefined],
+          ['Hobbies', display?.hobbies?.length ? display.hobbies.join(', ') : undefined],
+        ]} />
+      </ReviewCard>
 
-        {/* Booking terms + agreement */}
-        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 space-y-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h3 className="text-body font-semibold text-neutral-900">Booking terms</h3>
-            <button
-              type="button"
-              onClick={() => setShowFullTerms(open => !open)}
-              className="text-body-small text-primary hover:underline"
-              aria-expanded={showFullTerms}
-            >
-              {showFullTerms ? 'Hide full terms' : 'Read full terms'}
-            </button>
+      <ReviewCard title="When and where" onEdit={() => goToStep(STEP.event)}>
+        <Details rows={[
+          ['Event', event?.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'Not set'],
+          ['Setup', event?.timeWindow ? event.timeWindow.charAt(0).toUpperCase() + event.timeWindow.slice(1).replace('_', ' ') : undefined],
+          ['Pickup', pickupDay ? formatDay(pickupDay, true) : undefined],
+          ['Address', event ? `${event.deliveryAddress.street}, ${event.deliveryAddress.city}, ${event.deliveryAddress.state} ${event.deliveryAddress.zipCode}` : undefined],
+          ['Notes', event?.deliveryNotes || undefined],
+        ]} />
+      </ReviewCard>
+
+      <ReviewCard title="Your details" onEdit={() => goToStep(STEP.contact)}>
+        <Details rows={[
+          ['Name', formData.contact?.fullName],
+          ['Email', formData.contact?.email],
+          ['Phone', formData.contact?.phone],
+        ]} />
+      </ReviewCard>
+
+      <ReviewCard title="Payment" onEdit={() => goToStep(STEP.payment)}>
+        <Details rows={[
+          ['Method', `${getPaymentMethodDisplay(formData.payment?.paymentMethod || '')}${formData.payment?.cardLast4 ? ` (${formData.payment.cardBrand ?? 'card'} ending ${formData.payment.cardLast4})` : ''}`],
+        ]} />
+        <div className="grid gap-2 border-t border-line pt-3">
+          <div className="flex justify-between gap-4"><span>Event day</span><span className="tabular-nums">{money(pricing.basePrice)}</span></div>
+          {(event?.extraDaysBefore ?? 0) > 0 && (
+            <div className="flex justify-between gap-4"><span>{event!.extraDaysBefore} extra day{event!.extraDaysBefore === 1 ? '' : 's'} before</span><span className="tabular-nums">{money(event!.extraDaysBefore * pricing.extraDayPrice)}</span></div>
+          )}
+          {(event?.extraDaysAfter ?? 0) > 0 && (
+            <div className="flex justify-between gap-4"><span>{event!.extraDaysAfter} extra day{event!.extraDaysAfter === 1 ? '' : 's'} after</span><span className="tabular-nums">{money(event!.extraDaysAfter * pricing.extraDayPrice)}</span></div>
+          )}
+          <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
+            <span className="font-bold">Total</span>
+            <span className="font-display text-title font-semibold tabular-nums">{money(total)}</span>
           </div>
-          {showFullTerms ? (
-            <dl className="space-y-2 text-body-small text-neutral-700">
-              {terms.sections.map(section => (
-                <div key={section.title}>
-                  <dt className="font-medium text-neutral-900">{section.title}</dt>
-                  <dd>{section.text}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p className="text-body-small text-neutral-700">
-              Full payment now. Cancellation fees apply, and late pickup or damaged signs may be charged later.
-            </p>
-          )}
-          <label className="flex items-start gap-3 cursor-pointer pt-1">
-            <input
-              type="checkbox"
-              checked={termsAccepted}
-              onChange={e => setTermsAccepted(e.target.checked)}
-              className="mt-1 w-4 h-4 shrink-0 text-primary bg-white border-neutral-300 rounded focus:ring-primary focus:ring-2"
-            />
-            <span className="text-body-small text-neutral-700">
-              {terms.agreement} I understand that my display will be installed during the selected time window and removed {pickupDay ? `on ${formatDay(pickupDay, true)}` : 'after my event'}.
-            </span>
-          </label>
-          <p className="text-body-small text-neutral-500">
-            Bookings are made through YardCard Elite:{' '}
-            <a href="/terms" target="_blank" rel="noopener" className="text-primary hover:underline">Terms of Service</a>{' '}
-            and{' '}
-            <a href="/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">Privacy Policy</a>.
-          </p>
         </div>
-      </div>
+      </ReviewCard>
 
-      {/* Navigation Buttons */}
-      {/* Stacked on phones (Place Order on top): side by side they overflow */}
-      <div className="mt-8 flex flex-col-reverse gap-4 md:flex-row md:justify-between">
-        <Button
-          onClick={prevStep}
-          variant="secondary"
-          className="w-full md:w-auto px-8 shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          Back to Payment
-        </Button>
-        <Button
-          onClick={handlePlaceOrder}
-          disabled={orderProcessing || !hasValidLayout || !termsAccepted}
-          className="w-full md:w-auto px-8 bg-primary hover:bg-primary-hover shadow-button hover:shadow-medium active:scale-98 transition-all duration-standard"
-        >
-          {orderProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing Order...
-            </>
-          ) : !hasValidLayout ? (
-            'Complete Step 3 First'
-          ) : (
-            `Place Order - $${calculateTotal().toFixed(2)}`
-          )}
+      {/* Booking terms + agreement */}
+      <section className="grid gap-3 rounded-card border border-line bg-surface-sunken p-4 sm:p-6">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-heading font-semibold">Booking terms</h2>
+          <button
+            type="button"
+            onClick={() => setShowFullTerms(open => !open)}
+            className="text-fine font-bold text-action-text underline underline-offset-4"
+            aria-expanded={showFullTerms}
+          >
+            {showFullTerms ? 'Hide full terms' : 'Read full terms'}
+          </button>
+        </div>
+        {showFullTerms ? (
+          <dl className="grid gap-2 text-fine">
+            {terms.sections.map(section => (
+              <div key={section.title}>
+                <dt className="font-bold">{section.title}</dt>
+                <dd>{section.text}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <p className="text-fine">
+            Full payment now. Cancellation fees apply, and late pickup or damaged signs may be charged later.
+          </p>
+        )}
+        <label className="flex cursor-pointer items-start gap-3 rounded-control bg-surface p-3 has-[:focus-visible]:shadow-(--focus-ring)">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={e => setTermsAccepted(e.target.checked)}
+            className="mt-0.5 size-5 shrink-0 accent-action focus-visible:outline-none"
+          />
+          <span className="text-fine">
+            {terms.agreement} I understand that my display will be installed during the selected time window and removed {pickupDay ? `on ${formatDay(pickupDay, true)}` : 'after my event'}.
+          </span>
+        </label>
+        <p className="text-fine text-fg-muted">
+          Bookings are made through YardCard Elite:{' '}
+          <a href="/terms" target="_blank" rel="noopener" className="font-bold text-action-text underline underline-offset-4">Terms of Service</a>{' '}
+          and{' '}
+          <a href="/privacy" target="_blank" rel="noopener" className="font-bold text-action-text underline underline-offset-4">Privacy Policy</a>.
+        </p>
+      </section>
+
+      {orderError && (
+        <div className="flex items-start gap-3 rounded-card border border-danger/30 bg-danger-soft p-4 text-danger" role="alert">
+          <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <p className="text-fine font-bold">{orderError}</p>
+        </div>
+      )}
+
+      <StepNav
+        onBack={prevStep}
+        onNext={handlePlaceOrder}
+        nextDisabled={orderProcessing || !hasValidLayout || !termsAccepted}
+        busy={orderProcessing}
+        nextLabel={orderProcessing ? 'Booking...' : `Book now · ${money(total)}`}
+      />
+    </StepMotion>
+  );
+}
+
+function ReviewCard({ title, onEdit, children }: { title: string; onEdit: () => void; children: React.ReactNode }) {
+  return (
+    <section className="grid gap-4 rounded-card border border-line bg-surface p-4 sm:p-6">
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="font-display text-heading font-semibold">{title}</h2>
+        <Button variant="ghost" size="sm" onClick={onEdit} aria-label={`Edit ${title.toLowerCase()}`}>
+          <Edit className="size-4" aria-hidden />
+          Edit
         </Button>
       </div>
-    </motion.div>
+      {children}
+    </section>
+  );
+}
+
+function Details({ rows }: { rows: [string, string | undefined][] }) {
+  return (
+    <dl className="grid gap-x-6 gap-y-2 text-fine sm:grid-cols-[8rem_1fr]">
+      {rows.filter(([, v]) => v).map(([label, value]) => (
+        <div key={label} className="contents">
+          <dt className="text-fg-muted">{label}</dt>
+          <dd className="mb-1 min-w-0 font-semibold sm:mb-0">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

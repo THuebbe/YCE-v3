@@ -6,10 +6,23 @@ import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type { BookingPricing } from '../pricing';
 import type { AgencyPolicies } from '../policies';
 import type { BookingRules } from '../booking-rules';
-import { touchBookingHold } from '../actions';
+import { createBookingHold, getBookingCatalog, saveDisplaySnapshot, touchBookingHold } from '../actions';
+
+/** The server calls the wizard makes. Real server actions by default; the
+ *  design lab passes demo versions so every step renders without a database. */
+export interface BookingActions {
+  getBookingCatalog: typeof getBookingCatalog;
+  createBookingHold: typeof createBookingHold;
+  touchBookingHold: typeof touchBookingHold;
+  saveDisplaySnapshot: typeof saveDisplaySnapshot;
+}
+
+const SERVER_ACTIONS: BookingActions = { getBookingCatalog, createBookingHold, touchBookingHold, saveDisplaySnapshot };
 
 const SESSION_KEY = 'yce_booking_session';
-const STATE_KEY = 'yce_booking_state:'; // + agency slug
+// + agency slug. v2: the step order changed (contact moved after display),
+// so progress saved under the old numbering must not be restored.
+const STATE_KEY = 'yce_booking_state:v2:';
 
 type SavedWizard = { formData: Partial<BookingFormData>; currentStep: number; furthestStep: number };
 
@@ -67,6 +80,7 @@ interface WizardProviderProps {
   bookingRules: BookingRules;
   agencyTimeZone?: string;
   totalSteps: number;
+  actions?: BookingActions;
   /** Ignored: the wizard always starts at step 1 (or saved progress). */
   initialStep?: number;
   initialData?: Partial<BookingFormData>;
@@ -82,6 +96,7 @@ export function WizardProvider({
   bookingRules,
   agencyTimeZone,
   totalSteps, 
+  actions = SERVER_ACTIONS,
   initialData = {}
 }: WizardProviderProps) {
   // Always start at step 1: a ?step= in the URL used to jump straight to an
@@ -127,8 +142,8 @@ export function WizardProvider({
   const holdId = formData.display?.holdId;
   useEffect(() => {
     if (!holdId) return;
-    touchBookingHold({ agencySlug, sessionId, holdId }).catch(() => {});
-  }, [currentStep, holdId, agencySlug, sessionId]);
+    actions.touchBookingHold({ agencySlug, sessionId, holdId }).catch(() => {});
+  }, [currentStep, holdId, agencySlug, sessionId, actions]);
   
   // Payment methods hook
   const paymentMethodsHook = usePaymentMethods();
@@ -168,10 +183,7 @@ export function WizardProvider({
     if (orderPlaced) return;
     if (step >= 1 && step <= totalSteps) {
       // Prevent jumping ahead to incomplete steps
-      if (step > furthestStep) {
-        alert(`Please complete the previous steps before proceeding to Step ${step}.`);
-        return;
-      }
+      if (step > furthestStep) return;
       setCurrentStep(step);
       scrollToTop();
     }
@@ -191,6 +203,7 @@ export function WizardProvider({
     bookingRules,
     sessionId,
     timeZone,
+    actions,
     currentStep,
     totalSteps,
     furthestStep,

@@ -3,16 +3,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const labelVariants = cva(
-  "text-label font-medium text-neutral-700 uppercase tracking-wide",
+  "text-fine font-bold text-fg",
   {
     variants: {
       size: {
-        default: "text-label",
-        sm: "text-body-small",
-        lg: "text-body",
+        default: "text-fine",
+        sm: "text-fine font-semibold",
+        lg: "text-copy",
       },
       required: {
-        true: "after:content-['*'] after:ml-1 after:text-error",
+        true: "after:content-['*'] after:ml-1 after:text-danger",
         false: "",
       },
     },

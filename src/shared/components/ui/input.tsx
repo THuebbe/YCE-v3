@@ -20,14 +20,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-label text-neutral-700 mb-2 uppercase tracking-wide"
+            className="mb-1 block text-fine font-bold text-fg"
           >
             {label}
           </label>
         )}
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-fg-muted">
               {leftIcon}
             </div>
           )}
@@ -35,19 +35,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             id={inputId}
             type={type}
             className={cn(
-              // Base styles from style guide
-              "flex h-input w-full rounded-default border-[1.5px] bg-background-white px-4 py-3 text-body placeholder:text-neutral-500 transition-all duration-standard",
-              // Focus styles matching style guide
-              "focus:border-2 focus:border-primary focus:outline-none focus:ring-0",
-              // Error styles
+              // 48px tall, 16px text (stops iOS zooming into the field)
+              "flex h-12 w-full rounded-control border bg-surface px-4 text-copy text-fg placeholder:text-fg-muted transition-colors duration-150",
+              "focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none",
               hasError
-                ? "border-error focus:border-error animate-pulse"
-                : "border-neutral-300 hover:border-neutral-400",
+                ? "border-danger"
+                : "border-line-strong",
               // Icon padding adjustments
               leftIcon && "pl-12",
               rightIcon && "pr-12",
               // Disabled styles
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-neutral-100",
+              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-sunken",
               className
             )}
             ref={ref}
@@ -58,7 +56,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-fg-muted">
               {rightIcon}
             </div>
           )}
@@ -66,7 +64,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <p
             id={`${inputId}-error`}
-            className="mt-2 text-body-small text-error animate-slide-down"
+            className="mt-1 text-fine text-danger"
             role="alert"
           >
             {error}
@@ -75,7 +73,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {helper && !error && (
           <p
             id={`${inputId}-helper`}
-            className="mt-2 text-body-small text-neutral-500"
+            className="mt-1 text-fine text-fg-muted"
           >
             {helper}
           </p>

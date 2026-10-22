@@ -3,37 +3,28 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
+// Built on the meaning tokens (DESIGN.md): inside an agency's booking page
+// the action colors follow its white label automatically.
 const buttonVariants = cva(
-  // Base styles matching style guide
-  "inline-flex items-center justify-center whitespace-nowrap text-button font-medium transition-all duration-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-98",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-bold transition-colors duration-150 focus-visible:outline-none focus-visible:shadow-(--focus-ring) disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
-        // Primary Button from style guide
-        primary: 
-          "bg-primary !text-white shadow-button hover:bg-secondary-light hover:!text-white active:bg-primary/90 hover:shadow-medium",
-        // Secondary Button from style guide
-        secondary:
-          "bg-background-white border-[1.5px] border-primary text-primary hover:bg-secondary-pale",
-        // Ghost Button from style guide
-        ghost:
-          "bg-transparent text-primary hover:bg-secondary-pale",
-        // Success variant
-        success:
-          "bg-success text-white shadow-button hover:bg-success/90 active:bg-success/80",
-        // Error variant
-        error:
-          "bg-error text-white shadow-button hover:bg-error/90 active:bg-error/80",
-        // Warning variant
-        warning:
-          "bg-warning text-white shadow-button hover:bg-warning/90 active:bg-warning/80",
+        // The one main action on a screen
+        primary: "bg-action text-on-action hover:bg-action-hover",
+        // Everything else
+        secondary: "border border-line-strong bg-surface text-fg hover:bg-surface-sunken",
+        ghost: "bg-transparent text-action-text hover:bg-surface-sunken",
+        success: "bg-positive text-on-strong hover:opacity-90",
+        error: "bg-danger text-on-strong hover:opacity-90",
+        warning: "bg-caution text-on-strong hover:opacity-90",
       },
       size: {
-        // Mobile height: 44px, Desktop height: 40px from style guide
-        default: "h-button-desktop px-medium py-small md:h-button rounded-default",
-        sm: "h-8 px-small py-1 rounded-sm text-sm",
-        lg: "h-12 px-large py-3 rounded-lg text-lg",
-        icon: "h-button-desktop w-button-desktop md:h-button md:w-button rounded-default",
+        // 44px: the minimum touch target
+        default: "h-11 rounded-control px-5 text-copy",
+        sm: "h-9 rounded-control px-3 text-fine",
+        lg: "h-12 rounded-control px-6 text-lead",
+        icon: "size-11 rounded-control",
       },
     },
     defaultVariants: {
@@ -63,7 +54,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && (
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4"
+            className="size-4 animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"

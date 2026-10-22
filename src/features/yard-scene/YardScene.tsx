@@ -2,30 +2,61 @@
 
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { PALETTE } from '@/lib/brand'
-import { indexManifest, layoutRow, type SignAsset, type SignAssetManifest } from '@/features/booking/services/sign-assets'
+import { resolveAsset, type SignAsset } from '@/features/booking/services/sign-assets'
 import styles from './YardScene.module.css'
 
 /**
- * A yard display on an illustrated lawn. Used by the homepage hero and,
- * later, the booking preview. Pure: give it the rows to show and the sign
- * assets; it places the signs (layoutRow, real inches from the manifest)
- * and drops in only the letters that changed since the last render.
+ * A yard display on an illustrated lawn: the homepage hero and the booking
+ * preview. Pure: give it rows of signs (back row first) and it lays them out
+ * in real inches, dropping in only the signs that changed since the last
+ * render.
  *
  * The scene is one SVG measured in inches, so it scales to any width.
  * Layers, back to front: yard illustration, then per row: contact shadows,
  * signs on their stakes, a grass strip over the stake feet.
  */
 
-export interface SceneRow {
-  text: string
-  colorway: string
+export interface SceneItem {
+  /** Identity for the drop diff: the same id in the same spot doesn't drop again */
+  id: string
+  /** Image under /sign-assets; without one the sign is drawn as a labelled board */
+  file?: string
+  /** What the board says (and what screen readers hear) when there's no art yet */
+  label?: string
+  widthIn: number
+  heightIn: number
+  /** Ground line as a share of the image height (manifest baselineYPct) */
+  baselineYPct?: number
+  /** Extra space before this sign, in inches: word gaps, decoration groups */
+  gapBeforeIn?: number
+}
+
+/** Real displays overlap slightly: letters tuck behind each other */
+const KERNING_IN = -1.5
+const WORD_GAP_IN = 8
+
+/**
+ * A line of text as yard signs in one colorway. Characters without a sign
+ * (punctuation, a colorway the manifest lacks) are skipped.
+ */
+export function textToItems(index: Map<string, SignAsset>, text: string, style: string, colorway: string): SceneItem[] {
+  const items: SceneItem[] = []
+  let gap = 0
+  for (const ch of text.toUpperCase()) {
+    if (ch === ' ') { gap += WORD_GAP_IN; continue }
+    const asset = resolveAsset(index, ch, style, colorway)
+    if (!asset) continue
+    items.push({ id: `${ch}-${colorway}`, file: asset.file, label: ch, widthIn: asset.widthIn, heightIn: asset.heightIn, baselineYPct: asset.baselineYPct, gapBeforeIn: gap || undefined })
+    gap = 0
+  }
+  return items
 }
 
 interface YardSceneProps {
   /** Back row first (the message), front row last (the name) */
-  rows: SceneRow[]
-  assets: SignAsset[]
-  style?: string
+  rows: SceneItem[][]
+  /** What the display says, for screen readers ("HAPPY BIRTHDAY EMMA") */
+  description: string
   className?: string
 }
 
@@ -54,41 +85,48 @@ function grassStrip(top: number): string {
   return `${d} V${VIEW_H * 2} H${-VIEW_W}Z`
 }
 
-export function YardScene({ rows, assets, style = 'classic', className }: YardSceneProps) {
+function placeRow(items: SceneItem[]) {
+  let x = 0
+  const placed = items.map((item, i) => {
+    if (i > 0) x += KERNING_IN
+    x += item.gapBeforeIn ?? 0
+    const left = x
+    x += item.widthIn
+    return { item, left, baselineOffset: item.heightIn * (item.baselineYPct ?? 1) }
+  })
+  return { placed, width: Math.max(0, x) }
+}
+
+export function YardScene({ rows, description, className }: YardSceneProps) {
   const id = useId()
-  const index = useMemo(() => indexManifest({ assets } as SignAssetManifest), [assets])
 
   const laidOut = useMemo(
     () =>
-      rows.map((row, r) => {
-        const geo = ROW_GEOMETRY[Math.min(r, ROW_GEOMETRY.length - 1)]
-        // scale 12 px/ft = 1 unit per inch
-        const { placed, totalWidthFt } = layoutRow(index, row.text.split(''), style, [row.colorway], 12)
-        const width = Math.max(0, totalWidthFt * 12 + 1.5) // drop the trailing kerning
-        return { ...geo, placed, width, key: r }
-      }),
-    [rows, index, style],
+      rows.map((items, r) => ({
+        ...ROW_GEOMETRY[Math.min(r, ROW_GEOMETRY.length - 1)],
+        ...placeRow(items),
+        key: r,
+      })),
+    [rows],
   )
 
   const widest = Math.max(1, ...laidOut.map(r => r.width * r.scale))
   const fit = Math.min(1, MAX_DISPLAY_W / widest)
 
-  // Signs keep their key while their letter stays the same, so only new
-  // letters mount and play the drop. Stagger counts only the new ones.
+  // Signs keep their key while they stay the same, so only new ones mount
+  // and play the drop. Stagger counts only the new ones.
   const seen = useRef<Set<string>>(new Set())
   const keysThisRender: string[] = []
   useEffect(() => {
     seen.current = new Set(keysThisRender)
   })
 
-  const label = rows.map(r => r.text).join(' ')
-
   return (
     <svg
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       className={className}
       role="img"
-      aria-label={`Yard display reading ${label}`}
+      aria-label={`Yard display reading ${description}`}
     >
       <IllustratedYard id={id} />
 
@@ -98,17 +136,23 @@ export function YardScene({ rows, assets, style = 'classic', className }: YardSc
           return (
             <g key={row.key}>
               <g transform={`translate(${VIEW_W / 2 - (row.width * row.scale) / 2} ${row.baseline}) scale(${row.scale})`}>
-                {row.placed.map((p, i) => {
-                  const key = `${row.key}:${i}:${p.asset.character}`
+                {row.placed.map(({ item, left, baselineOffset }, i) => {
+                  const key = `${row.key}:${i}:${item.id}`
                   keysThisRender.push(key)
                   const delay = seen.current.has(key) ? 0 : fresh++
+                  const w = item.widthIn
+                  const h = item.heightIn
                   return (
-                    <g key={key} className={styles.slot} style={{ transform: `translate(${p.leftPx}px, 0px)` }}>
-                      <ellipse cx={p.widthPx / 2} cy={3} rx={p.widthPx * 0.42} ry={2.4} fill={PALETTE.ink[900]} opacity={0.18} />
+                    <g key={key} className={styles.slot} style={{ transform: `translate(${left}px, 0px)` }}>
+                      <ellipse cx={w / 2} cy={3} rx={w * 0.42} ry={2.4} fill={PALETTE.ink[900]} opacity={0.18} />
                       <g className={styles.drop} style={{ animationDelay: `calc(${delay} * var(--drop-stagger))` }}>
-                        <rect x={p.widthPx * 0.32 - STAKE_W / 2} y={-p.heightPx * 0.45 - LIFT} width={STAKE_W} height={p.heightPx * 0.45 + LIFT + 12} fill={PALETTE.stake} />
-                        <rect x={p.widthPx * 0.68 - STAKE_W / 2} y={-p.heightPx * 0.45 - LIFT} width={STAKE_W} height={p.heightPx * 0.45 + LIFT + 12} fill={PALETTE.stake} />
-                        <image href={`/sign-assets/${p.asset.file}`} x={0} y={-p.baselineOffsetPx - LIFT} width={p.widthPx} height={p.heightPx} />
+                        <rect x={w * 0.32 - STAKE_W / 2} y={-h * 0.45 - LIFT} width={STAKE_W} height={h * 0.45 + LIFT + 12} fill={PALETTE.stake} />
+                        <rect x={w * 0.68 - STAKE_W / 2} y={-h * 0.45 - LIFT} width={STAKE_W} height={h * 0.45 + LIFT + 12} fill={PALETTE.stake} />
+                        {item.file ? (
+                          <image href={`/sign-assets/${item.file}`} x={0} y={-baselineOffset - LIFT} width={w} height={h} />
+                        ) : (
+                          <PlaceholderBoard width={w} height={h} label={item.label ?? ''} />
+                        )}
                       </g>
                     </g>
                   )
@@ -121,6 +165,28 @@ export function YardScene({ rows, assets, style = 'classic', className }: YardSc
         })}
       </g>
     </svg>
+  )
+}
+
+/** A sign we have no artwork for yet (themes, bookends, ordinals): a white board with its name */
+function PlaceholderBoard({ width, height, label }: { width: number; height: number; label: string }) {
+  const size = Math.min(height * 0.32, (width * 1.6) / Math.max(3, label.length))
+  return (
+    <g transform={`translate(0 ${-height - LIFT})`}>
+      <rect width={width} height={height} rx={3} fill={PALETTE.ink[0]} stroke={PALETTE.ink[800]} strokeWidth={1.2} />
+      <text
+        x={width / 2}
+        y={height / 2}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={size}
+        fontWeight={600}
+        fill={PALETTE.ink[800]}
+        style={{ fontFamily: 'var(--font-display)' }}
+      >
+        {label}
+      </text>
+    </g>
   )
 }
 

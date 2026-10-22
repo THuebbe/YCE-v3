@@ -224,7 +224,7 @@ export function VenmoPaymentForm({
 
   if (isLoading) {
     return (
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardContent className="flex items-center justify-center py-8">
           <RefreshCw className="w-6 h-6 animate-spin mr-2" />
           <span>Initializing Venmo payment system...</span>
@@ -245,10 +245,10 @@ export function VenmoPaymentForm({
   }
 
   return (
-    <Card className="shadow-sm border-0">
+    <Card className="shadow-raised border-0">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Smartphone className="w-5 h-5 text-[#3D95CE]" />
+          <Smartphone className="w-5 h-5 text-venmo" />
           Pay with Venmo
         </CardTitle>
         <CardDescription>
@@ -257,15 +257,15 @@ export function VenmoPaymentForm({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Payment Amount */}
-        <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-surface-sunken rounded-card p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">Amount:</span>
+            <span className="text-fine text-fg-muted">Amount:</span>
             <span className="text-lg font-semibold">${amount.toFixed(2)}</span>
           </div>
           {description && (
             <div className="flex items-center justify-between mt-1">
-              <span className="text-sm text-gray-600">Description:</span>
-              <span className="text-sm text-gray-900">{description}</span>
+              <span className="text-fine text-fg-muted">Description:</span>
+              <span className="text-fine text-fg">{description}</span>
             </div>
           )}
         </div>
@@ -273,11 +273,11 @@ export function VenmoPaymentForm({
         {/* Device Detection */}
         <div className="flex items-center gap-2">
           {isMobile ? (
-            <Monitor className="w-4 h-4 text-gray-400" />
+            <Monitor className="w-4 h-4 text-fg-muted" />
           ) : (
-            <QrCode className="w-4 h-4 text-gray-400" />
+            <QrCode className="w-4 h-4 text-fg-muted" />
           )}
-          <span className="text-sm text-gray-600">
+          <span className="text-fine text-fg-muted">
             {isMobile 
               ? 'Mobile device detected - direct Venmo app integration' 
               : 'Desktop detected - QR code or web login available'
@@ -296,7 +296,7 @@ export function VenmoPaymentForm({
         <Button
           onClick={handleVenmoPayment}
           disabled={!venmoInstance || isProcessing || disabled}
-          className="w-full bg-[#3D95CE] hover:bg-[#2E7BA6] text-white py-3"
+          className="w-full bg-venmo hover:bg-venmo-hover text-on-strong py-3"
           size="lg"
         >
           {isProcessing ? (
@@ -316,7 +316,7 @@ export function VenmoPaymentForm({
         <div ref={venmoButtonRef} className="hidden" />
 
         {/* Payment Info */}
-        <div className="text-xs text-gray-500 text-center space-y-1">
+        <div className="text-fine text-fg-muted text-center space-y-1">
           <p>• Venmo payments are available for US customers only</p>
           <p>• Requires Venmo mobile app or web login access</p>
           <p>• Desktop payments work through QR codes or web interface</p>
