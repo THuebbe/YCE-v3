@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ChipNav } from '@/shared/components/ui/chip-nav';
 import type { Plan } from '@/features/billing/entitlements';
 import { VIEWS, ordersInView, viewCounts, viewOf, type OrdersView } from '../views';
 import { OrderCard } from './order-card';
@@ -15,7 +16,7 @@ export function OrdersViewList({ orders, view, slug, plan }: { orders: any[]; vi
 
   return (
     <>
-      <nav aria-label="Filter orders" className="-mx-4 mb-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <ChipNav label="Filter orders" className="mb-4">
         <ul className="flex gap-2">
           {VIEWS.map(v => {
             const active = v.id === view;
@@ -36,7 +37,7 @@ export function OrdersViewList({ orders, view, slug, plan }: { orders: any[]; vi
             );
           })}
         </ul>
-      </nav>
+      </ChipNav>
 
       {shown.length === 0 ? (
         <p className="rounded-card border border-dashed border-line-strong p-6 text-center text-fg-muted">{viewOf(view).empty}</p>

@@ -1,5 +1,16 @@
 import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
+
+// tailwind-merge only knows Tailwind's own sizes, so it read our type scale
+// (text-heading...) as a text color and dropped it next to text-fg.
+// Teach it the names from src/styles/tokens.css.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      "font-size": [{ text: ["hero", "title", "heading", "lead", "copy", "fine"] }],
+    },
+  },
+});
 
 /**
  * Utility function to merge Tailwind CSS classes with proper precedence

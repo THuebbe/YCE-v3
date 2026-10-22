@@ -137,13 +137,16 @@ On booking pages the agency is the brand.
   replaces an accent that blends into the brand color (under 3:1) on brand
   bands.
 - How: `BookingFrame` (booking flow) sets `data-agency` and
-  `brandingStyle(parseBranding(agency.branding))` on its wrapper; everything
+  `brandingStyle(activeBranding(agency))` on its wrapper; everything
   built on meaning tokens re-skins itself, including Stripe's card form
   (it reads the resolved tokens). Stored in `agencies.branding` (jsonb:
   brandColor, accentColor, logoUrl), validated by
   `src/features/agency/branding.ts`. Try it at `/lab/booking?brand=6B2D8C&accent=FFB703`.
-- Not built yet: the dashboard screen to save branding (dashboard
-  redesign). Plan gating (Elite feature vs $5 add-on) is still open.
+- **Elite only** (decided 2026-10-22, not an add-on). Agencies set it in
+  Settings > Booking page (colors with a live preview, logo upload).
+  `activeBranding()` returns nothing on Essentials, so a downgraded agency
+  keeps what it saved and gets it back if it upgrades. The saving actions
+  check the plan on the server.
 
 ## Motion
 

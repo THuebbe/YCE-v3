@@ -179,12 +179,12 @@ export function VenmoSetupTab({
 
   const getStatusIcon = () => {
     if (!braintreeStatus?.isConnected) {
-      return <CircleDollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+      return <CircleDollarSign className="w-12 h-12 text-fg-muted mx-auto mb-4" />
     }
     if (braintreeStatus.venmoEnabled) {
-      return <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+      return <CheckCircle className="w-12 h-12 text-positive mx-auto mb-4" />
     }
-    return <AlertTriangle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+    return <AlertTriangle className="w-12 h-12 text-caution mx-auto mb-4" />
   }
 
   const getStatusBadge = () => {
@@ -192,12 +192,12 @@ export function VenmoSetupTab({
       return <Badge variant="secondary">Not Connected</Badge>
     }
     if (braintreeStatus.accountStatus === 'active' && braintreeStatus.venmoEnabled) {
-      return <Badge variant="default" className="bg-green-500">Active</Badge>
+      return <Badge variant="default" className="bg-positive">Active</Badge>
     }
     if (braintreeStatus.accountStatus === 'active') {
-      return <Badge variant="secondary" className="bg-orange-500">Connected - Venmo Disabled</Badge>
+      return <Badge variant="secondary" className="bg-caution-soft text-caution">Connected - Venmo Disabled</Badge>
     }
-    return <Badge variant="secondary" className="bg-red-500 text-white">Account Issue</Badge>
+    return <Badge variant="secondary" className="bg-danger text-on-strong">Account Issue</Badge>
   }
 
   if (isLoading) {
@@ -223,7 +223,7 @@ export function VenmoSetupTab({
   return (
     <div className="space-y-6">
       {/* Braintree/Venmo Status */}
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -252,10 +252,10 @@ export function VenmoSetupTab({
             /* Not Connected State */
             <div className="text-center py-8">
               {getStatusIcon()}
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="mb-2 font-display text-lead font-semibold text-fg">
                 Connect Braintree for Venmo Payments
               </h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              <p className="text-fg-muted mb-6 max-w-md mx-auto">
                 Braintree by PayPal enables Venmo payments on mobile devices and desktop browsers. 
                 Get started with sandbox mode for testing.
               </p>
@@ -263,7 +263,7 @@ export function VenmoSetupTab({
               <Button
                 onClick={handleInitializeBraintree}
                 disabled={isInitializing}
-                className="bg-[#3D95CE] hover:bg-[#2E7BA6] text-white"
+                className="bg-venmo hover:bg-venmo-hover text-on-strong"
               >
                 {isInitializing ? (
                   <>
@@ -278,7 +278,7 @@ export function VenmoSetupTab({
                 )}
               </Button>
 
-              <div className="mt-6 text-sm text-gray-500">
+              <div className="mt-6 text-fine text-fg-muted">
                 <p className="mb-2"><strong>Requirements:</strong></p>
                 <ul className="text-left inline-block space-y-1">
                   <li>• US-based business entity required</li>
@@ -293,39 +293,39 @@ export function VenmoSetupTab({
             <div className="space-y-6">
               {/* Connection Status */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                    <p className="font-medium text-sm">Braintree Connected</p>
-                    <p className="text-xs text-gray-600">Environment: {braintreeStatus.environment}</p>
+                    <CheckCircle className="w-8 h-8 text-positive mx-auto mb-2" />
+                    <p className="font-medium text-fine">Braintree Connected</p>
+                    <p className="text-fine text-fg-muted">Environment: {braintreeStatus.environment}</p>
                   </div>
                 </Card>
                 
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
                     {braintreeStatus.venmoEnabled ? (
-                      <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                      <CheckCircle className="w-8 h-8 text-positive mx-auto mb-2" />
                     ) : (
-                      <AlertTriangle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
+                      <AlertTriangle className="w-8 h-8 text-caution mx-auto mb-2" />
                     )}
-                    <p className="font-medium text-sm">
+                    <p className="font-medium text-fine">
                       Venmo {braintreeStatus.venmoEnabled ? 'Enabled' : 'Disabled'}
                     </p>
-                    <p className="text-xs text-gray-600">Payment acceptance</p>
+                    <p className="text-fine text-fg-muted">Payment acceptance</p>
                   </div>
                 </Card>
                 
-                <Card className="p-4 shadow-sm border-0">
+                <Card className="p-4 shadow-raised border-0">
                   <div className="text-center">
-                    <Info className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <p className="font-medium text-sm">Account Status</p>
-                    <p className="text-xs text-gray-600 capitalize">{braintreeStatus.accountStatus}</p>
+                    <Info className="w-8 h-8 text-notice mx-auto mb-2" />
+                    <p className="font-medium text-fine">Account Status</p>
+                    <p className="text-fine text-fg-muted capitalize">{braintreeStatus.accountStatus}</p>
                   </div>
                 </Card>
               </div>
 
               {/* Venmo Settings */}
-              <Card className="shadow-sm border-0">
+              <Card className="shadow-raised border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="w-4 h-4" />
@@ -340,7 +340,7 @@ export function VenmoSetupTab({
                   <div className="flex items-center justify-between">
                     <div>
                       <Label className="text-base font-medium">Enable Venmo Payments</Label>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-fine text-fg-muted">
                         Allow customers to pay using their Venmo account
                       </p>
                     </div>
@@ -356,10 +356,10 @@ export function VenmoSetupTab({
                       {/* Desktop Support */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Monitor className="w-5 h-5 text-gray-400" />
+                          <Monitor className="w-5 h-5 text-fg-muted" />
                           <div>
                             <Label className="text-base font-medium">Desktop QR Codes</Label>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-fine text-fg-muted">
                               Show QR codes for desktop users to scan with mobile
                             </p>
                           </div>
@@ -374,10 +374,10 @@ export function VenmoSetupTab({
                       {/* Web Login Support */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <Globe className="w-5 h-5 text-gray-400" />
+                          <Globe className="w-5 h-5 text-fg-muted" />
                           <div>
                             <Label className="text-base font-medium">Web Login Fallback</Label>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-fine text-fg-muted">
                               Allow web login when Venmo app isn't installed
                             </p>
                           </div>
@@ -392,10 +392,10 @@ export function VenmoSetupTab({
                       {/* Payment Method Usage */}
                       <div className="space-y-3">
                         <div className="flex items-center gap-3">
-                          <Smartphone className="w-5 h-5 text-gray-400" />
+                          <Smartphone className="w-5 h-5 text-fg-muted" />
                           <div>
                             <Label className="text-base font-medium">Payment Authorization Type</Label>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-fine text-fg-muted">
                               Choose how customer payment methods are stored
                             </p>
                           </div>
@@ -425,7 +425,7 @@ export function VenmoSetupTab({
               </Card>
 
               {/* Integration Info */}
-              <Card className="shadow-sm border-0">
+              <Card className="shadow-raised border-0">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Info className="w-4 h-4" />
@@ -433,18 +433,18 @@ export function VenmoSetupTab({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-fine">
                     <div>
                       <Label className="font-medium">Merchant ID</Label>
-                      <p className="text-gray-600 font-mono">{braintreeStatus.merchantId}</p>
+                      <p className="text-fg-muted font-mono">{braintreeStatus.merchantId}</p>
                     </div>
                     <div>
                       <Label className="font-medium">Environment</Label>
-                      <p className="text-gray-600 capitalize">{braintreeStatus.environment}</p>
+                      <p className="text-fg-muted capitalize">{braintreeStatus.environment}</p>
                     </div>
                     <div>
                       <Label className="font-medium">Last Sync</Label>
-                      <p className="text-gray-600">
+                      <p className="text-fg-muted">
                         {braintreeStatus.lastSyncAt 
                           ? new Date(braintreeStatus.lastSyncAt).toLocaleString()
                           : 'Never'
@@ -453,7 +453,7 @@ export function VenmoSetupTab({
                     </div>
                     <div>
                       <Label className="font-medium">SDK Version</Label>
-                      <p className="text-gray-600">3.129.0 (JavaScript)</p>
+                      <p className="text-fg-muted">3.129.0 (JavaScript)</p>
                     </div>
                   </div>
                 </CardContent>

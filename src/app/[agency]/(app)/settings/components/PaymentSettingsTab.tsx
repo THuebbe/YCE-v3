@@ -55,13 +55,13 @@ export function PaymentSettingsTab({
   ]
 
   const badge = (status: Status) =>
-    status === 'active' ? <Badge variant="default" className="bg-green-500">Taking payments</Badge>
-      : status === 'pending' ? <Badge variant="secondary" className="bg-orange-500">Setup not finished</Badge>
+    status === 'active' ? <Badge variant="default" className="bg-positive">Taking payments</Badge>
+      : status === 'pending' ? <Badge variant="secondary" className="bg-caution-soft text-caution">Setup not finished</Badge>
         : <Badge variant="outline">Not set up</Badge>
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5" />
@@ -73,12 +73,12 @@ export function PaymentSettingsTab({
         </CardHeader>
         <CardContent className="space-y-4">
           {rows.map(row => (
-            <div key={row.tab} className="flex flex-wrap items-center justify-between gap-3 p-4 shadow-sm rounded-lg">
+            <div key={row.tab} className="flex flex-wrap items-center justify-between gap-3 p-4 shadow-raised rounded-card">
               <div className="flex min-w-0 flex-1 basis-56 items-center gap-3">
                 {row.icon}
                 <div>
                   <Label className="text-base font-medium">{row.name}</Label>
-                  <p className="text-sm text-muted-foreground">{row.what}</p>
+                  <p className="text-fine text-muted-foreground">{row.what}</p>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-3">
@@ -103,14 +103,14 @@ export function PaymentSettingsTab({
         </Alert>
       )}
 
-      <Card className="shadow-sm border-0">
+      <Card className="shadow-raised border-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Info className="w-5 h-5" />
             Fees
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2 text-sm">
+        <CardContent className="space-y-2 text-fine">
           <p>
             <strong>Cards (Stripe):</strong> Stripe&apos;s standard 2.9% + $0.30 per payment, paid from your
             Stripe balance. With &ldquo;Set it up for me&rdquo;, YardCard Elite also keeps $3 per booking.
@@ -118,7 +118,7 @@ export function PaymentSettingsTab({
           <p>
             <strong>PayPal and Venmo:</strong> their standard rates apply.
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-fine text-muted-foreground">
             Exact rates depend on your own account (international cards, disputes and instant payouts can cost extra).
           </p>
         </CardContent>

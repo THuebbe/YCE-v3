@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { NumberField } from '@/shared/components/ui/number-field'
+import { useToast } from '@/shared/components/feedback/toast'
 import { Label } from '@/shared/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Check, Lock, ScrollText } from 'lucide-react'
 import { savePolicies } from '@/features/booking/policy-actions'
-import { DEFAULT_POLICIES, POLICY_LIMITS, type AgencyPolicies } from '@/features/booking/policies'
+import { DEFAULT_POLICIES, type AgencyPolicies } from '@/features/booking/policies'
 import { cancellationFee } from '@/features/booking/terms'
 
 interface PoliciesCardProps {
@@ -43,14 +44,13 @@ export function PoliciesCard({ policies, canEdit, billingHref }: PoliciesCardPro
   const shown = canEdit ? policies : DEFAULT_POLICIES
   const [values, setValues] = useState(flatten(shown))
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  const { toast } = useToast()
 
   const num = (f: Field) => Number(values[f])
   const exampleFee = cancellationFee(100, { noticeHours: num('noticeHours'), feePercent: num('feePercent'), feeMinimum: num('feeMinimum') })
 
   const save = async () => {
     setSaving(true)
-    setMessage(null)
     const result = await savePolicies({
       noticeHours: num('noticeHours'),
       feePercent: num('feePercent'),
@@ -61,19 +61,19 @@ export function PoliciesCard({ policies, canEdit, billingHref }: PoliciesCardPro
     setSaving(false)
     if (result.success) {
       setValues(flatten(result.policies))
-      setMessage({ ok: true, text: 'Saved. New bookings use these terms; existing orders keep the terms they were booked under.' })
+      toast({ variant: 'success', title: 'Policies saved', description: 'New bookings use these terms; existing orders keep the terms they were booked under.' })
     } else {
-      setMessage({ ok: false, text: result.error })
+      toast({ variant: 'error', title: 'Couldn’t save your policies', description: result.error })
     }
   }
 
   return (
-    <Card className="shadow-sm border-0">
+    <Card className="shadow-raised border-0">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ScrollText className="w-5 h-5" />
           Booking policies
-          {!canEdit && <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600"><Lock className="h-3 w-3" />Elite</span>}
+          {!canEdit && <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2 py-0.5 text-fine font-medium text-fg-muted"><Lock className="h-3 w-3" />Elite</span>}
         </CardTitle>
         <CardDescription>
           The cancellation, late and damage fees your customers agree to when they book.
@@ -92,35 +92,23 @@ export function PoliciesCard({ policies, canEdit, billingHref }: PoliciesCardPro
           {FIELDS.map(({ field, label, help, prefix, suffix, step }) => (
             <div key={field} className="space-y-1.5">
               <Label htmlFor={`policy-${field}`}>{label}</Label>
-              <div className="flex items-center gap-2">
-                {prefix && <span className="text-sm text-muted-foreground">{prefix}</span>}
-                <Input
-                  id={`policy-${field}`}
-                  type="number"
-                  inputMode="decimal"
-                  min={POLICY_LIMITS[field].min}
-                  max={POLICY_LIMITS[field].max}
-                  step={step}
-                  value={values[field]}
-                  disabled={!canEdit || saving}
-                  onChange={e => setValues(v => ({ ...v, [field]: e.target.value }))}
-                  className="max-w-32"
-                />
-                {suffix && <span className="text-sm text-muted-foreground">{suffix}</span>}
-              </div>
-              <p className="text-xs text-muted-foreground">{help}</p>
+              <NumberField
+                id={`policy-${field}`}
+                decimals={step !== '1'}
+                prefix={prefix}
+                suffix={suffix}
+                value={values[field]}
+                disabled={!canEdit || saving}
+                onValueChange={v => setValues(vals => ({ ...vals, [field]: v }))}
+                className="max-w-56"
+              />
+              <p className="text-fine text-fg-muted">{help}</p>
             </div>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-fine text-fg-muted">
           Example: a $100 order cancelled in time gets ${(100 - exampleFee).toFixed(2)} back (fee ${exampleFee.toFixed(2)}).
         </p>
-        {message && (
-          <Alert variant={message.ok ? 'default' : 'destructive'}>
-            {message.ok && <Check className="h-4 w-4" />}
-            <AlertDescription>{message.text}</AlertDescription>
-          </Alert>
-        )}
         {canEdit && (
           <Button onClick={save} disabled={saving}>
             {saving ? 'Saving…' : 'Save policies'}

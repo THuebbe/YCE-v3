@@ -52,7 +52,7 @@ export function SignFilterBar({
         />
       </label>
       {categories.length > 1 && (
-        <div role="group" aria-label="Category" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+        <div role="group" aria-label="Category" className="-mx-4 flex gap-2 overflow-x-auto scrollbar-none px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
           <button type="button" aria-pressed={category === null} onClick={() => setCategory(null)} className={chip(category === null)}>All</button>
           {categories.map(c => (
             <button key={c} type="button" aria-pressed={category === c} onClick={() => setCategory(category === c ? null : c)} className={chip(category === c)}>

@@ -35,8 +35,8 @@ async function onboardingLink(accountId: string, slug: string) {
   const origin = await requestOrigin();
   const link = await getStripe().accountLinks.create({
     account: accountId,
-    refresh_url: `${origin}/${slug}/settings?refresh=true`,
-    return_url: `${origin}/${slug}/settings?success=true`,
+    refresh_url: `${origin}/${slug}/settings?section=payments&refresh=true`,
+    return_url: `${origin}/${slug}/settings?section=payments&success=true`,
     type: 'account_onboarding',
   });
   return link.url;

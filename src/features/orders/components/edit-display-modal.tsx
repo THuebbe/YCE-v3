@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Modal, ModalContent, ModalDescription, ModalFooter, ModalHeader, ModalTitle } from '@/shared/components/feedback/modal';
 import { Button } from '@/shared/components/ui/button';
+import { NumberField } from '@/shared/components/ui/number-field';
 import { useToast } from '@/shared/components/feedback/toast';
 import { useAgencySlug } from '@/lib/navigation';
 import { getBookingCatalog } from '@/features/booking/actions';
@@ -148,8 +149,8 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
           )}
           {config?.supportsNumber && (
             <label className="text-fine font-semibold">{config.numberLabel ?? 'Number'} (optional)
-              <input className={field} type="number" min={1} value={d.eventNumber ?? ''} placeholder={config.numberPlaceholder}
-                onChange={e => set('eventNumber', e.target.value ? Number(e.target.value) : null)} />
+              <NumberField className="mt-1" value={d.eventNumber} placeholder={config.numberPlaceholder}
+                onValueChange={v => set('eventNumber', v ? Number(v) : null)} />
             </label>
           )}
           <label className="text-fine font-semibold">Name

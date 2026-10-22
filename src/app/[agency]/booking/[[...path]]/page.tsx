@@ -5,7 +5,7 @@ import { effectiveBookingRules, effectivePolicies } from '@/features/booking/pol
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
 import { getBookingBlockers } from '@/features/agency/readiness-server';
-import { parseBranding } from '@/features/agency/branding';
+import { activeBranding } from '@/features/agency/branding';
 import { BookingFrame } from '@/features/booking/components/booking-frame';
 
 interface BookingPageProps {
@@ -30,7 +30,7 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
   // payments, signs in stock and prices (never an invented price)
   const pricing = parseBookingPricing(agency.pricing_config);
   const blockers = await getBookingBlockers(agency);
-  const branding = parseBranding(agency.branding);
+  const branding = activeBranding(agency);
   if (!pricing || blockers.length > 0) {
     return (
       <BookingFrame agencyName={agency.name} branding={branding}>

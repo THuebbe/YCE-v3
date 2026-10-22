@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { ChipNav } from '@/shared/components/ui/chip-nav';
 import type { InventoryTab } from '../types';
 
 export const SIGN_TABS: { id: InventoryTab; label: string }[] = [
@@ -15,7 +16,7 @@ export function parseSignsTab(raw: string | undefined): InventoryTab {
 /** The Signs page's sections, in the URL like the orders filter */
 export function SignsTabs({ tab, slug }: { tab: InventoryTab; slug: string }) {
   return (
-    <nav aria-label="Signs sections" className="-mx-4 mb-5 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+    <ChipNav label="Signs sections" className="mb-5">
       <ul className="flex gap-2">
         {SIGN_TABS.map(t => {
           const active = t.id === tab;
@@ -35,6 +36,6 @@ export function SignsTabs({ tab, slug }: { tab: InventoryTab; slug: string }) {
           );
         })}
       </ul>
-    </nav>
+    </ChipNav>
   );
 }

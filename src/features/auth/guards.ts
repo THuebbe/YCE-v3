@@ -13,11 +13,11 @@ import { getUserById } from '@/lib/db/supabase-client';
 export async function requireAgencyMember(agencyId: string | null | undefined) {
   const { userId } = await auth();
   if (!userId || !agencyId) {
-    throw new Error('Unauthorized');
+    throw new Error('Please sign in again.');
   }
   const user = await getUserById(userId);
   if (!user || user.agency_id !== agencyId) {
-    throw new Error('Forbidden');
+    throw new Error('You don’t have access to this agency.');
   }
   return user as { id: string; agency_id: string };
 }

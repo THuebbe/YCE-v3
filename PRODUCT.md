@@ -172,7 +172,9 @@ $29/$79/$149):
     an order. Policies run on the defaults. Dashboard: order counts.
   - **Elite:** + the deployment paperwork (**pick ticket, pickup
     checklist**), **policy settings** (cancellation window and fees, late
-    fee, damage fee, booking rules), **dashboard revenue** cards.
+    fee, damage fee, booking rules), **dashboard revenue** cards,
+    **white label** (own colors and logo on the booking page; decided
+    2026-10-22, Elite rather than a $5 add-on).
   - **Blackout dates are on every plan** (confirmed by the user 2026-10-19:
     an essential function).
   - Locks are enforced on the server, not only hidden in the UI
@@ -247,13 +249,19 @@ agencies could open them by URL. Git history has the full mockups.
   (cut-out PNG, size, maybe an editor or AI review) and a way to put a
   custom sign into a display, e.g. as a decoration.
 
+- **Faster ways to stock signs (recorded 2026-10-22):** the library lists
+  every letter in every colorway as its own tile (359 today), which is a
+  long scroll. Group by set (one card per style and colorway, e.g.
+  "Classic red alphabet", opening to its letters, with "add the whole
+  set"); filter style, then color, then kind; and starter quantities (more
+  E's and A's than Q's and Z's). Pairs with sign packages above.
+
 ## Deliberate non-goals right now
 Multi-location per agency · advanced analytics ·
 public API · enterprise multi-agency management. All post-MVP.
 (White label moved in: booking pages wear the agency's brand and accent
-colors and logo from `agencies.branding`, decided 2026-10-22; the settings
-screen to save them comes with the dashboard redesign. Plan gating, Elite
-or a $5 add-on, is still open.)
+colors and logo from `agencies.branding`, decided 2026-10-22, set in
+Settings > Booking page. Elite only.)
 
 ## Superseded — do not resurrect
 - **Prisma.** Removed early for causing more problems than it solved.

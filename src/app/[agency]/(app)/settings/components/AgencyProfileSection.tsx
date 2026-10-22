@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useToast } from '@/shared/components/feedback/toast'
 import { 
   agencyProfileSchema, 
   type AgencyProfileFormData, 
@@ -51,6 +52,13 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
   const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const { toast } = useToast()
+  // Save and load results show as toasts; field errors stay under their fields
+  useEffect(() => {
+    if (!message) return
+    toast({ variant: message.type === 'success' ? 'success' : 'error', title: message.text })
+    setMessage(null)
+  }, [message])
   const [copyMessage, setCopyMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [isDirty, setIsDirty] = useState(false)
 
@@ -300,17 +308,17 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-default p-6">
+      <div className="bg-surface rounded-card shadow-raised p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-neutral-200 rounded w-1/4 mb-4"></div>
+          <div className="h-6 bg-surface-sunken rounded w-1/4 mb-4"></div>
           <div className="space-y-4">
-            <div className="h-4 bg-neutral-200 rounded w-1/2"></div>
-            <div className="h-10 bg-neutral-200 rounded"></div>
-            <div className="h-10 bg-neutral-200 rounded"></div>
-            <div className="h-10 bg-neutral-200 rounded"></div>
+            <div className="h-4 bg-surface-sunken rounded w-1/2"></div>
+            <div className="h-10 bg-surface-sunken rounded"></div>
+            <div className="h-10 bg-surface-sunken rounded"></div>
+            <div className="h-10 bg-surface-sunken rounded"></div>
           </div>
         </div>
-        <p className="mt-4 text-neutral-600">Loading agency profile...</p>
+        <p className="mt-4 text-fg-muted">Loading agency profile...</p>
       </div>
     )
   }
@@ -318,9 +326,9 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
   // Permission denied state
   if (isLoaded && isSignedIn && !hasPermission) {
     return (
-      <div className="bg-white rounded-lg shadow-default p-6">
+      <div className="bg-surface rounded-card shadow-raised p-6">
         <div className="text-center py-8">
-          <p className="text-neutral-600">
+          <p className="text-fg-muted">
             You do not have permission to access agency settings.
           </p>
         </div>
@@ -329,25 +337,25 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-default p-6">
+    <div className="bg-surface rounded-card shadow-raised p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-neutral-900 mb-2">
-          Agency Profile
+        <h2 className="mb-1 font-display text-heading font-semibold text-fg">
+          Your business
         </h2>
-        <p className="text-neutral-600">
-          Update your agency information and manage your booking link.
+        <p className="text-fg-muted">
+          Your name and contact details, shown to customers on your booking page and emails.
         </p>
       </div>
 
       {/* Booking Link Section */}
       <div 
-        className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+        className="mb-8 p-4 bg-notice-soft border border-notice/30 rounded-card"
         data-testid="booking-link-section"
       >
-        <h3 className="font-semibold text-blue-900 mb-2">Your Booking Link</h3>
+        <h3 className="font-semibold text-notice mb-2">Your Booking Link</h3>
         <div className="flex flex-col space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-4">
           <div className="flex-1">
-            <p className="text-blue-700 font-mono text-sm break-all">
+            <p className="text-notice font-mono text-fine break-all">
               {formData.bookingUrl}
             </p>
           </div>
@@ -355,14 +363,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
             <button
               type="button"
               onClick={handleCopyLink}
-              className="px-4 py-2 h-11 text-sm font-medium text-blue-700 bg-white border border-blue-300 rounded-md hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 h-11 text-fine font-medium text-notice bg-surface border border-notice/30 rounded-control hover:bg-notice-soft focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
             >
               Copy Link
             </button>
             <button
               type="button"
               onClick={handleTestLink}
-              className="px-4 py-2 h-11 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 h-11 text-fine font-medium bg-action text-on-action border border-transparent rounded-control hover:bg-action-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
             >
               Test Link
             </button>
@@ -370,8 +378,8 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
         </div>
         {copyMessage && (
           <p className={cn(
-            "mt-2 text-sm",
-            copyMessage.type === 'success' ? 'text-green-600' : 'text-red-600'
+            "mt-2 text-fine",
+            copyMessage.type === 'success' ? 'text-positive' : 'text-danger'
           )}>
             {copyMessage.text}
           </p>
@@ -380,26 +388,9 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
 
       {/* Dirty State Warning */}
       {isDirty && (
-        <div className="mb-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-800 text-sm">
+        <div className="mb-6 p-3 bg-caution-soft border border-caution/30 rounded-card">
+          <p className="text-caution text-fine">
             You have unsaved changes
-          </p>
-        </div>
-      )}
-
-      {/* Success/Error Messages */}
-      {message && (
-        <div className={cn(
-          "mb-6 p-4 rounded-lg",
-          message.type === 'success' 
-            ? 'bg-green-50 border border-green-200' 
-            : 'bg-red-50 border border-red-200'
-        )}>
-          <p className={cn(
-            "text-sm",
-            message.type === 'success' ? 'text-green-800' : 'text-red-800'
-          )}>
-            {message.text}
           </p>
         </div>
       )}
@@ -411,7 +402,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
           <div>
             <label 
               htmlFor="agencyName" 
-              className="block text-sm font-medium text-neutral-700 mb-1"
+              className="block text-fine font-medium text-fg mb-1"
             >
               Agency Name
             </label>
@@ -421,14 +412,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               aria-describedby="agencyName-error"
               value={formData.agencyName}
               onChange={(e) => handleInputChange('agencyName', e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
               placeholder="Enter your agency name"
             />
             {errors.agencyName && (
               <p 
                 id="agencyName-error"
                 role="alert" 
-                className="mt-1 text-sm text-red-600"
+                className="mt-1 text-fine text-danger"
               >
                 {errors.agencyName[0]}
               </p>
@@ -439,7 +430,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
           <div>
             <label 
               htmlFor="agencyWebsite" 
-              className="block text-sm font-medium text-neutral-700 mb-1"
+              className="block text-fine font-medium text-fg mb-1"
             >
               Agency Website
             </label>
@@ -449,17 +440,17 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               aria-describedby="agencyWebsite-error"
               value={formData.agencyWebsite || ''}
               onChange={(e) => handleInputChange('agencyWebsite', e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
               placeholder="https://www.yourwebsite.com (optional)"
             />
-            <p className="mt-1 text-xs text-neutral-500">
+            <p className="mt-1 text-fine text-fg-muted">
               Your agency website where customers will be directed after completing their booking
             </p>
             {errors.agencyWebsite && (
               <p 
                 id="agencyWebsite-error"
                 role="alert" 
-                className="mt-1 text-sm text-red-600"
+                className="mt-1 text-fine text-danger"
               >
                 {errors.agencyWebsite[0]}
               </p>
@@ -470,7 +461,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
           <div>
             <label 
               htmlFor="contactEmail" 
-              className="block text-sm font-medium text-neutral-700 mb-1"
+              className="block text-fine font-medium text-fg mb-1"
             >
               Contact Email
             </label>
@@ -480,14 +471,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               aria-describedby="contactEmail-error"
               value={formData.contactEmail}
               onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
               placeholder="Enter your contact email"
             />
             {errors.contactEmail && (
               <p 
                 id="contactEmail-error"
                 role="alert" 
-                className="mt-1 text-sm text-red-600"
+                className="mt-1 text-fine text-danger"
               >
                 {errors.contactEmail[0]}
               </p>
@@ -498,7 +489,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
           <div>
             <label 
               htmlFor="phone" 
-              className="block text-sm font-medium text-neutral-700 mb-1"
+              className="block text-fine font-medium text-fg mb-1"
             >
               Phone Number
             </label>
@@ -508,14 +499,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               aria-describedby="phone-error"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
               placeholder="Enter your phone number"
             />
             {errors.phone && (
               <p 
                 id="phone-error"
                 role="alert" 
-                className="mt-1 text-sm text-red-600"
+                className="mt-1 text-fine text-danger"
               >
                 {errors.phone[0]}
               </p>
@@ -524,13 +515,13 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
 
           {/* Address Section */}
           <div>
-            <h3 className="text-lg font-medium text-neutral-900 mb-4">Address</h3>
+            <h3 className="mb-4 font-display text-lead font-semibold text-fg">Address</h3>
             <div className="grid gap-4 md:grid-cols-2" data-testid="address-grid">
               {/* Street Address - Full width */}
               <div className="md:col-span-2">
                 <label 
                   htmlFor="street" 
-                  className="block text-sm font-medium text-neutral-700 mb-1"
+                  className="block text-fine font-medium text-fg mb-1"
                 >
                   Street Address
                 </label>
@@ -540,14 +531,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
                   aria-describedby="street-error"
                   value={formData.address.street}
                   onChange={(e) => handleInputChange('address.street', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
                   placeholder="Enter street address"
                 />
                 {errors.address?.street && (
                   <p 
                     id="street-error"
                     role="alert" 
-                    className="mt-1 text-sm text-red-600"
+                    className="mt-1 text-fine text-danger"
                   >
                     {errors.address.street[0]}
                   </p>
@@ -558,7 +549,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               <div>
                 <label 
                   htmlFor="city" 
-                  className="block text-sm font-medium text-neutral-700 mb-1"
+                  className="block text-fine font-medium text-fg mb-1"
                 >
                   City
                 </label>
@@ -568,14 +559,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
                   aria-describedby="city-error"
                   value={formData.address.city}
                   onChange={(e) => handleInputChange('address.city', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
                   placeholder="Enter city"
                 />
                 {errors.address?.city && (
                   <p 
                     id="city-error"
                     role="alert" 
-                    className="mt-1 text-sm text-red-600"
+                    className="mt-1 text-fine text-danger"
                   >
                     {errors.address.city[0]}
                   </p>
@@ -586,7 +577,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               <div>
                 <label 
                   htmlFor="state" 
-                  className="block text-sm font-medium text-neutral-700 mb-1"
+                  className="block text-fine font-medium text-fg mb-1"
                 >
                   State/Province
                 </label>
@@ -596,14 +587,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
                   aria-describedby="state-error"
                   value={formData.address.state}
                   onChange={(e) => handleInputChange('address.state', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
                   placeholder="Enter state or province"
                 />
                 {errors.address?.state && (
                   <p 
                     id="state-error"
                     role="alert" 
-                    className="mt-1 text-sm text-red-600"
+                    className="mt-1 text-fine text-danger"
                   >
                     {errors.address.state[0]}
                   </p>
@@ -614,7 +605,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               <div>
                 <label 
                   htmlFor="postalCode" 
-                  className="block text-sm font-medium text-neutral-700 mb-1"
+                  className="block text-fine font-medium text-fg mb-1"
                 >
                   Postal Code
                 </label>
@@ -624,14 +615,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
                   aria-describedby="postalCode-error"
                   value={formData.address.postalCode}
                   onChange={(e) => handleInputChange('address.postalCode', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
                   placeholder="Enter postal code"
                 />
                 {errors.address?.postalCode && (
                   <p 
                     id="postalCode-error"
                     role="alert" 
-                    className="mt-1 text-sm text-red-600"
+                    className="mt-1 text-fine text-danger"
                   >
                     {errors.address.postalCode[0]}
                   </p>
@@ -642,7 +633,7 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
               <div>
                 <label 
                   htmlFor="country" 
-                  className="block text-sm font-medium text-neutral-700 mb-1"
+                  className="block text-fine font-medium text-fg mb-1"
                 >
                   Country
                 </label>
@@ -652,14 +643,14 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
                   aria-describedby="country-error"
                   value={formData.address.country}
                   onChange={(e) => handleInputChange('address.country', e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-line-strong rounded-control focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent"
                   placeholder="Enter country"
                 />
                 {errors.address?.country && (
                   <p 
                     id="country-error"
                     role="alert" 
-                    className="mt-1 text-sm text-red-600"
+                    className="mt-1 text-fine text-danger"
                   >
                     {errors.address.country[0]}
                   </p>
@@ -669,11 +660,11 @@ export function AgencyProfileSection({ agency, agencySlug }: AgencyProfileSectio
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end pt-6 border-t border-neutral-200">
+          <div className="flex justify-end pt-6 border-t border-line">
             <button
               type="submit"
               disabled={isSaving}
-              className="px-6 py-2 h-11 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2 h-11 text-fine font-medium bg-action text-on-action border border-transparent rounded-control hover:bg-action-hover focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
