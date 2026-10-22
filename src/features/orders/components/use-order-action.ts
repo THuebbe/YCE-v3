@@ -52,7 +52,7 @@ export function useOrderAction(order: { id: string }, onCancel: () => void) {
           duration: 12000,
           action: React.createElement('a', {
             href: docUrl, target: '_blank', rel: 'noopener noreferrer',
-            className: 'inline-block px-3 py-2 rounded-md bg-primary text-white text-sm font-medium',
+            className: 'inline-flex h-11 items-center rounded-control bg-action px-4 text-fine font-bold text-on-action',
           }, 'Open PDF'),
         } : {}),
       });

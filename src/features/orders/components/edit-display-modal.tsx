@@ -12,6 +12,7 @@ import { DisplayGrid } from '@/features/booking/components/display/DisplayGrid';
 import { eventMessages, hobbies as hobbyOptions, themes } from '@/features/booking/display-options';
 import type { LayoutCalculation } from '@/features/booking/types';
 import { updateOrderDisplay, type DisplayEdit } from '../actions';
+import { COLORS } from '@/lib/brand';
 
 interface EditDisplayModalProps {
   isOpen: boolean;
@@ -39,7 +40,7 @@ function initialDisplay(order: any): DisplayEdit {
 }
 
 const capitalize = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
-const field = 'w-full rounded-lg border-2 border-neutral-300 px-3 py-2 focus:border-primary focus:outline-none';
+const field = 'mt-1 h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-copy text-fg focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none';
 
 /**
  * Agency-only: change an order's message, name, style, colors or theme
@@ -110,7 +111,7 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
       const node = previewRef.current;
       if (node?.offsetWidth) {
         const { toJpeg } = await import('html-to-image');
-        snapshotDataUrl = await toJpeg(node, { quality: 0.85, pixelRatio: Math.min(3, Math.max(1, 1200 / node.offsetWidth)), backgroundColor: '#ffffff' });
+        snapshotDataUrl = await toJpeg(node, { quality: 0.85, pixelRatio: Math.min(3, Math.max(1, 1200 / node.offsetWidth)), backgroundColor: COLORS.surface });
       }
     } catch (e) {
       console.warn('Edited display picture not captured (saving anyway):', e);
@@ -135,52 +136,52 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
       </ModalHeader>
       <ModalContent className="max-h-[70vh] space-y-4 overflow-y-auto">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="text-sm">Message
+          <label className="text-fine font-semibold">Message
             <select className={field} value={d.eventMessage} onChange={e => set('eventMessage', e.target.value)}>
               {eventMessages.map(m => <option key={m.message} value={m.message}>{m.message}</option>)}
             </select>
           </label>
           {d.eventMessage === 'Custom Message' && (
-            <label className="text-sm">Custom message
+            <label className="text-fine font-semibold">Custom message
               <input className={field} value={d.customMessage ?? ''} onChange={e => set('customMessage', e.target.value)} maxLength={40} />
             </label>
           )}
           {config?.supportsNumber && (
-            <label className="text-sm">{config.numberLabel ?? 'Number'} (optional)
+            <label className="text-fine font-semibold">{config.numberLabel ?? 'Number'} (optional)
               <input className={field} type="number" min={1} value={d.eventNumber ?? ''} placeholder={config.numberPlaceholder}
                 onChange={e => set('eventNumber', e.target.value ? Number(e.target.value) : null)} />
             </label>
           )}
-          <label className="text-sm">Name
+          <label className="text-fine font-semibold">Name
             <input className={field} value={d.recipientName} onChange={e => set('recipientName', e.target.value)} maxLength={30} />
           </label>
-          <label className="text-sm">Style
+          <label className="text-fine font-semibold">Style
             <select className={field} value={d.messageStyle ?? ''} onChange={e => set('messageStyle', e.target.value)}>
               {styles.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </label>
-          <label className="text-sm">Message color
+          <label className="text-fine font-semibold">Message color
             <select className={field} value={d.messageColorway ?? ''} onChange={e => set('messageColorway', e.target.value)}>
               {colorways.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
-          <label className="text-sm">Name color
+          <label className="text-fine font-semibold">Name color
             <select className={field} value={d.nameColorway ?? ''} onChange={e => set('nameColorway', e.target.value)}>
               {colorways.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </label>
-          <label className="text-sm">Theme
+          <label className="text-fine font-semibold">Theme
             <select className={field} value={d.characterTheme ?? ''} onChange={e => set('characterTheme', e.target.value)}>
               <option value="">No theme</option>
               {themes.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </label>
         </div>
-        <fieldset className="text-sm">
-          <legend className="mb-1">Hobbies (optional)</legend>
+        <fieldset className="text-fine font-semibold">
+          <legend className="mb-2 font-semibold">Hobbies (optional)</legend>
           <div className="flex flex-wrap gap-2">
             {hobbyOptions.map(h => (
-              <label key={h} className="flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-1">
+              <label key={h} className="flex min-h-11 items-center gap-2 rounded-control border border-line px-3">
                 <input type="checkbox" checked={d.hobbies?.includes(h) ?? false}
                   onChange={() => set('hobbies', d.hobbies?.includes(h) ? d.hobbies.filter(x => x !== h) : [...(d.hobbies ?? []), h])} />
                 {h}
@@ -189,7 +190,7 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
           </div>
         </fieldset>
         {!order?.display_config && (
-          <p className="text-xs text-neutral-500">This order is from before display details were saved, so check the name and colors.</p>
+          <p className="text-fine text-fg-muted">This order is from before display details were saved, so check the name and colors.</p>
         )}
         <Button variant="secondary" onClick={preview} disabled={!!busy}>{busy === 'preview' ? 'Building preview…' : 'Preview'}</Button>
         {layout && (
@@ -197,9 +198,9 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
             <DisplayGrid layout={layout} className="review-preview" />
           </div>
         )}
-        {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
+        {error && <p className="text-fine text-danger" role="alert">{error}</p>}
         {shortages.length > 0 && (
-          <ul className="text-sm text-red-700">
+          <ul className="text-fine text-danger">
             {shortages.map(s => <li key={s.name}>{s.name}: need {s.requested}, {s.available} free</li>)}
           </ul>
         )}

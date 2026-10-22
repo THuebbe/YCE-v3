@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { assessOrderFees } from '../actions';
 import type { FeeQuote } from '../fees';
@@ -27,30 +26,24 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
 
   if (done) {
     return (
-      <Card>
-        <div className="p-6">
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">Late &amp; damage fees</h3>
-          {done.status === 'charged' && <p className="text-sm text-green-700">{money(done.total)} charged{quote.card ? ` to ${brand(quote.card.brand)} ••${quote.card.last4}` : ''}. The customer was emailed.</p>}
+      <FeesShell>
+          {done.status === 'charged' && <p className="text-fine text-positive">{money(done.total)} charged{quote.card ? ` to ${brand(quote.card.brand)} ••${quote.card.last4}` : ''}. The customer was emailed.</p>}
           {done.status === 'link_sent' && (
-            <p className="text-sm text-amber-800">
+            <p className="text-fine text-caution">
               The card couldn&apos;t be charged, so the customer was emailed a payment link for {money(done.total)}.
-              {done.checkoutUrl && <> <a href={done.checkoutUrl} target="_blank" rel="noopener noreferrer" className="underline">Copy the link</a></>}
+              {done.checkoutUrl && <> <a href={done.checkoutUrl} target="_blank" rel="noopener noreferrer" className="font-bold underline">Open the link</a></>}
             </p>
           )}
-          {done.status === 'waived' && <p className="text-sm text-gray-700">Fees waived.</p>}
-        </div>
-      </Card>
+          {done.status === 'waived' && <p className="text-fine text-fg-muted">Fees waived.</p>}
+      </FeesShell>
     );
   }
 
   if (quote.lateMax <= 0 && quote.damageMax <= 0) {
     return (
-      <Card>
-        <div className="p-6">
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">Late &amp; damage fees</h3>
-          <p className="text-sm text-gray-600">None: the signs came back on time{quote.pickupDay ? ` (${day(quote.pickupDay)})` : ''} and none were damaged or missing.</p>
-        </div>
-      </Card>
+      <FeesShell>
+          <p className="text-fine text-fg-muted">None: the signs came back on time{quote.pickupDay ? ` (${day(quote.pickupDay)})` : ''} and none were damaged or missing.</p>
+      </FeesShell>
     );
   }
 
@@ -68,38 +61,35 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
   };
 
   return (
-    <Card>
-      <div className="space-y-4 p-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Late &amp; damage fees</h3>
-          <p className="text-sm text-gray-600">From the booking terms. Lower or waive them if it wasn&apos;t the customer&apos;s fault.</p>
-        </div>
+    <FeesShell>
+      <div className="grid gap-4">
+        <p className="text-fine text-fg-muted">From the booking terms. Lower or waive them if it wasn&apos;t the customer&apos;s fault.</p>
         {quote.lateMax > 0 && (
-          <label className="block text-sm">
-            <span className="text-gray-800">
+          <label className="block text-fine">
+            <span>
               Late pickup: back {day(quote.checkInDay)}, due {day(quote.pickupDay)} · {quote.lateDays} day{quote.lateDays === 1 ? '' : 's'} × {money(quote.lateFee)}
             </span>
             <span className="mt-1 flex items-center gap-2">$
               <input type="number" min={0} max={quote.lateMax} step="0.01" value={late} onChange={e => setLate(e.target.value)}
-                className="w-28 rounded-md border border-gray-300 px-2 py-1" disabled={busy} />
-              <span className="text-xs text-gray-500">max {money(quote.lateMax)}</span>
+                className="h-11 w-28 rounded-control border border-line-strong bg-surface px-3 text-copy focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none" disabled={busy} />
+              <span className="text-fine text-fg-muted">max {money(quote.lateMax)}</span>
             </span>
           </label>
         )}
         {quote.damageMax > 0 && (
-          <label className="block text-sm">
-            <span className="text-gray-800">Damaged or missing: {quote.damagedSigns} sign{quote.damagedSigns === 1 ? '' : 's'} × {money(quote.damageFeePerSign)}</span>
+          <label className="block text-fine">
+            <span>Damaged or missing: {quote.damagedSigns} sign{quote.damagedSigns === 1 ? '' : 's'} × {money(quote.damageFeePerSign)}</span>
             <span className="mt-1 flex items-center gap-2">$
               <input type="number" min={0} max={quote.damageMax} step="0.01" value={damage} onChange={e => setDamage(e.target.value)}
-                className="w-28 rounded-md border border-gray-300 px-2 py-1" disabled={busy} />
-              <span className="text-xs text-gray-500">max {money(quote.damageMax)}</span>
+                className="h-11 w-28 rounded-control border border-line-strong bg-surface px-3 text-copy focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none" disabled={busy} />
+              <span className="text-fine text-fg-muted">max {money(quote.damageMax)}</span>
             </span>
           </label>
         )}
         {!quote.fromBookingTerms && (
-          <p className="text-xs text-gray-500">This order is from before fee amounts were saved with bookings, so today&apos;s policy amounts are used.</p>
+          <p className="text-fine text-fg-muted">This order is from before fee amounts were saved with bookings, so today&apos;s policy amounts are used.</p>
         )}
-        {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
+        {error && <p className="text-fine text-danger" role="alert">{error}</p>}
         <div className="flex flex-col gap-2">
           <Button onClick={() => submit(false)} disabled={busy || total <= 0}>
             {busy ? 'Working…' : quote.card ? `Charge ${money(total)} to ${brand(quote.card.brand)} ••${quote.card.last4}` : `Email a payment link for ${money(total)}`}
@@ -107,6 +97,15 @@ export function FeesCard({ orderId, quote }: { orderId: string; quote: FeeQuote 
           <Button variant="secondary" onClick={() => submit(true)} disabled={busy}>Waive fees</Button>
         </div>
       </div>
-    </Card>
+    </FeesShell>
+  );
+}
+
+function FeesShell({ children }: { children: React.ReactNode }) {
+  return (
+    <section className="rounded-card border border-line bg-surface p-4 sm:p-5">
+      <h2 className="mb-3 font-display text-heading font-semibold">Late &amp; damage fees</h2>
+      {children}
+    </section>
   );
 }

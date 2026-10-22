@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { addDays, todayIn } from '@/features/booking/booking-rules'
-import { AppShell } from '@/features/dashboard/components/app-shell'
+import { LabShell } from '../lab-shell'
 import { HomeView } from '@/features/dashboard/components/home/home-view'
 import { SetupChecklist } from '@/features/agency/components/setup-checklist'
 import type { Job, JobsOverview } from '@/features/dashboard/jobs'
@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: 'Dashboard - lab' }
 /**
  * The dashboard home inside the app shell, with a demo agency and made-up
  * jobs, for design work without a database (preview and dev only, via the
- * lab layout). Links lead to the demo agency's real routes, which 404.
+ * lab layout). Tabs and job links stay inside /lab (the demo slug is "lab").
  *
  *   ?plan=essentials  revenue and popular displays locked
  *   ?setup=2          setup checklist with 2 steps left
@@ -24,20 +24,14 @@ export default async function DashboardLabPage({ searchParams }: { searchParams:
   const left = Math.min(4, Number(q.setup) || 0)
   const missing = (['plan', 'payments', 'inventory', 'pricing'] as ReadinessItem[]).slice(4 - left)
   const today = todayIn('America/Chicago')
-  const slug = 'lucky-lawn-signs'
+  const slug = 'lab'
 
   return (
-    <AppShell
-      slug={slug}
-      agencyName="Lucky Lawn Signs"
-      logoUrl={q.logo?.startsWith('https://') ? q.logo : undefined}
-      bookingUrl={`https://yardcard-elite.com/${slug}/booking`}
-      account={<span aria-hidden className="size-9 rounded-full bg-highlight" />}
-    >
+    <LabShell logoUrl={q.logo}>
       <HomeView
         firstName="Tobi"
         slug={slug}
-        bookingUrl={`https://yardcard-elite.com/${slug}/booking`}
+        bookingUrl="https://yardcard-elite.com/lucky-lawn-signs/booking"
         bookingOpen={missing.length === 0}
         notices={<SetupChecklist missing={missing} slug={slug} />}
         jobs={q.quiet ? { today, days: [{ day: today, jobs: [] }], overdue: [] } : demoJobs(today)}
@@ -65,13 +59,15 @@ export default async function DashboardLabPage({ searchParams }: { searchParams:
           ],
         } : null}
       />
-    </AppShell>
+    </LabShell>
   )
 }
 
 function demoJobs(today: string): JobsOverview {
   const job = (kind: Job['kind'], day: string, customerName: string, address: string, signs: number, done = false, timeWindow: string | null = null): Job => ({
-    kind, day, customerName, address, signs, done, timeWindow, orderId: `${customerName}-${kind}`, orderNumber: 'YCE-0000',
+    kind, day, customerName, address, signs, done, timeWindow, orderNumber: 'YCE-0000',
+    // Lands on a /lab/orders demo order: the one that's out for pickups, a new one for setups
+    orderId: kind === 'pickup' ? 'demo-3' : 'demo-1',
   })
   const tomorrow = addDays(today, 1)
   const later = addDays(today, 3)
