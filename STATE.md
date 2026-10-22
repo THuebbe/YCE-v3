@@ -1,11 +1,48 @@
 # Where This Stands
 
-Last verified: 2026-10-19
+Last verified: 2026-10-22
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
 old verification notes) is in `git show aace018:STATE.md`.
 
 ## Now
+- **2026-10-22: LIVE on Clerk production + Stripe live.** Production
+  (yardcard-elite.com) runs Clerk's production instance and Stripe LIVE
+  (Trad Tech LLC `acct_1R4pVtFjOo22GEei`; the sandbox `acct_1REKSs...` is
+  for previews only). Every key that differs is TWO Vercel variables:
+  one Production-only (live), one Preview+Development (test/sandbox).
+  - Clerk: DNS (clerk./accounts./clkmail./2 DKIM) in Vercel; Google sign-in
+    off; webhook -> yardcard-elite.com/api/webhooks/clerk. Existing users
+    relink by verified email on first sign-in (PR #32). Only
+    yardcard-elite.com works for sign-in now, not yce-v3.vercel.app.
+  - Stripe live: products/prices (same lookup keys), portal (no quantity
+    changes, Terms/Privacy links), coupons `yce_founding_tester`
+    (promo FOUNDINGTESTER, 1 use) and `yce_internal_test` (promo
+    TRADTECH-INTERNAL, used by the owner), webhooks
+    `we_1UT74g...` (Connect) and `we_1UT74l...` (platform), both to
+    yardcard-elite.com/api/webhooks/stripe. Old dead webhooks deleted.
+  - All agencies' sandbox Stripe IDs were cleared at the switch
+    (`migrations/20261021_stripe_live_reset.sql`, applied); backup table
+    `yce_agencies_stripe_sandbox_backup_20261021`. Sandbox orders can't be
+    refunded with the live key (cancel with no refund).
+  - **The owner's real agency is `yardcard-elite`** ("YardCard Elite",
+    tobi@tradtechie.com), Elite via TRADTECH-INTERNAL - verified synced
+    through the live webhook. West Branch (gmail login) is an idle test
+    agency.
+  - **BLOCKED: Stripe Connect platform questionnaire** needs the owner's ID;
+    a paper temporary license was rejected. Until done, no agency
+    (owner or tester) can connect Stripe, so no booking page can open.
+    Waiting on the plastic license (or a passport).
+- **Front end (2026-10-22, while blocked):** order = booking flow, then
+  marketing site, then dashboard. Brand: exciting, easy, modern; greens and
+  blues, no purple (the current `--color-primary #7b3ff2` goes). Palette
+  options: https://claude.ai/artifact/7UgN3aziEoigZy56P83FLT (owner
+  shortlisting). Plan: brand config file (`src/lib/brand.ts`: name, logo
+  URLs, palette hex for emails/PDF) generating three-layer `:root` tokens
+  (palette -> meaning -> components); agency white label = override the
+  meaning tokens on the `[data-agency]` wrapper, auto-adjusted for
+  contrast. 789 hardcoded palette classes + 171 hex values to move onto
+  tokens. No dark mode in v1. Mobbin connector needs a paid plan.
 - **2026-10-19 overnight (user asleep, pre-approved "do as much as you can
   toward launch"): milestones 3 + 4, security, customer emails.** Stacked
   PRs, merge in order: **#16** (STATE) → **#17** plans → **#18** billing +
@@ -244,12 +281,8 @@ old verification notes) is in `git show aace018:STATE.md`.
    2025-10** (found 2026-10-10). Onboarding now creates the row itself
    (branch), but check the webhook endpoint/secret in the Clerk dashboard
    - other `users` updates (name/email changes) still won't sync.
-3. (built, PR #18) Agency subscriptions. Live mode needs the same
-   products/prices (same lookup keys), portal config and a live platform
-   webhook + secret.
-4. Clerk runs a development instance in production (`pk_test_`). Free to
-   fix (Clerk free tier + yardcard-elite.com); also fixes the sign-in
-   refresh that drops `?session_id` on the way back from Stripe Checkout.
+3. (done 2026-10-21) Agency subscriptions live in Stripe live mode.
+4. (done 2026-10-20) Clerk production instance on yardcard-elite.com.
 5. (done 2026-10-19, PR #21) RLS backstop on YCE tables. STILL OPEN, the
    user's call: `users` (shared with PantryPro) and PantryPro's tables are
    readable/writable with the public anon key (advisor: rls_disabled_in_public).
@@ -260,8 +293,14 @@ old verification notes) is in `git show aace018:STATE.md`.
    takes the amount from the browser; PayPal's form is a stub. Both used
    to save unpaid orders. Since #20 customers are only offered Stripe
    cards; the setup tabs still work. Building them = new milestone.
-8. Vercel Pro + Stripe live: only when the first real agency pays (user's
-   call to wait).
+8. Stripe live: done 2026-10-21. **Vercel Pro still open** - Hobby forbids
+   commercial use; upgrade before real payments flow.
+10. **Stripe Connect platform questionnaire** (owner's ID) - blocks every
+    agency's payment setup. See "Now".
+11. `users` and PantryPro tables (incl. empty `quiz_submissions`, RLS off,
+    built to hold emails/phones) readable/writable with the public anon
+    key. Narrow fix for `users` proposed, needs the owner's OK.
+12. No restorable database backups on the Supabase free plan.
 9. **Terms and Privacy are drafts** (`/terms`, `/privacy`, 2026-10-20, the
    user's working draft): Trad Tech LLC, Iowa law, helpdesk@tradtechie.com.
    Before go-live: research/compare, then professional review. The privacy

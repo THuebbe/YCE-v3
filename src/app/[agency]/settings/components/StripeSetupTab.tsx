@@ -39,6 +39,8 @@ export function StripeSetupTab({
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isReturningFromStripe, setIsReturningFromStripe] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
+  // Shown under the setup buttons, where the tap happened (the load banner is off-screen on phones)
+  const [connectError, setConnectError] = useState<string | null>(null)
 
   // Load Stripe status on component mount
   useEffect(() => {
@@ -93,7 +95,7 @@ export function StripeSetupTab({
   const handleStripeConnect = async (type: 'express' | 'standard' = 'express') => {
     try {
       setIsLoading(true)
-      setLoadError(null)
+      setConnectError(null)
       const result = await createStripeConnectAccount(type)
       
       if (result.success && result.onboardingUrl) {
@@ -104,7 +106,7 @@ export function StripeSetupTab({
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to connect with Stripe'
-      setLoadError(errorMessage)
+      setConnectError(errorMessage)
       onError?.(errorMessage)
     } finally {
       setIsLoading(false)
@@ -267,6 +269,15 @@ export function StripeSetupTab({
                     {isLoading ? 'Connecting...' : 'Connect my Stripe account'}
                   </Button>
                 </div>
+                {connectError && (
+                  <Alert variant="destructive" role="alert">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <p className="font-medium">Stripe setup didn&apos;t start</p>
+                      <p className="text-sm mt-1">{connectError}</p>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             </div>
           ) : (
