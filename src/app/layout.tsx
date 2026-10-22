@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fredoka, Nunito_Sans } from "next/font/google";
+import { BRAND } from '@/lib/brand';
 import { ClerkProvider } from '@clerk/nextjs';
 import { clerkTheme } from '@/lib/clerk-theme';
 import { ToastProvider } from '@/shared/components/feedback/toast';
@@ -31,7 +32,22 @@ const inter = Inter({
   weight: ["300", "400", "500", "600", "700"],
 });
 
+// Brand fonts (DESIGN.md). Their variables go on <html> so the
+// --font-display / --font-body tokens on :root can resolve them.
+const fredoka = Fredoka({
+  variable: "--font-fredoka",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const nunitoSans = Nunito_Sans({
+  variable: "--font-nunito-sans",
+  subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
+});
+
 export const metadata: Metadata = {
+  applicationName: BRAND.name,
   title: "YardCard Elite - Yard Sign Rental Management",
   description: "Professional yard sign rental platform for agencies. Manage inventory, orders, and customer bookings with ease.",
 };
@@ -43,7 +59,7 @@ export default function RootLayout({
 }>) {
   return (
     <ConditionalClerkProvider>
-      <html lang="en" className="h-full">
+      <html lang="en" className={`h-full ${fredoka.variable} ${nunitoSans.variable}`}>
         <body
           className={`${inter.variable} font-sans antialiased h-full bg-background-white text-neutral-900 selection:bg-secondary-pale selection:text-primary`}
         >

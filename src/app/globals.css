@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* Golden Hour brand tokens. New code uses these; the purple theme below is
+   legacy and is removed screen by screen as the redesign lands (DESIGN.md). */
+@import "../styles/tokens.css";
 
 /* Tailwind CSS v4 Theme Configuration */
 @theme {
