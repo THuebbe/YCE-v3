@@ -5,7 +5,6 @@ import { z } from 'zod'
 const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
 
 // Color validation regex (hex color format)
-const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
 
 // Operating hours schema for each day
 export const dayHoursSchema = z.object({
@@ -159,14 +158,7 @@ export const customerExperienceSchema = z.object({
       .string()
       .max(500, 'Welcome message too long')
       .optional(),
-    primaryColor: z
-      .string()
-      .regex(colorRegex, 'Invalid color format (use #RRGGBB or #RGB)')
-      .default('#3B82F6'),
-    secondaryColor: z
-      .string()
-      .regex(colorRegex, 'Invalid color format (use #RRGGBB or #RGB)')
-      .default('#1E40AF'),
+    // Brand colors and logo live in agencies.branding (features/agency/branding.ts)
     logoUrl: z.string().url('Invalid logo URL').optional(),
     backgroundImageUrl: z.string().url('Invalid background image URL').optional(),
   }),
@@ -309,8 +301,6 @@ export const defaultAgencySettings: AgencySettings = {
   customerExperience: {
     branding: {
       welcomeMessage: '',
-      primaryColor: '#3B82F6',
-      secondaryColor: '#1E40AF'
     },
     customContent: {
       supportEmail: '',

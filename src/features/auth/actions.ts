@@ -19,7 +19,7 @@ export async function checkSubdomainAvailability(slug: string): Promise<Subdomai
     if (!result.success) {
       return {
         available: false,
-        message: result.error.errors[0]?.message || 'Invalid slug'
+        message: result.error.errors[0]?.message || 'That address won’t work'
       }
     }
 
@@ -36,26 +36,26 @@ export async function checkSubdomainAvailability(slug: string): Promise<Subdomai
       console.error('Error checking slug availability:', error)
       return {
         available: false,
-        message: 'Unable to check slug availability'
+        message: 'Couldn’t check that address. Try again in a moment.'
       }
     }
 
     if (existingAgency) {
       return {
         available: false,
-        message: 'This slug is already taken'
+        message: 'Another business already has that address'
       }
     }
 
     return {
       available: true,
-      message: 'Slug is available'
+      message: 'That address is yours if you want it'
     }
   } catch (error) {
     console.error('Error checking slug availability:', error)
     return {
       available: false,
-      message: 'Unable to check slug availability'
+      message: 'Couldn’t check that address. Try again in a moment.'
     }
   }
 }

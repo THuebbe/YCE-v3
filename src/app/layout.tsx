@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Fredoka, Nunito_Sans } from "next/font/google";
+import { Fredoka, Nunito_Sans } from "next/font/google";
 import { BRAND } from '@/lib/brand';
 import { ClerkProvider } from '@clerk/nextjs';
 import { clerkTheme } from '@/lib/clerk-theme';
@@ -26,12 +26,6 @@ function ConditionalClerkProvider({ children }: { children: React.ReactNode }) {
     </ClerkProvider>
   );
 }
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 // Brand fonts (DESIGN.md). Their variables go on <html> so the
 // --font-display / --font-body tokens on :root can resolve them.
@@ -62,7 +56,7 @@ export default function RootLayout({
     <ConditionalClerkProvider>
       <html lang="en" className={`h-full ${fredoka.variable} ${nunitoSans.variable}`}>
         <body
-          className={`${inter.variable} font-sans antialiased h-full bg-background-white text-neutral-900 selection:bg-secondary-pale selection:text-primary`}
+          className="h-full bg-canvas font-body text-fg antialiased selection:bg-brand selection:text-on-brand"
         >
           <ToastProvider>
             <div className="min-h-full">

@@ -56,7 +56,13 @@ old verification notes) is in `git show aace018:STATE.md`.
     stale `/marketing` deleted. All copy in `src/features/marketing/content.ts`
     (prices from PLAN_PRICES, trial from BILLING_TRIAL_DAYS). Headline is a
     placeholder Tobi may rewrite. No testimonials until real ones exist.
-  - Next: the dashboard redesign (incl. the branding settings screen).
+  - Dashboard redesign: done in 5 PRs (#39-#42 plus the finish PR from
+    `redesign/dashboard-finish`): shell and home, orders, signs, settings
+    with white label (Elite), then signup, sign-in handoff, the 404 (a yard
+    reading 404 / NOT FOUND), customer paid/cancel pages, legal pages and
+    every email on one layout (`/lab/emails`). The purple theme is deleted
+    and the color lint covers all of `src/`. `/maintenance` and the unused
+    `/not-found` route were deleted (the real 404 is `src/app/not-found.tsx`).
   - Quiz funnels: later, not launch (PRODUCT.md "Future features").
   - `pnpm lint:colors` = legacy colors left to migrate.
 - **2026-10-19 overnight (user asleep, pre-approved "do as much as you can
@@ -376,8 +382,10 @@ old verification notes) is in `git show aace018:STATE.md`.
 - Split the shared PantryPro DB: YCE becomes its own project AFTER the
   Victory Store demo (goal: win at least their signs, maybe a partnership)
   - user, 2026-10-19. Until then `users` and PantryPro tables stay as they
-  are (anon-readable `users` is known and accepted for now; PantryPro is
-  in development).
+  are. `users` got RLS on 2026-10-22 (`migrations/20261022_users_rls.sql`,
+  applied; anon reads nothing, a Supabase Auth user reads only their own
+  row; both apps use the service role, so neither changed). The 26
+  PantryPro tables still without RLS are the owner's to fix in PantryPro.
 
 ## Next steps
 1. (done - PR #8 merged 2026-10-16)
