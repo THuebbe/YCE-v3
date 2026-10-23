@@ -19,15 +19,17 @@ interface CancelOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
   order: any;
+  /** The agency's time zone (operating_hours.timeZone) */
+  timeZone?: string;
 }
 
-export function CancelOrderModal({ isOpen, onClose, order }: CancelOrderModalProps) {
+export function CancelOrderModal({ isOpen, onClose, order, timeZone }: CancelOrderModalProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const maxRefundAmount = Number(order.total) || 0; // dollars (numeric column comes back as a string)
   // What this order's own terms say for a customer cancellation
   const policy = cancellationPolicyOf(order.terms_snapshot);
   const fee = cancellationFee(maxRefundAmount, policy);
-  const hoursLeft = hoursUntilDelivery(order);
+  const hoursLeft = hoursUntilDelivery(order, timeZone);
   const insideNotice = hoursLeft < policy.noticeHours;
   const suggested: 'partial' | 'none' = insideNotice ? 'none' : 'partial';
   const [refundType, setRefundType] = useState<'full' | 'partial' | 'none'>(suggested);

@@ -50,16 +50,50 @@ export function isWithinCancellationWindow(order: any): boolean {
   return hoursSinceOrder <= 24;
 }
 
+/** Minutes a time zone is ahead of UTC at a moment (-300 for Chicago in summer) */
+function zoneOffsetMinutes(at: Date, timeZone: string): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', { timeZone, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' })
+      .formatToParts(at).map(p => [p.type, Number(p.value)]),
+  );
+  const asUtc = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute);
+  return Math.round((asUtc - Math.floor(at.getTime() / 60_000) * 60_000) / 60_000);
+}
+
+/** The moment a calendar day starts in a time zone (local midnight), DST included */
+export function startOfDayIn(year: number, month: number, day: number, timeZone: string): Date {
+  const utcMidnight = Date.UTC(year, month - 1, day);
+  let start = utcMidnight - zoneOffsetMinutes(new Date(utcMidnight), timeZone) * 60_000;
+  // Across a DST change the offset at midnight differs from the first guess
+  start = utcMidnight - zoneOffsetMinutes(new Date(start), timeZone) * 60_000;
+  return new Date(start);
+}
+
 /**
- * Hours from now until delivery (start of the event day minus the extra days
- * before), the point cancellation notice is measured from (PRODUCT.md).
- * Negative once delivery day has started.
+ * Hours from `now` until delivery (start of the event day minus the extra
+ * days before, in the agency's time zone), the point cancellation notice is
+ * measured from (PRODUCT.md). Negative once delivery day has started.
+ * Without a time zone (or an unknown one) it falls back to this machine's.
  */
-export function hoursUntilDelivery(order: { event_date?: string | null; extraDaysBefore?: number | null }): number {
+export function hoursUntilDelivery(
+  order: { event_date?: string | null; extraDaysBefore?: number | null },
+  timeZone?: string,
+  now: Date = new Date(),
+): number {
   if (!order.event_date) return Infinity;
   const [y, m, d] = String(order.event_date).slice(0, 10).split('-').map(Number);
-  const delivery = new Date(y, m - 1, d - (Number(order.extraDaysBefore) || 0));
-  return (delivery.getTime() - Date.now()) / 3_600_000;
+  const day = d - (Number(order.extraDaysBefore) || 0);
+  let delivery: Date;
+  try {
+    // Date.UTC normalizes a day of 0 or less into the month before
+    const key = new Date(Date.UTC(y, m - 1, day));
+    delivery = timeZone
+      ? startOfDayIn(key.getUTCFullYear(), key.getUTCMonth() + 1, key.getUTCDate(), timeZone)
+      : new Date(y, m - 1, day);
+  } catch {
+    delivery = new Date(y, m - 1, day);
+  }
+  return (delivery.getTime() - now.getTime()) / 3_600_000;
 }
 
 export function canCancelOrder(order: any): boolean {
