@@ -18,8 +18,17 @@ export interface LayoutInput {
   theme?: string;
   hobbies?: string[];
   agencyId: string;
-  /** Letter/number style, e.g. "classic". Defaults to the manifest's first. */
+  /** Message letter/number style (and decorations), e.g. "classic". Defaults to "classic". */
   style?: string;
+  /** Name style; defaults to `style` */
+  nameStyle?: string;
+  /**
+   * Units free per sign key (sign_library.asset_key) for the extras:
+   * decorations, backdrops and bookends are only drawn from signs with
+   * units left, and each use takes one (PRODUCT.md "Booking configurator").
+   * Without it, extras are picked as before.
+   */
+  extrasStock?: Map<string, number>;
   /** Colorway for the message (zone1) and decorations, e.g. "red". Defaults to the manifest's first. */
   messageColorway?: string;
   /** Colorway for the recipient name (zone2), e.g. "red". Defaults to the manifest's first. */
@@ -47,7 +56,8 @@ export class LayoutCalculatorService {
     const zone1 = this.calculateZone1(message, eventNumber, assetIndex, style, messageColorway);
 
     // Calculate Zone 2: Recipient name
-    const zone2 = this.calculateZone2(recipientName, assetIndex, style, nameColorway);
+    const nameStyle = (input.nameStyle || style).toLowerCase();
+    const zone2 = this.calculateZone2(recipientName, assetIndex, nameStyle, nameColorway);
 
     // Calculate available space for Zone 3
     const availableSpace = Math.max(0, zone1.totalWidth - zone2.totalWidth);
@@ -57,10 +67,11 @@ export class LayoutCalculatorService {
     // side gets a guaranteed minimum, then grows until 75% of the margin
     // is filled. Decorations use the message colorway - they aren't part
     // of either lettered zone, so there's no separate "name" concept for them.
-    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies, assetIndex, style, messageColorway);
+    const stock = input.extrasStock ? new Map(input.extrasStock) : null;
+    const { zone3, zone4 } = await this.calculateZone3AndZone4(sideSpace, theme, hobbies, assetIndex, style, messageColorway, stock);
 
     // Calculate Zone 5: Bookend signs
-    const zone5 = this.calculateZone5();
+    const zone5 = this.calculateZone5(stock);
     
     // Calculate overall metrics
     const totalWidth = Math.max(zone1.totalWidth, zone2.totalWidth + zone3.totalWidth);
@@ -170,7 +181,8 @@ export class LayoutCalculatorService {
     hobbies: string[] | undefined,
     assetIndex: Map<string, SignAsset> | null,
     style: string,
-    colorway: string
+    colorway: string,
+    stock: Map<string, number> | null = null
   ): Promise<{ zone3: DisplayZone; zone4: DisplayZone }> {
     const DECORATION_WIDTH = 2;
     const BACKGROUND_WIDTH = 1;
@@ -191,13 +203,33 @@ export class LayoutCalculatorService {
       let sideWidth = 0;
       let itemsAdded = 0;
 
+      // With stock: only signs with a unit left, trying a few candidates
+      // before leaving the slot empty
+      const takeFree = <T extends ZoneSign>(make: () => T): T | null => {
+        for (let attempt = 0; attempt < 8; attempt++) {
+          const sign = make();
+          if (!stock) return sign;
+          const left = sign.catalogKey ? stock.get(sign.catalogKey) ?? 0 : 0;
+          if (left > 0) {
+            stock.set(sign.catalogKey!, left - 1);
+            return sign;
+          }
+        }
+        return null;
+      };
       const addBackground = () => {
-        backgroundSigns.push(this.createBackdropSign(nextBackground(), sidePosition++, BACKGROUND_WIDTH));
+        const sign = takeFree(() => this.createBackdropSign(nextBackground(), sidePosition, BACKGROUND_WIDTH));
+        if (!sign) return;
+        sidePosition++;
+        backgroundSigns.push(sign);
         backgroundTotalWidth += BACKGROUND_WIDTH;
         sideWidth += BACKGROUND_WIDTH;
       };
       const addDecoration = () => {
-        decorationSigns.push(this.createDecorationSign(nextDecoration(), sidePosition++, DECORATION_WIDTH, assetIndex, style, colorway, sideLabel));
+        const sign = takeFree(() => this.createDecorationSign(nextDecoration(), sidePosition, DECORATION_WIDTH, assetIndex, style, colorway, sideLabel));
+        if (!sign) return;
+        sidePosition++;
+        decorationSigns.push(sign);
         decorationTotalWidth += DECORATION_WIDTH;
         sideWidth += DECORATION_WIDTH;
       };
@@ -240,16 +272,23 @@ export class LayoutCalculatorService {
   /**
    * Calculate Zone 5: Bookend signs
    */
-  private calculateZone5(): DisplayZone {
+  private calculateZone5(stock: Map<string, number> | null = null): DisplayZone {
     const signs: ZoneSign[] = [
       this.createBookendSign('Left Bookend', 0, 1.5),
       this.createBookendSign('Right Bookend', 1, 1.5)
-    ];
-    
+    ].filter(sign => {
+      // Without a free bookend the display just goes without it
+      if (!stock) return true;
+      const left = stock.get(sign.catalogKey!) ?? 0;
+      if (left <= 0) return false;
+      stock.set(sign.catalogKey!, left - 1);
+      return true;
+    });
+
     return {
       zone: 'zone5',
       signs,
-      totalWidth: 3 // 1.5 + 1.5
+      totalWidth: signs.length * 1.5
     };
   }
   

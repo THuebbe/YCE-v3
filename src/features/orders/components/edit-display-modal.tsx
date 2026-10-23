@@ -21,14 +21,17 @@ interface EditDisplayModalProps {
   order: any;
 }
 
+const capitalize = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
+
 /** The order's saved choices, or what older orders (message text only) allow */
 function initialDisplay(order: any): DisplayEdit {
   const saved = order?.display_config as Partial<DisplayEdit> | null;
   if (saved?.eventMessage) {
     return {
       eventMessage: saved.eventMessage, customMessage: saved.customMessage ?? '', eventNumber: saved.eventNumber ?? null,
-      recipientName: saved.recipientName ?? '', messageStyle: saved.messageStyle ?? 'Classic',
-      messageColorway: saved.messageColorway ?? 'Red', nameColorway: saved.nameColorway ?? 'Red',
+      // Orders from the booking step save these lowercase ("gold"); the pickers here are capitalized
+      recipientName: saved.recipientName ?? '', messageStyle: capitalize(saved.messageStyle ?? 'Classic'),
+      messageColorway: capitalize(saved.messageColorway ?? 'Red'), nameColorway: capitalize(saved.nameColorway ?? 'Red'),
       characterTheme: saved.characterTheme ?? '', hobbies: saved.hobbies ?? [],
     };
   }
@@ -40,7 +43,6 @@ function initialDisplay(order: any): DisplayEdit {
   };
 }
 
-const capitalize = (v: string) => v.charAt(0).toUpperCase() + v.slice(1);
 const field = 'mt-1 h-11 w-full rounded-control border border-line-strong bg-surface px-3 text-copy text-fg focus-visible:border-focus focus-visible:shadow-(--focus-ring) focus-visible:outline-none';
 
 /**

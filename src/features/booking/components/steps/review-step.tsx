@@ -49,6 +49,12 @@ export function ReviewStep({ custom }: { custom?: string }) {
       return;
     }
 
+    // The exact layout the signs were reserved for (random extras included)
+    if (formData.display.layout) {
+      setLayoutCalculation(formData.display.layout as LayoutCalculation);
+      return;
+    }
+
     setPreviewLoading(true);
     
     try {
@@ -72,6 +78,7 @@ export function ReviewStep({ custom }: { custom?: string }) {
         agencyId,
         style: formData.display.messageStyle,
         messageColorway: formData.display.messageColorway,
+        nameStyle: formData.display.nameStyle,
         nameColorway: formData.display.nameColorway
       });
       

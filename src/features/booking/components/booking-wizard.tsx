@@ -75,7 +75,7 @@ function BookingWizardContent({ agencyId }: { agencyId?: string }) {
       <main className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
         {/* One copy of the step for every screen size (a hidden second copy
             duplicated element ids and would mount Stripe's card form twice) */}
-        <div className="min-h-[500px] overflow-x-hidden md:overflow-visible">
+        <div className="min-h-[500px] overflow-x-clip md:overflow-visible">
           <BookingErrorBoundary>
             <AnimatePresence mode="wait" custom={stepDirection}>
               <StepComponent key={currentStep} custom={stepDirection} />
