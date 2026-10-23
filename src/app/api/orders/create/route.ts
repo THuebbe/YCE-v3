@@ -254,6 +254,7 @@ export async function POST(
 				recipientName: formData.display.recipientName ?? null,
 				messageStyle: formData.display.messageStyle ?? null,
 				messageColorway: formData.display.messageColorway ?? null,
+				nameStyle: formData.display.nameStyle ?? null,
 				nameColorway: formData.display.nameColorway ?? null,
 				characterTheme: formData.display.characterTheme ?? null,
 				hobbies: formData.display.hobbies ?? [],

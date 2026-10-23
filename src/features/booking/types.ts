@@ -64,6 +64,11 @@ export const displaySchema = z.object({
   // A hold this session no longer uses (dates or design changed); the next
   // reservation replaces it instead of leaving it live until it expires
   staleHoldId: z.string().optional(),
+  /** Which line committed (both pickers set) first: it claims its signs first */
+  commitOrder: z.array(z.enum(['message', 'name'])).optional(),
+  /** The exact layout the hold was taken for (random extras included), so
+   *  Review and the saved picture show the signs that were reserved */
+  layout: z.any().optional(),
 });
 
 // Payment Step - Dynamic schema based on available methods
