@@ -43,7 +43,10 @@ one holds something valid:
 1. **Message** (preset or custom). If it has a number ("HAPPY 21ST
    BIRTHDAY"), the **number** field slides in next.
 2. **Name** on the display.
-3. **Date**, then extra days before/after, then the address.
+3. **Date**, then extra days before/after.
+4. **Address last** (decided 2026-10-23): it doesn't affect availability,
+   so if the customer has to go back and change the date or wording, the
+   address is never in the way.
 
 Inputs are checked 300 ms after the customer stops typing.
 
@@ -81,9 +84,14 @@ the dates. Then contact, payment and review as today.
   in any style and color for that day (the shared-stock rule above
   applies), or when it's a day off or too soon (booking rules, as today).
 - **Tapping a gray day says why**, e.g. "Not enough letters free that day
-  for CONGRATULATIONS JENNY", and offers a fix when one exists (a shorter
-  wording that fits). The date is usually fixed (the birthday is
-  Saturday), so a reason beats a silent gray box.
+  for CONGRATULATIONS JENNY". The date is usually fixed (the birthday is
+  Saturday), so a reason beats a silent gray box. Then it offers fixes
+  (decided 2026-10-23), both when they exist:
+  - **Other preset messages** that fit that day. Only presets: we never
+    invent wording. Custom Message stays available as today.
+  - **Nearby dates** that fit as typed.
+  - **Never a different name**: if the name is what doesn't fit, only
+    dates are offered.
 - **Extra days are rechecked** when added: the signs are out longer. If
   that breaks the display, say so and name the cause.
 
@@ -121,13 +129,9 @@ the dates. Then contact, payment and review as today.
 
 ### Open questions (decide before building)
 
-1. Step 1's fix suggestion for gray days: offer a shorter wording, nearby
-   dates, or both?
-2. Address before or after the date? (Today it's on step 1 with the date;
-   it doesn't affect availability.)
-3. When contact details are submitted and the hold extends, should the
-   agency see that abandoned booking (a lead) if the customer never pays?
-   Not built today; it needs the customer's consent wording.
+1. Short presets: the presets have no short forms ("Congratulations" is 15
+   letters, no "Congrats"). Add a couple so a wording fix exists without
+   typing? Which ones?
 
 ## Order lifecycle
 ```
@@ -331,6 +335,10 @@ agencies could open them by URL. Git history has the full mockups.
   q11-q14; two insight systems; unused minImpact/priority; invented
   stats in the copy) and its own leads table with RLS on. Never reuse the
   shared `quiz_submissions` table.
+- **Lead funnel (recorded 2026-10-23):** a customer who submits contact
+  details in the booking flow but never pays shows up for the agency as a
+  lead to follow up. Needs consent wording on the contact step. Fits after
+  the configurator work (contact details extend the sign hold there).
 - **Sign packages (was "bundles", recorded 2026-10-22):** a supplier's
   package, e.g. Victory Store's sports pack (2 soccer balls, 2 footballs,
   basketballs, baseballs...). Its purpose is receiving stock: add the
