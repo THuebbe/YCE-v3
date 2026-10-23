@@ -6,7 +6,7 @@ import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type { BookingPricing } from '../pricing';
 import type { AgencyPolicies } from '../policies';
 import type { BookingRules } from '../booking-rules';
-import { createBookingHold, getBookingCatalog, saveDisplaySnapshot, touchBookingHold } from '../actions';
+import { createBookingHold, getAvailabilitySnapshot, getBookingCatalog, saveDisplaySnapshot, touchBookingHold } from '../actions';
 
 /** The server calls the wizard makes. Real server actions by default; the
  *  design lab passes demo versions so every step renders without a database. */
@@ -15,9 +15,10 @@ export interface BookingActions {
   createBookingHold: typeof createBookingHold;
   touchBookingHold: typeof touchBookingHold;
   saveDisplaySnapshot: typeof saveDisplaySnapshot;
+  getAvailabilitySnapshot: typeof getAvailabilitySnapshot;
 }
 
-const SERVER_ACTIONS: BookingActions = { getBookingCatalog, createBookingHold, touchBookingHold, saveDisplaySnapshot };
+const SERVER_ACTIONS: BookingActions = { getBookingCatalog, createBookingHold, touchBookingHold, saveDisplaySnapshot, getAvailabilitySnapshot };
 
 const SESSION_KEY = 'yce_booking_session';
 // + agency slug. v2: the step order changed (contact moved after display),
