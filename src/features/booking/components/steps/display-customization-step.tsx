@@ -297,7 +297,14 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     return (
       <StepSection key={line} title={line === 'message' ? 'The message' : 'The name'} hint={words}>
         {!options ? (
-          <p className="text-fine text-fg-muted" role="status">{availability.error ?? 'Checking which signs are free on your dates...'}</p>
+          availability.error ? (
+            <div className="grid gap-2 rounded-control bg-caution-soft p-3 text-fine text-caution" role="alert">
+              <p className="font-semibold">{availability.error}</p>
+              <Button variant="secondary" size="sm" className="justify-self-start" loading={availability.loading} onClick={() => void availability.refresh()}>Try again</Button>
+            </div>
+          ) : (
+            <p className="text-fine text-fg-muted" role="status">Checking which signs are free on your dates...</p>
+          )
         ) : nothing ? (
           <div className="grid gap-2 rounded-control bg-caution-soft p-3 text-fine text-caution" role="alert">
             <p className="font-semibold">No style and color has enough signs free for {words} on your dates.</p>
