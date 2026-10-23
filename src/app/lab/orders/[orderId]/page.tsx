@@ -14,7 +14,7 @@ export default async function OrderLabPage({ params, searchParams }: {
   if (!order) notFound()
   return (
     <LabShell>
-      <OrderDetails order={order} slug="lab" plan={q.plan === 'essentials' ? 'essentials' : 'elite'} />
+      <OrderDetails order={order} slug="lab" plan={q.plan === 'essentials' ? 'essentials' : 'elite'} timeZone="America/Chicago" />
     </LabShell>
   )
 }

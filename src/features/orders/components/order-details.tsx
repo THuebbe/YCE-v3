@@ -39,6 +39,8 @@ interface OrderDetailsProps {
   slug: string;
   /** Completed orders: the late/damage fees that may be charged */
   feeQuote?: FeeQuote | null;
+  /** The agency's time zone: cancellation notice is measured on its clock */
+  timeZone?: string;
 }
 
 /**
@@ -46,7 +48,7 @@ interface OrderDetailsProps {
  * pinned above the tab bar on phones. Changing or cancelling the order sits
  * at the bottom, out of the way.
  */
-export function OrderDetails({ order, plan, slug, feeQuote }: OrderDetailsProps) {
+export function OrderDetails({ order, plan, slug, feeQuote, timeZone }: OrderDetailsProps) {
   const { toast } = useToast();
   const [generating, setGenerating] = useState<DocType | null>(null);
   const [made, setMade] = useState<{ type: string; url: string }[]>([]);
@@ -262,7 +264,7 @@ export function OrderDetails({ order, plan, slug, feeQuote }: OrderDetailsProps)
       )}
 
       <EditDisplayModal isOpen={showEdit} onClose={() => setShowEdit(false)} order={order} />
-      <CancelOrderModal isOpen={showCancel} onClose={() => setShowCancel(false)} order={order} />
+      <CancelOrderModal isOpen={showCancel} onClose={() => setShowCancel(false)} order={order} timeZone={timeZone} />
     </div>
   );
 }
