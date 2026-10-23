@@ -8,6 +8,9 @@ export interface EventMessageConfig {
   numberLabel?: string;
   numberPlaceholder?: string;
   numberType?: 'age' | 'year' | 'milestone' | 'general';
+  /** Shorter presets that say the same thing, suggested when this message
+   *  doesn't fit a day (PRODUCT.md "Booking configurator"). None yet. */
+  alternatives?: string[];
 }
 
 export const eventMessages: EventMessageConfig[] = [

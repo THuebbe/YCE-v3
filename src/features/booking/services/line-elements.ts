@@ -9,6 +9,9 @@
 
 export type LineElement = { type: 'letter' | 'number' | 'ordinal'; value: string };
 
+/** Years ("Graduation 2026", "Class of 2026") read without an ordinal */
+export const isYear = (number: number) => number >= 1900 && number <= 2199;
+
 export function ordinalSuffix(number: number): string {
   const remainder = number % 100;
   if (remainder >= 11 && remainder <= 13) return 'TH';
@@ -49,12 +52,13 @@ export function messageElements(message: string, eventNumber?: number): LineElem
   if (typed && !eventNumber) {
     const at = typed.index ?? 0;
     const digits = typed[1];
-    return withNumber(clean.slice(0, at), digits, typed[2] || ordinalSuffix(parseInt(digits)), clean.slice(at + typed[0].length));
+    const n = parseInt(digits);
+    return withNumber(clean.slice(0, at), digits, typed[2] || (isYear(n) ? '' : ordinalSuffix(n)), clean.slice(at + typed[0].length));
   }
 
   if (eventNumber) {
     const digits = String(eventNumber);
-    const ordinal = ordinalSuffix(eventNumber);
+    const ordinal = isYear(eventNumber) ? '' : ordinalSuffix(eventNumber);
     const pattern = Object.keys(NUMBER_AFTER).find(p => clean.startsWith(p));
     if (pattern === undefined) return withNumber(clean, digits, ordinal, '');
     const cut = NUMBER_AFTER[pattern].length;

@@ -21,6 +21,13 @@ test('message elements: a number typed into the message keeps its ordinal', () =
   assert.deepEqual(messageElements('Happy 21st').map(e => e.type), ['letter', 'letter', 'letter', 'letter', 'letter', 'number', 'number', 'ordinal']);
 });
 
+test('years read without an ordinal: GRADUATION 2026, not 2026TH', () => {
+  assert.equal(text(messageElements('Graduation', 2026)), '2 0 2 6 G R A D U A T I O N');
+  assert.equal(text(messageElements('Congratulations', 2026)), 'C O N G R A T U L A T I O N S 2 0 2 6');
+  assert.equal(text(messageElements('CLASS OF 2026')), 'C L A S S O F 2 0 2 6');
+  assert.equal(text(messageElements('Happy Anniversary', 50)), 'H A P P Y 5 0 TH A N N I V E R S A R Y');
+});
+
 test('ordinals: 1st 2nd 3rd, but 11th 12th 13th', () => {
   assert.deepEqual([1, 2, 3, 4, 11, 12, 13, 21, 22, 111].map(ordinalSuffix), ['ST', 'ND', 'RD', 'TH', 'TH', 'TH', 'TH', 'ST', 'ND', 'TH']);
 });

@@ -23,7 +23,7 @@ import type { AgencyBranding } from '@/features/agency/branding';
 
 // In STEP order (step-order.ts): design before details
 const wizardSteps: WizardStep[] = [
-  { id: STEP.event, name: 'event', title: 'When and where', component: EventDetailsStep, validation: eventSchema },
+  { id: STEP.event, name: 'event', title: 'What and when', component: EventDetailsStep, validation: eventSchema },
   { id: STEP.display, name: 'display', title: 'Design your display', component: DisplayCustomizationStep, validation: displaySchema },
   { id: STEP.contact, name: 'contact', title: 'Your details', component: ContactInfoStep, validation: contactSchema },
   { id: STEP.payment, name: 'payment', title: 'Payment', component: PaymentStep, validation: paymentSchema },

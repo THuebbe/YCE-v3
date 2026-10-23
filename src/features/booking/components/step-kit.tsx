@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +24,30 @@ export function StepMotion({ custom, children }: { custom?: string; children: Re
     >
       {children}
     </motion.div>
+  );
+}
+
+/**
+ * Progressive reveal: a field slides down from behind the one above once
+ * that one is filled (PRODUCT.md "Booking configurator"). Just fades with
+ * reduced motion.
+ */
+export function Reveal({ show, children }: { show: boolean; children: React.ReactNode }) {
+  const reduce = useReducedMotion();
+  return (
+    <AnimatePresence initial={false}>
+      {show && (
+        <motion.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, height: 0, y: -16 }}
+          animate={reduce ? { opacity: 1 } : { opacity: 1, height: 'auto', y: 0 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, height: 0, y: -16 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="overflow-hidden"
+        >
+          {children}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
