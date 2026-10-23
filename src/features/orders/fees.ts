@@ -8,6 +8,7 @@ import { feesPolicyOf } from '@/features/booking/terms';
 import { effectivePolicies } from '@/features/booking/policies';
 import { resolveTimeZone, todayIn } from '@/features/booking/booking-rules';
 import { sendFeeChargedEmail, sendFeePaymentLinkEmail } from '@/lib/email';
+import { checkFeeAmounts, feeCaps, round2 } from './fee-math';
 
 export interface FeeCharge {
   status: 'charged' | 'link_sent' | 'waived' | 'failed';
@@ -39,9 +40,6 @@ export interface FeeQuote {
   card: { brand: string; last4: string } | null;
   existing: FeeCharge | null;
 }
-
-const dayDiff = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
-const round2 = (n: number) => Math.round(n * 100) / 100;
 
 interface SavedCard {
   stripeAccount: string;
@@ -102,7 +100,6 @@ export async function getFeeQuote(orderId: string, agencyId: string): Promise<Fe
   const checkInDay = completedAt
     ? todayIn(resolveTimeZone(agency?.operating_hours), new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(completedAt) ? completedAt : `${completedAt}Z`))
     : null;
-  const lateDays = pickupDay && checkInDay ? Math.max(0, dayDiff(pickupDay, checkInDay)) : 0;
   const damagedSigns = (checkIns ?? [])
     .filter(c => c.condition === 'damaged' || c.condition === 'missing')
     .reduce((sum, c) => sum + (Number(c.quantity) || 1), 0);
@@ -110,12 +107,10 @@ export async function getFeeQuote(orderId: string, agencyId: string): Promise<Fe
   return {
     pickupDay,
     checkInDay,
-    lateDays,
     lateFee,
     damagedSigns,
     damageFeePerSign,
-    lateMax: round2(lateDays * lateFee),
-    damageMax: round2(damagedSigns * damageFeePerSign),
+    ...feeCaps({ pickupDay, checkInDay, lateFee, damagedSigns, damageFeePerSign }),
     fromBookingTerms: !!saved,
     card: card ? { brand: card.brand, last4: card.last4 } : null,
     existing: (order.fee_charge as FeeCharge | null) ?? null,
@@ -142,12 +137,9 @@ export async function assessFees(input: {
   if (quote.existing && quote.existing.status !== 'failed') {
     return { success: false, error: 'Fees for this order were already handled' };
   }
-  const lateAmount = round2(Number(input.lateAmount) || 0);
-  const damageAmount = round2(Number(input.damageAmount) || 0);
-  if (lateAmount < 0 || damageAmount < 0 || lateAmount > quote.lateMax + 0.001 || damageAmount > quote.damageMax + 0.001) {
-    return { success: false, error: 'Fees can\'t be more than the booking terms allow' };
-  }
-  const total = round2(lateAmount + damageAmount);
+  const amounts = checkFeeAmounts(input.lateAmount, input.damageAmount, quote);
+  if ('error' in amounts) return { success: false, error: amounts.error };
+  const { lateAmount, damageAmount, total } = amounts;
   const base = {
     lateDays: quote.lateDays, lateAmount,
     damagedSigns: quote.damagedSigns, damageAmount,

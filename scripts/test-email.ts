@@ -1,105 +1,57 @@
 #!/usr/bin/env tsx
-
+/**
+ * Every email we send, with sample data (src/lib/email-samples.ts).
+ *
+ *   pnpm test-email you@example.com          send all six to that inbox
+ *   pnpm test-email --out ./tmp/emails       write them as .html files instead
+ *
+ * Sending needs RESEND_API_KEY and EMAIL_FROM in .env.local (a sender on a
+ * domain verified in Resend, e.g. "YardCard Elite <orders@yardcard-elite.com>").
+ */
 import { config } from 'dotenv';
+import { mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 
-// Load environment variables from .env.local
-const envPath = path.join(process.cwd(), '.env.local');
-config({ path: envPath });
-
-// Verify environment variables are loaded
-if (!process.env.RESEND_API_KEY) {
-	console.error('❌ RESEND_API_KEY not found in environment variables');
-	console.error('🔍 Make sure .env.local exists and contains RESEND_API_KEY');
-	console.error('📁 Looking for env file at:', envPath);
-	process.exit(1);
-}
-
-import { sendTestEmail, sendOrderNotificationEmail } from '../src/lib/email';
+config({ path: path.join(process.cwd(), '.env.local') });
 
 async function main() {
-	let args = process.argv.slice(2);
-	
-	// Remove npm script separator if present
-	if (args[0] === '--') {
-		args = args.slice(1);
-	}
-	
-	if (args.length === 0) {
-		console.log(`
-📧 YardCard Elite Email Test Script
+  const args = process.argv.slice(2).filter(a => a !== '--');
+  const outIndex = args.indexOf('--out');
+  // Imported after dotenv so lib/site and lib/email see the env
+  const { sampleEmails } = await import('../src/lib/email-samples');
+  const emails = sampleEmails();
 
-Usage:
-  npm run test-email <email>                    - Send basic test email
-  npm run test-email <email> --order           - Send order notification test
-  npm run test-email <email> --order --agency  - Send with agency data
+  if (outIndex >= 0) {
+    const dir = args[outIndex + 1];
+    if (!dir) throw new Error('--out needs a folder');
+    mkdirSync(dir, { recursive: true });
+    emails.forEach((e, i) => {
+      const file = path.join(dir, `${i + 1}-${e.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.html`);
+      writeFileSync(file, e.html);
+      writeFileSync(file.replace(/\.html$/, '.subject.txt'), e.subject);
+      console.log(file);
+    });
+    return;
+  }
 
-Examples:
-  npm run test-email thuebbe.coding@gmail.com
-  npm run test-email thuebbe.coding@gmail.com --order
-  npm run test-email thuebbe.coding@gmail.com --order --agency
-		`);
-		process.exit(1);
-	}
-
-	const email = args[0];
-	const isOrderTest = args.includes('--order');
-	const withAgency = args.includes('--agency');
-
-	console.log('🚀 Starting email test...');
-	console.log('📧 Target email:', email);
-	console.log('📬 Test type:', isOrderTest ? 'Order Notification' : 'Basic Test');
-
-	try {
-		if (isOrderTest) {
-			// Send order notification email
-			const result = await sendOrderNotificationEmail({
-				orderNumber: 'YCE-2024-123456',
-				customerName: 'John Smith',
-				eventDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-				totalAmount: 150.00, // $150.00 as dollars
-				agencyName: withAgency ? 'Test Agency' : undefined,
-				agencyEmail: email,
-			});
-
-			if (result.success) {
-				console.log('✅ Order notification email sent successfully!');
-				console.log('📬 Email ID:', result.emailId);
-				console.log('📋 Test order details:');
-				console.log('   - Order Number: YCE-2024-123456');
-				console.log('   - Customer: John Smith');
-				console.log('   - Event Date:', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString());
-				console.log('   - Total: $150.00');
-			} else {
-				console.error('❌ Failed to send order notification email');
-				console.error('🔍 Error details:', result.error);
-				process.exit(1);
-			}
-		} else {
-			// Send basic test email
-			const result = await sendTestEmail(email);
-
-			if (result.success && result.emailId) {
-				console.log('✅ Test email sent successfully!');
-				console.log('📬 Email ID:', result.emailId);
-			} else {
-				console.error('❌ Failed to send test email');
-				console.error('🔍 Error details:', result.error);
-				if (result.error?.error) {
-					console.error('📋 Specific error:', result.error.error);
-				}
-				process.exit(1);
-			}
-		}
-
-		console.log('');
-		console.log('🎉 Email test completed! Check your inbox.');
-		console.log('💡 If you don\'t see the email, check your spam folder.');
-		
-	} catch (error) {
-		console.error('❌ Unexpected error:', error);
-		process.exit(1);
-	}
+  const to = args[0];
+  if (!to) {
+    console.log('Usage: pnpm test-email you@example.com   |   pnpm test-email --out <folder>');
+    process.exit(1);
+  }
+  if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
+    console.error('Set RESEND_API_KEY and EMAIL_FROM in .env.local to send.');
+    process.exit(1);
+  }
+  const { Resend } = await import('resend');
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  for (const e of emails) {
+    const { error } = await resend.emails.send({ from: process.env.EMAIL_FROM, to: [to], subject: `[Sample] ${e.subject}`, html: e.html });
+    console.log(error ? `failed: ${e.title}: ${error.message}` : `sent: ${e.title}`);
+  }
 }
 
-main().catch(console.error);
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
