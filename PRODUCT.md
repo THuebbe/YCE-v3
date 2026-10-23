@@ -14,18 +14,124 @@ the model is profitable from roughly the second agency.
 ## Booking rules (these are product decisions, not implementation detail)
 - **Lead time: order cutoff + setup days** (replaced the old 48-hour
   minimum, 2026-10-07). Per-agency `booking_rules`, see STATE.md "Decisions".
-- **Inventory soft-hold: 1 hour, session-based.** Triggered on PREVIEW
-  GENERATION, not on browsing. Automatic cleanup of expired holds.
-  Server-side since milestone 1 (`yce_create_booking_hold`); see
-  ARCHITECTURE.md for the hold spec.
+- **Inventory soft-hold: session-based.** Today: 1 hour, taken on preview
+  generation. Changing to 15 minutes from a line dropping in, 1 hour once
+  contact details are in: see "Booking configurator" below. Server-side
+  (`yce_create_booking_hold`); see ARCHITECTURE.md for the hold mechanics.
 - **Alternative suggestions on inventory conflict.** If the requested
   signs aren't available, offer substitutes rather than failing.
   Not built (today the hold refuses and names the short sign).
 - **Zone 3 fill target: 75%.** `layout-calculator.ts` now enforces 75%
   (fixed 2026-09-14; previously hardcoded `0.6`, contradicting this spec).
-- **24-hour cancellation cutoff** with auto-refund logic. Not built.
+- **Cancellation cutoff and refunds:** built; see "Cancellations" below
+  (default 48 hours, per-agency on Elite, measured on the agency's clock).
 - **3-year customer data retention.** The booking form already tells
   customers this, so it is a promise already being made.
+
+## Booking configurator — SPEC 2026-10-23, not built (owner + Claude)
+
+The configurator only offers what the agency can actually deliver for the
+customer's dates. Today it doesn't: the style and color pickers list
+everything the agency owns at all, and a shortage only shows up as an
+error after the customer presses Generate. This replaces that.
+
+### Flow
+
+**Step 1, "What and when"** (progressive reveal). One field shows at
+first; each next field slides down from behind the one above once that
+one holds something valid:
+1. **Message** (preset or custom). If it has a number ("HAPPY 21ST
+   BIRTHDAY"), the **number** field slides in next.
+2. **Name** on the display.
+3. **Date**, then extra days before/after.
+4. **Address last** (decided 2026-10-23): it doesn't affect availability,
+   so if the customer has to go back and change the date or wording, the
+   address is never in the way.
+
+Inputs are checked 300 ms after the customer stops typing.
+
+**Step 2, "Design":** style and color only, per line, already filtered for
+the dates. Then contact, payment and review as today.
+
+### What counts
+
+- **Checked for availability, with style and color:** letters, numbers,
+  ordinals and punctuation (`! & ' , - . ?` exist as sign art). Every
+  character on a line uses that line's style and color.
+- **Picked at random, no style or color:** decorations, backdrops and
+  bookends. The random pick only draws from signs free for the dates.
+- Characters with no sign at all (e.g. accented letters) are blocked as
+  the customer types, with a short note.
+
+### Availability
+
+- **When it loads:** the agency's inventory and its booked and held signs
+  for the visible calendar range load when the customer reaches step 1.
+  Everything after that is worked out in the browser from that snapshot.
+  Other customers' active holds count as taken.
+- **A line can be built** in a style and color when, for every character,
+  the free count over the rental window (delivery to pickup) is at least
+  what the line needs. Repeats count: CONGRATULATIONS needs two N's.
+- **The two lines share stock.** Lines are checked one at a time, against
+  what's left after the other line's committed choice. Example: 3 classic
+  gold N's. CONGRATULATIONS JENNY needs 4. Both lines are offered classic
+  gold at first; once the message commits to classic gold (uses 2), classic
+  gold disappears for the name (needs 2, 1 left).
+
+### Calendar
+
+- A day is **grayed out** when the message and name can't both be built
+  in any style and color for that day (the shared-stock rule above
+  applies), or when it's a day off or too soon (booking rules, as today).
+- **Tapping a gray day says why**, e.g. "Not enough letters free that day
+  for CONGRATULATIONS JENNY". The date is usually fixed (the birthday is
+  Saturday), so a reason beats a silent gray box. Then it offers fixes
+  (decided 2026-10-23), both when they exist:
+  - **Other preset messages** that fit that day. Only presets: we never
+    invent wording. Custom Message stays available as today.
+  - **Nearby dates** that fit as typed.
+  - **Never a different name**: if the name is what doesn't fit, only
+    dates are offered.
+- **Extra days are rechecked** when added: the signs are out longer. If
+  that breaks the display, say so and name the cause.
+
+### Design step
+
+- Each line has a **style** picker and a **color** picker. They stay
+  grayed out until that line's text is in (300 ms after typing stops).
+- **Every pick recalculates.** Picking a color hides the styles that can't
+  build the line in that color, and the other way round. A style stays
+  visible for a color while any color still works with it.
+- A line's signs **drop in** only once both its pickers are set; each line
+  drops in on its own.
+- **First come, first served:** whichever line commits first claims its
+  signs. Changing a line's picks releases its signs and rechecks the other
+  line right away.
+- **Editing a line clears that line only.** If the customer changes the
+  message and its committed pair no longer fits, the message's picks
+  clear and the name's stay. Never wipe the line they didn't touch.
+- If nothing can build a line for these dates, say so before the pickers
+  and offer to change dates or wording.
+
+### Holds
+
+- The hold stays on the configurator: what the customer sees as available
+  is what they get at checkout.
+- **Taken when a line drops in**, for that line's signs (the random signs
+  join when both lines are in).
+- **15 minutes while the customer is anonymous**, sliding with activity.
+  **Extended to 1 hour once contact details are submitted.** Window
+  shoppers can't lock a solo agency's only letter set for long; real
+  customers have the full hour.
+- **A failed hold** (someone else just took the last sign): a toast, then
+  that option is hidden until a later check finds it free again. The
+  customer is never sent back to start.
+
+### Open questions (decide before building)
+
+1. Short presets: the presets have no short forms ("Congratulations" is 15
+   letters, no "Congrats"). Add a couple so a wording fix exists without
+   typing? Which ones?
 
 ## Order lifecycle
 ```
@@ -229,6 +335,10 @@ agencies could open them by URL. Git history has the full mockups.
   q11-q14; two insight systems; unused minImpact/priority; invented
   stats in the copy) and its own leads table with RLS on. Never reuse the
   shared `quiz_submissions` table.
+- **Lead funnel (recorded 2026-10-23):** a customer who submits contact
+  details in the booking flow but never pays shows up for the agency as a
+  lead to follow up. Needs consent wording on the contact step. Fits after
+  the configurator work (contact details extend the sign hold there).
 - **Sign packages (was "bundles", recorded 2026-10-22):** a supplier's
   package, e.g. Victory Store's sports pack (2 soccer balls, 2 footballs,
   basketballs, baseballs...). Its purpose is receiving stock: add the
