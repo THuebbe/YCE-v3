@@ -158,6 +158,8 @@ export interface WizardContextType {
   // Payment Methods State
   paymentMethods: PaymentMethodsState;
   loadPaymentMethods: (agencyId: string) => Promise<void>;
+  /** The agency's stock and holds, loaded once at step 1 (availability.ts) */
+  availability: import('./context/use-availability').AvailabilityState;
 }
 
 // Preview generation types

@@ -6,6 +6,8 @@ import { usePaymentMethods } from '../hooks/usePaymentMethods';
 import type { BookingPricing } from '../pricing';
 import type { AgencyPolicies } from '../policies';
 import type { BookingRules } from '../booking-rules';
+import { useAvailability } from './use-availability';
+import { todayIn } from '../booking-rules';
 import { createBookingHold, getAvailabilitySnapshot, getBookingCatalog, saveDisplaySnapshot, touchBookingHold } from '../actions';
 
 /** The server calls the wizard makes. Real server actions by default; the
@@ -138,6 +140,10 @@ export function WizardProvider({
     }
   });
 
+  // The agency's stock and holds, shared by step 1 and the design step
+  const [today] = useState(() => todayIn(timeZone));
+  const availability = useAvailability(actions, agencySlug, sessionId, today);
+
   // Moving through the wizard is activity: keep the sign hold from lapsing
   // (it expires after an hour without any).
   const holdId = formData.display?.holdId;
@@ -225,6 +231,7 @@ export function WizardProvider({
       defaultPaymentMethod: paymentMethodsHook.defaultPaymentMethod,
     },
     loadPaymentMethods: paymentMethodsHook.loadPaymentMethods,
+    availability,
   };
 
   return (
