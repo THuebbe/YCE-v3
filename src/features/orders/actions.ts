@@ -8,6 +8,7 @@ import { supabase } from '@/lib/db/supabase-client';
 import { requireAgencyMember } from '@/features/auth/guards';
 import { requireFeature } from '@/features/billing/server';
 import { performCancellation } from './cancellation';
+import { agencyRefund } from '@/features/booking/terms';
 import { assessFees } from './fees';
 import type { OrderAction } from './stateMachine';
 import type { CancelOrderInput } from './types';
@@ -183,8 +184,7 @@ export async function cancelOrder(input: CancelOrderInput): Promise<ActionResult
       .from('orders').select('total, payment_status')
       .eq('id', order.id).eq('agency_id', order.agency_id).single();
     const total = Number(details?.total) || 0;
-    const refundAmount = input.refundType === 'none' ? 0
-      : Math.round(Math.min(Math.max(Number(input.refundAmount) || 0, 0), total) * 100) / 100;
+    const refundAmount = agencyRefund(input.refundType, input.refundAmount, total);
 
     const outcome = await performCancellation({
       orderId: order.id,

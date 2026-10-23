@@ -1,7 +1,7 @@
 // Server only: the customer's self-service cancel (link in the confirmation email).
 import { timingSafeEqual } from 'node:crypto';
 import { supabase, getAgencyBySlug } from '@/lib/db/supabase-client';
-import { cancellationFee, cancellationPolicyOf, type CancellationPolicy } from '@/features/booking/terms';
+import { cancellationPolicyOf, customerRefund, type CancellationPolicy } from '@/features/booking/terms';
 import { hoursUntilDelivery } from './client-utils';
 
 export interface CustomerCancelQuote {
@@ -41,8 +41,7 @@ export async function loadCancelQuote(agencySlug: string, orderId: string, token
   const total = Number(order.total) || 0;
   const policy = cancellationPolicyOf(order.terms_snapshot);
   const hours = hoursUntilDelivery({ event_date: order.event_date as string, extraDaysBefore: order.extraDaysBefore as number });
-  const insideNotice = hours < policy.noticeHours;
-  const fee = insideNotice ? total : cancellationFee(total, policy);
+  const { insideNotice, fee, refund } = customerRefund(total, policy, hours);
   return {
     orderId: order.id as string,
     agencyId: order.agency_id as string,
@@ -54,7 +53,7 @@ export async function loadCancelQuote(agencySlug: string, orderId: string, token
     policy,
     insideNotice,
     fee,
-    refund: Math.max(0, Math.round((total - fee) * 100) / 100),
+    refund,
     canCancel: ['pending', 'processing'].includes(order.status as string),
   };
 }

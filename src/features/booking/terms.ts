@@ -71,6 +71,22 @@ export function cancellationFee(total: number, policy: CancellationPolicy): numb
   return Math.round(Math.min(fee, total) * 100) / 100;
 }
 
+/**
+ * What a customer gets back when they cancel: inside the notice window
+ * nothing, otherwise the total minus the cancellation fee.
+ */
+export function customerRefund(total: number, policy: CancellationPolicy, hoursUntilDelivery: number) {
+  const insideNotice = hoursUntilDelivery < policy.noticeHours;
+  const fee = insideNotice ? total : cancellationFee(total, policy);
+  return { insideNotice, fee, refund: Math.max(0, Math.round((total - fee) * 100) / 100) };
+}
+
+/** The refund an agency's cancel sends: what they entered, kept between $0 and the order total */
+export function agencyRefund(refundType: 'full' | 'partial' | 'none', amount: unknown, total: number): number {
+  if (refundType === 'none') return 0;
+  return Math.round(Math.min(Math.max(Number(amount) || 0, 0), total) * 100) / 100;
+}
+
 const money = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 /** "Texas Sign Solutions'" / "Elite Denver's" */
 const possessive = (name: string) => (/s$/i.test(name.trim()) ? `${name}'` : `${name}'s`);

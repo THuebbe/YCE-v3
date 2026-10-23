@@ -8,6 +8,7 @@
     "vercel-build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "test-email": "tsx scripts/test-email.ts --",
     "brand:logo": "tsx --tsconfig scripts/brand/tsconfig.json scripts/brand/build-logo-files.tsx",
     "lint:colors": "eslint -c eslint.colors.config.mjs src"
