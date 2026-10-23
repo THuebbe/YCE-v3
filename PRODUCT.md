@@ -14,9 +14,9 @@ the model is profitable from roughly the second agency.
 ## Booking rules (these are product decisions, not implementation detail)
 - **Lead time: order cutoff + setup days** (replaced the old 48-hour
   minimum, 2026-10-07). Per-agency `booking_rules`, see STATE.md "Decisions".
-- **Inventory soft-hold: session-based.** Today: 1 hour, taken on preview
-  generation. Changing to 15 minutes from a line dropping in, 1 hour once
-  contact details are in: see "Booking configurator" below. Server-side
+- **Inventory soft-hold: session-based.** Taken automatically as each line
+  drops in; 15 minutes while the customer is anonymous, 1 hour once contact
+  details are in: see "Booking configurator" below. Server-side
   (`yce_create_booking_hold`); see ARCHITECTURE.md for the hold mechanics.
 - **Alternative suggestions on inventory conflict.** If the requested
   signs aren't available, offer substitutes rather than failing.
@@ -28,7 +28,7 @@ the model is profitable from roughly the second agency.
 - **3-year customer data retention.** The booking form already tells
   customers this, so it is a promise already being made.
 
-## Booking configurator — SPEC 2026-10-23, not built (owner + Claude)
+## Booking configurator — SPEC 2026-10-23 (owner + Claude), built 2026-10-23 (PRs #47-#50)
 
 The configurator only offers what the agency can actually deliver for the
 customer's dates. Today it doesn't: the style and color pickers list
@@ -127,7 +127,7 @@ the dates. Then contact, payment and review as today.
   that option is hidden until a later check finds it free again. The
   customer is never sent back to start.
 
-### Open questions (decide before building)
+### Open questions
 
 1. Short presets: the presets have no short forms ("Congratulations" is 15
    letters, no "Congrats"). Add a couple so a wording fix exists without

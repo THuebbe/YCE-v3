@@ -144,13 +144,15 @@ export function WizardProvider({
   const [today] = useState(() => todayIn(timeZone));
   const availability = useAvailability(actions, agencySlug, sessionId, today);
 
-  // Moving through the wizard is activity: keep the sign hold from lapsing
-  // (it expires after an hour without any).
+  // Moving through the wizard is activity: keep the sign hold from lapsing.
+  // Anonymous holds last 15 minutes; once contact details are in, an hour
+  // (PRODUCT.md "Booking configurator"), so leaving the contact step extends it.
   const holdId = formData.display?.holdId;
+  const hasContact = Boolean(formData.contact?.email);
   useEffect(() => {
     if (!holdId) return;
-    actions.touchBookingHold({ agencySlug, sessionId, holdId }).catch(() => {});
-  }, [currentStep, holdId, agencySlug, sessionId, actions]);
+    actions.touchBookingHold({ agencySlug, sessionId, holdId, stage: hasContact ? 'contact' : 'design' }).catch(() => {});
+  }, [currentStep, holdId, hasContact, agencySlug, sessionId, actions]);
   
   // Payment methods hook
   const paymentMethodsHook = usePaymentMethods();

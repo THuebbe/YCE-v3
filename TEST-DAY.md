@@ -35,8 +35,10 @@ yours as the customer.
 
 In the private window, on your phone if you can:
 
-- [ ] Pick a date a few days out and an address.
-- [ ] Design: type a name; the yard preview fills in.
+- [ ] What and when: pick a message, type a name, then a date a few days
+      out (days with your signs taken are grayed out), then the address.
+- [ ] Design: pick a color for each line; each line drops into the yard
+      and the signs are held on their own ("held for your dates").
 - [ ] Your details: use a personal email you can check.
 - [ ] Payment: the total matches your test price (plus any extra days).
       Pay with your real card.
