@@ -15,6 +15,7 @@ import { subscriptionAllowsBookings } from '@/features/billing/subscription';
 import { canTakePayments } from '@/features/agency/readiness';
 import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from './booking-rules';
 import { effectiveBookingRules } from './policies';
+import type { StockSnapshot } from './availability';
 
 const MAX_SIGNS_PER_HOLD = 200;
 
@@ -62,6 +63,42 @@ export async function getBookingCatalog(agencySlug: string): Promise<{ styles: s
     styles: [...new Set(rows.map(r => r.style))],
     colorways: [...new Set(rows.map(r => r.colorway))],
   };
+}
+
+/** Longest range one snapshot covers (the calendar loads ahead in chunks) */
+const MAX_SNAPSHOT_DAYS = 400;
+
+/**
+ * The agency's stock and the holds that can block it between two days, for
+ * the configurator to work out availability in the browser (availability.ts).
+ * Counts and dates only: no customer details. The session's own holds come
+ * back marked `mine` so they don't block themselves.
+ */
+export async function getAvailabilitySnapshot(input: {
+  agencySlug: string;
+  sessionId: string;
+  from: string;
+  to: string;
+}): Promise<{ ok: true; snapshot: StockSnapshot } | { ok: false; error: string }> {
+  const day = /^\d{4}-\d{2}-\d{2}$/;
+  if (!day.test(input.from) || !day.test(input.to) || input.to < input.from) return { ok: false, error: 'Invalid dates' };
+  const span = (Date.parse(input.to) - Date.parse(input.from)) / 86_400_000;
+  if (span > MAX_SNAPSHOT_DAYS) return { ok: false, error: 'Invalid dates' };
+
+  const agency = await resolveAgency(input.agencySlug);
+  if (!agency) return { ok: false, error: 'This agency is not taking bookings' };
+
+  const { data, error } = await supabase.rpc('yce_availability_snapshot', {
+    p_agency_id: agency.id,
+    p_from: input.from,
+    p_to: input.to,
+    p_session_id: input.sessionId || null,
+  });
+  if (error || !data) {
+    console.error('yce_availability_snapshot failed:', error?.message);
+    return { ok: false, error: 'Could not check which signs are free. Please try again.' };
+  }
+  return { ok: true, snapshot: data as StockSnapshot };
 }
 
 /**
