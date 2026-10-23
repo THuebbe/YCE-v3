@@ -10,6 +10,7 @@ import { messageElements, nameElements } from '../../services/line-elements';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { themes, hobbies } from '../../display-options';
 import { Button } from '@/shared/components/ui/button';
+import { useToast } from '@/shared/components/feedback/toast';
 import { cn } from '@/lib/utils';
 import { BookingYardPreview } from '../display/BookingYardPreview';
 import { Field, StepIntro, StepMotion, StepNav, StepSection } from '../step-kit';
@@ -30,6 +31,7 @@ const emptyZone = (zone: LayoutCalculation['zone1']) => ({ ...zone, signs: [], t
  */
 export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const { formData, updateFormData, nextStep, prevStep, agencyId, agencySlug, sessionId, timeZone, actions, bookingRules, availability } = useWizard();
+  const { toast } = useToast();
   const display = formData.display;
   const event = formData.event;
 
@@ -52,6 +54,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     staleHoldId: display?.staleHoldId,
     commitOrder: display?.commitOrder ?? [],
     layout: display?.layout,
+    holdKey: display?.holdKey,
   }));
   const [note, setNote] = useState<string | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
@@ -81,7 +84,9 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
 
   // Design changes release the hold: it's taken again for the new set
   const releaseHold = (prev: DisplayFormData): Partial<DisplayFormData> =>
-    prev.holdId ? { holdId: '', staleHoldId: prev.holdId, holdRentalStart: undefined, holdRentalEnd: undefined, layout: undefined } : { layout: undefined };
+    prev.holdId
+      ? { holdId: '', staleHoldId: prev.holdId, holdRentalStart: undefined, holdRentalEnd: undefined, layout: undefined, holdKey: undefined }
+      : { layout: undefined, holdKey: undefined };
 
   const applyPicks = (next: Picks) => {
     setLocalData(prev => ({
@@ -129,12 +134,20 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   const nameIn = isCommitted(picks, 'name');
   const bothIn = messageIn && nameIn;
 
+  // What a hold has to match to count: the picks, the words, the extras and the dates
+  const designKey = JSON.stringify([
+    picks.message, picks.name, typedMessage, localData.eventNumber ?? null, typedName,
+    localData.characterTheme ?? '', localData.hobbies ?? [], signsOut?.start, signsOut?.end,
+  ]);
+  const holdCurrent = Boolean(localData.holdId) && localData.holdKey === designKey;
+
   // The layout for what's picked: lines drop in one at a time, the extras
   // (drawn only from free stock) once both are in
   const calculator = useRef(new LayoutCalculatorService()).current;
   const [layout, setLayout] = useState<LayoutCalculation | null>((localData.layout as LayoutCalculation) ?? null);
   useEffect(() => {
-    if (localData.holdId && localData.layout) {
+    // The held layout stays as it was held (its random extras included)
+    if (holdCurrent && localData.layout) {
       setLayout(localData.layout as LayoutCalculation);
       return;
     }
@@ -180,16 +193,22 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       }).catch(() => {});
     }, 150);
     return () => { live = false; clearTimeout(t); };
-  }, [messageIn, nameIn, bothIn, picks.message.style, picks.message.colorway, picks.name.style, picks.name.colorway, localData.characterTheme, localData.hobbies, localData.holdId, input]);
+  }, [messageIn, nameIn, bothIn, picks.message.style, picks.message.colorway, picks.name.style, picks.name.colorway, localData.characterTheme, localData.hobbies, holdCurrent, input]);
 
-  /** Reserve exactly the signs on screen (the layout shown is the layout held) */
-  const reserve = async () => {
-    if (!event || !layout || !bothIn) return;
-    if (!layout.meetsMinimumFill) {
+  /**
+   * Hold exactly the signs on screen (the layout shown is the layout held):
+   * a line's signs once it drops in, the extras once both are in. 15 minutes
+   * while the customer is anonymous, an hour once contact details are in.
+   */
+  const reserve = async (shown: LayoutCalculation, key: string) => {
+    if (!event) return;
+    const complete = bothIn;
+    if (complete && !shown.meetsMinimumFill) {
       setPreviewError('The name is short next to the message, which leaves gaps on the sides. Add a theme or a hobby to fill them.');
       return;
     }
-    const placed = [layout.zone1, layout.zone2, layout.zone3, layout.zone4, layout.zone5].flatMap(z => z.signs);
+    const placed = [shown.zone1, shown.zone2, shown.zone3, shown.zone4, shown.zone5].flatMap(z => z.signs);
+    if (placed.length === 0) return;
     const missing = placed.filter(s => !s.catalogKey);
     if (missing.length) {
       setPreviewError(`These signs aren't available in this style and color: ${[...new Set(missing.map(s => s.character ?? s.type))].join(' ')}.`);
@@ -207,16 +226,24 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         extraDaysAfter: event.extraDaysAfter ?? 0,
         catalogKeys: placed.map(s => s.catalogKey!),
         replaceHoldId: localData.holdId || lastHoldId.current || undefined,
+        stage: formData.contact?.email ? 'contact' : 'design',
       });
       if (!result.ok) {
-        setPreviewError(result.error);
-        setShortages(result.shortages ?? []);
-        // Someone else may have just taken a sign: refresh what's free
-        void availability.refresh();
+        if (result.shortages?.length) {
+          // Someone just took some of these signs: drop the line that was
+          // picked last, then refresh what's free so that option disappears
+          const last = picks.order[picks.order.length - 1];
+          const words = (last === 'message' ? typedMessage : typedName).toUpperCase();
+          toast({ variant: 'error', title: 'Those signs were just booked', description: `Someone else just took some of them. Pick another color for ${words}.` });
+          if (last) applyPicks({ ...picks, [last]: { style: picks[last].style, colorway: '' }, order: picks.order.filter(l => l !== last) });
+          void availability.refresh();
+        } else {
+          setPreviewError(result.error);
+        }
         return;
       }
       lastHoldId.current = result.holdId;
-      const next: DisplayFormData = { ...localData, holdId: result.holdId, staleHoldId: undefined, holdRentalStart: result.rentalStart, holdRentalEnd: result.rentalEnd, layout };
+      const next: DisplayFormData = { ...localData, holdId: result.holdId, staleHoldId: undefined, holdRentalStart: result.rentalStart, holdRentalEnd: result.rentalEnd, layout: shown, holdKey: key };
       setLocalData(next);
       updateFormData({ display: next });
     } catch {
@@ -226,12 +253,22 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     }
   };
 
+  // Hold automatically once the picks settle: no button to forget
+  useEffect(() => {
+    if (!layout || holdCurrent || reserving || (!messageIn && !nameIn)) return;
+    const shown = layout;
+    const key = designKey;
+    const t = setTimeout(() => void reserve(shown, key), 800);
+    return () => clearTimeout(t);
+  }, [layout, holdCurrent]);
+
   const validateAndContinue = () => {
-    if (!displaySchema.safeParse(localData).success) return;
+    if (!isValid) return;
     updateFormData({ display: localData });
     nextStep();
   };
-  const isValid = displaySchema.safeParse(localData).success;
+  // Continue once both lines are in and the hold matches what's on screen
+  const isValid = displaySchema.safeParse(localData).success && bothIn && holdCurrent;
 
   // Back to step 1 (words and dates), keeping the picks
   const goBack = () => {
@@ -337,19 +374,25 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                     {shortages.map(item => <li key={item.name}>{item.name}: need {item.requested}, {item.available} free on your dates</li>)}
                   </ul>
                 )}
+                {layout && (
+                  <Button variant="secondary" size="sm" className="justify-self-start" loading={reserving} onClick={() => void reserve(layout, designKey)}>
+                    Try again
+                  </Button>
+                )}
               </div>
             </div>
-          ) : localData.holdId ? (
+          ) : reserving ? (
+            <p className="text-fine text-fg-muted" role="status">Holding your signs...</p>
+          ) : holdCurrent ? (
             <p className="flex items-center gap-2 rounded-card bg-positive-soft p-4 text-fine font-bold text-positive">
               <CheckCircle2 className="size-5 shrink-0" aria-hidden />
-              Your signs are reserved for your dates. We hold them for an hour while you finish booking.
+              {!bothIn
+                ? `${(messageIn ? typedMessage : typedName).toUpperCase()} is held while you pick the other line.`
+                : formData.contact?.email
+                  ? 'Your signs are held for your dates for an hour while you finish booking.'
+                  : 'Your signs are held for your dates: 15 minutes while you finish up here, then an hour once you add your details.'}
             </p>
           ) : null}
-          {!localData.holdId && bothIn && (
-            <Button onClick={reserve} loading={reserving} disabled={reserving || !layout} className="w-full sm:w-auto sm:justify-self-start sm:px-8">
-              Reserve these signs
-            </Button>
-          )}
         </div>
       </section>
 

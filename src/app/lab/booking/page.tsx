@@ -9,7 +9,8 @@ export const metadata: Metadata = { title: 'Booking - lab' }
  * design work on every step without a database (preview and dev only, via
  * the lab layout). Try white label with ?brand=6B2D8C&accent=FFB703.
  * Stock: ?stock=2 (units of each sign, default 20), ?busy=1 (most letters
- * booked for the weekend two weeks out, so those days go gray).
+ * booked for the weekend two weeks out, so those days go gray),
+ * ?failhold=1 (the first sign hold finds a sign just taken by someone else).
  * Payment needs the real payment-methods API, so that step shows its
  * error state here.
  */
@@ -21,5 +22,5 @@ export default async function BookingLabPage({ searchParams }: { searchParams: P
     logoUrl: q.logo,
   })
   const perSign = Math.min(50, Math.max(0, Number(q.stock ?? 20) || 0))
-  return <DemoBooking branding={branding} stock={{ perSign, busy: q.busy === '1' }} />
+  return <DemoBooking branding={branding} stock={{ perSign, busy: q.busy === '1', failFirstHold: q.failhold === '1' }} />
 }

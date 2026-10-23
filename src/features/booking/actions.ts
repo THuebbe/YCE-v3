@@ -19,6 +19,15 @@ import type { StockSnapshot } from './availability';
 
 const MAX_SIGNS_PER_HOLD = 200;
 
+/**
+ * How long a configurator hold lasts without activity (PRODUCT.md "Booking
+ * configurator"): short while the customer is anonymous, so window
+ * shoppers can't lock a solo agency's only letter set; the full hour once
+ * they've given contact details.
+ */
+export type HoldStage = 'design' | 'contact';
+const HOLD_MINUTES: Record<HoldStage, number> = { design: 15, contact: 60 };
+
 interface Shortage {
   name: string;
   requested: number;
@@ -116,6 +125,8 @@ export async function createBookingHold(input: {
   extraDaysAfter: number;
   catalogKeys: string[];
   replaceHoldId?: string;
+  /** 'design' (anonymous, 15 min) until contact details are in, then 'contact' (1 hour) */
+  stage?: HoldStage;
 }): Promise<CreateHoldResult> {
   const agency = await resolveAgency(input.agencySlug);
   if (!agency) return { ok: false, error: 'This agency is not taking bookings' };
@@ -159,6 +170,7 @@ export async function createBookingHold(input: {
     p_items: [...counts].map(([key, quantity]) => ({ sign_id: byKey.get(key)!.id, quantity })),
     p_replace_hold_id: input.replaceHoldId ?? null,
     p_client_key: await clientKey(),
+    p_ttl_minutes: HOLD_MINUTES[input.stage ?? 'design'],
   });
   if (error || !data) {
     console.error('yce_create_booking_hold failed:', error?.message);
@@ -188,13 +200,15 @@ export async function createBookingHold(input: {
 }
 
 /**
- * Customer activity: slide the hold's 1-hour expiry forward. Returns false
+ * Customer activity: slide the hold's expiry forward (15 minutes, or an hour
+ * once contact details are in). Returns false
  * when the hold already lapsed; order creation re-checks stock in that case.
  */
 export async function touchBookingHold(input: {
   agencySlug: string;
   sessionId: string;
   holdId: string;
+  stage?: HoldStage;
 }): Promise<{ ok: boolean }> {
   const agency = await resolveAgency(input.agencySlug);
   if (!agency || !input.holdId || !input.sessionId) return { ok: false };
@@ -202,6 +216,7 @@ export async function touchBookingHold(input: {
     p_hold_id: input.holdId,
     p_agency_id: agency.id,
     p_session_id: input.sessionId,
+    p_ttl_minutes: HOLD_MINUTES[input.stage ?? 'design'],
   });
   if (error) console.error('yce_touch_booking_hold failed:', error.message);
   return { ok: Boolean((data as { ok?: boolean } | null)?.ok) };

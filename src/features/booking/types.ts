@@ -69,6 +69,9 @@ export const displaySchema = z.object({
   /** The exact layout the hold was taken for (random extras included), so
    *  Review and the saved picture show the signs that were reserved */
   layout: z.any().optional(),
+  /** The design (picks, words, extras, dates) the hold was taken for; a
+   *  hold only counts while it matches what's on screen */
+  holdKey: z.string().optional(),
 });
 
 // Payment Step - Dynamic schema based on available methods
