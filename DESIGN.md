@@ -23,7 +23,7 @@ generated files by hand.
 
 A yard-card **Y** standing on its H-stake in the grass, then **YardCard ELITE**.
 
-- Use `<Logo />` in the app: `variant="full" | "icon" | "wordmark"`, `tone="onDark"` on the brand green. Size it with a height class.
+- Use `<Logo />` in the app: `variant="full" | "icon" | "wordmark"`, `tone="onDark"` on the brand green, `tone="onHero"` on the orange marketing hero (ELITE turns white there; orange on orange vanishes). Size it with a height class. The tones are the only recolors.
 - Clear space: half the icon's height on every side.
 - Minimum size: full logo 24px tall; below that, the icon alone (works down to 16px).
 - ELITE always sits with YardCard. It is part of the name: Elite is the full experience, and the name says so.
@@ -60,6 +60,23 @@ Rules:
 - One orange button per screen. Everything else is the outlined button or a link.
 - Color never carries meaning alone: status chips have words, errors have text.
 - Light theme only in v1. No dark mode until someone asks for it.
+
+### Marketing pages (home, pricing)
+
+The app keeps color quiet so orange always means "do this". Marketing pages
+need more warmth, so they get section bands and one exception:
+
+| Token | Use | Text contrast |
+|---|---|---|
+| `hero-bg` / `on-hero` / `on-hero-muted` | **The hero exception**: the home hero is orange, with dark text. Wrap it in `data-hero data-surface="hero"` (the header watches `data-hero`; `data-surface` switches muted text and the focus ring to ink) | 7.3:1 / 6.1:1 |
+| `hero-action` / `on-hero-action` | The main button on the orange hero: sky blue with a dark outline, since an orange button would vanish. The only place the main button isn't orange | 10.1:1 |
+| `on-brand-muted` | Secondary text on a brand-green band | 7.5:1 |
+| `surface-sky` / `surface-warm` | Light section bands (sky tint, warm sand) | fg-muted 6.9:1 |
+
+- Orange as a surface is for the hero only. Everywhere else orange stays the action color.
+- The header starts as part of the hero (transparent orange, `onHero` logo, blue button) and the orange lifts like a curtain once the hero scrolls past (`MarketingHeader`).
+- The product is the artwork: yard scenes, real sign art on stakes (`StakedSign`), and our own staked-sign icon set (`FeatureIcon`). No stock photos, no generic icon packs.
+- Don't name a color token after a type size (`--color-hero` would also make `text-hero` orange).
 
 ## Type
 

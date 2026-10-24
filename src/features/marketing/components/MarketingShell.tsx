@@ -1,25 +1,17 @@
 import Link from 'next/link'
 import { Logo } from '@/shared/components/brand/Logo'
 import { LEGAL_ENTITY, SUPPORT_EMAIL } from '@/lib/site'
+import { MarketingHeader } from './MarketingHeader'
 
-/** Header and footer for the public marketing pages (home, pricing) */
-export function MarketingShell({ startLabel, children }: { startLabel: string; children: React.ReactNode }) {
+/**
+ * Header and footer for the public marketing pages (home, pricing).
+ * `hero`: the page opens with an orange `data-hero` section, so
+ * the header starts orange and lifts away as it scrolls by.
+ */
+export function MarketingShell({ startLabel, hero = false, children }: { startLabel: string; hero?: boolean; children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-canvas font-body text-fg">
-      <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link href="/" aria-label="YardCard Elite home" className="shrink-0">
-            <Logo className="h-8 w-auto sm:h-9" title="" />
-          </Link>
-          <nav className="flex items-center gap-1 text-fine font-bold sm:gap-2" aria-label="Main">
-            <Link href="/pricing" className="hidden rounded-control px-3 py-2 hover:bg-surface-sunken sm:block">Pricing</Link>
-            <Link href="/auth/sign-in" className="rounded-control px-3 py-2 hover:bg-surface-sunken">Sign in</Link>
-            <Link href="/auth/sign-up" className="hidden h-10 items-center rounded-control bg-action px-4 text-on-action hover:bg-action-hover sm:flex">
-              {startLabel}
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <MarketingHeader startLabel={startLabel} hero={hero} />
 
       <main className="flex-1">{children}</main>
 
