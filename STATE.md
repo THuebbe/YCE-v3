@@ -1,11 +1,35 @@
 # Where This Stands
 
-Last verified: 2026-10-22
+Last verified: 2026-10-24
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
-old verification notes) is in `git show aace018:STATE.md`.
+old verification notes) is in `git show aace018:STATE.md`. Back over 400
+lines - due another condense pass.
 
 ## Now
+- **2026-10-24: at a standstill on purpose.** Everything through #50 is
+  merged and live (production `c9fae9a`, READY). Nothing is in flight: no
+  open PRs, no unapplied migrations. Waiting on the owner's plastic license
+  for the Stripe Connect questionnaire (below). Meanwhile the owner is
+  building the Trad Tech website in another session, for the Victory Store
+  pitch ("Tobi from Trad Tech, we've built an app").
+- **Merged 2026-10-22/23:**
+  - #44 money-math unit tests (`pnpm test`) + `TEST-DAY.md`, the checklist
+    for the first real end-to-end run.
+  - #45 cancellation window measured on the agency's clock
+    (`hoursUntilDelivery(order, timeZone)`).
+  - #46 spec (PRODUCT.md "Booking configurator") then #47-#50, the
+    configurator that only offers what the agency can deliver: step 1
+    reveals message -> number -> name -> calendar -> extra days -> address,
+    gray days with a reason; per-line style/color pickers recalculated on
+    every pick; auto-holds of 15 min anonymous / 60 min after contact.
+    Migration `20261023_availability_snapshot.sql` APPLIED (additive).
+    Details in ARCHITECTURE.md "Data flow AS BUILT".
+  - Fixed on the way: years got an ordinal ("2026TH"), review picture
+    differed from the held layout, `nameStyle` wasn't saved, edit-display
+    modal casing.
+  - Open for the owner: short presets (preset alternatives on gray days
+    are empty until then).
 - **2026-10-22: LIVE on Clerk production + Stripe live.** Production
   (yardcard-elite.com) runs Clerk's production instance and Stripe LIVE
   (Trad Tech LLC `acct_1R4pVtFjOo22GEei`; the sandbox `acct_1REKSs...` is
@@ -40,8 +64,7 @@ old verification notes) is in `git show aace018:STATE.md`.
   - Merged: #34 brand foundation (tokens, `brand.ts`, `<Logo />`, lint
     ratchet), #35 white label decisions, #36 yard scene hero prototype
     (`/lab/yard-scene`).
-  - **Booking redesign (overnight 2026-10-22, PR from
-    `claude/booking-redesign`):** new step order (When and where → Design
+  - **Booking redesign (overnight 2026-10-22, #37, merged):** new step order (When and where → Design
     → Your details → Payment → Review), live yard preview while designing,
     shared UI reskinned (dashboard gets orange buttons early, expected),
     white label read from `agencies.branding` (migration
@@ -51,20 +74,20 @@ old verification notes) is in `git show aace018:STATE.md`.
     until Stripe Connect works (blocker above), so the redesign was tested
     in the lab with stand-in server calls. Re-test the real flow once an
     agency can take payments.
-  - Marketing site (PR from `claude/marketing-site`): `/` rebuilt with the
+  - Marketing site (#38, merged): `/` rebuilt with the
     yard-scene hero and live type-a-name demo, `/pricing` on the same parts,
     stale `/marketing` deleted. All copy in `src/features/marketing/content.ts`
     (prices from PLAN_PRICES, trial from BILLING_TRIAL_DAYS). Headline is a
     placeholder Tobi may rewrite. No testimonials until real ones exist.
-  - Dashboard redesign: done in 5 PRs (#39-#42 plus the finish PR from
-    `redesign/dashboard-finish`): shell and home, orders, signs, settings
+  - Dashboard redesign: done in 5 PRs (#39-#43, all merged): shell and home, orders, signs, settings
     with white label (Elite), then signup, sign-in handoff, the 404 (a yard
     reading 404 / NOT FOUND), customer paid/cancel pages, legal pages and
     every email on one layout (`/lab/emails`). The purple theme is deleted
     and the color lint covers all of `src/`. `/maintenance` and the unused
     `/not-found` route were deleted (the real 404 is `src/app/not-found.tsx`).
-  - Quiz funnels: later, not launch (PRODUCT.md "Future features").
-  - `pnpm lint:colors` = legacy colors left to migrate.
+  - Quiz funnels and the lead funnel (abandoned bookings as leads): later,
+    not launch (PRODUCT.md "Future features").
+  - `pnpm lint:colors` reports 0 and covers all of `src/` (was a ratchet).
 - **2026-10-19 overnight (user asleep, pre-approved "do as much as you can
   toward launch"): milestones 3 + 4, security, customer emails.** Stacked
   PRs, merge in order: **#16** (STATE) → **#17** plans → **#18** billing +
@@ -188,7 +211,19 @@ old verification notes) is in `git show aace018:STATE.md`.
   `user_2zRKzusknd0Eko93RaAnYaNm72E`.
 - Vercel Hobby keeps runtime logs 1 hour. Supabase free tier pauses after
   ~7 idle days; the daily keep-alive cron prevents it (DECISION
-  2026-10-06: no paid tier while ~6 months from launch).
+  2026-10-06: no paid tier while ~6 months from launch - **superseded
+  2026-10-23: the owner is upgrading the org to Pro**, for backups and so
+  PantryPro can get its own project; not confirmed done yet).
+- Supabase org "YardCard Elite" (free) allows 2 active projects and has 2:
+  `YCEv3` (`uwgrpcuqakuxulgnbcpd`, YCE + PantryPro) and `wake`. Old
+  `yardcardelite`/`yardcard-booking` are paused.
+- Previews already run sandbox mode: Stripe sandbox keys + both sandbox
+  webhook secrets and Clerk's development instance are Preview/Development
+  variables; Production has the live ones. Testing with data = a preview
+  (e.g. a `staging` branch) + a test agency, never flipping production
+  (Stripe IDs are per mode; see the live reset). The preview shares
+  production's database. Sandbox webhook endpoint URLs not re-checked
+  since the live switch.
 
 ## VERIFIED WORKING (seen running)
 - **2026-10-19, production after #24 + #21 merged:** elite-denver booking
@@ -322,7 +357,8 @@ old verification notes) is in `git show aace018:STATE.md`.
 11. `users` and PantryPro tables (incl. empty `quiz_submissions`, RLS off,
     built to hold emails/phones) readable/writable with the public anon
     key. Narrow fix for `users` proposed, needs the owner's OK.
-12. No restorable database backups on the Supabase free plan.
+12. No restorable database backups on the Supabase free plan (the owner
+    is upgrading to Pro, 2026-10-23; check it's done).
 9. **Terms and Privacy are drafts** (`/terms`, `/privacy`, 2026-10-20, the
    user's working draft): Trad Tech LLC, Iowa law, helpdesk@tradtechie.com.
    Before go-live: research/compare, then professional review. The privacy
@@ -379,10 +415,13 @@ old verification notes) is in `git show aace018:STATE.md`.
   the rest incl. order summary. Unpaid = booking page closed, 7-day grace.
   Cancellation default $20 or 15%, 48h. Late $25/day, damage $5/sign.
   Blackout dates on every plan (user confirmed 2026-10-19).
-- Split the shared PantryPro DB: YCE becomes its own project AFTER the
-  Victory Store demo (goal: win at least their signs, maybe a partnership)
-  - user, 2026-10-19. Until then `users` and PantryPro tables stay as they
-  are. `users` got RLS on 2026-10-22 (`migrations/20261022_users_rls.sql`,
+- Split the shared DB: **PantryPro moves out of `YCEv3`; YCE stays put**
+  (owner, 2026-10-23, superseding "YCE becomes its own project after the
+  Victory Store demo" from 2026-10-19). The owner does the move from the
+  PantryPro project. After it, PantryPro's ~25 tables, its functions and
+  its copy of `users` need dropping from `YCEv3` (DROP file for the owner)
+  and CLAUDE.md rule 3 needs rewriting. Until then `users` and PantryPro
+  tables stay as they are. `users` got RLS on 2026-10-22 (`migrations/20261022_users_rls.sql`,
   applied; anon reads nothing, a Supabase Auth user reads only their own
   row; both apps use the service role, so neither changed). The 26
   PantryPro tables still without RLS are the owner's to fix in PantryPro.
@@ -395,10 +434,36 @@ old verification notes) is in `git show aace018:STATE.md`.
    the user's: open the billing portal once; the tester signs up with
    FOUNDINGTESTER.
 5. Milestone 5: customer cancel link, late/damage fee charging, edit signs.
+7. **Parked 2026-10-23 (owner paused it): `orders` column cleanup.** Of
+   its 21 camelCase columns, 18 are empty in all 387 rows (the code uses
+   snake_case twins); also an empty all-lowercase `confirmationcode`. Only
+   `extraDaysBefore`, `extraDaysAfter` (all rows) and `holdId` (31 rows)
+   hold data. No DB function/trigger/view/policy uses any of them. Agreed
+   shape: (1) additive migration adds `extra_days_before`/`_after`/
+   `hold_id` + copies data; (2) code PR moves DB reads/writes to them and
+   drops references to the dead ones (e.g. `jobs.ts` selects `timeWindow`);
+   (3) re-copy after deploy; (4) `pg_stat_statements` check a day later;
+   (5) owner runs the DROP file. Danger: untyped client, so a missed
+   `select('*')` read of `extraDaysBefore` silently becomes 0 and moves the
+   refund cutoff. Out of scope, noted: `stripe_payment_intent_id` vs
+   `payment_intent_id` both filled; `extra_days` != before+after on 273
+   rows.
+8. Parked with it: one baseline migration that rebuilds the YCE schema
+   from nothing (repo-vs-DB drift caused two outages).
 6. Later: real Venmo/PayPal checkout, production Clerk + domain, smart
    configurator theming (ARCHITECTURE.md, designed not built).
 
 ## NOT VERIFIED - check before trusting
+- **The configurator (#47-#50) against a real agency.** Seen running only
+  in `/lab/booking` with stand-in stock (`?stock=N`, `?busy=1`,
+  `?failhold=1`) at 390px and 1280px: pickers hide colors the first line
+  used up, partial then full holds, failure toast, gray days with reasons.
+  The review and payment steps with the new holds can't be reached in the
+  lab (its payment-methods call fails, as before). Check: TEST-DAY.md on a
+  sandbox preview agency with stock.
+- Auto-holds (a new hold per color change) vs the 30-per-10-min IP rate
+  limit: an indecisive customer or a shared office IP could hit it. Not
+  seen happen; owner's call whether to raise it.
 - Stripe billing portal page itself (opens, but its assets don't load in
   Claude's sandbox) - the user should open it once.
 - Daily `/api/cron/sync-subscriptions` (needs CRON_SECRET, runs after merge).
