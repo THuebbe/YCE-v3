@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs><clipPath id="c"><circle cx="100" cy="100" r="90"/></clipPath></defs>
+  <circle cx="100" cy="100" r="90" fill="#EE7B30"/>
+  <g clip-path="url(#c)" fill="none" stroke="#262626" stroke-width="7" stroke-linecap="round">
+    <path d="M100 6V194M6 100H194M42 24Q80 100 42 176M158 24Q120 100 158 176"/>
+  </g>
+  <ellipse cx="68" cy="56" rx="22" ry="12" transform="rotate(-35 68 56)" fill="#FFFFFF" opacity="0.28"/>
+</svg>

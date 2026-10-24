@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
+  <!-- hanging pair, toes down and out, ribbons rising to a loop -->
+  <g fill="none" stroke="#E85A96" stroke-width="6" stroke-linecap="round">
+    <path d="M76 98C70 60 96 40 100 22C104 40 130 60 124 98"/>
+    <path d="M100 22C86 8 70 14 78 26C84 34 96 28 100 22C104 28 116 34 122 26C130 14 114 8 100 22Z"/>
+  </g>
+  <g transform="rotate(24 70 150)">
+    <path d="M70 92C86 92 94 112 94 140C94 172 82 206 70 206C58 206 46 172 46 140C46 112 54 92 70 92Z" fill="#F6A5C4"/>
+    <ellipse cx="70" cy="112" rx="14" ry="16" fill="#E07FA6"/>
+    <rect x="58" y="192" width="24" height="10" rx="5" fill="#E07FA6"/>
+  </g>
+  <g transform="rotate(-24 130 150)">
+    <path d="M130 92C146 92 154 112 154 140C154 172 142 206 130 206C118 206 106 172 106 140C106 112 114 92 130 92Z" fill="#F9B8D2"/>
+    <ellipse cx="130" cy="112" rx="14" ry="16" fill="#E07FA6"/>
+    <rect x="118" y="192" width="24" height="10" rx="5" fill="#E07FA6"/>
+  </g>
+  <g fill="none" stroke="#E85A96" stroke-width="6" stroke-linecap="round">
+    <path d="M64 124L92 150M80 126L58 152"/>
+    <path d="M136 124L108 150M120 126L142 152"/>
+  </g>
+</svg>
