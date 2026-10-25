@@ -94,6 +94,17 @@
 
   --color-highlight: var(--bluebird-500); /* small details only: dots, illustrations, chart series */
 
+  /* marketing pages only (DESIGN.md, "Marketing pages") */
+  --color-hero-bg: var(--tangerine-500);     /* the hero exception: orange as a surface. Not --color-hero: that would also turn text-hero (the type size) orange */
+  --color-on-hero: var(--ink-900);           /* 7.3:1; white on orange fails (2.4:1) */
+  --color-on-hero-muted: var(--ink-800);     /* 6.1:1; fg-muted fails on orange */
+  --color-hero-action: var(--bluebird-300);  /* the main button on orange, since an orange one would vanish */
+  --color-hero-action-hover: var(--bluebird-100);
+  --color-on-hero-action: var(--ink-900);    /* 10.1:1 */
+  --color-on-brand-muted: var(--pine-100);   /* secondary text on brand green: 7.5:1 */
+  --color-surface-sky: var(--bluebird-50);   /* section band; fg-muted 6.9:1, action-text 4.5:1 */
+  --color-surface-warm: var(--tangerine-50); /* section band; fg-muted 6.9:1, action-text 4.6:1 */
+
   /* status */
   --color-positive: var(--pine-600);
   --color-positive-soft: var(--pine-50);
@@ -167,6 +178,15 @@
     --duration-drop: 0ms;
     --drop-stagger: 0ms;
   }
+}
+
+/* The marketing hero sits on orange. Inside it, muted text and the focus
+   ring switch to ink: the usual grey (3.4:1) and blue ring (2.2:1) fail
+   there. --focus-ring is redeclared because it resolves where it's set. */
+[data-surface='hero'] {
+  --color-fg-muted: var(--color-on-hero-muted);
+  --color-focus: var(--color-on-hero);
+  --focus-ring: 0 0 0 3px var(--color-hero-bg), 0 0 0 5px var(--color-on-hero);
 }
 
 /* Utilities ----------------------------------------------------------------- */

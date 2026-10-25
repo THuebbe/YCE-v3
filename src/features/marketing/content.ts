@@ -1,5 +1,7 @@
 import { PLAN_PRICES } from '@/features/billing/subscription'
 import { SITE_HOST, SUPPORT_EMAIL } from '@/lib/site'
+import type { ExampleDisplay } from './components/ExampleDisplays'
+import type { FeatureIconName } from './components/FeatureIcon'
 
 /**
  * Every word on the marketing pages (home, pricing). Edit copy here; the
@@ -75,22 +77,32 @@ export function marketingContent({ trialDays }: { trialDays: number }) {
       ],
     },
 
+    examples: {
+      title: 'Any occasion, any name',
+      sub: 'Every display is built from real signs, so what your customer sees is what goes in their yard.',
+      displays: [
+        { occasion: 'Graduation', rows: [{ text: 'CONGRATS', colorway: 'blue' }, { text: 'CLASS OF 2026', colorway: 'gold' }] },
+        { occasion: 'Homecoming', rows: [{ text: 'WELCOME HOME', colorway: 'green' }, { text: 'JAKE', colorway: 'red' }] },
+        { occasion: 'New baby', rows: [{ text: 'OH BABY', colorway: 'pink' }, { text: 'LILY', colorway: 'purple' }] },
+      ] satisfies ExampleDisplay[],
+    },
+
     customerView: {
       title: 'What your customers see',
       body: 'A booking page with your name on it. They pick the message, type the name and watch the signs go up on the lawn before they book. Their signs are held while they finish, so nothing gets double-booked.',
-      caption: 'Example booking page for a sample agency',
+      caption: 'Example booking page, in a sample agency’s own colors',
     },
 
     features: {
       title: 'Built for yard sign rentals',
       items: [
-        { title: 'Live display preview', body: 'Customers see their display on a lawn as they design it, built from the signs you actually stock.' },
-        { title: 'Paid up front', body: 'Card payments go straight to your Stripe account. No invoices to chase.' },
-        { title: 'No double bookings', body: 'Signs are held for each booking’s dates, so two customers can’t book the same letters.' },
-        { title: 'Orders in one place', body: 'An order board for the week ahead and a printable summary for every job.' },
-        { title: 'Your brand on the page', body: 'Your business name and contact details on every booking page and confirmation email.' },
-        { title: 'Your rules (Elite)', body: 'Set your own cancellation window and fees, late fees and damage fees.' },
-      ],
+        { icon: 'preview', title: 'Live display preview', body: 'Customers see their display on a lawn as they design it, built from the signs you actually stock.' },
+        { icon: 'paid', title: 'Paid up front', body: 'Card payments go straight to your Stripe account. No invoices to chase.' },
+        { icon: 'calendar', title: 'No double bookings', body: 'Signs are held for each booking’s dates, so two customers can’t book the same letters.' },
+        { icon: 'orders', title: 'Orders in one place', body: 'An order board for the week ahead and a printable summary for every job.' },
+        { icon: 'brand', title: 'Your brand on the page', body: 'Your business name and contact details on every booking page and confirmation email.' },
+        { icon: 'rules', title: 'Your rules (Elite)', body: 'Set your own cancellation window and fees, late fees and damage fees.' },
+      ] satisfies { icon: FeatureIconName; title: string; body: string }[],
     },
 
     pricing: {

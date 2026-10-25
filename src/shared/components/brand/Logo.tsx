@@ -9,13 +9,15 @@ import { ICON_Y, WORDMARK } from './logo-geometry'
  * - variant="icon"      the staked Y on its tile
  * - variant="wordmark"  YardCard ELITE without the icon
  * - tone="onDark"       for the brand green or other dark backgrounds
+ * - tone="onHero"       for the orange marketing hero (the orange ELITE
+ *                       would vanish there, so it turns white)
  *
  * Brand colors are fixed here on purpose: an agency's white label changes
  * the booking page, never the YardCard Elite logo. Usage rules: DESIGN.md.
  */
 
 type Variant = 'full' | 'icon' | 'wordmark'
-type Tone = 'onLight' | 'onDark'
+type Tone = 'onLight' | 'onDark' | 'onHero'
 
 interface LogoProps {
   variant?: Variant
@@ -51,12 +53,18 @@ function IconShapes() {
   )
 }
 
+const WORDMARK_FILLS: Record<Tone, { name: string; elite: string }> = {
+  onLight: { name: PALETTE.pine[700], elite: PALETTE.tangerine[700] },
+  onDark: { name: PALETTE.ink[0], elite: PALETTE.tangerine[500] },
+  onHero: { name: PALETTE.pine[800], elite: PALETTE.ink[0] },
+}
+
 function WordmarkShapes({ tone }: { tone: Tone }) {
-  const dark = tone === 'onDark'
+  const fills = WORDMARK_FILLS[tone]
   return (
     <>
-      <path d={WORDMARK.name} fill={dark ? PALETTE.ink[0] : PALETTE.pine[700]} />
-      <path d={WORDMARK.elite} fill={dark ? PALETTE.tangerine[500] : PALETTE.tangerine[700]} />
+      <path d={WORDMARK.name} fill={fills.name} />
+      <path d={WORDMARK.elite} fill={fills.elite} />
     </>
   )
 }
