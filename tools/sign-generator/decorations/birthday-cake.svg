@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect x="30" y="110" width="140" height="74" rx="8" fill="#F6A5C4"/>
+  <path d="M30 120Q47 140 64 120T98 120T132 120T170 120V112H30Z" fill="#FFFFFF"/>
+  <rect x="48" y="70" width="104" height="46" rx="8" fill="#8B4A23"/>
+  <path d="M48 80Q61 96 74 80T100 80T126 80T152 80V72H48Z" fill="#FFFFFF"/>
+  <rect x="20" y="180" width="160" height="12" rx="6" fill="#C9D1D9"/>
+  <rect x="70" y="36" width="10" height="34" rx="3" fill="#1D6FBF"/><rect x="95" y="32" width="10" height="38" rx="3" fill="#F0B323"/><rect x="120" y="36" width="10" height="34" rx="3" fill="#2E965A"/>
+  <path d="M75 34Q68 24 75 14Q82 24 75 34ZM100 30Q93 20 100 10Q107 20 100 30ZM125 34Q118 24 125 14Q132 24 125 34Z" fill="#EE7B30"/>
+  <circle cx="60" cy="150" r="6" fill="#D62828"/><circle cx="100" cy="158" r="6" fill="#7C4CB0"/><circle cx="140" cy="150" r="6" fill="#1D6FBF"/>
+</svg>

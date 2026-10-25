@@ -12,7 +12,8 @@
 
 export interface SignAsset {
   id: string;
-  type: 'letter' | 'number' | 'punctuation' | 'shape';
+  /** Full-color extras (decoration, backdrop, bookend) have style "art", colorway = type, character = slug */
+  type: 'letter' | 'number' | 'punctuation' | 'shape' | 'decoration' | 'backdrop' | 'bookend';
   character: string | null;
   style: string;
   colorway: string;
@@ -70,6 +71,15 @@ export function resolveAsset(
   colorway: string,
 ): SignAsset | null {
   return index.get(`${style}|${colorway}|${character.toUpperCase()}`) ?? null;
+}
+
+/** A full-color extra by its art slug ("soccer-ball"): one version, whatever colors the letters are in. */
+export function resolveArt(
+  index: Map<string, SignAsset>,
+  kind: 'decoration' | 'backdrop' | 'bookend',
+  slug: string,
+): SignAsset | null {
+  return index.get(`art|${kind}|${slug.toUpperCase()}`) ?? null;
 }
 
 export function assetUrl(a: SignAsset): string {

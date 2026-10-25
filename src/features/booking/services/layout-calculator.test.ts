@@ -39,3 +39,30 @@ test('the name can use its own style', async () => {
   const layout = await new LayoutCalculatorService().calculateLayout({ ...base, style: 'classic', nameStyle: 'fun' });
   assert.equal(layout.zone2.signs.length, 2);
 });
+
+// Which decorations a layout placed, by name ("decoration-Ballet Slippers-3")
+const decorationNames = (layout: { zone3: { signs: { signId: string; side?: string; position: number }[] } }) =>
+  layout.zone3.signs.map(s => s.signId.split('-').slice(1, -1).join('-'));
+
+test('the Holiday theme means the holiday nearest the event', async () => {
+  const october = await new LayoutCalculatorService().calculateLayout({ ...base, theme: 'Holiday', eventDate: '2026-10-31' });
+  for (const name of decorationNames(october)) assert.ok(['Pumpkin', 'Ghost', 'Stars'].includes(name), name);
+  const december = await new LayoutCalculatorService().calculateLayout({ ...base, theme: 'Holiday', eventDate: '2026-12-20' });
+  for (const name of decorationNames(december)) assert.ok(['Christmas Tree', 'Snowflake', 'Gift', 'Stars'].includes(name), name);
+});
+
+test('without a theme, the message picks the occasion', async () => {
+  const layout = await new LayoutCalculatorService().calculateLayout({ ...base, theme: undefined, message: 'Congrats Grad' });
+  for (const name of decorationNames(layout)) assert.ok(['Graduation Cap', 'Diploma', 'Stars', 'Trophy', 'Balloon'].includes(name), name);
+});
+
+test('a hobby puts its own decorations first', async () => {
+  const layout = await new LayoutCalculatorService().calculateLayout({ ...base, hobbies: ['Dance'] });
+  const left = layout.zone3.signs.filter(s => s.side === 'left').sort((a, b) => a.position - b.position);
+  assert.equal(left[0].signId.split('-')[1], 'Ballet Slippers');
+});
+
+test('a hobby repeats its own decorations before reaching for unrelated ones', async () => {
+  const layout = await new LayoutCalculatorService().calculateLayout({ ...base, message: 'Congratulations', recipientName: 'Ava', hobbies: ['Dance'] });
+  for (const name of decorationNames(layout)) assert.ok(['Ballet Slippers', 'Tutu', 'Disco Ball'].includes(name), name);
+});

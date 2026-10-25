@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <path d="M60 10H98L110 92H80Z" fill="#1D6FBF"/>
+  <path d="M140 10H102L90 92H120Z" fill="#D62828"/>
+  <circle cx="100" cy="132" r="56" fill="#F0B323"/>
+  <circle cx="100" cy="132" r="42" fill="#D9A11A"/>
+  <polygon points="100.0,106.0 106.5,123.1 124.7,124.0 110.5,135.4 115.3,153.0 100.0,143.0 84.7,153.0 89.5,135.4 75.3,124.0 93.5,123.1" fill="#FFF1C2"/>
+</svg>

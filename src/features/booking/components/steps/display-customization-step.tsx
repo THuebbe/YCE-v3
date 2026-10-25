@@ -180,6 +180,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         nameStyle: (nameIn ? picks.name : fallback).style,
         nameColorway: (nameIn ? picks.name : fallback).colorway,
         extrasStock,
+        eventDate: event ? new Date(event.eventDate).toISOString().slice(0, 10) : undefined,
       }).then(full => {
         if (!live) return;
         setLayout({
@@ -193,7 +194,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       }).catch(() => {});
     }, 150);
     return () => { live = false; clearTimeout(t); };
-  }, [messageIn, nameIn, bothIn, picks.message.style, picks.message.colorway, picks.name.style, picks.name.colorway, localData.characterTheme, localData.hobbies, holdCurrent, input]);
+  }, [messageIn, nameIn, bothIn, picks.message.style, picks.message.colorway, picks.name.style, picks.name.colorway, localData.characterTheme, localData.hobbies, holdCurrent, input, event?.eventDate]);
 
   /**
    * Hold exactly the signs on screen (the layout shown is the layout held):

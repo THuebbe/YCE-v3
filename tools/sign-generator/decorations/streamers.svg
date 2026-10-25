@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 204 200">
+  <!-- backing board: the streamers hang from one die-cut piece -->
+  <path d="M6 8H200V150Q196 186 180 190Q160 200 140 196Q118 200 92 196Q66 200 40 196Q14 196 14 160Z" fill="#FFFFFF"/>
+  <path d="M20 20Q60 40 40 80T60 150T40 196" stroke="#D62828" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M70 14Q110 40 88 84T110 156T92 196" stroke="#F0B323" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M120 18Q160 44 138 86T160 156T140 196" stroke="#1D6FBF" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <path d="M168 20Q200 46 182 88T196 160" stroke="#E85A96" stroke-width="14" fill="none" stroke-linecap="round"/>
+  <rect x="4" y="6" width="196" height="18" rx="9" fill="#7C4CB0"/>
+</svg>
