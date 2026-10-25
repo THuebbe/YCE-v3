@@ -16,7 +16,7 @@
     "purple",
     "black"
   ],
-  "assetCount": 315,
+  "assetCount": 372,
   "assets": [
     {
       "id": "letter-a-classic-red",
@@ -5685,6 +5685,1032 @@
       "stakeAnchor": {
         "xPct": 0.5,
         "yPct": 0.97
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-soccer-ball",
+      "type": "decoration",
+      "character": "soccer-ball",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/soccer-ball.png",
+      "widthPx": 476,
+      "heightPx": 476,
+      "widthIn": 23.8,
+      "heightIn": 23.8,
+      "baselineYPct": 0.9328,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9328
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-basketball",
+      "type": "decoration",
+      "character": "basketball",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/basketball.png",
+      "widthPx": 476,
+      "heightPx": 476,
+      "widthIn": 23.8,
+      "heightIn": 23.8,
+      "baselineYPct": 0.9328,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9328
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-baseball",
+      "type": "decoration",
+      "character": "baseball",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/baseball.png",
+      "widthPx": 476,
+      "heightPx": 476,
+      "widthIn": 23.8,
+      "heightIn": 23.8,
+      "baselineYPct": 0.9328,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9328
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-football",
+      "type": "decoration",
+      "character": "football",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/football.png",
+      "widthPx": 458,
+      "heightPx": 308,
+      "widthIn": 22.9,
+      "heightIn": 15.4,
+      "baselineYPct": 0.8961,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.8961
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-volleyball",
+      "type": "decoration",
+      "character": "volleyball",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/volleyball.png",
+      "widthPx": 476,
+      "heightPx": 476,
+      "widthIn": 23.8,
+      "heightIn": 23.8,
+      "baselineYPct": 0.9328,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9328
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-trophy",
+      "type": "decoration",
+      "character": "trophy",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/trophy.png",
+      "widthPx": 454,
+      "heightPx": 452,
+      "widthIn": 22.7,
+      "heightIn": 22.6,
+      "baselineYPct": 0.9292,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9292
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-medal",
+      "type": "decoration",
+      "character": "medal",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/medal.png",
+      "widthPx": 340,
+      "heightPx": 472,
+      "widthIn": 17.0,
+      "heightIn": 23.6,
+      "baselineYPct": 0.9322,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9322
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-ballet-slippers",
+      "type": "decoration",
+      "character": "ballet-slippers",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/ballet-slippers.png",
+      "widthPx": 336,
+      "heightPx": 463,
+      "widthIn": 16.8,
+      "heightIn": 23.15,
+      "baselineYPct": 0.9309,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9309
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-disco-ball",
+      "type": "decoration",
+      "character": "disco-ball",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/disco-ball.png",
+      "widthPx": 436,
+      "heightPx": 491,
+      "widthIn": 21.8,
+      "heightIn": 24.55,
+      "baselineYPct": 0.9348,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9348
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-tutu",
+      "type": "decoration",
+      "character": "tutu",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/tutu.png",
+      "widthPx": 474,
+      "heightPx": 462,
+      "widthIn": 23.7,
+      "heightIn": 23.1,
+      "baselineYPct": 0.9307,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9307
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-music-notes",
+      "type": "decoration",
+      "character": "music-notes",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/music-notes.png",
+      "widthPx": 418,
+      "heightPx": 430,
+      "widthIn": 20.9,
+      "heightIn": 21.5,
+      "baselineYPct": 0.9256,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9256
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-guitar",
+      "type": "decoration",
+      "character": "guitar",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/guitar.png",
+      "widthPx": 404,
+      "heightPx": 471,
+      "widthIn": 20.2,
+      "heightIn": 23.55,
+      "baselineYPct": 0.9321,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9321
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-microphone",
+      "type": "decoration",
+      "character": "microphone",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/microphone.png",
+      "widthPx": 312,
+      "heightPx": 455,
+      "widthIn": 15.6,
+      "heightIn": 22.75,
+      "baselineYPct": 0.9319,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9319
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-art-palette",
+      "type": "decoration",
+      "character": "art-palette",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/art-palette.png",
+      "widthPx": 476,
+      "heightPx": 452,
+      "widthIn": 23.8,
+      "heightIn": 22.6,
+      "baselineYPct": 0.9292,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9292
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-paintbrush",
+      "type": "decoration",
+      "character": "paintbrush",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/paintbrush.png",
+      "widthPx": 370,
+      "heightPx": 412,
+      "widthIn": 18.5,
+      "heightIn": 20.6,
+      "baselineYPct": 0.9248,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9248
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-crayons",
+      "type": "decoration",
+      "character": "crayons",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/crayons.png",
+      "widthPx": 438,
+      "heightPx": 436,
+      "widthIn": 21.9,
+      "heightIn": 21.8,
+      "baselineYPct": 0.9289,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9289
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-open-book",
+      "type": "decoration",
+      "character": "open-book",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/open-book.png",
+      "widthPx": 476,
+      "heightPx": 368,
+      "widthIn": 23.8,
+      "heightIn": 18.4,
+      "baselineYPct": 0.9158,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9158
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-book-stack",
+      "type": "decoration",
+      "character": "book-stack",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/book-stack.png",
+      "widthPx": 416,
+      "heightPx": 432,
+      "widthIn": 20.8,
+      "heightIn": 21.6,
+      "baselineYPct": 0.9259,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9259
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-gaming-controller",
+      "type": "decoration",
+      "character": "gaming-controller",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/gaming-controller.png",
+      "widthPx": 501,
+      "heightPx": 359,
+      "widthIn": 25.05,
+      "heightIn": 17.95,
+      "baselineYPct": 0.9109,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9109
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-pixel-heart",
+      "type": "decoration",
+      "character": "pixel-heart",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/pixel-heart.png",
+      "widthPx": 476,
+      "heightPx": 436,
+      "widthIn": 23.8,
+      "heightIn": 21.8,
+      "baselineYPct": 0.9266,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9266
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-crown",
+      "type": "decoration",
+      "character": "crown",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/crown.png",
+      "widthPx": 500,
+      "heightPx": 428,
+      "widthIn": 25.0,
+      "heightIn": 21.4,
+      "baselineYPct": 0.9252,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9252
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-castle",
+      "type": "decoration",
+      "character": "castle",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/castle.png",
+      "widthPx": 474,
+      "heightPx": 486,
+      "widthIn": 23.7,
+      "heightIn": 24.3,
+      "baselineYPct": 0.9342,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9342
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-wand",
+      "type": "decoration",
+      "character": "wand",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/wand.png",
+      "widthPx": 416,
+      "heightPx": 458,
+      "widthIn": 20.8,
+      "heightIn": 22.9,
+      "baselineYPct": 0.9301,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9301
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-shield",
+      "type": "decoration",
+      "character": "shield",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/shield.png",
+      "widthPx": 436,
+      "heightPx": 482,
+      "widthIn": 21.8,
+      "heightIn": 24.1,
+      "baselineYPct": 0.9357,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9357
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-mask",
+      "type": "decoration",
+      "character": "mask",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/mask.png",
+      "widthPx": 785,
+      "heightPx": 348,
+      "widthIn": 39.25,
+      "heightIn": 17.4,
+      "baselineYPct": 0.908,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.908
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-cape",
+      "type": "decoration",
+      "character": "cape",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/cape.png",
+      "widthPx": 410,
+      "heightPx": 471,
+      "widthIn": 20.5,
+      "heightIn": 23.55,
+      "baselineYPct": 0.9342,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9342
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-lightning-bolt",
+      "type": "decoration",
+      "character": "lightning-bolt",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/lightning-bolt.png",
+      "widthPx": 368,
+      "heightPx": 488,
+      "widthIn": 18.4,
+      "heightIn": 24.4,
+      "baselineYPct": 0.9385,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9385
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-rainbow",
+      "type": "decoration",
+      "character": "rainbow",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/rainbow.png",
+      "widthPx": 798,
+      "heightPx": 475,
+      "widthIn": 39.9,
+      "heightIn": 23.75,
+      "baselineYPct": 0.9326,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9326
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-flowers",
+      "type": "decoration",
+      "character": "flowers",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/flowers.png",
+      "widthPx": 469,
+      "heightPx": 483,
+      "widthIn": 23.45,
+      "heightIn": 24.15,
+      "baselineYPct": 0.9358,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9358
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-butterfly",
+      "type": "decoration",
+      "character": "butterfly",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/butterfly.png",
+      "widthPx": 454,
+      "heightPx": 406,
+      "widthIn": 22.7,
+      "heightIn": 20.3,
+      "baselineYPct": 0.9212,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9212
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-paw-print",
+      "type": "decoration",
+      "character": "paw-print",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/paw-print.png",
+      "widthPx": 416,
+      "heightPx": 411,
+      "widthIn": 20.8,
+      "heightIn": 20.55,
+      "baselineYPct": 0.9221,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9221
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-dinosaur",
+      "type": "decoration",
+      "character": "dinosaur",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/dinosaur.png",
+      "widthPx": 463,
+      "heightPx": 452,
+      "widthIn": 23.15,
+      "heightIn": 22.6,
+      "baselineYPct": 0.9292,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9292
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-bunny",
+      "type": "decoration",
+      "character": "bunny",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/bunny.png",
+      "widthPx": 348,
+      "heightPx": 494,
+      "widthIn": 17.4,
+      "heightIn": 24.7,
+      "baselineYPct": 0.9352,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9352
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-christmas-tree",
+      "type": "decoration",
+      "character": "christmas-tree",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/christmas-tree.png",
+      "widthPx": 447,
+      "heightPx": 498,
+      "widthIn": 22.35,
+      "heightIn": 24.9,
+      "baselineYPct": 0.9357,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9357
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-pumpkin",
+      "type": "decoration",
+      "character": "pumpkin",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/pumpkin.png",
+      "widthPx": 436,
+      "heightPx": 484,
+      "widthIn": 21.8,
+      "heightIn": 24.2,
+      "baselineYPct": 0.9339,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9339
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-ghost",
+      "type": "decoration",
+      "character": "ghost",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/ghost.png",
+      "widthPx": 428,
+      "heightPx": 468,
+      "widthIn": 21.4,
+      "heightIn": 23.4,
+      "baselineYPct": 0.9338,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9338
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-snowflake",
+      "type": "decoration",
+      "character": "snowflake",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/snowflake.png",
+      "widthPx": 438,
+      "heightPx": 482,
+      "widthIn": 21.9,
+      "heightIn": 24.1,
+      "baselineYPct": 0.9357,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9357
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-easter-egg",
+      "type": "decoration",
+      "character": "easter-egg",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/easter-egg.png",
+      "widthPx": 420,
+      "heightPx": 480,
+      "widthIn": 21.0,
+      "heightIn": 24.0,
+      "baselineYPct": 0.9333,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9333
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-american-flag",
+      "type": "decoration",
+      "character": "american-flag",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/american-flag.png",
+      "widthPx": 492,
+      "heightPx": 492,
+      "widthIn": 24.6,
+      "heightIn": 24.6,
+      "baselineYPct": 0.9512,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9512
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-fireworks",
+      "type": "decoration",
+      "character": "fireworks",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/fireworks.png",
+      "widthPx": 488,
+      "heightPx": 469,
+      "widthIn": 24.4,
+      "heightIn": 23.45,
+      "baselineYPct": 0.9339,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9339
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-balloon",
+      "type": "decoration",
+      "character": "balloon",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/balloon.png",
+      "widthPx": 352,
+      "heightPx": 493,
+      "widthIn": 17.6,
+      "heightIn": 24.65,
+      "baselineYPct": 0.9432,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9432
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-gift",
+      "type": "decoration",
+      "character": "gift",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/gift.png",
+      "widthPx": 420,
+      "heightPx": 437,
+      "widthIn": 21.0,
+      "heightIn": 21.85,
+      "baselineYPct": 0.9268,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9268
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-bow",
+      "type": "decoration",
+      "character": "bow",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/bow.png",
+      "widthPx": 462,
+      "heightPx": 373,
+      "widthIn": 23.1,
+      "heightIn": 18.65,
+      "baselineYPct": 0.9169,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9169
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-birthday-cake",
+      "type": "decoration",
+      "character": "birthday-cake",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/birthday-cake.png",
+      "widthPx": 436,
+      "heightPx": 478,
+      "widthIn": 21.8,
+      "heightIn": 23.9,
+      "baselineYPct": 0.9331,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9331
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-party-popper",
+      "type": "decoration",
+      "character": "party-popper",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/party-popper.png",
+      "widthPx": 430,
+      "heightPx": 478,
+      "widthIn": 21.5,
+      "heightIn": 23.9,
+      "baselineYPct": 0.9351,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9351
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-party-hat",
+      "type": "decoration",
+      "character": "party-hat",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/party-hat.png",
+      "widthPx": 400,
+      "heightPx": 486,
+      "widthIn": 20.0,
+      "heightIn": 24.3,
+      "baselineYPct": 0.9342,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9342
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-smiley",
+      "type": "decoration",
+      "character": "smiley",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/smiley.png",
+      "widthPx": 476,
+      "heightPx": 476,
+      "widthIn": 23.8,
+      "heightIn": 23.8,
+      "baselineYPct": 0.9328,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9328
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-graduation-cap",
+      "type": "decoration",
+      "character": "graduation-cap",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/graduation-cap.png",
+      "widthPx": 480,
+      "heightPx": 391,
+      "widthIn": 24.0,
+      "heightIn": 19.55,
+      "baselineYPct": 0.9182,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9182
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-decoration-diploma",
+      "type": "decoration",
+      "character": "diploma",
+      "style": "art",
+      "colorway": "decoration",
+      "file": "art/decoration/diploma.png",
+      "widthPx": 435,
+      "heightPx": 375,
+      "widthIn": 21.75,
+      "heightIn": 18.75,
+      "baselineYPct": 0.92,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.92
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-backdrop-confetti",
+      "type": "backdrop",
+      "character": "confetti",
+      "style": "art",
+      "colorway": "backdrop",
+      "file": "art/backdrop/confetti.png",
+      "widthPx": 600,
+      "heightPx": 614,
+      "widthIn": 30.0,
+      "heightIn": 30.7,
+      "baselineYPct": 0.9495,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9495
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-backdrop-streamers",
+      "type": "backdrop",
+      "character": "streamers",
+      "style": "art",
+      "colorway": "backdrop",
+      "file": "art/backdrop/streamers.png",
+      "widthPx": 628,
+      "heightPx": 613,
+      "widthIn": 31.4,
+      "heightIn": 30.65,
+      "baselineYPct": 0.9608,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9608
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-backdrop-balloon-cluster",
+      "type": "backdrop",
+      "character": "balloon-cluster",
+      "style": "art",
+      "colorway": "backdrop",
+      "file": "art/backdrop/balloon-cluster.png",
+      "widthPx": 543,
+      "heightPx": 604,
+      "widthIn": 27.15,
+      "heightIn": 30.2,
+      "baselineYPct": 0.9487,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9487
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-backdrop-pinwheel-spinner",
+      "type": "backdrop",
+      "character": "pinwheel-spinner",
+      "style": "art",
+      "colorway": "backdrop",
+      "file": "art/backdrop/pinwheel-spinner.png",
+      "widthPx": 574,
+      "heightPx": 574,
+      "widthIn": 28.7,
+      "heightIn": 28.7,
+      "baselineYPct": 0.9443,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9443
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-backdrop-star-spinner",
+      "type": "backdrop",
+      "character": "star-spinner",
+      "style": "art",
+      "colorway": "backdrop",
+      "file": "art/backdrop/star-spinner.png",
+      "widthPx": 590,
+      "heightPx": 590,
+      "widthIn": 29.5,
+      "heightIn": 29.5,
+      "baselineYPct": 0.9492,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9492
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-backdrop-flower-spinner",
+      "type": "backdrop",
+      "character": "flower-spinner",
+      "style": "art",
+      "colorway": "backdrop",
+      "file": "art/backdrop/flower-spinner.png",
+      "widthPx": 623,
+      "heightPx": 623,
+      "widthIn": 31.15,
+      "heightIn": 31.15,
+      "baselineYPct": 0.9535,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9535
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-bookend-balloon-bouquet",
+      "type": "bookend",
+      "character": "balloon-bouquet",
+      "style": "art",
+      "colorway": "bookend",
+      "file": "art/bookend/balloon-bouquet.png",
+      "widthPx": 326,
+      "heightPx": 813,
+      "widthIn": 16.3,
+      "heightIn": 40.65,
+      "baselineYPct": 0.9619,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9619
+      },
+      "placeholder": true
+    },
+    {
+      "id": "art-bookend-balloon-bouquet-right",
+      "type": "bookend",
+      "character": "balloon-bouquet-right",
+      "style": "art",
+      "colorway": "bookend",
+      "file": "art/bookend/balloon-bouquet-right.png",
+      "widthPx": 326,
+      "heightPx": 813,
+      "widthIn": 16.3,
+      "heightIn": 40.65,
+      "baselineYPct": 0.9619,
+      "stakeAnchor": {
+        "xPct": 0.5,
+        "yPct": 0.9619
       },
       "placeholder": true
     }

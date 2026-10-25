@@ -91,6 +91,7 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
         message, recipientName: d.recipientName.trim(), eventNumber: d.eventNumber ?? undefined,
         theme: d.characterTheme || undefined, hobbies: d.hobbies, agencyId: order.agency_id,
         style: d.messageStyle ?? 'Classic', messageColorway: d.messageColorway ?? 'Red', nameColorway: d.nameColorway ?? 'Red',
+        eventDate: order.event_date ? String(order.event_date).slice(0, 10) : undefined,
       });
       setLayout(result);
       const placed = [result.zone1, result.zone2, result.zone3, result.zone4, result.zone5].flatMap(z => z.signs);

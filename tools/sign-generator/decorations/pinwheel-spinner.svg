@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <g id="blade">
+    <path d="M100 100L100 12Q168 14 172 72Z" fill="#D62828"/>
+    <path d="M100 100L172 72L140 96Z" fill="#8E1B1B"/>
+  </g>
+  <g transform="rotate(90 100 100)"><path d="M100 100L100 12Q168 14 172 72Z" fill="#F0B323"/><path d="M100 100L172 72L140 96Z" fill="#B07F0B"/></g>
+  <g transform="rotate(180 100 100)"><path d="M100 100L100 12Q168 14 172 72Z" fill="#1D6FBF"/><path d="M100 100L172 72L140 96Z" fill="#124A82"/></g>
+  <g transform="rotate(270 100 100)"><path d="M100 100L100 12Q168 14 172 72Z" fill="#2E965A"/><path d="M100 100L172 72L140 96Z" fill="#1E6A3F"/></g>
+  <circle cx="100" cy="100" r="12" fill="#FFFFFF" stroke="#262626" stroke-width="5"/>
+</svg>

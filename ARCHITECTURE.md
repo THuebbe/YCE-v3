@@ -103,30 +103,35 @@ character count drives size. Same code path that makes real PNGs render
 at correct relative widths and align on baseline rather than image
 bottom.
 
-## Zone 3/4 decorations — real selection, still no real art or inventory
-`calculateZone3AndZone4()` in `layout-calculator.ts` does real
-keyword-weighted selection today: `rankDecorationsByHobbies()` scores the
-full `decorationCatalog` against the customer's Hobbies (ties keep
-catalog order; zero-score entries are kept, not dropped, so nothing is
-ever excluded outright), falling back to a random pick from
-`getThemeDecorationPool()` only when no hobbies are picked. Of that
-catalog, only `Stars`/`Heart` resolve to real art (`shape-star`/
-`shape-heart` in the manifest, all 7 colorways) via
-`DECORATION_SHAPE_KEYS` + `resolveAsset()` — everything else (Baseball,
-Crown, Rainbow, ...) still renders as a colored `dev` circle because no
-art exists for it. Since 2026-10-23 selection only draws from signs with
-free stock on the customer's dates (see Data flow AS BUILT above), and today's "Theme" input is the
-decoration-picker's `characterTheme` field only — it has no relationship
-to the customer's message and no representation in scoring beyond the
-random-pick fallback. See the new configurator section below for the
-intended fix.
+## Zone 3/4/5 extras — real art, picked by theme, occasion, holiday or hobby
+Since 2026-10-25 every decoration, backdrop and bookend the calculator can
+place has full-color art: SVGs in `tools/sign-generator/decorations/`,
+die-cut like the letters by `generate_decorations.py`, in the manifest as
+style `"art"` (colorway = kind, character = slug; `resolveArt()` +
+`artSlug()` in `catalog-keys.ts`). They are one version each - the color
+pickers only apply to letters and numbers. Stars/Heart stay shape assets in
+the 7 letter colorways (`DECORATION_SHAPE_KEYS`). Each extra is a
+`mock-*` sign_library row with stock for the six test agencies
+(`scripts/generate-sign-seed.mjs`); selection only draws from free stock.
+
+What gets picked (`layout-calculator.ts`):
+- **Hobbies** picked: `rankDecorationsByHobbies()` - the keyword matches,
+  the matches again, then everything else (so an out-of-stock hobby still
+  leaves candidates).
+- **No hobbies**: a random pick from `getThemeDecorationPool()` - the
+  picked Theme's pool; for Holiday, the holiday nearest the event month
+  (`holidayPools`, needs `eventDate`); with no theme (or Classic), the
+  message's occasion (`occasionPools`: birthday, grad, anniversary, welcome
+  home, get well, congrats); else the classic party set.
+- Backdrops cycle `backgroundPool`; bookends are a balloon bouquet each side.
 
 ## Smart configurator (Theme/Style/Color/Hobby) — STYLE/COLOR BUILT, THEME NOT
 Design conversation from 2026-09-16 (pointer in STATE.md). Style +
 Colorway (the hard constraint) shipped 2026-10-23 as "Data flow AS
 BUILT"; blockers 1 and 2 below are done for the placeholder library
 (`sign_library.character/style/colorway`, 20 of each per test agency).
-Theme and Hobby weighting for Zone 3/4/5 is still not built. The
+Theme, occasion and hobby pools for the extras exist (see "Zone 3/4/5
+extras" above), but as separate rules, not one weighted score. The
 intended model:
 - **Message / recipient name**: free text, decoupled from style/colorway
   — any words render in any style/colorway the agency has.
@@ -154,9 +159,9 @@ Blocked on, in order:
    rows are unaffected.
 2. Per-agency inventory seed data — which agency owns which
    style/colorway combos. A business decision, not something to invent.
-3. Message -> theme taxonomy — one theme per message or several, and
-   where the mapping lives (hardcoded next to `eventMessages` in
-   `display-customization-step.tsx`, or DB-driven).
+3. Message -> theme taxonomy — a first version is hardcoded in
+   `layout-calculator.ts` (`occasionPools`); still open whether it should
+   be DB-driven or per agency.
 4. Scoring formula for combining Theme-weight + Hobby-weight — not
    specified yet (additive sum vs. weighted, tie-breaking rules).
 

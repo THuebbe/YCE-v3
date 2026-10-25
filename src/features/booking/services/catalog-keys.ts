@@ -26,16 +26,41 @@ export const MOCK_ORDINALS = ['ST', 'ND', 'RD', 'TH'];
 
 /**
  * Every decoration name `layout-calculator.ts` can place (its hobby catalog
- * plus its theme pools). Stars/Heart have real art in every colorway and use
- * their shape asset key; they are listed here too as the fallback when a
- * style/colorway has no shape asset.
+ * plus its theme and occasion pools). Stars/Heart have real art in every
+ * colorway and use their shape asset key; they are listed here too as the
+ * fallback when a style/colorway has no shape asset.
  */
 export const MOCK_DECORATIONS = [
-  'Baseball', 'Soccer Ball', 'Basketball', 'Gaming Controller', 'Music Notes',
-  'Art Palette', 'Crown', 'Castle', 'Superhero Shield', 'Stars', 'Rainbow',
-  'Flowers', 'Heart', 'Wand', 'Shield', 'Cape', 'Mask', 'Balloon', 'Gift', 'Bow',
+  // sports
+  'Baseball', 'Soccer Ball', 'Basketball', 'Football', 'Volleyball', 'Trophy', 'Medal',
+  // hobbies
+  'Ballet Slippers', 'Disco Ball', 'Tutu', 'Music Notes', 'Guitar', 'Microphone',
+  'Art Palette', 'Paintbrush', 'Crayons', 'Open Book', 'Book Stack', 'Gaming Controller', 'Pixel Heart',
+  // themes
+  'Crown', 'Castle', 'Wand', 'Superhero Shield', 'Shield', 'Cape', 'Mask', 'Lightning Bolt',
+  'Stars', 'Rainbow', 'Flowers', 'Butterfly', 'Heart', 'Paw Print', 'Dinosaur', 'Bunny',
+  // holidays
+  'Christmas Tree', 'Pumpkin', 'Ghost', 'Snowflake', 'Easter Egg', 'American Flag', 'Fireworks',
+  // party and occasions
+  'Balloon', 'Gift', 'Bow', 'Birthday Cake', 'Party Popper', 'Party Hat', 'Smiley',
+  'Graduation Cap', 'Diploma',
 ];
 
-export const MOCK_BACKDROPS = ['Balloon Cluster', 'Confetti', 'Streamers'];
+export const MOCK_BACKDROPS = ['Balloon Cluster', 'Confetti', 'Streamers', 'Pinwheel Spinner', 'Star Spinner', 'Flower Spinner'];
 
 export const MOCK_BOOKENDS = ['Left Bookend', 'Right Bookend'];
+
+export type ArtKind = 'decoration' | 'backdrop' | 'bookend';
+
+/**
+ * Full-color art for the extras (tools/sign-generator/generate_decorations.py,
+ * manifest style "art"): the name's slug unless listed here. Stars and Heart
+ * aren't art: they come in the letter colorways as shape assets.
+ */
+const ART_OVERRIDES: Record<string, string> = {
+  'Superhero Shield': 'shield',
+  'Left Bookend': 'balloon-bouquet',
+  'Right Bookend': 'balloon-bouquet-right',
+};
+
+export const artSlug = (name: string) => ART_OVERRIDES[name] ?? slugifyKey(name);
