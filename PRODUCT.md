@@ -306,65 +306,24 @@ Billing (subscription), separate from Connect (built in milestone 3).
 Per-booking application fees on Express accounts are optional,
 secondary revenue.
 
-## Future features — not at launch (recorded 2026-10-19)
-Kept here so the ideas survive; the placeholder pages that described
-them (`/[agency]/customers`, `/[agency]/reports`) were removed because
-agencies could open them by URL. Git history has the full mockups.
-- **Popular signs (Elite):** the dashboard card. Count displays by
-  message and theme, not individual letters (letters always "win").
-- **Customers:** customer list and search, profiles with order history,
-  contact details, notes. Later: lifetime value and repeat rate,
-  segments (high value, seasonal, inactive), booking reminders and
-  follow-up emails/SMS, a customer portal (track, rebook), export.
-- **Reports and analytics (Elite):** revenue trends, payment and refund
-  analysis, sign utilization and seasonal trends, deployment times,
-  forecasting, a report builder, scheduled reports, bulk document
-  printing. PDF export with the existing PDF code.
-- **Team management (enterprise):** several users and locations per
-  agency, with roles. The old not-implemented stubs were removed; the
-  shared `users` table needs the PantryPro split first.
-- **Venmo and PayPal at checkout:** after Victory Store, before go-live.
-- **Public website:** about, contact, marketing. Built last, on purpose:
-  no traffic before the product is ready.
-- **Funnel landing pages with a quiz (decided 2026-10-22):** not the main
-  marketing page (that leads with the live yard demo and self-serve
-  signup). Later, for visitors not ready to sign up: e.g. "Is a yard sign
-  business right for you?" or a checkup that recommends Essentials or
-  Elite. Build on a TypeScript port of PantryPro's `scoring.js` with its
-  fixes (unanswered questions inflate the score; lead fields hardcoded to
-  q11-q14; two insight systems; unused minImpact/priority; invented
-  stats in the copy) and its own leads table with RLS on. Never reuse the
-  shared `quiz_submissions` table.
-- **Lead funnel (recorded 2026-10-23):** a customer who submits contact
-  details in the booking flow but never pays shows up for the agency as a
-  lead to follow up. Needs consent wording on the contact step. Fits after
-  the configurator work (contact details extend the sign hold there).
-- **Sign packages (was "bundles", recorded 2026-10-22):** a supplier's
-  package, e.g. Victory Store's sports pack (2 soccer balls, 2 footballs,
-  basketballs, baseballs...). Its purpose is receiving stock: add the
-  package once and every sign in it, in its quantities, goes into the
-  agency's inventory. Maybe later booking uses packages to find related
-  signs (football goes with baseball), but individual signs already
-  cover that. Needs its own tables: platform-curated packages with
-  package items (sign + quantity), never edits to shared
-  `sign_library` rows. The old agency-made bundle creator was removed
-  2026-10-22: no quantities, one bundle per sign, no agency scoping, and
-  an unauthenticated server action that rewrote shared library rows.
-  The empty `bundles` table and `sign_library.bundle_id/bundle_position`
-  columns are unused until then.
-- **Custom signs on the booking page (recorded 2026-10-22):** agencies
-  buy signs outside the platform library and upload them (Signs >
-  Custom). They can be stocked today but booking can't place them: the
-  layout uses the platform sign art. Needs a format check on upload
-  (cut-out PNG, size, maybe an editor or AI review) and a way to put a
-  custom sign into a display, e.g. as a decoration.
+## Future features — not at launch
+One file per feature in `docs/features/`, so each can grow as far as it
+needs. Add new ideas there and list them here in one line.
 
-- **Faster ways to stock signs (recorded 2026-10-22):** the library lists
-  every letter in every colorway as its own tile (359 today), which is a
-  long scroll. Group by set (one card per style and colorway, e.g.
-  "Classic red alphabet", opening to its letters, with "add the whole
-  set"); filter style, then color, then kind; and starter quantities (more
-  E's and A's than Q's and Z's). Pairs with sign packages above.
+| Feature | Status | File |
+|---|---|---|
+| Demo environment for prospects (`demo.yardcard-elite.com`) | Planned 2026-10-29 | [DEMO.md](docs/features/DEMO.md) |
+| Venmo and PayPal at checkout | Planned: after Victory Store, before go-live | [VENMO-PAYPAL.md](docs/features/VENMO-PAYPAL.md) |
+| Public website (about, contact) | Partly built: home + pricing live | [PUBLIC-WEBSITE.md](docs/features/PUBLIC-WEBSITE.md) |
+| Popular signs card (Elite) | Idea | [POPULAR-SIGNS.md](docs/features/POPULAR-SIGNS.md) |
+| Customers: list, profiles, follow-ups | Idea | [CUSTOMERS.md](docs/features/CUSTOMERS.md) |
+| Reports and analytics (Elite) | Idea | [REPORTS.md](docs/features/REPORTS.md) |
+| Team management (enterprise) | Idea, needs the PantryPro split | [TEAM-MANAGEMENT.md](docs/features/TEAM-MANAGEMENT.md) |
+| Quiz funnel landing pages | Idea | [QUIZ-FUNNELS.md](docs/features/QUIZ-FUNNELS.md) |
+| Lead funnel (unpaid bookings become leads) | Idea | [LEAD-FUNNEL.md](docs/features/LEAD-FUNNEL.md) |
+| Sign packages (supplier packs into stock) | Idea | [SIGN-PACKAGES.md](docs/features/SIGN-PACKAGES.md) |
+| Custom signs on the booking page | Idea | [CUSTOM-SIGNS.md](docs/features/CUSTOM-SIGNS.md) |
+| Faster ways to stock signs | Idea | [FASTER-STOCKING.md](docs/features/FASTER-STOCKING.md) |
 
 ## Deliberate non-goals right now
 Multi-location per agency · advanced analytics ·
