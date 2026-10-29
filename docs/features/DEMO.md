@@ -32,7 +32,7 @@ then the prospect explores on their own for the rest of the demo period.
   creates one link per prospect (`demo.yardcard-elite.com/start/<token>`).
   Only a valid, unused invite reaches the email step; the bare address
   shows "Ask us for a demo". Starting a demo spends the link.
-- **A demo lasts 1 hour (owner, 2026-10-29)**, counted from sign-in. A copy
+- **A demo lasts 4 hours (owner, 2026-10-29; first said 1 hour)**, counted from sign-in. A copy
   lives only as long as its demo: a new link means a fresh sandbox, never
   the old one back. Someone who wants more time asks for a new link.
 
@@ -61,7 +61,7 @@ then the prospect explores on their own for the rest of the demo period.
    agrees to the line *"We'll email your demo code and occasional YardCard
    Elite news."* This spends the invite.
 3. We email an **access code** (Resend, our branding). The code is good for
-   the whole hour: signing in again on a phone with the same code works
+   whole 4 hours: signing in again on a phone with the same code works
    until the demo ends.
 4. Entering the code: the server checks it, creates the prospect's demo
    agency from the template (first time only), creates or finds their Clerk
@@ -89,7 +89,7 @@ with fresh ids and a unique slug (e.g. `lucky-lawn-x7k2`), owned by the
 prospect's user.
 
 ## Expiry and cleanup
-- Each copy has `expires_at`: sign-in plus 1 hour (one setting, so it can
+- Each copy has `expires_at`: sign-in plus 4 hours (one setting, so it can
   change later).
 - The dashboard checks it on every page (with the demo banner) and shows
   the ended screen once it passes.
@@ -136,9 +136,8 @@ prospect's user.
 5. Run a full demo end to end on a phone and a laptop.
 
 ## Open questions (owner)
-- Answered 2026-10-29: 1-hour demos; a copy lasts only its demo (new link,
-  fresh sandbox); invite-only through single-use links.
+- Answered 2026-10-29: 4-hour demos (1 hour was too tight once the guided
+  walk-through eats into it); a copy lasts only its demo (new link, fresh
+  sandbox); invite-only through single-use links; links are issued from the
+  admin panel.
 - Unused invites: expire after 7 days (proposed), or never?
-- Known trade-off of the 1 hour: the clock starts at sign-in, usually during
-  the guided walk-through, so the prospect has what's left of the hour.
-  Agreed answer for now: send a new link when someone wants more time.
