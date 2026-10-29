@@ -28,6 +28,13 @@ then the prospect explores on their own for the rest of the demo period.
 - **Sign-in is our own front door, Clerk behind it:** email plus access
   code on our page, our email through Resend, then a Clerk sign-in ticket.
   The dashboard and its agency checks stay untouched.
+- **Invite only, by single-use link (owner, 2026-10-29).** The owner
+  creates one link per prospect (`demo.yardcard-elite.com/start/<token>`).
+  Only a valid, unused invite reaches the email step; the bare address
+  shows "Ask us for a demo". Starting a demo spends the link.
+- **A demo lasts 1 hour (owner, 2026-10-29)**, counted from sign-in. A copy
+  lives only as long as its demo: a new link means a fresh sandbox, never
+  the old one back. Someone who wants more time asks for a new link.
 
 ### Rejected, and why
 - **A second domain:** costs yearly, needs its own email/sign-in/SSL setup,
@@ -46,13 +53,16 @@ then the prospect explores on their own for the rest of the demo period.
   would delete their real account.
 
 ## Flow
-1. The owner sends a link to `demo.yardcard-elite.com`, or opens it in
-   the meeting.
-2. The prospect types their email and agrees to the line *"We'll email your
-   demo code and occasional YardCard Elite news."*
+1. The owner creates an invite link (owner-only "Create demo link" page,
+   optionally pre-filled with the prospect's email) and sends it, or opens
+   it in the meeting. The usual shape: a 15-minute guided walk-through,
+   then the prospect explores on their own.
+2. The prospect types their email (or confirms the pre-filled one) and
+   agrees to the line *"We'll email your demo code and occasional YardCard
+   Elite news."* This spends the invite.
 3. We email an **access code** (Resend, our branding). The code is good for
-   the whole demo period: signing in again on a phone with the same code
-   works until it expires.
+   the whole hour: signing in again on a phone with the same code works
+   until the demo ends.
 4. Entering the code: the server checks it, creates the prospect's demo
    agency from the template (first time only), creates or finds their Clerk
    user, and signs them in with a one-time Clerk sign-in ticket (the same
@@ -79,8 +89,8 @@ with fresh ids and a unique slug (e.g. `lucky-lawn-x7k2`), owned by the
 prospect's user.
 
 ## Expiry and cleanup
-- Each copy has `expires_at` (the demo period: 1, 4 or 24 hours; one
-  setting, default to be decided).
+- Each copy has `expires_at`: sign-in plus 1 hour (one setting, so it can
+  change later).
 - The dashboard checks it on every page (with the demo banner) and shows
   the ended screen once it passes.
 - A cleanup job (Vercel cron in the demo environment) deletes, one by one:
@@ -92,6 +102,8 @@ prospect's user.
 ## Leads
 - Table `demo_leads` (demo database, RLS on): email, consent text shown,
   first demo, demo count, last demo.
+- Table `demo_invites`: token (stored hashed), optional email, created,
+  used at. Single use; unused invites could also expire (proposed: 7 days).
 - Marketing email needs an unsubscribe link and our identity (CAN-SPAM); the
   privacy policy draft needs a line about demo emails before the demo opens.
 
@@ -117,14 +129,16 @@ prospect's user.
 
 ## Build, roughly two sessions
 1. Demo environment, database and DNS; seed the template agency.
-2. Access-code page, code email, code check plus agency copy plus Clerk ticket.
+2. Owner-only invite page; access-code page (invite check), code email, code
+   check plus agency copy plus Clerk ticket.
 3. Demo banner and countdown, ended screen, test-card hint on the booking page.
 4. Cleanup cron and leads table.
 5. Run a full demo end to end on a phone and a laptop.
 
 ## Open questions (owner)
-- Default demo period: 1, 4 or 24 hours?
-- Does a returning prospect get a fresh copy, or their old one if it hasn't
-  expired? (Proposed: the old one until it expires, then fresh.)
-- Who else can start a demo: anyone with the link, or only people the owner
-  invites (an invite list in `demo_leads`)?
+- Answered 2026-10-29: 1-hour demos; a copy lasts only its demo (new link,
+  fresh sandbox); invite-only through single-use links.
+- Unused invites: expire after 7 days (proposed), or never?
+- Known trade-off of the 1 hour: the clock starts at sign-in, usually during
+  the guided walk-through, so the prospect has what's left of the hour.
+  Agreed answer for now: send a new link when someone wants more time.
