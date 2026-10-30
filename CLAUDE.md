@@ -64,6 +64,8 @@ Entity vs DTO. Don't merge them. What's missing is an explicit adapter.
 ## Conventions
 - Features in `src/features/<domain>/`; routes in `src/app/`
 - Server actions in `features/<domain>/actions.ts`
+- Future features: one file each in `docs/features/` (e.g. `DEMO.md`),
+  listed in PRODUCT.md "Future features". Expand there, not in PRODUCT.md.
 - Zod schema per wizard step in `features/booking/types.ts`
 - Tenant routes are `src/app/[agency]/...`. Signed-in agency pages live
   in the `(app)` route group (shared shell + tabs); every page there calls
