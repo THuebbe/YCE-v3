@@ -8,9 +8,9 @@ lines - due another condense pass.
 
 ## Now
 - **2026-10-30:** Vercel Pro and Supabase Pro done; RLS now on every
-  public table (go-live blockers 5, 8, 11, 12 closed). Left before launch:
-  Stripe Connect questionnaire (owner's ID), Terms/Privacy review, Clerk
-  `user.created` webhook. Admin panel **parked** (not a launch blocker):
+  public table; webhooks fixed (go-live blockers 2, 5, 8, 11, 12 closed).
+  Left before launch: Stripe Connect questionnaire (owner's ID) and the
+  Terms/Privacy review. Admin panel **parked** (not a launch blocker):
   the reusable AdminKit 0.2 sits unpublished on `claude/plug-and-play` in
   THuebbe/tradtech-packages (PR #1 there); no `/admin` in YCE yet.
 - **2026-10-24: at a standstill on purpose.** Everything through #50 is
@@ -195,7 +195,8 @@ lines - due another condense pass.
   - texas-signs = turnkey Stripe test agency (`acct_1URY21CAFUeJ6RMe`);
     west-branch and elite-denver (`acct_1URjHtFl2xMJRcZS`) = Standard.
   - Production is `https://yce-v3.vercel.app` (no share link needed);
-    yardcard-elite.com is only the email domain so far.
+    `www.yardcard-elite.com` also serves production; the bare domain
+    307-redirects to `www.` (so webhook URLs must use `www.`).
 - **Launch blockers:** see "Go-live blockers" below.
 
 ## Environment and working style
@@ -338,10 +339,12 @@ lines - due another condense pass.
 
 ## Go-live blockers
 1. (done) Checkout charges real cards (milestone 2).
-2. **Clerk `user.created` webhook hasn't written a `users` row since
-   2025-10** (found 2026-10-10). Onboarding now creates the row itself
-   (branch), but check the webhook endpoint/secret in the Clerk dashboard
-   - other `users` updates (name/email changes) still won't sync.
+2. (done 2026-10-30) Clerk `user.created` webhook hadn't delivered since
+   2025-10: its URL was the bare `yardcard-elite.com`, which 307-redirects
+   to `www.`, and webhook senders don't follow redirects. Both live Stripe
+   webhooks had the same URL problem. The owner moved all three to
+   `https://www.yardcard-elite.com/...`; a Clerk test event and a resent
+   Stripe event both verified and processed on production.
 3. (done 2026-10-21) Agency subscriptions live in Stripe live mode.
 4. (done 2026-10-20) Clerk production instance on yardcard-elite.com.
 5. (done) RLS on every public table: YCE's 2026-10-19 (PR #21), `users`
