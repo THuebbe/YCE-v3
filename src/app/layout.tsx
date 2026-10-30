@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fredoka, Nunito_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { BRAND } from '@/lib/brand';
 import { ClerkProvider } from '@clerk/nextjs';
 import { clerkTheme } from '@/lib/clerk-theme';
@@ -29,16 +29,21 @@ function ConditionalClerkProvider({ children }: { children: React.ReactNode }) {
 
 // Brand fonts (DESIGN.md). Their variables go on <html> so the
 // --font-display / --font-body tokens on :root can resolve them.
-const fredoka = Fredoka({
+// Self-hosted (src/app/fonts, OFL, from Fontsource): next/font/google
+// fetched them from Google on every build and failed builds when Google
+// answered oddly (2026-10-30). Latin subset, variable weight.
+const fredoka = localFont({
+  src: "./fonts/fredoka-latin-wght-normal.woff2",
   variable: "--font-fredoka",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "300 700",
+  display: "swap",
 });
 
-const nunitoSans = Nunito_Sans({
+const nunitoSans = localFont({
+  src: "./fonts/nunito-sans-latin-wght-normal.woff2",
   variable: "--font-nunito-sans",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  weight: "200 1000",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
