@@ -26,3 +26,11 @@ export const isLoanerAgency = (agencyId: string | null | undefined) =>
 
 /** Stripe's test card, shown on demo booking pages */
 export const TEST_CARD = '4242 4242 4242 4242';
+
+/** "jordan@gmail.com" -> "j••••n@gmail.com": enough to recognize, not to harvest */
+export function maskEmail(email: string): string {
+  const [local, domain] = email.split('@');
+  if (!local || !domain) return '•••';
+  const shown = local.length <= 2 ? local[0] : `${local[0]}${'•'.repeat(Math.min(local.length - 2, 6))}${local[local.length - 1]}`;
+  return `${shown}${local.length <= 2 ? '•' : ''}@${domain}`;
+}
