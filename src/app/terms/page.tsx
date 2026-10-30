@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: 'Terms of Service - YardCard Elite' }
 // Owner's working draft (2026-10-20): to be compared against other terms
 // and reviewed by a professional before go-live (STATE.md). The Stripe
 // Connect paragraph follows Stripe's required platform wording.
-const EFFECTIVE = 'October 20, 2026'
+const EFFECTIVE = 'October 30, 2026'
 const mail = <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
 const p = PLAN_PRICES
 
@@ -90,7 +90,9 @@ const sections: LegalSection[] = [
         <p>
           Customer payments go to your Stripe account. Stripe charges its own processing fees. If we set
           up Stripe for you (&ldquo;Set it up for me&rdquo;), YardCard Elite also keeps $3 from each
-          booking; that fee is not returned when you refund or cancel a booking. Agencies that connect
+          booking; that fee is not returned when you refund or cancel a booking. (If a customer is
+          charged but the booking fails to save on our side, the whole payment, including the $3, is
+          refunded automatically.) Agencies that connect
           their own Stripe account pay no per-booking fee to us.
         </p>
       </>
