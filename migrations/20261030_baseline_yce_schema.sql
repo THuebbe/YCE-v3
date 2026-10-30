@@ -1,7 +1,9 @@
 -- Baseline: YCE's whole schema in one file (generated 2026-10-30 from
 -- production's catalog). Builds an EMPTY YCE database from nothing.
 --
--- APPLIED 2026-10-30 to the demo project `yce-demo` (cllfpexbglmsgtnbsfkg).
+-- APPLIED 2026-10-30 to the demo project `yce-demo` (cllfpexbglmsgtnbsfkg),
+-- in four parts; yce_replace_order_signs was run by the owner in the SQL
+-- editor (the connector's confirmation prompt never reached them).
 -- NEVER run it against production (YCEv3): production already has all of
 -- this, plus PantryPro's tables that this file deliberately leaves out.
 --

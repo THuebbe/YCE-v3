@@ -1,7 +1,11 @@
 # Demo environment
 
-Status: **PLANNED** (owner + Claude, 2026-10-29). Not built. Waits on
-Supabase Pro and Vercel Pro (see Prerequisites).
+Status: **IN PROGRESS.** Planned 2026-10-29. Database built 2026-10-30:
+Supabase project `yce-demo` (`cllfpexbglmsgtnbsfkg`, us-east-2, in the Pro
+org "YardCard Elite"; wake moved to the free TradTech org so the bill stays
+flat), schema from `migrations/20261030_baseline_yce_schema.sql`, sign
+library and template agency seeded (`migrations/demo/README.md`). Next:
+Vercel "Demo" environment + DNS, then the app code (build steps 2-5).
 
 ## Goal
 Let a prospective agency use the real product, the dashboard and their own
@@ -79,14 +83,23 @@ then the prospect explores on their own for the rest of the demo period.
 ## Template agency
 Lucky Lawn Signs (the name used in the marketing mockup and sample emails):
 - full placeholder sign library in stock (20 of each, like the test agencies);
-- a handful of sample orders across the week (upcoming, deployed, completed)
-  so the order board and home page aren't empty;
-- prices, booking rules and white label set, Elite plan, Stripe "connected"
-  to a sandbox account so the booking page is open.
+- prices, booking rules, policy and service areas set; Elite plan.
+- Seeded 2026-10-30 (`migrations/demo/20261030_demo_template_agency.sql`):
+  id `demo_template_lucky_lawn`, slug `lucky-lawn-signs`, Central time,
+  $95 base / $15 extra day / $25 late fee, all 379 signs x 20.
 
-The copy step duplicates the agency row, its inventory and sample orders
-with fresh ids and a unique slug (e.g. `lucky-lawn-x7k2`), owned by the
-prospect's user.
+The copy step duplicates the agency row and its inventory with fresh ids
+and a unique slug (e.g. `lucky-lawn-x7k2`), owned by the prospect's user,
+and then:
+- **creates the sample orders** (upcoming, deployed, completed) dated around
+  the day the demo starts. Decided 2026-10-30: stored sample orders would go
+  stale ("upcoming" orders from last month), so the template has none.
+- **gives the copy a Stripe sandbox account and a subscription.** Open
+  question for build step 2: `agencies.stripe_account_id` is unique (as in
+  production), so copies can't share the template's account. Options: one
+  sandbox connected account created per copy through the API, or a small
+  pool reused after cleanup. The booking page stays closed until it's
+  solved (`bookingBlockers`: plan + payments).
 
 ## Expiry and cleanup
 - Each copy has `expires_at`: sign-in plus 4 hours (one setting, so it can
@@ -140,4 +153,4 @@ prospect's user.
   walk-through eats into it); a copy lasts only its demo (new link, fresh
   sandbox); invite-only through single-use links; links are issued from the
   admin panel.
-- Unused invites: expire after 7 days (proposed), or never?
+- Answered 2026-10-30: unused invites expire after 7 days.
