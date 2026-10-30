@@ -28,11 +28,11 @@ export async function POST(req: NextRequest) {
     const svix_timestamp = headerPayload.get('svix-timestamp')
     const svix_signature = headerPayload.get('svix-signature')
 
+    // Presence only: the full header set includes Vercel's OIDC token, a credential
     console.log('🔗 Clerk webhook: Headers received', {
-      svix_id: svix_id?.substring(0, 10) + '...',
-      svix_timestamp,
-      svix_signature: svix_signature?.substring(0, 20) + '...',
-      allHeaders: Object.fromEntries(headerPayload.entries())
+      svix_id: !!svix_id,
+      svix_timestamp: !!svix_timestamp,
+      svix_signature: !!svix_signature,
     })
 
     // If there are no headers, error out

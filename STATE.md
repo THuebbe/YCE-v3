@@ -189,7 +189,8 @@ lines - due another condense pass.
   - texas-signs = turnkey Stripe test agency (`acct_1URY21CAFUeJ6RMe`);
     west-branch and elite-denver (`acct_1URjHtFl2xMJRcZS`) = Standard.
   - Production is `https://yce-v3.vercel.app` (no share link needed);
-    yardcard-elite.com is only the email domain so far.
+    `www.yardcard-elite.com` also serves production; the bare domain
+    307-redirects to `www.` (so webhook URLs must use `www.`).
 - **Launch blockers (not milestones):** Vercel Pro (Hobby is
   non-commercial), production Clerk instance + domain, Stripe live mode
   (platform identity + live webhook/keys), platform Terms/Privacy pages.
@@ -335,9 +336,13 @@ lines - due another condense pass.
 ## Go-live blockers
 1. (done) Checkout charges real cards (milestone 2).
 2. **Clerk `user.created` webhook hasn't written a `users` row since
-   2025-10** (found 2026-10-10). Onboarding now creates the row itself
-   (branch), but check the webhook endpoint/secret in the Clerk dashboard
-   - other `users` updates (name/email changes) still won't sync.
+   2025-10** (found 2026-10-10). Onboarding now creates the row itself,
+   but name/email changes don't sync. **Cause found 2026-10-30:** the
+   endpoint is `https://yardcard-elite.com/api/webhooks/clerk`, and the
+   apex 307-redirects to `www.`; webhook senders don't follow redirects.
+   Same for both live Stripe webhooks (`yardcard-elite.com/api/webhooks/stripe`).
+   Fix (owner, dashboards): change all three URLs to `https://www.yardcard-elite.com/...`
+   (signing secrets stay the same), then replay failed deliveries.
 3. (done 2026-10-21) Agency subscriptions live in Stripe live mode.
 4. (done 2026-10-20) Clerk production instance on yardcard-elite.com.
 5. (done 2026-10-19, PR #21) RLS backstop on YCE tables. STILL OPEN, the
