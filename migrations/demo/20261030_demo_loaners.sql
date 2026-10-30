@@ -69,3 +69,23 @@ on conflict (agency_id, sign_id) do nothing;
 insert into public.demo_loaners (id, agency_id)
 select n, 'demo_loaner_' || n from generate_series(1, 5) as n
 on conflict (id) do nothing;
+
+-- Hands out one loaner: a free one first, else the one whose demo ended
+-- longest ago. SKIP LOCKED: two prospects starting at the same moment get
+-- different loaners. The app resets the loaner right after claiming it.
+create or replace function public.demo_claim_loaner(p_invite_id text, p_email text, p_hours integer)
+returns table(id integer, agency_id text)
+language sql
+as $$
+  update public.demo_loaners l
+  set status = 'lent', invite_id = p_invite_id, lent_email = p_email,
+      lent_at = now(), expires_at = now() + make_interval(hours => p_hours), updated_at = now()
+  where l.id = (
+    select c.id from public.demo_loaners c
+    where c.status = 'free' or c.expires_at <= now()
+    order by (c.status = 'free') desc, c.expires_at nulls first, c.id
+    limit 1
+    for update skip locked
+  )
+  returning l.id, l.agency_id;
+$$;
