@@ -41,9 +41,18 @@ then the prospect explores on their own for the rest of the demo period.
   "End demo" button (no profile, email or password changes), and a reset
   replaces the loaner's Clerk user, so nothing a prospect did to it carries
   over to the next one.
-- **Demo links are made on the demo site's own /admin** (signed in with the
-  owner's Clerk development account), so production never holds the demo
-  database's keys.
+- **Demo links are made in the one admin, yardcard-elite.com/admin (owner,
+  2026-10-30).** Its "Demo links" page asks the demo site to create, list
+  and end demos through a private endpoint (`/api/demo/admin` on the demo
+  site, a shared secret `DEMO_ADMIN_SECRET` in both projects). Production
+  never holds the demo database's keys and the demo site never reaches real
+  data: the endpoint only knows those three actions.
+- **The prospect's email is set on the link, not typed (owner, 2026-10-30).**
+  The owner enters it when creating the link; the start page shows it
+  masked and sends the code only there, so a forwarded link is useless
+  without that inbox. A loaner is claimed (and gets that email) at the
+  first sign-in with the code, not when the link is made: links live 7
+  days and would otherwise tie up loaners.
 - **Its own Vercel project (proposed 2026-10-30, owner deciding).** Standard
   Deployment Protection puts every preview, custom domain included, behind a
   Vercel login, so a `demo` branch preview can't serve prospects. A second
