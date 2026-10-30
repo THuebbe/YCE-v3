@@ -183,8 +183,12 @@ Alternatives on conflict: nearby open days are offered; the preset
 alternatives list (`display-options.ts` `alternatives`) is empty pending
 the owner's short-presets idea.
 
-## Tenant guard (app-level, since RLS is off)
-Dashboard pages check `getUserById(auth().userId).agency.slug === URL
+## Tenant guard (app-level: RLS is only a deny-all backstop)
+RLS is ON for every public table (YCE's since 2026-10-19, all of them
+since 2026-10-30) but YCE tables have no policies: the public anon key
+reads nothing, and the app's service-role client bypasses RLS entirely.
+So RLS isolates no tenant from another; the checks below are the only
+tenant isolation. Dashboard pages check `getUserById(auth().userId).agency.slug === URL
 slug`. Anything callable without a page — `'use server'` actions, API
 routes — must check membership itself: `requireAgencyMember(agencyId)`
 in `features/auth/guards.ts`, or the `user.agency_id !== agencyId` check
@@ -194,7 +198,8 @@ never return a raw `agencies` row: it holds `braintree_private_key`.
 
 ## RLS — the correct policy pattern, for when hardening happens
 The original spec had this right and the live database drifted from it.
-Live policies use `auth.uid()`, which is ALWAYS NULL under Clerk. The
+The only live policies (`users_read_own`, PantryPro's `vendor_invoices` /
+`vendor_payments`) use `auth.uid()`, which is ALWAYS NULL under Clerk. The
 spec's pattern resolves the Clerk subject claim instead:
 ```sql
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
