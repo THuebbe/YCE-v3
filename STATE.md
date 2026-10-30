@@ -11,9 +11,18 @@ lines - due another condense pass.
   public table; webhooks fixed (go-live blockers 2, 5, 8, 11, 12 closed).
   Left before launch: Stripe Connect questionnaire (owner's ID) and the
   Terms/Privacy review. #55-#57 merged and live (production `bb79be1`);
-  nothing in flight, no unapplied migrations. Admin panel **parked** (not a launch blocker):
-  the reusable AdminKit 0.2 sits unpublished on `claude/plug-and-play` in
-  THuebbe/tradtech-packages (PR #1 there); no `/admin` in YCE yet.
+  nothing in flight, no unapplied migrations.
+- **Admin panel v1 (2026-10-30, branch `claude/admin-panel`):** native
+  `/admin` in YCE, read-only: overview (agencies, taking bookings, orders
+  7/30 days, needs-attention list), agencies list, agency detail (Stripe
+  links, team, latest orders without customer details). Owner-only via
+  `ADMIN_USER_IDS` (Clerk user ids; Vercel Production = tobi@tradtechie.com's
+  live id, Preview/Development = thuebbe.coding@gmail.com's dev id; add an
+  admin by appending an id there). Everyone else gets the normal 404.
+  Changes (plans, coupons, refunds) stay in Stripe. Demo links come with the
+  demo environment (DEMO.md), next. The reusable AdminKit 0.2 stays
+  unpublished on `claude/plug-and-play` in THuebbe/tradtech-packages (its
+  businesses/plans model doesn't fit YCE; kept for PantryPro).
 - **2026-10-24: at a standstill on purpose.** Everything through #50 is
   merged and live (production `c9fae9a`, READY). Nothing is in flight: no
   open PRs, no unapplied migrations. Waiting on the owner's plastic license
