@@ -27,8 +27,8 @@ test('hours until delivery count to the agency\'s midnight', () => {
 });
 
 test('extra days before move delivery earlier, across a month boundary too', () => {
-  assert.equal(hoursUntilDelivery({ event_date: '2026-11-07', extraDaysBefore: 1 }, 'America/Chicago', at('2026-11-05T06:00:00Z')), 24);
-  assert.equal(hoursUntilDelivery({ event_date: '2026-12-01', extraDaysBefore: 2 }, 'UTC', at('2026-11-27T00:00:00Z')), 48);
+  assert.equal(hoursUntilDelivery({ event_date: '2026-11-07', extra_days_before: 1 }, 'America/Chicago', at('2026-11-05T06:00:00Z')), 24);
+  assert.equal(hoursUntilDelivery({ event_date: '2026-12-01', extra_days_before: 2 }, 'UTC', at('2026-11-27T00:00:00Z')), 48);
 });
 
 test('the bug this fixes: 46 hours out on the agency\'s clock still gets a refund', () => {
