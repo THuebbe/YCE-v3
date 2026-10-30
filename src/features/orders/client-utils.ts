@@ -76,13 +76,13 @@ export function startOfDayIn(year: number, month: number, day: number, timeZone:
  * Without a time zone (or an unknown one) it falls back to this machine's.
  */
 export function hoursUntilDelivery(
-  order: { event_date?: string | null; extraDaysBefore?: number | null },
+  order: { event_date?: string | null; extra_days_before?: number | null },
   timeZone?: string,
   now: Date = new Date(),
 ): number {
   if (!order.event_date) return Infinity;
   const [y, m, d] = String(order.event_date).slice(0, 10).split('-').map(Number);
-  const day = d - (Number(order.extraDaysBefore) || 0);
+  const day = d - (Number(order.extra_days_before) || 0);
   let delivery: Date;
   try {
     // Date.UTC normalizes a day of 0 or less into the month before
@@ -149,7 +149,7 @@ export function formatAddress(address: unknown): string {
 }
 
 /** The delivery window the customer picked ("morning" -> "Morning"), or null */
-export function formatTimeWindow(order: { delivery_time?: string | null; timeWindow?: string | null }): string | null {
-  const raw = (order.delivery_time || order.timeWindow || '').trim();
+export function formatTimeWindow(order: { delivery_time?: string | null }): string | null {
+  const raw = (order.delivery_time || '').trim();
   return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : null;
 }

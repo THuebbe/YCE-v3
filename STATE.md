@@ -476,7 +476,15 @@ lines - due another condense pass.
    the user's: open the billing portal once; the tester signs up with
    FOUNDINGTESTER.
 5. Milestone 5: customer cancel link, late/damage fee charging, edit signs.
-7. **Parked 2026-10-23 (owner paused it): `orders` column cleanup.** Of
+7. **In progress 2026-10-30 (owner asked, alongside the demo baseline):
+   `orders` column cleanup.** Done: (1) `extra_days_before`/`_after`/`hold_id`
+   added and copied (`migrations/20261030_orders_snake_case_columns.sql`,
+   APPLIED; 387/387 match); (2) code PR `claude/orders-casing-cleanup` reads
+   and writes them, drops `timeWindow` reads. Left: re-run that file after
+   the PR deploys, reset `pg_stat_statements`, check a day later, then the
+   owner runs `migrations/20261030_orders_drop_camelcase_columns.sql` (it
+   aborts if a copy is stale). Other YCE tables have no camelCase columns.
+   Original plan, of
    its 21 camelCase columns, 18 are empty in all 387 rows (the code uses
    snake_case twins); also an empty all-lowercase `confirmationcode`. Only
    `extraDaysBefore`, `extraDaysAfter` (all rows) and `holdId` (31 rows)

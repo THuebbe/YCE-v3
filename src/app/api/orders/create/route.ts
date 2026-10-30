@@ -261,9 +261,9 @@ export async function POST(
 			},
 			extra_days: extraDaysBefore + extraDaysAfter,
 			extra_day_fee: (extraDaysBefore + extraDaysAfter) * pricing.extraDayPrice,
-			extraDaysBefore,
-			extraDaysAfter,
-			holdId,
+			extra_days_before: extraDaysBefore,
+			extra_days_after: extraDaysAfter,
+			hold_id: holdId,
 			special_instructions: formData.event.deliveryNotes || null,
 			// Consent for later late/damage charges, and chargeback evidence
 			terms_accepted_at: new Date().toISOString(),

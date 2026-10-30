@@ -53,7 +53,7 @@ export async function getJobsOverview(agency: { id: string; operating_hours?: un
 
   const { data: orders, error: ordersError } = await supabase
     .from('orders')
-    .select('id, order_number, customer_name, event_address, timeWindow, delivery_time, status, order_signs(sign_id, quantity), order_items(sign_id, quantity)')
+    .select('id, order_number, customer_name, event_address, delivery_time, status, order_signs(sign_id, quantity), order_items(sign_id, quantity)')
     .eq('agency_id', agency.id)
     .in('id', ids)
     .neq('status', 'cancelled');
@@ -74,7 +74,7 @@ export async function getJobsOverview(agency: { id: string; operating_hours?: un
       customerName: (order.customer_name as string) || 'Customer',
       address: formatAddress(order.event_address),
       signs: countOrderSigns(order),
-      timeWindow: formatTimeWindow(order as { delivery_time?: string | null; timeWindow?: string | null }),
+      timeWindow: formatTimeWindow(order as { delivery_time?: string | null }),
     };
     const start = hold.rental_start as string;
     const end = hold.rental_end as string;
