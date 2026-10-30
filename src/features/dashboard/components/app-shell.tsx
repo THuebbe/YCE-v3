@@ -40,10 +40,12 @@ export interface AppShellProps {
   bookingUrl: string;
   /** The account menu (Clerk's UserButton); a stand-in in the lab */
   account: React.ReactNode;
+  /** Above the top bar, e.g. the demo site's banner */
+  banner?: React.ReactNode;
   children: React.ReactNode;
 }
 
-export function AppShell({ slug, agencyName, logoUrl, bookingUrl, account, children }: AppShellProps) {
+export function AppShell({ slug, agencyName, logoUrl, bookingUrl, account, banner, children }: AppShellProps) {
   const pathname = usePathname() ?? '';
   const section = pathname.split('/').filter(Boolean)[1] ?? '';
   const focusTask = pathname.endsWith('/check-in');
@@ -80,13 +82,14 @@ export function AppShell({ slug, agencyName, logoUrl, bookingUrl, account, child
       </aside>
 
       <div className="flex min-w-0 flex-col">
+        {banner}
         {/* Top bar */}
         <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/85">
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-3 px-4 sm:px-6">
             <AgencyMark name={agencyName} logoUrl={logoUrl} className={logoUrl ? 'h-9' : 'size-9 text-copy'} />
             <span className="min-w-0 flex-1 truncate font-display text-lead font-semibold">{agencyName}</span>
             <CopyLinkButton url={bookingUrl} compact />
-            <div className="flex size-11 items-center justify-center">{account}</div>
+            <div className="flex h-11 min-w-11 items-center justify-center">{account}</div>
           </div>
         </header>
 

@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
+import { isDemoMode } from '@/features/demo/config'
 import { trialDays } from '@/features/billing/stripe-billing'
 import { marketingContent } from '@/features/marketing/content'
 import { MarketingShell } from '@/features/marketing/components/MarketingShell'
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
+  // The demo site has no marketing page: demos are by invitation (DEMO.md)
+  if (isDemoMode()) redirect('/demo')
   try {
     const { userId } = await auth()
     if (userId) redirect('/routing')
