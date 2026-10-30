@@ -10,7 +10,8 @@ lines - due another condense pass.
 - **2026-10-30:** Vercel Pro and Supabase Pro done; RLS now on every
   public table; webhooks fixed (go-live blockers 2, 5, 8, 11, 12 closed).
   Left before launch: Stripe Connect questionnaire (owner's ID) and the
-  Terms/Privacy review. Admin panel **parked** (not a launch blocker):
+  Terms/Privacy review. #55-#57 merged and live (production `bb79be1`);
+  nothing in flight, no unapplied migrations. Admin panel **parked** (not a launch blocker):
   the reusable AdminKit 0.2 sits unpublished on `claude/plug-and-play` in
   THuebbe/tradtech-packages (PR #1 there); no `/admin` in YCE yet.
 - **2026-10-24: at a standstill on purpose.** Everything through #50 is
@@ -42,7 +43,8 @@ lines - due another condense pass.
   for previews only). Every key that differs is TWO Vercel variables:
   one Production-only (live), one Preview+Development (test/sandbox).
   - Clerk: DNS (clerk./accounts./clkmail./2 DKIM) in Vercel; Google sign-in
-    off; webhook -> yardcard-elite.com/api/webhooks/clerk. Existing users
+    off; webhook -> www.yardcard-elite.com/api/webhooks/clerk (was the bare
+    domain until 2026-10-30, see go-live blocker 2). Existing users
     relink by verified email on first sign-in (PR #32). Only
     yardcard-elite.com works for sign-in now, not yce-v3.vercel.app.
   - Stripe live: products/prices (same lookup keys), portal (no quantity
@@ -50,7 +52,8 @@ lines - due another condense pass.
     (promo FOUNDINGTESTER, 1 use) and `yce_internal_test` (promo
     TRADTECH-INTERNAL, used by the owner), webhooks
     `we_1UT74g...` (Connect) and `we_1UT74l...` (platform), both to
-    yardcard-elite.com/api/webhooks/stripe. Old dead webhooks deleted.
+    www.yardcard-elite.com/api/webhooks/stripe (bare domain until
+    2026-10-30). Old dead webhooks deleted.
   - All agencies' sandbox Stripe IDs were cleared at the switch
     (`migrations/20261021_stripe_live_reset.sql`, applied); backup table
     `yce_agencies_stripe_sandbox_backup_20261021`. Sandbox orders can't be
@@ -231,6 +234,15 @@ lines - due another condense pass.
   since the live switch.
 
 ## VERIFIED WORKING (seen running)
+- **2026-10-30, production:** as role `anon`, `vendor_invoice_summary`,
+  `vendor_payment_info`, `users`, `agencies`, `orders` all return 0 rows;
+  Supabase security advisor shows no errors. `/yardcard-elite-west-branch/booking`
+  and `/lederman-bonds/booking` still load agency data after the RLS change.
+  Clerk dashboard test `user.updated` → www.../api/webhooks/clerk, verified
+  and processed; a resent live `customer.subscription.created` (owner
+  resent it 3x) processed 3x with no errors and no change (the handler
+  re-reads the subscription from Stripe). After #56 the webhook logs only
+  `{ svix_id: false, ... }` presence flags. `/terms` serves #57's text.
 - **2026-10-19, production after #24 + #21 merged:** elite-denver booking
   YCE-2026-683197 (4242) paid → Resend delivered the agency's "New Order"
   and the customer's "Your booking with Elite Yard Signs Denver: Tuesday,
@@ -371,6 +383,13 @@ lines - due another condense pass.
    Moving YCE to its own LLC later: check with Stripe first whether the
    platform account's legal entity can change - Connect accounts can't be
    moved to a new platform account.
+   2026-10-30: every factual claim in both drafts checked against the code
+   (grace period, trial card, saved card for fees, $3 only on Express, no
+   trackers, processor list); the one mismatch (the $3 IS refunded when a
+   paid checkout fails to create its order) fixed in #57, Terms effective
+   date now Oct 30. Still the owner's: arbitration/class waiver vs Iowa
+   courts, and when to get a flat-fee attorney review (lean: before the
+   first non-friend agency pays).
 
 ## Known gaps (not blockers)
 - Booking (after the m1c branch): the Customize preview is blank after a
@@ -398,6 +417,16 @@ lines - due another condense pass.
 - Preview has no `RESEND_API_KEY` (preview orders don't email).
 - 300+ `console.log`, 70+ `any`, 3 (type-broken) test files; no
   `.env.example`; no committed baseline schema.
+- Supabase advisor warnings left (2026-10-30, none are errors): Postgres
+  has security patches available (upgrade from the dashboard, short
+  downtime); leaked-password protection and extra MFA off (Supabase Auth,
+  i.e. PantryPro; YCE uses Clerk); 51 functions with a mutable
+  `search_path`; GraphQL exposes table names (rows blocked by RLS).
+- Supabase Pro bills per org: the "YardCard Elite" org also holds the
+  active `wake` project (extra compute) and paused `yardcardelite` /
+  `yardcard-booking`. Move or delete per the owner.
+- Preview/Development `NEXT_PUBLIC_CLERK_DOMAIN` is stale (old vercel.app
+  URL); candidate for deletion.
 
 ## Decisions (details in PRODUCT.md)
 - Payments: money goes straight to the agency - Stripe Connect Standard
@@ -458,6 +487,16 @@ lines - due another condense pass.
    configurator theming (ARCHITECTURE.md, designed not built).
 
 ## NOT VERIFIED - check before trusting
+- **PantryPro after the 2026-10-30 RLS change** (its 26 tables + the
+  `vendor_invoice_summary` view). Inferred safe: on 2026-10-22 its backend
+  used the service-role key and its frontend never queried Supabase. If a
+  PantryPro screen comes up empty, that's the cause; undo per table with
+  `alter table public.<name> disable row level security` (see the
+  migration file). Check: open PantryPro once.
+- **The live Connect webhook (`we_1UT74g...`) since its URL moved to
+  www.** Only the platform endpoint was seen delivering (2026-10-30).
+  Check: Stripe → Webhooks → that endpoint → Event deliveries, or the
+  next real `account.updated`.
 - **The configurator (#47-#50) against a real agency.** Seen running only
   in `/lab/booking` with stand-in stock (`?stock=N`, `?busy=1`,
   `?failhold=1`) at 390px and 1280px: pickers hide colors the first line
@@ -493,6 +532,14 @@ lines - due another condense pass.
 - The "315-ish signs already seeded" memory was the image manifest; the
   DB had no letters until 2026-10-07. Old Supabase projects
   `yardcardelite`/`yardcard-booking` are dead (user may delete them).
+
+- Webhooks to the bare `yardcard-elite.com` silently fail: it 307s to
+  `www.` and Clerk/Stripe don't follow redirects. Always register `www.`.
+- Publishing AdminKit to npm (2026-10-30): an `NPM_TOKEN` under Claude's
+  environment "Network secrets" never reaches npm (`registry.npmjs.org`
+  bypasses the session proxy); it must be a plain environment variable,
+  visible only to sessions started after it's saved. Dropped for launch
+  focus; the `@tradtechie` packages are not on npm yet.
 
 ## Reference docs
 - `PRODUCT.md` - business rules, authoritative for WHY.

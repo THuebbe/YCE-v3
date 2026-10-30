@@ -18,14 +18,16 @@ booking wizard scoped to the agency.
 1. **The only Supabase client is service-role and server-only**
    (`src/lib/db/supabase-client.ts`). Never import it into a
    `'use client'` component. Verified: no client component does today.
-2. **RLS is OFF on every YCE table.** Tenant isolation is enforced
+2. **RLS is ON but isolates no tenant.** Every public table has RLS with
+   no policies (2026-10-30): that only blocks the public anon key. Our
+   service-role client bypasses it, so tenant isolation is enforced
    ONLY in application code. Every query against a tenant-scoped table
    MUST filter on the agency. **Don't assume the column name** —
    `orders` and `agency_inventory` both use `agency_id` (verified against
    live app code and the database; this file previously said `orders`
    used `"agencyId"`, which was wrong). Casing has varied historically
    on other tables, so check the actual column; do not assume. There is
-   no database backstop. A missing filter is a data leak.
+   no database backstop between agencies. A missing filter is a data leak.
 3. **The database is shared with a second product (PantryPro).**
    45 tables in `public`; ~25 are PantryPro (`restaurants`, `vendors`,
    `pos_*`, `recipe_*`, `menu_items`, `waste_log`...).
