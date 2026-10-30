@@ -335,14 +335,12 @@ lines - due another condense pass.
 
 ## Go-live blockers
 1. (done) Checkout charges real cards (milestone 2).
-2. **Clerk `user.created` webhook hasn't written a `users` row since
-   2025-10** (found 2026-10-10). Onboarding now creates the row itself,
-   but name/email changes don't sync. **Cause found 2026-10-30:** the
-   endpoint is `https://yardcard-elite.com/api/webhooks/clerk`, and the
-   apex 307-redirects to `www.`; webhook senders don't follow redirects.
-   Same for both live Stripe webhooks (`yardcard-elite.com/api/webhooks/stripe`).
-   Fix (owner, dashboards): change all three URLs to `https://www.yardcard-elite.com/...`
-   (signing secrets stay the same), then replay failed deliveries.
+2. (done 2026-10-30) Clerk `user.created` webhook hadn't delivered since
+   2025-10: its URL was the bare `yardcard-elite.com`, which 307-redirects
+   to `www.`, and webhook senders don't follow redirects. Both live Stripe
+   webhooks had the same URL problem. The owner moved all three to
+   `https://www.yardcard-elite.com/...`; a Clerk test event and a resent
+   Stripe event both verified and processed on production.
 3. (done 2026-10-21) Agency subscriptions live in Stripe live mode.
 4. (done 2026-10-20) Clerk production instance on yardcard-elite.com.
 5. (done 2026-10-19, PR #21) RLS backstop on YCE tables. STILL OPEN, the
