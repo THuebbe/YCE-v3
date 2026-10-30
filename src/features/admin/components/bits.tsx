@@ -13,7 +13,7 @@ const TONES: Record<Tone, string> = {
 
 export function Pill({ tone, children }: { tone: Tone; children: React.ReactNode }) {
   return (
-    <span className={cn('inline-flex items-center rounded-control px-2 py-0.5 text-fine font-semibold whitespace-nowrap', TONES[tone])}>
+    <span className={cn('inline-flex max-w-full items-center rounded-control px-2 py-0.5 text-fine font-semibold', TONES[tone])}>
       {children}
     </span>
   );
@@ -33,7 +33,8 @@ const SUB_TONES: Record<string, Tone> = {
 
 export function SubscriptionPill({ status }: { status: string | null | undefined }) {
   const s = status ?? 'none';
-  return <Pill tone={SUB_TONES[s] ?? 'neutral'}>{s === 'none' ? 'No plan' : s.replace(/_/g, ' ')}</Pill>;
+  // 'none': the agency has a plan tier set but no Stripe subscription
+  return <Pill tone={SUB_TONES[s] ?? 'neutral'}>{s === 'none' ? 'Not subscribed' : s.replace(/_/g, ' ')}</Pill>;
 }
 
 const BLOCKER_LABELS: Record<ReadinessItem, string> = {
