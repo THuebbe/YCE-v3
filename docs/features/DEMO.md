@@ -26,9 +26,29 @@ then the prospect explores on their own for the rest of the demo period.
 - **Sandbox everything else, by environment variables only:** Stripe
   sandbox keys and webhooks, Clerk's development instance, Resend. The
   same code as production, so the demo shows the real product.
-- **Each prospect gets their own copy of a template agency**, not a shared
-  one: two prospects at once would see each other's bookings, and resetting
-  one would wipe the other mid-session.
+- **Each prospect gets their own agency**, not a shared one: two prospects
+  at once would see each other's bookings, and resetting one would wipe the
+  other mid-session.
+- **Loaners, not copies (owner, 2026-10-30).** A pool of 5 ready-made demo
+  agencies, each with its own Clerk user and its own Stripe sandbox
+  account. A prospect borrows a free one for 4 hours; it is reset from the
+  template the next time it is lent. Replaces "copy the template per
+  prospect, delete it after": no Clerk user created or deleted per demo
+  (Clerk's ~100-user limit stops mattering), Stripe's one-account-per-agency
+  rule is met once, and cleanup needs no scheduled job. The 6th prospect at
+  the same moment sees "all demos are in use".
+- **A loaner's sign-in can't be kept.** In demo mode the account menu is an
+  "End demo" button (no profile, email or password changes), and a reset
+  replaces the loaner's Clerk user, so nothing a prospect did to it carries
+  over to the next one.
+- **Demo links are made on the demo site's own /admin** (signed in with the
+  owner's Clerk development account), so production never holds the demo
+  database's keys.
+- **Its own Vercel project (proposed 2026-10-30, owner deciding).** Standard
+  Deployment Protection puts every preview, custom domain included, behind a
+  Vercel login, so a `demo` branch preview can't serve prospects. A second
+  project "yce-demo" deploying `main` as its own production: public, crons
+  run, updates with every merge, separate variables. Pro bills per seat.
 - **Sign-in is our own front door, Clerk behind it:** email plus access
   code on our page, our email through Resend, then a Clerk sign-in ticket.
   The dashboard and its agency checks stay untouched.
@@ -101,22 +121,24 @@ and then:
   pool reused after cleanup. The booking page stays closed until it's
   solved (`bookingBlockers`: plan + payments).
 
-## Expiry and cleanup
-- Each copy has `expires_at`: sign-in plus 4 hours (one setting, so it can
-  change later).
+## Expiry and reset (loaners)
+- A lent loaner has `expires_at`: first sign-in plus 4 hours (one setting).
 - The dashboard checks it on every page (with the demo banner) and shows
   the ended screen once it passes.
-- A cleanup job (Vercel cron in the demo environment) deletes, one by one:
-  the Clerk user (Clerk has no bulk delete), the copied agency with its
-  orders, holds and inventory, and the `users` row. It **keeps the email**
-  in the leads list.
+- Reset happens when the loaner is next lent (or when the owner ends a demo
+  early): its orders, holds and checkouts deleted, settings and stock
+  restored from the template, fresh sample orders dated around today, the
+  agency email set to the new prospect's, and its Clerk user replaced. The
+  prospect's email stays in the leads list.
 - This runs only against the demo database, so it can never reach real data.
 
 ## Leads
 - Table `demo_leads` (demo database, RLS on): email, consent text shown,
   first demo, demo count, last demo.
 - Table `demo_invites`: token (stored hashed), optional email, created,
-  used at. Single use; unused invites could also expire (proposed: 7 days).
+  used at. Single use; unused invites expire after 7 days (owner, 2026-10-30).
+- Table `demo_loaners`: the 5 slots, which agency and Clerk user each is,
+  free or lent, to whom, until when.
 - Marketing email needs an unsubscribe link and our identity (CAN-SPAM); the
   privacy policy draft needs a line about demo emails before the demo opens.
 
