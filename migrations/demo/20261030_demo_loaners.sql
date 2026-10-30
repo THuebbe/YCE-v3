@@ -30,6 +30,7 @@ create table if not exists public.demo_invites (
   code_email text,                           -- where the code went; the prospect
   code_sent_at timestamptz,
   code_attempts integer not null default 0,
+  code_sends integer not null default 0,     -- codes emailed for this link (capped)
   used_at timestamptz,                       -- first sign-in with the code: the demo starts
   loaner_id integer references public.demo_loaners(id)
 );
@@ -89,3 +90,6 @@ as $$
   )
   returning l.id, l.agency_id;
 $$;
+
+-- Added after the first apply (also applied): counts codes emailed per link
+alter table public.demo_invites add column if not exists code_sends integer not null default 0;
