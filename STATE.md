@@ -1,12 +1,18 @@
 # Where This Stands
 
-Last verified: 2026-10-24
+Last verified: 2026-10-30
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
 old verification notes) is in `git show aace018:STATE.md`. Back over 400
 lines - due another condense pass.
 
 ## Now
+- **2026-10-30:** Vercel Pro and Supabase Pro done; RLS now on every
+  public table (go-live blockers 5, 8, 11, 12 closed). Left before launch:
+  Stripe Connect questionnaire (owner's ID), Terms/Privacy review, Clerk
+  `user.created` webhook. Admin panel **parked** (not a launch blocker):
+  the reusable AdminKit 0.2 sits unpublished on `claude/plug-and-play` in
+  THuebbe/tradtech-packages (PR #1 there); no `/admin` in YCE yet.
 - **2026-10-24: at a standstill on purpose.** Everything through #50 is
   merged and live (production `c9fae9a`, READY). Nothing is in flight: no
   open PRs, no unapplied migrations. Waiting on the owner's plastic license
@@ -190,9 +196,7 @@ lines - due another condense pass.
     west-branch and elite-denver (`acct_1URjHtFl2xMJRcZS`) = Standard.
   - Production is `https://yce-v3.vercel.app` (no share link needed);
     yardcard-elite.com is only the email domain so far.
-- **Launch blockers (not milestones):** Vercel Pro (Hobby is
-  non-commercial), production Clerk instance + domain, Stripe live mode
-  (platform identity + live webhook/keys), platform Terms/Privacy pages.
+- **Launch blockers:** see "Go-live blockers" below.
 
 ## Environment and working style
 - One branch + one PR per milestone; Claude tests on the Vercel preview
@@ -340,9 +344,10 @@ lines - due another condense pass.
    - other `users` updates (name/email changes) still won't sync.
 3. (done 2026-10-21) Agency subscriptions live in Stripe live mode.
 4. (done 2026-10-20) Clerk production instance on yardcard-elite.com.
-5. (done 2026-10-19, PR #21) RLS backstop on YCE tables. STILL OPEN, the
-   user's call: `users` (shared with PantryPro) and PantryPro's tables are
-   readable/writable with the public anon key (advisor: rls_disabled_in_public).
+5. (done) RLS on every public table: YCE's 2026-10-19 (PR #21), `users`
+   2026-10-22, PantryPro's last 26 tables + the `vendor_invoice_summary`
+   view 2026-10-30 (`migrations/20261030_rls_remaining_tables.sql`). Checked
+   as `anon`: 0 rows everywhere. Advisor errors left: none.
 6. (done 2026-10-19, PRs #27-#29) Customer self-cancel, late/damage fees,
    agency display edits - milestone 5.
 7. Venmo and PayPal checkout aren't real: Venmo's `processVenmoPayment`
@@ -350,15 +355,11 @@ lines - due another condense pass.
    takes the amount from the browser; PayPal's form is a stub. Both used
    to save unpaid orders. Since #20 customers are only offered Stripe
    cards; the setup tabs still work. Building them = new milestone.
-8. Stripe live: done 2026-10-21. **Vercel Pro still open** - Hobby forbids
-   commercial use; upgrade before real payments flow.
+8. (done) Stripe live 2026-10-21; Vercel Pro 2026-10-30.
 10. **Stripe Connect platform questionnaire** (owner's ID) - blocks every
     agency's payment setup. See "Now".
-11. `users` and PantryPro tables (incl. empty `quiz_submissions`, RLS off,
-    built to hold emails/phones) readable/writable with the public anon
-    key. Narrow fix for `users` proposed, needs the owner's OK.
-12. No restorable database backups on the Supabase free plan (the owner
-    is upgrading to Pro, 2026-10-23; check it's done).
+11. (done 2026-10-30) Folded into 5.
+12. (done 2026-10-30) Supabase org "YardCard Elite" on Pro: daily backups.
 9. **Terms and Privacy are drafts** (`/terms`, `/privacy`, 2026-10-20, the
    user's working draft): Trad Tech LLC, Iowa law, helpdesk@tradtechie.com.
    Before go-live: research/compare, then professional review. The privacy
@@ -423,8 +424,8 @@ lines - due another condense pass.
   and CLAUDE.md rule 3 needs rewriting. Until then `users` and PantryPro
   tables stay as they are. `users` got RLS on 2026-10-22 (`migrations/20261022_users_rls.sql`,
   applied; anon reads nothing, a Supabase Auth user reads only their own
-  row; both apps use the service role, so neither changed). The 26
-  PantryPro tables still without RLS are the owner's to fix in PantryPro.
+  row; both apps use the service role, so neither changed). The other 26
+  PantryPro tables got RLS (no policies) on 2026-10-30.
 
 ## Next steps
 1. (done - PR #8 merged 2026-10-16)
