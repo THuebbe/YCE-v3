@@ -4,6 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { supabase, getUserById } from '@/lib/db/supabase-client';
 import { getStripe, requestOrigin, type StripeAccountType } from '@/lib/stripe';
 import type Stripe from 'stripe';
+import { DEMO_UNAVAILABLE, isDemoMode } from '@/features/demo/config';
 
 /**
  * Stripe Connect for agencies. Customer money always goes straight to the
@@ -48,6 +49,8 @@ async function onboardingLink(accountId: string, slug: string) {
  * an agency that already has one continues with it.
  */
 export async function createStripeConnectAccount(type: StripeAccountType = 'express') {
+  // Loaners' sandbox accounts are set up once by us, not by prospects
+  if (isDemoMode()) return { success: false, error: DEMO_UNAVAILABLE };
   try {
     const agency = await currentAgency();
     const stripe = getStripe();
@@ -167,6 +170,7 @@ export async function refreshStripeAccount() {
  * turnkey plan): the Stripe Dashboard, signed in with their own Stripe login.
  */
 export async function createStripeDashboardLink() {
+  if (isDemoMode()) return { success: false, error: DEMO_UNAVAILABLE };
   try {
     const agency = await currentAgency();
     if (!agency.stripe_account_id) return { success: false, error: 'Stripe is not connected yet' };

@@ -6,6 +6,7 @@ import { requestOrigin } from '@/lib/stripe';
 import { createBillingPortalSession, createSubscriptionCheckout } from './stripe-billing';
 import { hasLiveSubscription, type BillingInterval } from './subscription';
 import type { Plan } from './entitlements';
+import { DEMO_UNAVAILABLE, isDemoMode } from '@/features/demo/config';
 
 type UrlResult = { success: true; url: string } | { success: false; error: string };
 
@@ -30,6 +31,7 @@ async function billingUrl(slug: string) {
 }
 
 export async function startSubscription(plan: Plan, interval: BillingInterval): Promise<UrlResult> {
+  if (isDemoMode()) return { success: false, error: DEMO_UNAVAILABLE };
   try {
     if (!['essentials', 'elite'].includes(plan) || !['month', 'year'].includes(interval)) {
       return { success: false, error: 'Unknown plan' };
@@ -53,6 +55,8 @@ export async function startSubscription(plan: Plan, interval: BillingInterval): 
 }
 
 export async function openBillingPortal(): Promise<UrlResult> {
+  // Demo loaners' subscriptions are stand-ins with no Stripe customer
+  if (isDemoMode()) return { success: false, error: DEMO_UNAVAILABLE };
   try {
     const user = await requireBillingAdmin();
     const url = await createBillingPortalSession(user.agency_id, await billingUrl(user.agency.slug));

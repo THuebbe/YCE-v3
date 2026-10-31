@@ -7,6 +7,7 @@ import { notFound } from 'next/navigation';
 import { getBookingBlockers } from '@/features/agency/readiness-server';
 import { activeBranding } from '@/features/agency/branding';
 import { BookingFrame } from '@/features/booking/components/booking-frame';
+import { isDemoMode, TEST_CARD } from '@/features/demo/config';
 
 interface BookingPageProps {
   params: Promise<{
@@ -47,6 +48,13 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
   const policies = effectivePolicies(agency);
 
   return (
+    <>
+    {/* Demo site: prospects (and anyone they send the link to) need the test card */}
+    {isDemoMode() && (
+      <div className="bg-highlight/15 px-4 py-2 text-center text-fine">
+        <strong>Demo booking page</strong>: no real charges. Pay with test card <span className="whitespace-nowrap font-semibold">{TEST_CARD}</span>, any future date and CVC.
+      </div>
+    )}
     <BookingWizard
         agencyId={agency.id}
         agencySlug={agency.slug}
@@ -62,5 +70,6 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
         agencyTimeZone={resolveTimeZone(agency.operating_hours)}
         branding={branding}
       />
+    </>
   );
 }

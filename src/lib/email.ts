@@ -377,3 +377,36 @@ export function feePaymentLinkHtml(d: FeeEmailData & { payUrl: string }) {
 export async function sendFeePaymentLinkEmail(d: FeeEmailData & { payUrl: string }) {
 	return sendFeeEmail(d, `Payment needed: fees for order ${d.orderNumber}`, feePaymentLinkHtml(d));
 }
+
+// --- Demo --------------------------------------------------------------------
+
+interface DemoCodeData {
+	to: string;
+	code: string;
+}
+
+/** To a prospect: the access code for their demo (DEMO.md). The code is all they need. */
+export function demoCodeHtml(data: DemoCodeData) {
+	const spaced = escapeHtml(data.code.split('').join(' '));
+	return emailLayout({
+		from: 'yce',
+		preheader: `Your ${BRAND.name} demo code: ${data.code}`,
+		body: [
+			h1('Your demo code'),
+			p(`Enter this code on the demo page to open your ${escapeHtml(BRAND.name)} demo:`),
+			`<p style="margin:8px 0 20px; font-family:${HEADING_FONT}; font-size:32px; font-weight:600; letter-spacing:4px; color:${COLORS.text};">${spaced}</p>`,
+			p('Your demo runs for 4 hours from the moment you first sign in. The same code works on your phone during that time.'),
+			small('Didn’t ask for a demo? You can ignore this email.'),
+		].join(''),
+		footer: `${BRAND.name} demo. Nothing in a demo is real: no signs, no charges.`,
+	});
+}
+
+export async function sendDemoCodeEmail(data: DemoCodeData) {
+	return send('Demo code', {
+		from: FROM_ADDRESS,
+		to: [data.to],
+		subject: `${data.code} is your ${BRAND.name} demo code`,
+		html: demoCodeHtml(data),
+	});
+}

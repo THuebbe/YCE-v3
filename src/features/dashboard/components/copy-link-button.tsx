@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { Check, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/** Copies the agency's booking link. `compact` shows the icon only below md. */
-export function CopyLinkButton({ url, compact = false, className }: { url: string; compact?: boolean; className?: string }) {
+/** Copies a link (the agency's booking link by default). `compact` shows the icon only below md. */
+export function CopyLinkButton({ url, compact = false, className, label: idleLabel = 'Copy booking link' }: { url: string; compact?: boolean; className?: string; label?: string }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -20,11 +20,11 @@ export function CopyLinkButton({ url, compact = false, className }: { url: strin
       setCopied(true);
     } catch {
       // Clipboard blocked (old browser, insecure context): let them copy it by hand
-      window.prompt('Copy your booking link', url);
+      window.prompt('Copy this link', url);
     }
   }
 
-  const label = copied ? 'Copied' : 'Copy booking link';
+  const label = copied ? 'Copied' : idleLabel;
   return (
     <>
     <button

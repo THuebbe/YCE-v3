@@ -1,7 +1,13 @@
 # Demo environment
 
-Status: **PLANNED** (owner + Claude, 2026-10-29). Not built. Waits on
-Supabase Pro and Vercel Pro (see Prerequisites).
+Status: **IN PROGRESS.** Planned 2026-10-29. Database built 2026-10-30:
+Supabase project `yce-demo` (`cllfpexbglmsgtnbsfkg`, us-east-2, in the Pro
+org "YardCard Elite"; wake moved to the free TradTech org so the bill stays
+flat), schema from `migrations/20261030_baseline_yce_schema.sql`, sign
+library and template agency seeded (`migrations/demo/README.md`). App code
+on branch `claude/demo-environment`. Vercel project `yce-demo` and
+`demo.yardcard-elite.com` set up 2026-10-31 (see "Setup" below). Next:
+the demo database's service key, then a full run end to end.
 
 ## Goal
 Let a prospective agency use the real product, the dashboard and their own
@@ -22,9 +28,38 @@ then the prospect explores on their own for the rest of the demo period.
 - **Sandbox everything else, by environment variables only:** Stripe
   sandbox keys and webhooks, Clerk's development instance, Resend. The
   same code as production, so the demo shows the real product.
-- **Each prospect gets their own copy of a template agency**, not a shared
-  one: two prospects at once would see each other's bookings, and resetting
-  one would wipe the other mid-session.
+- **Each prospect gets their own agency**, not a shared one: two prospects
+  at once would see each other's bookings, and resetting one would wipe the
+  other mid-session.
+- **Loaners, not copies (owner, 2026-10-30).** A pool of 5 ready-made demo
+  agencies, each with its own Clerk user and its own Stripe sandbox
+  account. A prospect borrows a free one for 4 hours; it is reset from the
+  template the next time it is lent. Replaces "copy the template per
+  prospect, delete it after": no Clerk user created or deleted per demo
+  (Clerk's ~100-user limit stops mattering), Stripe's one-account-per-agency
+  rule is met once, and cleanup needs no scheduled job. The 6th prospect at
+  the same moment sees "all demos are in use".
+- **A loaner's sign-in can't be kept.** In demo mode the account menu is an
+  "End demo" button (no profile, email or password changes), and a reset
+  replaces the loaner's Clerk user, so nothing a prospect did to it carries
+  over to the next one.
+- **Demo links are made in the one admin, yardcard-elite.com/admin (owner,
+  2026-10-30).** Its "Demo links" page asks the demo site to create, list
+  and end demos through a private endpoint (`/api/demo/admin` on the demo
+  site, a shared secret `DEMO_ADMIN_SECRET` in both projects). Production
+  never holds the demo database's keys and the demo site never reaches real
+  data: the endpoint only knows those three actions.
+- **The prospect's email is set on the link, not typed (owner, 2026-10-30).**
+  The owner enters it when creating the link; the start page shows it
+  masked and sends the code only there, so a forwarded link is useless
+  without that inbox. A loaner is claimed (and gets that email) at the
+  first sign-in with the code, not when the link is made: links live 7
+  days and would otherwise tie up loaners.
+- **Its own Vercel project (owner, 2026-10-31).** Standard
+  Deployment Protection puts every preview, custom domain included, behind a
+  Vercel login, so a `demo` branch preview can't serve prospects. A second
+  project "yce-demo" deploying `main` as its own production: public, crons
+  run, updates with every merge, separate variables. Pro bills per seat.
 - **Sign-in is our own front door, Clerk behind it:** email plus access
   code on our page, our email through Resend, then a Clerk sign-in ticket.
   The dashboard and its agency checks stay untouched.
@@ -79,31 +114,45 @@ then the prospect explores on their own for the rest of the demo period.
 ## Template agency
 Lucky Lawn Signs (the name used in the marketing mockup and sample emails):
 - full placeholder sign library in stock (20 of each, like the test agencies);
-- a handful of sample orders across the week (upcoming, deployed, completed)
-  so the order board and home page aren't empty;
-- prices, booking rules and white label set, Elite plan, Stripe "connected"
-  to a sandbox account so the booking page is open.
+- prices, booking rules, policy and service areas set; Elite plan.
+- Seeded 2026-10-30 (`migrations/demo/20261030_demo_template_agency.sql`):
+  id `demo_template_lucky_lawn`, slug `lucky-lawn-signs`, Central time,
+  $95 base / $15 extra day / $25 late fee, all 379 signs x 20.
 
-The copy step duplicates the agency row, its inventory and sample orders
-with fresh ids and a unique slug (e.g. `lucky-lawn-x7k2`), owned by the
-prospect's user.
+The copy step duplicates the agency row and its inventory with fresh ids
+and a unique slug (e.g. `lucky-lawn-x7k2`), owned by the prospect's user,
+and then:
+- **creates the sample orders** (upcoming, deployed, completed) dated around
+  the day the demo starts. Decided 2026-10-30: stored sample orders would go
+  stale ("upcoming" orders from last month), so the template has none.
+- **Stripe and subscription (loaners, 2026-10-31):** each loaner keeps its
+  own sandbox connected account and a stand-in Elite subscription
+  (`demo_sub_N`, not a Stripe id) across resets
+  (`migrations/demo/20261031_demo_loaner_payments.sql`). Stripe refuses to
+  let a platform accept an account's terms through the API, so new sandbox
+  accounts need one click through Stripe's onboarding page each. Demo mode
+  skips the subscription sync cron, shows a demo note on the Billing tab,
+  and turns off the money actions that need a real Stripe login (connect,
+  Stripe dashboard, plan checkout, billing portal).
 
-## Expiry and cleanup
-- Each copy has `expires_at`: sign-in plus 4 hours (one setting, so it can
-  change later).
+## Expiry and reset (loaners)
+- A lent loaner has `expires_at`: first sign-in plus 4 hours (one setting).
 - The dashboard checks it on every page (with the demo banner) and shows
   the ended screen once it passes.
-- A cleanup job (Vercel cron in the demo environment) deletes, one by one:
-  the Clerk user (Clerk has no bulk delete), the copied agency with its
-  orders, holds and inventory, and the `users` row. It **keeps the email**
-  in the leads list.
+- Reset happens when the loaner is next lent (or when the owner ends a demo
+  early): its orders, holds and checkouts deleted, settings and stock
+  restored from the template, fresh sample orders dated around today, the
+  agency email set to the new prospect's, and its Clerk user replaced. The
+  prospect's email stays in the leads list.
 - This runs only against the demo database, so it can never reach real data.
 
 ## Leads
 - Table `demo_leads` (demo database, RLS on): email, consent text shown,
   first demo, demo count, last demo.
 - Table `demo_invites`: token (stored hashed), optional email, created,
-  used at. Single use; unused invites could also expire (proposed: 7 days).
+  used at. Single use; unused invites expire after 7 days (owner, 2026-10-30).
+- Table `demo_loaners`: the 5 slots, which agency and Clerk user each is,
+  free or lent, to whom, until when.
 - Marketing email needs an unsubscribe link and our identity (CAN-SPAM); the
   privacy policy draft needs a line about demo emails before the demo opens.
 
@@ -127,6 +176,24 @@ prospect's user.
    a `demo` branch with branch-scoped variables, merged from main each release.
 3. DNS: `demo.yardcard-elite.com` pointed at that environment.
 
+## Setup (2026-10-31)
+- **Vercel project `yce-demo`** (`prj_BrfnqxN7CPaxBU489DAQiMxpX2eE`), same
+  repo, production domain `demo.yardcard-elite.com` (Vercel DNS, verified).
+  Previews behind Vercel login like the main project.
+- **Variables:** `DEMO_MODE` and `NEXT_PUBLIC_DEMO_MODE` = 1; demo Supabase
+  URL (service key: owner pastes `SUPABASE_SERVICE_ROLE_KEY`); Clerk
+  development instance keys (sign-in redirects to `/routing`, sign-out to
+  `/demo/ended`); Stripe sandbox keys; `STRIPE_WEBHOOK_SECRET` for the
+  sandbox Connect endpoint `we_1UWSRh2Hwl27rYJOFtdlxpLS`; a send-only Resend
+  key of its own ("yce-demo"); its own Blob store `yce-demo-blob`; its own
+  `CRON_SECRET`; `DEMO_ADMIN_SECRET`. No PayPal, Braintree, Clerk webhook or
+  Stripe Billing webhook: those features are off in the demo.
+- **Main project, production:** `DEMO_SITE_URL` and the same
+  `DEMO_ADMIN_SECRET`.
+- **Stripe sandbox accounts:** loaners 1-2 reuse the two already onboarded
+  test accounts; 3-5 were created with test data and wait for their terms
+  click.
+
 ## Build, roughly two sessions
 1. Demo environment, database and DNS; seed the template agency.
 2. Owner-only invite page; access-code page (invite check), code email, code
@@ -140,4 +207,4 @@ prospect's user.
   walk-through eats into it); a copy lasts only its demo (new link, fresh
   sandbox); invite-only through single-use links; links are issued from the
   admin panel.
-- Unused invites: expire after 7 days (proposed), or never?
+- Answered 2026-10-30: unused invites expire after 7 days.

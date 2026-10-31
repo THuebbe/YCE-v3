@@ -2,6 +2,8 @@ import { cache } from 'react';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import { getUserById } from '@/lib/db/supabase-client';
+import { isDemoMode } from '@/features/demo/config';
+import { loanerForAgency } from '@/features/demo/loaners';
 
 /**
  * The signed-in member and their agency for an /[agency]/... app page, or a
@@ -20,6 +22,14 @@ export const requireAgencyPage = cache(async (slug: string) => {
   const agency = user?.agency;
   if (!agency || agency.slug !== slug || !agency.is_active) redirect('/routing');
 
+  // Demo site: a borrowed loaner works only while its 4 hours run (DEMO.md)
+  let demoEndsAt: string | null = null;
+  if (isDemoMode()) {
+    const loaner = await loanerForAgency(agency.id);
+    if (!loaner?.active) redirect('/demo/ended');
+    demoEndsAt = loaner.expires_at;
+  }
+
   // Untyped rows, as elsewhere (getUserById returns any)
-  return { user, agency } as { user: any; agency: any };
+  return { user, agency, demoEndsAt } as { user: any; agency: any; demoEndsAt: string | null };
 });

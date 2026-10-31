@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db/supabase-client';
 import { syncSubscription } from '@/features/billing/stripe-billing';
+import { isDemoMode } from '@/features/demo/config';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -17,6 +18,9 @@ export async function GET(request: NextRequest) {
   if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  // Demo loaners hold stand-in subscription ids ('demo_sub_N'), not Stripe's
+  if (isDemoMode()) return NextResponse.json({ ok: true, skipped: 'demo' });
 
   const { data: agencies, error } = await supabase
     .from('agencies')
