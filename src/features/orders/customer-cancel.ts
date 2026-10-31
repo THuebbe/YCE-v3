@@ -32,7 +32,7 @@ export async function loadCancelQuote(agencySlug: string, orderId: string, token
   if (!agency) return null;
   const { data: order } = await supabase
     .from('orders')
-    .select('id, agency_id, order_number, status, event_date, total, payment_status, terms_snapshot, cancel_token, extraDaysBefore')
+    .select('id, agency_id, order_number, status, event_date, total, payment_status, terms_snapshot, cancel_token, extra_days_before')
     .eq('id', orderId)
     .eq('agency_id', agency.id)
     .maybeSingle();
@@ -42,7 +42,7 @@ export async function loadCancelQuote(agencySlug: string, orderId: string, token
   const total = Number(order.total) || 0;
   const policy = cancellationPolicyOf(order.terms_snapshot);
   // The agency's clock: "48 hours before delivery" means their midnight, not the server's
-  const hours = hoursUntilDelivery({ event_date: order.event_date as string, extraDaysBefore: order.extraDaysBefore as number }, resolveTimeZone(agency.operating_hours));
+  const hours = hoursUntilDelivery({ event_date: order.event_date as string, extra_days_before: order.extra_days_before as number }, resolveTimeZone(agency.operating_hours));
   const { insideNotice, fee, refund } = customerRefund(total, policy, hours);
   return {
     orderId: order.id as string,
