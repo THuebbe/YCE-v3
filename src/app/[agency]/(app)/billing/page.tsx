@@ -8,6 +8,8 @@ import { resolveTimeZone } from '@/features/booking/booking-rules'
 import { BillingSection } from '../settings/components/BillingSection'
 import { syncCustomerSubscription, syncFromCheckoutSession, trialDays } from '@/features/billing/stripe-billing'
 import { hasLiveSubscription } from '@/features/billing/subscription'
+import { isDemoMode } from '@/features/demo/config'
+import { requireAgencyPage } from '@/features/dashboard/access'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,8 +26,10 @@ const ADMIN_ROLES = ['ADMIN', 'SUPER_USER', 'SUPER_ADMIN']
  * back here.
  */
 export default async function BillingPage({ params, searchParams }: BillingPageProps) {
-  const { userId } = await auth()
   const { agency: agencySlug } = await params
+  // The tenant check (and the demo's 4-hour gate), like every (app) page
+  await requireAgencyPage(agencySlug)
+  const { userId } = await auth()
   const { billing, session_id, welcome } = await searchParams
   if (!userId) redirect('/auth/sign-in')
 
@@ -60,6 +64,16 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
       />
       {/* Signup's last step stands alone; otherwise this is Settings > Plan & billing */}
       {!welcome && <SectionTabs label="Settings sections" active="plan" items={settingsSections(agencySlug)} />}
+      {isDemoMode() ? (
+        // Demo loaners have a stand-in Elite subscription and no Stripe customer
+        <div className="rounded-card border border-line bg-surface p-5 shadow-raised">
+          <h2 className="font-display text-heading font-semibold">Elite plan (demo)</h2>
+          <p className="mt-2 text-copy text-fg-muted">
+            This demo has every Elite feature turned on. In your own account, this is where you choose a plan,
+            update your card and see invoices.
+          </p>
+        </div>
+      ) : (
       <BillingSection
           subscription={{
             stripe_subscription_id: agency.stripe_subscription_id,
@@ -75,6 +89,7 @@ export default async function BillingPage({ params, searchParams }: BillingPageP
           returnState={justSubscribed ? 'success' : billing === 'cancelled' ? 'cancelled' : undefined}
           dashboardHref={`/${agencySlug}/dashboard`}
         />
+      )}
     </div>
   )
 }

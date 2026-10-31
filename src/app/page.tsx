@@ -24,8 +24,6 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  // The demo site has no marketing page: demos are by invitation (DEMO.md)
-  if (isDemoMode()) redirect('/demo')
   try {
     const { userId } = await auth()
     if (userId) redirect('/routing')
@@ -33,6 +31,8 @@ export default async function HomePage() {
     // redirect() works by throwing; anything else (auth unavailable) shows the page
     if (error instanceof Error && error.message === 'NEXT_REDIRECT') throw error
   }
+  // The demo site has no marketing page: demos are by invitation (DEMO.md)
+  if (isDemoMode()) redirect('/demo')
 
   const c = marketingContent({ trialDays: trialDays() })
   const assets = loadSceneAssets('classic', ['gold', 'red'])

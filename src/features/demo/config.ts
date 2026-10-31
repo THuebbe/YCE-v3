@@ -24,6 +24,9 @@ export const LOANER_AGENCY_PREFIX = 'demo_loaner_';
 export const isLoanerAgency = (agencyId: string | null | undefined) =>
   !!agencyId && agencyId.startsWith(LOANER_AGENCY_PREFIX) && /^demo_loaner_\d+$/.test(agencyId);
 
+/** What a money action that needs a real Stripe login says on the demo site */
+export const DEMO_UNAVAILABLE = 'Not available in the demo: this would open Stripe with your own account.';
+
 /** Stripe's test card, shown on demo booking pages */
 export const TEST_CARD = '4242 4242 4242 4242';
 

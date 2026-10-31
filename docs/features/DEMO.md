@@ -4,8 +4,10 @@ Status: **IN PROGRESS.** Planned 2026-10-29. Database built 2026-10-30:
 Supabase project `yce-demo` (`cllfpexbglmsgtnbsfkg`, us-east-2, in the Pro
 org "YardCard Elite"; wake moved to the free TradTech org so the bill stays
 flat), schema from `migrations/20261030_baseline_yce_schema.sql`, sign
-library and template agency seeded (`migrations/demo/README.md`). Next:
-Vercel "Demo" environment + DNS, then the app code (build steps 2-5).
+library and template agency seeded (`migrations/demo/README.md`). App code
+on branch `claude/demo-environment`. Vercel project `yce-demo` and
+`demo.yardcard-elite.com` set up 2026-10-31 (see "Setup" below). Next:
+the demo database's service key, then a full run end to end.
 
 ## Goal
 Let a prospective agency use the real product, the dashboard and their own
@@ -53,7 +55,7 @@ then the prospect explores on their own for the rest of the demo period.
   without that inbox. A loaner is claimed (and gets that email) at the
   first sign-in with the code, not when the link is made: links live 7
   days and would otherwise tie up loaners.
-- **Its own Vercel project (proposed 2026-10-30, owner deciding).** Standard
+- **Its own Vercel project (owner, 2026-10-31).** Standard
   Deployment Protection puts every preview, custom domain included, behind a
   Vercel login, so a `demo` branch preview can't serve prospects. A second
   project "yce-demo" deploying `main` as its own production: public, crons
@@ -123,12 +125,15 @@ and then:
 - **creates the sample orders** (upcoming, deployed, completed) dated around
   the day the demo starts. Decided 2026-10-30: stored sample orders would go
   stale ("upcoming" orders from last month), so the template has none.
-- **gives the copy a Stripe sandbox account and a subscription.** Open
-  question for build step 2: `agencies.stripe_account_id` is unique (as in
-  production), so copies can't share the template's account. Options: one
-  sandbox connected account created per copy through the API, or a small
-  pool reused after cleanup. The booking page stays closed until it's
-  solved (`bookingBlockers`: plan + payments).
+- **Stripe and subscription (loaners, 2026-10-31):** each loaner keeps its
+  own sandbox connected account and a stand-in Elite subscription
+  (`demo_sub_N`, not a Stripe id) across resets
+  (`migrations/demo/20261031_demo_loaner_payments.sql`). Stripe refuses to
+  let a platform accept an account's terms through the API, so new sandbox
+  accounts need one click through Stripe's onboarding page each. Demo mode
+  skips the subscription sync cron, shows a demo note on the Billing tab,
+  and turns off the money actions that need a real Stripe login (connect,
+  Stripe dashboard, plan checkout, billing portal).
 
 ## Expiry and reset (loaners)
 - A lent loaner has `expires_at`: first sign-in plus 4 hours (one setting).
@@ -170,6 +175,24 @@ and then:
    (demo database, Stripe sandbox, Clerk development, Resend). Without Pro:
    a `demo` branch with branch-scoped variables, merged from main each release.
 3. DNS: `demo.yardcard-elite.com` pointed at that environment.
+
+## Setup (2026-10-31)
+- **Vercel project `yce-demo`** (`prj_BrfnqxN7CPaxBU489DAQiMxpX2eE`), same
+  repo, production domain `demo.yardcard-elite.com` (Vercel DNS, verified).
+  Previews behind Vercel login like the main project.
+- **Variables:** `DEMO_MODE` and `NEXT_PUBLIC_DEMO_MODE` = 1; demo Supabase
+  URL (service key: owner pastes `SUPABASE_SERVICE_ROLE_KEY`); Clerk
+  development instance keys (sign-in redirects to `/routing`, sign-out to
+  `/demo/ended`); Stripe sandbox keys; `STRIPE_WEBHOOK_SECRET` for the
+  sandbox Connect endpoint `we_1UWSRh2Hwl27rYJOFtdlxpLS`; a send-only Resend
+  key of its own ("yce-demo"); its own Blob store `yce-demo-blob`; its own
+  `CRON_SECRET`; `DEMO_ADMIN_SECRET`. No PayPal, Braintree, Clerk webhook or
+  Stripe Billing webhook: those features are off in the demo.
+- **Main project, production:** `DEMO_SITE_URL` and the same
+  `DEMO_ADMIN_SECRET`.
+- **Stripe sandbox accounts:** loaners 1-2 reuse the two already onboarded
+  test accounts; 3-5 were created with test data and wait for their terms
+  click.
 
 ## Build, roughly two sessions
 1. Demo environment, database and DNS; seed the template agency.
