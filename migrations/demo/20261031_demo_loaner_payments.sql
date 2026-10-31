@@ -32,3 +32,15 @@ from (values
   (5, 'acct_1UWSoWCDB0fYhoOh', false)
 ) as v(n, acct, enabled)
 where a.id = 'demo_loaner_' || v.n;
+
+-- 2026-10-31, later (applied): the borrowed accounts show their own business
+-- names in Stripe's card notice ("Texas Sign Solutions", "Elite Yard Signs
+-- Denver"), so every loaner gets a fresh account named "Lucky Lawn Signs":
+--   1: acct_1UWe3fCT1J7XOIMq   2: acct_1UWe3jCO8ImgIfT6   3: acct_1UWe3mC8VirN2DYN
+--   4: acct_1UWSoTFreiOa5n7g   5: acct_1UWSoWCDB0fYhoOh
+-- Loaner 3 moved now. Loaners 1-2 move once their new accounts' terms are
+-- accepted (until then they keep the old, working ones):
+--   update public.agencies set stripe_account_id = 'acct_1UWe3fCT1J7XOIMq', stripe_charges_enabled = false where id = 'demo_loaner_1';
+--   update public.agencies set stripe_account_id = 'acct_1UWe3jCO8ImgIfT6', stripe_charges_enabled = false where id = 'demo_loaner_2';
+-- (the demo webhook's account.updated sets charges_enabled once Stripe does)
+update public.agencies set stripe_account_id = 'acct_1UWe3mC8VirN2DYN', updated_at = now() where id = 'demo_loaner_3';
