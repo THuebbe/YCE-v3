@@ -24,14 +24,14 @@ export default async function StartPage({ params }: { params: Promise<{ token: s
             <h1 className="mt-6 font-display text-title font-semibold">{state.state === 'running' ? 'Welcome back' : 'Your YardCard Elite demo'}</h1>
             <p className="mt-2 text-copy text-fg-muted">
               {state.state === 'running'
-                ? 'Your demo is still running. Sign in again with your code.'
+                ? 'Your demo is still running. Sign in again with the code we emailed you.'
                 : `A real dashboard and booking page, with sample bookings and test payments. You’ll have ${DEMO_HOURS} hours from when you sign in.`}
             </p>
             <div className="mt-6">
               {state.state === 'ready' && state.locked ? (
                 <p className="text-copy text-danger">Too many wrong codes for this link. Ask us for a new one at {SUPPORT_EMAIL}.</p>
               ) : (
-                <StartDemo token={token} maskedEmail={maskEmail(state.email)} codeAlreadySent={state.state === 'ready' && state.codeSent} running={state.state === 'running'} />
+                <StartDemo token={token} maskedEmail={maskEmail(state.email)} codeAlreadySent={state.state === 'running' || state.codeSent} running={state.state === 'running'} />
               )}
             </div>
           </>
