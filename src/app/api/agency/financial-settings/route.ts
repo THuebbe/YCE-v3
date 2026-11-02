@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
 import { pricingConfigSchema } from '@/app/[agency]/(app)/settings/validation/financialManagement'
+import { MIN_TOTAL_WITH_FEE_DOLLARS, totalCoversFee } from '@/lib/stripe'
 
 // GET handler - Retrieve agency financial settings
 export async function GET(request: NextRequest) {
@@ -241,6 +242,24 @@ export async function PUT(request: NextRequest) {
     }
 
     const { basePrice, extraDayPrice } = validationResult.data
+
+    // Turnkey plan: the $3 booking fee comes out of each payment, so the
+    // lowest possible booking (the base price) has to cover it
+    const { data: feeAgency } = await supabase
+      .from('agencies')
+      .select('stripe_account_type')
+      .eq('id', agencyId)
+      .single()
+    if (!totalCoversFee(Math.round(basePrice * 100), feeAgency?.stripe_account_type)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `With the $3 booking fee, the base price has to be at least $${MIN_TOTAL_WITH_FEE_DOLLARS}.`,
+          details: [{ field: 'pricingConfig.basePrice', message: `At least $${MIN_TOTAL_WITH_FEE_DOLLARS} with the $3 booking fee` }],
+        },
+        { status: 400 }
+      )
+    }
 
     console.log(`🔍 Financial Settings API: Updating financial settings for agency: ${agencyId}`)
 

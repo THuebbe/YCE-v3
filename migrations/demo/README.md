@@ -10,5 +10,9 @@ never production (YCEv3). Order:
    loaner is reset from (applied 2026-10-30)
 4. `20261030_demo_loaners.sql` - demo_loaners / demo_invites / demo_leads and
    the five loaner agencies lucky-lawn-1..5 (applied 2026-10-30)
+5. `20261031_demo_loaner_payments.sql` - loaner Stripe sandbox accounts and
+   stand-in subscriptions (applied 2026-10-31)
+6. `../20261102_default_ids_and_updated_at.sql` - id/updated_at defaults
+   (applied here and on production 2026-11-02)
 
 Every later YCE migration in `../` must be applied here too (DEMO.md).

@@ -13,7 +13,7 @@ import type Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
 import { sendCustomerConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email';
 import { formatDay } from './booking-rules';
-import { applicationFeeCents, getStripe, requestOrigin, toCents, type StripeAccountType } from '@/lib/stripe';
+import { applicationFeeCents, getStripe, requestOrigin, toCents, type StripeAccountType, totalCoversFee } from '@/lib/stripe';
 
 /** Everything needed to create the order later, validated by /api/orders/create. */
 export interface OrderPayload {
@@ -191,6 +191,11 @@ export async function startCardCheckout(input: {
   const stripeAccount = agency.stripe_account_id;
   const amountCents = toCents(payload.totalDollars);
   const feeCents = applicationFeeCents(agency.stripe_account_type);
+  // Stripe would refuse the charge; stop before anything is recorded
+  if (!totalCoversFee(amountCents, agency.stripe_account_type)) {
+    console.error('Booking total below the fee minimum:', payload.agency.id, amountCents);
+    return { ok: false, status: 400, error: `${payload.agency.name} can't take online payments for this booking yet. Please contact them directly.` };
+  }
 
   // One paid checkout per sign hold: a second tab or a repeated submit must
   // not charge the customer twice

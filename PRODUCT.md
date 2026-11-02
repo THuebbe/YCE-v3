@@ -321,7 +321,7 @@ needs. Add new ideas there and list them here in one line.
 | Team management (enterprise) | Idea, needs the PantryPro split | [TEAM-MANAGEMENT.md](docs/features/TEAM-MANAGEMENT.md) |
 | Quiz funnel landing pages | Idea | [QUIZ-FUNNELS.md](docs/features/QUIZ-FUNNELS.md) |
 | Lead funnel (unpaid bookings become leads) | Idea | [LEAD-FUNNEL.md](docs/features/LEAD-FUNNEL.md) |
-| Sign packages (supplier packs into stock) | Idea | [SIGN-PACKAGES.md](docs/features/SIGN-PACKAGES.md) |
+| Sign packages (supplier packs into stock) | Idea: platform-made from the supplier manifest, waiting on it | [SIGN-PACKAGES.md](docs/features/SIGN-PACKAGES.md) |
 | Custom signs on the booking page | Idea | [CUSTOM-SIGNS.md](docs/features/CUSTOM-SIGNS.md) |
 | Faster ways to stock signs | Idea | [FASTER-STOCKING.md](docs/features/FASTER-STOCKING.md) |
 

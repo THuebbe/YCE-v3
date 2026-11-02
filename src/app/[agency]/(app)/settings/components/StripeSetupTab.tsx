@@ -77,7 +77,7 @@ export function StripeSetupTab({
         chargesEnabled: status.chargesEnabled || false,
         payoutsEnabled: status.payoutsEnabled || false,
         detailsSubmitted: status.detailsSubmitted || false,
-        currentlyDue: [],
+        currentlyDue: status.currentlyDue ?? [],
         eventuallyDue: [],
         pastDue: [],
         pendingVerification: []
@@ -139,8 +139,14 @@ export function StripeSetupTab({
     }
   }
 
+  // Submitted but not charging yet: Stripe is either still checking (nothing
+  // due, nothing for the agency to do) or asking for more information
+  const awaitingStripe = !!stripeStatus?.hasCompletedOnboarding && !stripeStatus.chargesEnabled
+  const needsInfo = awaitingStripe && (stripeStatus?.currentlyDue?.length ?? 0) > 0
+  const reviewing = awaitingStripe && !needsInfo
+
   const getStatusIcon = () => {
-    if (stripeStatus?.hasCompletedOnboarding) {
+    if (stripeStatus?.chargesEnabled) {
       return <CheckCircle className="w-5 h-5 text-positive" />
     }
     if (stripeStatus?.isConnected) {
@@ -150,8 +156,14 @@ export function StripeSetupTab({
   }
 
   const getStatusText = () => {
-    if (stripeStatus?.hasCompletedOnboarding) {
-      return 'Setup Complete'
+    if (stripeStatus?.chargesEnabled) {
+      return 'Ready'
+    }
+    if (needsInfo) {
+      return 'Action needed'
+    }
+    if (reviewing) {
+      return 'Stripe is reviewing'
     }
     if (stripeStatus?.isConnected) {
       return 'Setup Pending'
@@ -160,7 +172,7 @@ export function StripeSetupTab({
   }
 
   const getStatusColor = () => {
-    if (stripeStatus?.hasCompletedOnboarding) {
+    if (stripeStatus?.chargesEnabled) {
       return 'bg-positive-soft text-positive'
     }
     if (stripeStatus?.isConnected) {
@@ -300,7 +312,7 @@ export function StripeSetupTab({
                     <div className="text-fine font-medium text-fg mb-1">Charge Payments</div>
                     <div className={`text-fine mb-2 ${stripeStatus.chargesEnabled ? 'text-positive' : 'text-caution'}`}>
                       {stripeStatus.chargesEnabled ? 'Ready to accept payments' : 
-                       stripeStatus.hasCompletedOnboarding ? 'Additional verification needed' : 'Verification required'}
+                       needsInfo ? 'Stripe needs more information' : reviewing ? 'Stripe is reviewing your details' : 'Verification required'}
                     </div>
                     <Badge 
                       variant={stripeStatus.chargesEnabled ? 'default' : 'secondary'}
@@ -316,7 +328,7 @@ export function StripeSetupTab({
                     <div className="text-fine font-medium text-fg mb-1">Receive Payouts</div>
                     <div className={`text-fine mb-2 ${stripeStatus.payoutsEnabled ? 'text-positive' : 'text-caution'}`}>
                       {stripeStatus.payoutsEnabled ? 'Bank account connected' : 
-                       stripeStatus.hasCompletedOnboarding ? 'Additional verification needed' : 'Bank setup required'}
+                       needsInfo ? 'Stripe needs more information' : stripeStatus.hasCompletedOnboarding ? 'Stripe is reviewing your details' : 'Bank setup required'}
                     </div>
                     <Badge 
                       variant={stripeStatus.payoutsEnabled ? 'default' : 'secondary'}
@@ -329,14 +341,25 @@ export function StripeSetupTab({
               </div>
               
               {/* Status-specific alerts */}
-              {stripeStatus.hasCompletedOnboarding && (!stripeStatus.chargesEnabled || !stripeStatus.payoutsEnabled) && (
+              {reviewing && (
                 <Alert className="border-notice/30 bg-notice-soft">
                   <Info className="h-4 w-4 text-notice" />
                   <AlertDescription className="text-notice">
-                    <strong>Setup Complete - Additional Verification Needed</strong>
+                    <strong>Stripe is reviewing your details</strong>
                     <p className="mt-1">
-                      Your Stripe account onboarding is complete, but some features require additional verification. 
-                      This is normal and typically resolved by Stripe within 1-7 business days.
+                      Nothing to do on your side. This usually takes from a few minutes to a couple of days.
+                      Your booking page opens by itself once Stripe turns on payments.
+                    </p>
+                  </AlertDescription>
+                </Alert>
+              )}
+              {needsInfo && (
+                <Alert className="border-caution/30 bg-caution-soft">
+                  <AlertTriangle className="h-4 w-4 text-caution" />
+                  <AlertDescription className="text-caution">
+                    <strong>Stripe needs more information</strong>
+                    <p className="mt-1">
+                      Your booking page stays closed until it&apos;s done. Use &quot;Finish Stripe verification&quot; below.
                     </p>
                   </AlertDescription>
                 </Alert>
@@ -344,7 +367,7 @@ export function StripeSetupTab({
               
               {/* Action buttons */}
               <div className="flex justify-center gap-3 pt-4">
-                {(!stripeStatus.hasCompletedOnboarding || !stripeStatus.chargesEnabled) && (
+                {(!stripeStatus.hasCompletedOnboarding || needsInfo) && (
                   <Button
                     onClick={() => handleStripeConnect()}
                     disabled={isLoading}

@@ -6,6 +6,7 @@
  */
 import { subscriptionAllowsBookings, type AgencySubscription } from '@/features/billing/subscription';
 import { parseBookingPricing } from '@/features/booking/pricing';
+import { totalCoversFee, type StripeAccountType } from '@/lib/platform-fee';
 
 export type ReadinessItem = 'plan' | 'payments' | 'inventory' | 'pricing';
 
@@ -13,6 +14,7 @@ export interface ReadinessAgency extends AgencySubscription {
   pricing_config?: unknown;
   stripe_account_id?: string | null;
   stripe_charges_enabled?: boolean | null;
+  stripe_account_type?: string | null; // a StripeAccountType, as stored
 }
 
 /**
@@ -30,6 +32,8 @@ export function bookingBlockers(agency: ReadinessAgency, hasInventory: boolean):
   if (!subscriptionAllowsBookings(agency)) missing.push('plan');
   if (!canTakePayments(agency)) missing.push('payments');
   if (!hasInventory) missing.push('inventory');
-  if (!parseBookingPricing(agency.pricing_config)) missing.push('pricing');
+  // Prices set, and (turnkey plan) high enough to carry the $3 booking fee
+  const pricing = parseBookingPricing(agency.pricing_config);
+  if (!pricing || !totalCoversFee(Math.round(pricing.basePrice * 100), agency.stripe_account_type as StripeAccountType | null | undefined)) missing.push('pricing');
   return missing;
 }
