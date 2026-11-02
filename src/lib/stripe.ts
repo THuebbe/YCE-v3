@@ -16,17 +16,8 @@ export function getStripe(): Stripe {
   return client;
 }
 
-/** 'express' = turnkey plan ($3/booking), not Stripe's Express account type. */
-export type StripeAccountType = 'express' | 'standard';
-
-/**
- * Platform fee per booking, in cents. Express (turnkey) agencies pay a flat
- * $3 per booking (PRODUCT.md, decided 2026-10-10); agencies on their own
- * Stripe (Standard) pay none.
- */
-export function applicationFeeCents(accountType: StripeAccountType | null | undefined): number {
-  return accountType === 'express' ? 300 : 0;
-}
+// The fee rule has no server dependencies, so shared code can use it too
+export { applicationFeeCents, MIN_TOTAL_WITH_FEE_DOLLARS, totalCoversFee, type StripeAccountType } from './platform-fee';
 
 /** Dollars (as stored on orders and in pricing_config) to Stripe cents. */
 export function toCents(dollars: number): number {

@@ -6,7 +6,7 @@ const ITEMS: { key: ReadinessItem; title: string; detail: string; href: (slug: s
   { key: 'plan', title: 'Choose your plan', detail: 'Start your free trial.', href: s => `/${s}/billing`, action: 'Choose a plan' },
   { key: 'payments', title: 'Set up card payments', detail: 'Connect Stripe so customers pay you online. Money goes straight to you.', href: s => `/${s}/settings?section=payments`, action: 'Set up payments' },
   { key: 'inventory', title: 'Add your signs', detail: 'Tell us which signs you have and how many.', href: s => `/${s}/inventory`, action: 'Add signs' },
-  { key: 'pricing', title: 'Set your prices', detail: 'Your rental price and extra-day price.', href: s => `/${s}/settings?section=booking`, action: 'Set prices' },
+  { key: 'pricing', title: 'Set your prices', detail: 'Your rental price and extra-day price (at least $5 with the $3 booking fee).', href: s => `/${s}/settings?section=booking`, action: 'Set prices' },
 ];
 
 /**
