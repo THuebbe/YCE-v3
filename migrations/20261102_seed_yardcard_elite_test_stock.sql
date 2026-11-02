@@ -16,3 +16,13 @@ join public.sign_library s on s.is_platform = true
   )
 where a.slug = 'yardcard-elite'
 on conflict (agency_id, sign_id) do nothing;
+
+-- Added the same day (APPLIED): the ordinal signs (ST, ND, RD, TH), 20 each.
+-- Without them a birthday with an age ("25TH") had no free day at all.
+insert into public.agency_inventory
+  (id, agency_id, sign_id, quantity, available_quantity, allocated_quantity, deployed_quantity, updated_at)
+select 'inv_' || md5(a.id || ':' || s.id), a.id, s.id, 20, 20, 0, 0, now()::timestamp
+from public.agencies a
+join public.sign_library s on s.is_platform = true and s.category = 'Ordinals'
+where a.slug = 'yardcard-elite'
+on conflict (agency_id, sign_id) do nothing;

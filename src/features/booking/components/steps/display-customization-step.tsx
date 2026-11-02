@@ -4,9 +4,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useWizard } from '../../context/wizard-context';
 import { displaySchema, type DisplayFormData, type LayoutCalculation } from '../../types';
 import { formatDay, rentalWindow } from '../../booking-rules';
-import { freeCounts, lineUsage } from '../../availability';
+import { bestOrdinalMode, freeCounts, lineUsage } from '../../availability';
 import { LINES, isCommitted, optionsFor, pick, reconcile, type Line, type Picks } from '../../design-picks';
-import { messageElements, nameElements } from '../../services/line-elements';
+import { messageElements, nameElements, ordinalOf, withOrdinalMode } from '../../services/line-elements';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { themes, hobbies } from '../../display-options';
 import { Button } from '@/shared/components/ui/button';
@@ -66,15 +66,26 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
 
   const typedMessage = ((localData.eventMessage === CUSTOM ? localData.customMessage : localData.eventMessage) || '').trim();
   const typedName = localData.recipientName.trim();
-  const elements = useMemo(() => ({
+  const typedElements = useMemo(() => ({
     message: messageElements(typedMessage, localData.eventNumber),
     name: nameElements(typedName),
   }), [typedMessage, localData.eventNumber, typedName]);
+  const suffix = ordinalOf(typedElements.message);
+  const ageDigits = typedElements.message.filter(e => e.type === 'number').map(e => e.value).join('');
 
+  // The age's suffix: its own sign if one is free on these dates, else plain
+  // letters in the name's color, else left off (bestOrdinalMode). The
+  // pickers and the hold then work from the signs that mode uses.
   const signsOut = event ? rentalWindow(bookingRules, new Date(event.eventDate), event.extraDaysBefore ?? 0, event.extraDaysAfter ?? 0) : null;
-  const input = useMemo(() => (availability.snapshot && availability.index && signsOut
-    ? { elements, free: freeCounts(availability.snapshot, signsOut.start, signsOut.end), index: availability.index }
-    : null), [availability.snapshot, availability.index, signsOut?.start, signsOut?.end, elements]);
+  const { input, ordinalMode } = useMemo(() => {
+    if (!availability.snapshot || !availability.index || !signsOut) return { input: null, ordinalMode: 'sign' as const };
+    const free = freeCounts(availability.snapshot, signsOut.start, signsOut.end);
+    const { mode } = bestOrdinalMode(typedElements.message, typedElements.name, free, availability.index);
+    return { input: { elements: withOrdinalMode(typedElements, mode), free, index: availability.index }, ordinalMode: mode };
+  }, [availability.snapshot, availability.index, signsOut?.start, signsOut?.end, typedElements]);
+  useEffect(() => {
+    if (input && localData.ordinalMode !== ordinalMode) setLocalData(prev => ({ ...prev, ordinalMode }));
+  }, [input, ordinalMode, localData.ordinalMode]);
 
   const picks: Picks = {
     message: { style: localData.messageStyle, colorway: localData.messageColorway },
@@ -137,7 +148,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
   // What a hold has to match to count: the picks, the words, the extras and the dates
   const designKey = JSON.stringify([
     picks.message, picks.name, typedMessage, localData.eventNumber ?? null, typedName,
-    localData.characterTheme ?? '', localData.hobbies ?? [], signsOut?.start, signsOut?.end,
+    localData.characterTheme ?? '', localData.hobbies ?? [], signsOut?.start, signsOut?.end, ordinalMode,
   ]);
   const holdCurrent = Boolean(localData.holdId) && localData.holdKey === designKey;
 
@@ -181,11 +192,14 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
         nameColorway: (nameIn ? picks.name : fallback).colorway,
         extrasStock,
         eventDate: event ? new Date(event.eventDate).toISOString().slice(0, 10) : undefined,
+        ordinalMode,
       }).then(full => {
         if (!live) return;
+        // Suffix letters are in the name's color, so they go up with the name
+        const zone1 = bothIn ? full.zone1 : { ...full.zone1, signs: full.zone1.signs.filter(s => !s.ordinalLetter) };
         setLayout({
           ...full,
-          zone1: messageIn ? full.zone1 : emptyZone(full.zone1),
+          zone1: messageIn ? zone1 : emptyZone(full.zone1),
           zone2: nameIn ? full.zone2 : emptyZone(full.zone2),
           zone3: bothIn ? full.zone3 : emptyZone(full.zone3),
           zone4: bothIn ? full.zone4 : emptyZone(full.zone4),
@@ -194,7 +208,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
       }).catch(() => {});
     }, 150);
     return () => { live = false; clearTimeout(t); };
-  }, [messageIn, nameIn, bothIn, picks.message.style, picks.message.colorway, picks.name.style, picks.name.colorway, localData.characterTheme, localData.hobbies, holdCurrent, input, event?.eventDate]);
+  }, [messageIn, nameIn, bothIn, picks.message.style, picks.message.colorway, picks.name.style, picks.name.colorway, localData.characterTheme, localData.hobbies, holdCurrent, input, event?.eventDate, ordinalMode]);
 
   /**
    * Hold exactly the signs on screen (the layout shown is the layout held):
@@ -372,6 +386,13 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
 
         <div aria-live="polite" className="grid gap-3">
           {note && <p className="rounded-control bg-caution-soft p-3 text-fine text-caution" role="status">{note}</p>}
+          {suffix && input && ordinalMode !== 'sign' && (
+            <p className="rounded-control bg-surface-sunken p-3 text-fine text-fg-muted" role="status">
+              {ordinalMode === 'letters'
+                ? `No "${suffix}" sign is free on your dates, so it's spelled with plain letters in the name's color.`
+                : `Showing ${ageDigits} without "${suffix}": those signs aren't free on your dates.`}
+            </p>
+          )}
           {previewError ? (
             <div className="flex gap-3 rounded-card border border-danger/30 bg-danger-soft p-4 text-danger" role="alert">
               <AlertCircle className="mt-0.5 size-5 shrink-0" aria-hidden />

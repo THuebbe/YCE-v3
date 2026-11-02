@@ -3,7 +3,7 @@
  * agency's booking rules, or full (not enough signs free to build this
  * display). Pure, so the calendar and the tests agree.
  */
-import { displayFits, freeCounts, type StockIndex, type StockSnapshot } from './availability';
+import { bestOrdinalMode, freeCounts, type StockIndex, type StockSnapshot } from './availability';
 import { addDays, rentalWindow, validateBookingDates, type BookingRules } from './booking-rules';
 import type { LineElement } from './services/line-elements';
 
@@ -38,7 +38,8 @@ export function dayStatus(day: string, check: DayCheck): DayStatus {
   if (!check.snapshot || !check.index) return { kind: 'unknown' };
   const { start, end } = rentalWindow(check.rules, dateOf(day), check.extraDaysBefore, check.extraDaysAfter);
   if (end > check.coveredTo) return { kind: 'unknown' };
-  const fit = displayFits(check.message, check.name, freeCounts(check.snapshot, start, end), check.index);
+  // Open when any way of showing the age's suffix fits (bestOrdinalMode)
+  const { fit } = bestOrdinalMode(check.message, check.name, freeCounts(check.snapshot, start, end), check.index);
   return fit.ok ? { kind: 'open' } : { kind: 'full', line: fit.reason };
 }
 

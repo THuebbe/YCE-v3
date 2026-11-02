@@ -66,6 +66,8 @@ export const displaySchema = z.object({
   staleHoldId: z.string().optional(),
   /** Which line committed (both pickers set) first: it claims its signs first */
   commitOrder: z.array(z.enum(['message', 'name'])).optional(),
+  /** How the age's suffix (TH) shows: its sign, letters in the name's color, or left off */
+  ordinalMode: z.enum(['sign', 'letters', 'number']).optional(),
   /** The exact layout the hold was taken for (random extras included), so
    *  Review and the saved picture show the signs that were reserved */
   layout: z.any().optional(),
@@ -219,6 +221,8 @@ export interface ZoneSign {
   catalogKey?: string;
   character?: string; // For letters/numbers
   isOrdinal?: boolean; // For ordinal indicators (st, nd, rd, th)
+  /** A plain letter standing in for the ordinal (in the name's style and color) */
+  ordinalLetter?: boolean;
   side?: 'left' | 'right'; // For zone3 decorations, which side of the name they sit on
   style: SignStyle;
 }

@@ -1,7 +1,7 @@
 import { LayoutCalculation, DisplayZone, ZoneSign, SignStyle } from '../types';
 import { loadManifest, indexManifest, resolveAsset, resolveArt, assetUrl, SignAsset } from './sign-assets';
 import { ordinalKey, decorationKey, backdropKey, bookendKey, artSlug } from './catalog-keys';
-import { messageElements, nameElements } from './line-elements';
+import { messageElements, nameElements, type OrdinalMode } from './line-elements';
 
 // Decorations that come in the letter colorways (manifest shape assets).
 // Every other decoration, backdrop and bookend is one full-color piece of
@@ -35,6 +35,8 @@ export interface LayoutInput {
   nameColorway?: string;
   /** Event day (YYYY-MM-DD): picks which holiday the Holiday theme means */
   eventDate?: string;
+  /** How the event number's suffix shows (line-elements OrdinalMode); default 'sign' */
+  ordinalMode?: OrdinalMode;
 }
 
 export class LayoutCalculatorService {
@@ -54,11 +56,13 @@ export class LayoutCalculatorService {
     const messageColorway = (input.messageColorway || 'red').toLowerCase();
     const nameColorway = (input.nameColorway || 'red').toLowerCase();
 
-    // Calculate Zone 1: Event message + numbers
-    const zone1 = this.calculateZone1(message, eventNumber, assetIndex, style, messageColorway);
+    // Calculate Zone 1: Event message + numbers (a suffix in letters takes
+    // the name's style and color; with no name, the message's)
+    const nameStyle = (input.nameStyle || style).toLowerCase();
+    const suffixPair = recipientName.trim() ? { style: nameStyle, colorway: nameColorway } : { style, colorway: messageColorway };
+    const zone1 = this.calculateZone1(message, eventNumber, assetIndex, style, messageColorway, input.ordinalMode ?? 'sign', suffixPair);
 
     // Calculate Zone 2: Recipient name
-    const nameStyle = (input.nameStyle || style).toLowerCase();
     const zone2 = this.calculateZone2(recipientName, assetIndex, nameStyle, nameColorway);
 
     // Calculate available space for Zone 3
@@ -116,13 +120,25 @@ export class LayoutCalculatorService {
     eventNumber: number | undefined,
     assetIndex: Map<string, SignAsset> | null,
     style: string,
-    colorway: string
+    colorway: string,
+    ordinalMode: OrdinalMode,
+    suffixPair: { style: string; colorway: string }
   ): DisplayZone {
     const signs: ZoneSign[] = [];
     let position = 0;
     let totalWidth = 0;
 
     for (const element of messageElements(message, eventNumber)) {
+      if (element.type === 'ordinal' && ordinalMode !== 'sign') {
+        // 'number': left off. 'letters': plain letters, marked as the suffix
+        if (ordinalMode === 'letters') {
+          for (const character of element.value) {
+            signs.push({ ...this.createLetterSign(character, position++, 2, 'zone1', assetIndex, suffixPair.style, suffixPair.colorway), ordinalLetter: true });
+            totalWidth += 2;
+          }
+        }
+        continue;
+      }
       if (element.type === 'letter') {
         signs.push(this.createLetterSign(element.value, position++, 2, 'zone1', assetIndex, style, colorway));
         totalWidth += 2;

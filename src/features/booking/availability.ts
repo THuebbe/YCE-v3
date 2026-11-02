@@ -10,7 +10,7 @@
  *
  * Kept free of server and React imports: client, server and tests use it.
  */
-import type { LineElement } from './services/line-elements';
+import { ORDINAL_MODES, ordinalOf, withOrdinalMode, type LineElement, type OrdinalMode } from './services/line-elements';
 
 export interface StockSign {
   id: string;
@@ -174,4 +174,22 @@ export function displayFits(message: LineElement[], name: LineElement[], free: F
     if (buildablePairs(name, left, index).length > 0) return { ok: true };
   }
   return { ok: false, reason: 'together' };
+}
+
+/**
+ * The best way to show the event number's suffix that still builds the
+ * display from `free` (line-elements ORDINAL_MODES: the ordinal sign, then
+ * plain letters in the name's color, then the number alone), with that
+ * mode's fit. A message without an ordinal is just 'sign'. When nothing
+ * fits, the last mode's result says which line is short.
+ */
+export function bestOrdinalMode(message: LineElement[], name: LineElement[], free: FreeCounts, index: StockIndex): { mode: OrdinalMode; fit: FitResult } {
+  const modes: OrdinalMode[] = ordinalOf(message) ? ORDINAL_MODES : ['sign'];
+  let fit: FitResult = { ok: false, reason: 'message' };
+  for (const mode of modes) {
+    const lines = withOrdinalMode({ message, name }, mode);
+    fit = displayFits(lines.message, lines.name, free, index);
+    if (fit.ok) return { mode, fit };
+  }
+  return { mode: modes[modes.length - 1], fit };
 }

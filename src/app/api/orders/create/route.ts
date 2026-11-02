@@ -47,6 +47,7 @@ const createOrderInputSchema = z.object({
 				hobbies: z.array(z.string()).optional(),
 				previewUrl: z.string().optional(),
 				holdId: z.string().min(1),
+				ordinalMode: z.enum(["sign", "letters", "number"]).optional(),
 			}),
 		payment: z
 			.object({
@@ -258,6 +259,8 @@ export async function POST(
 				nameColorway: formData.display.nameColorway ?? null,
 				characterTheme: formData.display.characterTheme ?? null,
 				hobbies: formData.display.hobbies ?? [],
+				// How the age's suffix was shown ('sign' | 'letters' | 'number')
+				ordinalMode: formData.display.ordinalMode ?? 'sign',
 			},
 			extra_days: extraDaysBefore + extraDaysAfter,
 			extra_day_fee: (extraDaysBefore + extraDaysAfter) * pricing.extraDayPrice,
