@@ -2,6 +2,8 @@ import PDFDocument from 'pdfkit';
 import { createBlobService } from '@/lib/storage/vercel-blob';
 import { getOrderWithDetails } from '../utils';
 import { formatAddress, getOrderSignLines } from '../client-utils';
+import { supabase } from '@/lib/db/supabase-client';
+import { generatePickTicket, type PickTicketInput } from './pick-ticket';
 
 /**
  * The order as the documents read it. Signs come from order_signs (wizard
@@ -92,7 +94,7 @@ export async function generateOrderDocument(
 
     switch (type) {
       case 'pickTicket':
-        pdfBuffer = await generatePickTicketPDF(order);
+        pdfBuffer = await generatePickTicketPDF(order, await pickTicketExtras(rawOrder));
         filename = `pick-ticket-${order.order_number}.pdf`;
         break;
       case 'orderSummary':
@@ -136,97 +138,31 @@ export async function generateOrderDocument(
   }
 }
 
-export async function generatePickTicketPDF(order: ReturnType<typeof toDocumentOrder>): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({
-        size: 'A4',
-        margin: 50,
-        bufferPages: true,
-        info: {
-          Title: `Pick Ticket - Order ${order.order_number}`,
-          Author: 'YardCard Elite',
-          Subject: 'Pick Ticket',
-          Keywords: 'pick ticket, order, deployment'
-        }
-      });
+/**
+ * What the pick ticket adds to the order: the agency's name, the days the
+ * signs go out and come back (the order's sign hold), and the display
+ * picture. Each is optional; the ticket prints without it.
+ */
+async function pickTicketExtras(rawOrder: any) {
+  const [{ data: agency }, { data: hold }, displayImage] = await Promise.all([
+    supabase.from('agencies').select('name').eq('id', rawOrder.agency_id).maybeSingle(),
+    supabase.from('inventory_holds').select('rental_start, rental_end')
+      .eq('order_id', rawOrder.id).eq('agency_id', rawOrder.agency_id).eq('hold_type', 'order').maybeSingle(),
+    fetchDisplayImage(rawOrder.display_image_url),
+  ]);
+  return {
+    agencyName: (agency?.name as string | undefined) ?? null,
+    setupDay: hold?.rental_start ? String(hold.rental_start).slice(0, 10) : null,
+    pickupDay: hold?.rental_end ? String(hold.rental_end).slice(0, 10) : null,
+    displayImage,
+  };
+}
 
-      const buffers: Buffer[] = [];
-      doc.on('data', buffers.push.bind(buffers));
-      doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(buffers);
-        resolve(pdfBuffer);
-      });
-      doc.on('error', reject);
-
-      // Header
-      doc.fontSize(20).text('PICK TICKET', { align: 'center' });
-      doc.moveDown();
-
-      // Order information
-      doc.fontSize(14).text(`Order #: ${order.order_number}`, { continued: true });
-      doc.text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
-      doc.moveDown();
-
-      // Customer information
-      doc.fontSize(16).text('Customer Information', { underline: true });
-      doc.moveDown(0.5);
-      doc.fontSize(12)
-        .text(`Name: ${order.customer_name}`)
-        .text(`Email: ${order.customer_email}`)
-        .text(`Phone: ${order.customer_phone || 'Not provided'}`)
-        .text(`Event Date: ${new Date(order.event_date).toLocaleDateString()}`)
-        .text(`Event Address: ${formatAddress(order.event_address)}`);
-      doc.moveDown();
-
-      // Special instructions
-      if (order.specialInstructions) {
-        doc.fontSize(14).text('Special Instructions', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(12).text(order.specialInstructions);
-        doc.moveDown();
-      }
-
-      // Order items
-      doc.fontSize(16).text('Items to Pick', { underline: true });
-      doc.moveDown(0.5);
-
-      const signCount = order.lines.reduce((sum: number, item: any) => sum + item.quantity, 0);
-      doc.fontSize(12).text(`Total Signs: ${signCount}`);
-      doc.moveDown();
-
-      // Items table
-      let yPosition = doc.y;
-      doc.fontSize(12).text('Qty', 50, yPosition, { width: 50 });
-      doc.text('Sign Name', 100, yPosition, { width: 200 });
-      doc.text('Category', 300, yPosition, { width: 100 });
-      doc.text('Notes', 400, yPosition, { width: 150 });
-      
-      yPosition += 20;
-      doc.moveTo(50, yPosition).lineTo(550, yPosition).stroke();
-      yPosition += 10;
-
-      order.lines.forEach((item: any) => {
-        yPosition = nextRowY(doc, yPosition, 25);
-        doc.text(item.quantity.toString(), 50, yPosition, { width: 50 });
-        doc.text((item.sign?.name ?? item.signId), 100, yPosition, { width: 200 });
-        doc.text((item.sign?.category ?? ''), 300, yPosition, { width: 100 });
-        doc.text('[  ] Picked', 400, yPosition, { width: 150 });
-        yPosition += 25;
-      });
-      endTable(doc, yPosition);
-
-      // Footer
-      doc.moveDown(2);
-      doc.fontSize(12).text('Picked by: ________________________    Date: _______________', { align: 'center' });
-      doc.moveDown();
-      doc.text('Notes: _______________________________________________________________', { align: 'center' });
-
-      doc.end();
-    } catch (error) {
-      reject(error);
-    }
-  });
+export async function generatePickTicketPDF(
+  order: ReturnType<typeof toDocumentOrder>,
+  extras: Omit<PickTicketInput, 'order'> = {},
+): Promise<Buffer> {
+  return generatePickTicket({ order, ...extras });
 }
 
 /**
