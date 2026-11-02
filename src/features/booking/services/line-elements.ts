@@ -103,3 +103,21 @@ export function withOrdinalMode(lines: { message: LineElement[]; name: LineEleme
   }
   return { message, name: [...lines.name, ...suffixLetters] };
 }
+
+/**
+ * The message as it reads in the yard, with the number and its suffix where
+ * the signs put them ("HAPPY 29TH BIRTHDAY"). For paperwork; follows
+ * messageElements' placement.
+ */
+export function messageWords(message: string, eventNumber?: number | null, mode: OrdinalMode = 'sign'): string {
+  const upper = message.trim().toUpperCase().replace(/\s+/g, ' ');
+  if (!eventNumber) return upper;
+  const suffix = isYear(eventNumber) || mode === 'number' ? '' : ordinalSuffix(eventNumber);
+  const number = `${eventNumber}${suffix}`;
+  const pattern = Object.keys(NUMBER_AFTER).find(p => upper.replace(/ /g, '').startsWith(p));
+  if (pattern === undefined) return `${upper} ${number}`;
+  // Where the preset's prefix ends in the spaced text
+  let letters = 0, at = 0;
+  while (at < upper.length && letters < NUMBER_AFTER[pattern].length) if (upper[at++] !== ' ') letters++;
+  return [upper.slice(0, at).trim(), number, upper.slice(at).trim()].filter(Boolean).join(' ');
+}
