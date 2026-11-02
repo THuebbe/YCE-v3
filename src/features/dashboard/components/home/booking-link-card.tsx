@@ -19,12 +19,12 @@ export function BookingLinkCard({ url, open }: { url: string; open: boolean }) {
       </p>
       <p className="mt-3 truncate rounded-control bg-surface-sunken px-3 py-2 font-semibold" title={url}>{display}</p>
       <div className="mt-3 flex flex-wrap gap-2">
-        <CopyLinkButton url={url} className="flex-1" />
+        <CopyLinkButton url={url} label="Copy link" className="flex-1" />
         {canShare && (
           <button
             type="button"
             onClick={() => navigator.share({ url, title: 'Book your yard display' }).catch(() => {})}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-strong bg-surface px-3 text-fine font-bold transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
+            className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-control border border-line-strong bg-surface px-3 text-fine font-bold transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
           >
             <Share2 className="size-4" aria-hidden /> Share
           </button>
@@ -33,7 +33,7 @@ export function BookingLinkCard({ url, open }: { url: string; open: boolean }) {
           href={url}
           target="_blank"
           rel="noopener"
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-control px-3 text-fine font-bold text-action-text transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
+          className="inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-control px-3 text-fine font-bold text-action-text transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none"
         >
           <ExternalLink className="size-4" aria-hidden /> Open<span className="sr-only"> booking page in a new tab</span>
         </a>

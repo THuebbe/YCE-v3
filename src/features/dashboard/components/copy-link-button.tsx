@@ -31,7 +31,7 @@ export function CopyLinkButton({ url, compact = false, className, label: idleLab
       type="button"
       onClick={copy}
       className={cn(
-        'inline-flex h-11 items-center justify-center gap-2 rounded-control border border-line-strong bg-surface px-3 text-fine font-bold text-fg transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
+        'inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-control border border-line-strong bg-surface px-3 text-fine font-bold text-fg transition-colors hover:bg-surface-sunken focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
         compact && 'w-11 px-0 md:w-auto md:px-3',
         className,
       )}
