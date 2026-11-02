@@ -57,13 +57,16 @@ function lineItems(signs: ZoneSign[], typed: string, byFile: Map<string, SignAss
   }
 
   let letters = 0
-  let prevType: ZoneSign['type'] | null = null
+  let prevKind: string | null = null
   return [...signs].sort((a, b) => a.position - b.position).map(sign => {
-    const isLetter = sign.type === 'letter'
+    // Letters standing in for an ordinal (29TH) stick to the number like the
+    // ordinal sign would, and aren't part of the typed words
+    const kind = sign.ordinalLetter ? 'number' : sign.type
+    const isLetter = kind === 'letter'
     const startsWord = isLetter && wordStarts.has(letters)
-    const numberEdge = prevType !== null && (isLetter ? prevType !== 'letter' : prevType === 'letter')
+    const numberEdge = prevKind !== null && (isLetter ? prevKind !== 'letter' : prevKind === 'letter')
     if (isLetter) letters++
-    prevType = sign.type
+    prevKind = kind
     return item(sign, byFile, startsWord || numberEdge ? GROUP_GAP_IN : undefined)
   })
 }
