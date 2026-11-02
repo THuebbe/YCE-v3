@@ -234,6 +234,8 @@ export interface DisplayEdit {
   nameColorway?: string | null;
   characterTheme?: string | null;
   hobbies?: string[];
+  /** How the age's suffix (TH) shows (line-elements OrdinalMode) */
+  ordinalMode?: 'sign' | 'letters' | 'number';
 }
 
 const MAX_EDIT_SNAPSHOT_BYTES = 700 * 1024;
@@ -317,6 +319,7 @@ export async function updateOrderDisplay(input: {
           recipientName: d.recipientName.trim(), messageStyle: d.messageStyle ?? null,
           messageColorway: d.messageColorway ?? null, nameColorway: d.nameColorway ?? null,
           characterTheme: d.characterTheme ?? null, hobbies: d.hobbies ?? [],
+          ordinalMode: d.ordinalMode ?? 'sign',
         },
         ...(displayImageUrl ? { display_image_url: displayImageUrl } : {}),
         updated_at: new Date().toISOString(),

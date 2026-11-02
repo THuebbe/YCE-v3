@@ -11,6 +11,7 @@ import { getBookingCatalog } from '@/features/booking/actions';
 import { LayoutCalculatorService } from '@/features/booking/services/layout-calculator';
 import { DisplayGrid } from '@/features/booking/components/display/DisplayGrid';
 import { eventMessages, hobbies as hobbyOptions, themes } from '@/features/booking/display-options';
+import { messageElements, ordinalOf } from '@/features/booking/services/line-elements';
 import type { LayoutCalculation } from '@/features/booking/types';
 import { updateOrderDisplay, type DisplayEdit } from '../actions';
 import { COLORS } from '@/lib/brand';
@@ -33,6 +34,7 @@ function initialDisplay(order: any): DisplayEdit {
       recipientName: saved.recipientName ?? '', messageStyle: capitalize(saved.messageStyle ?? 'Classic'),
       messageColorway: capitalize(saved.messageColorway ?? 'Red'), nameColorway: capitalize(saved.nameColorway ?? 'Red'),
       characterTheme: saved.characterTheme ?? '', hobbies: saved.hobbies ?? [],
+      ordinalMode: saved.ordinalMode ?? 'sign',
     };
   }
   const preset = eventMessages.some(m => m.message === order?.message) ? order.message : 'Custom Message';
@@ -82,6 +84,8 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
   };
   const config = eventMessages.find(m => m.message === d.eventMessage);
   const message = d.eventMessage === 'Custom Message' ? (d.customMessage ?? '').trim() : d.eventMessage;
+  // The age's suffix ("TH"), when the message has one: the agency picks how it shows
+  const suffix = message ? ordinalOf(messageElements(message, d.eventNumber ?? undefined)) : null;
 
   const preview = async () => {
     if (!message || !d.recipientName.trim()) { setError('Enter a message and a name'); return; }
@@ -91,6 +95,7 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
         message, recipientName: d.recipientName.trim(), eventNumber: d.eventNumber ?? undefined,
         theme: d.characterTheme || undefined, hobbies: d.hobbies, agencyId: order.agency_id,
         style: d.messageStyle ?? 'Classic', messageColorway: d.messageColorway ?? 'Red', nameColorway: d.nameColorway ?? 'Red',
+        ordinalMode: d.ordinalMode ?? 'sign',
         eventDate: order.event_date ? String(order.event_date).slice(0, 10) : undefined,
       });
       setLayout(result);
@@ -154,6 +159,15 @@ export function EditDisplayModal({ isOpen, onClose, order }: EditDisplayModalPro
             <label className="text-fine font-semibold">{config.numberLabel ?? 'Number'} (optional)
               <NumberField className="mt-1" value={d.eventNumber} placeholder={config.numberPlaceholder}
                 onValueChange={v => set('eventNumber', v ? Number(v) : null)} />
+            </label>
+          )}
+          {suffix && (
+            <label className="text-fine font-semibold">How &quot;{suffix}&quot; shows
+              <select className={field} value={d.ordinalMode ?? 'sign'} onChange={e => set('ordinalMode', e.target.value as DisplayEdit['ordinalMode'])}>
+                <option value="sign">Its own {suffix} sign</option>
+                <option value="letters">Plain letters in the name color</option>
+                <option value="number">Left off (number only)</option>
+              </select>
             </label>
           )}
           <label className="text-fine font-semibold">Name

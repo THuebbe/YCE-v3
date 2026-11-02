@@ -72,3 +72,34 @@ export function messageElements(message: string, eventNumber?: number): LineElem
 export function nameElements(name: string): LineElement[] {
   return letters(name.replace(/\s+/g, '').toUpperCase());
 }
+
+/**
+ * How the event number's suffix ("TH" in 29TH) is shown, best first (owner,
+ * 2026-11-02): its own ordinal sign; else plain letters in the name line's
+ * style and color; else left off (just the number), the last resort.
+ */
+export type OrdinalMode = 'sign' | 'letters' | 'number';
+export const ORDINAL_MODES: OrdinalMode[] = ['sign', 'letters', 'number'];
+
+/** The message's ordinal ("TH"), if it has one */
+export const ordinalOf = (message: LineElement[]): string | null =>
+  message.find(e => e.type === 'ordinal')?.value ?? null;
+
+/**
+ * Both lines' signs for a mode, for counting. With 'letters' the suffix is
+ * counted with the name line: it's in the name's style and color, so the
+ * two lines each keep one style and color. With no name line it's plain
+ * letters in the message, in the message's color.
+ */
+export function withOrdinalMode(lines: { message: LineElement[]; name: LineElement[] }, mode: OrdinalMode) {
+  const suffix = ordinalOf(lines.message);
+  if (!suffix || mode === 'sign') return lines;
+  const at = lines.message.findIndex(e => e.type === 'ordinal');
+  const message = lines.message.filter(e => e.type !== 'ordinal');
+  if (mode === 'number') return { message, name: lines.name };
+  const suffixLetters = letters(suffix);
+  if (lines.name.length === 0) {
+    return { message: [...lines.message.slice(0, at), ...suffixLetters, ...lines.message.slice(at + 1)], name: lines.name };
+  }
+  return { message, name: [...lines.name, ...suffixLetters] };
+}
