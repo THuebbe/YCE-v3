@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db/supabase-client';
 import { syncSubscription } from '@/features/billing/stripe-billing';
 import { isDemoMode } from '@/features/demo/config';
+import { alertOwner } from '@/lib/alerts';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     .select('id, stripe_subscription_id')
     .not('stripe_subscription_id', 'is', null);
   if (error) {
-    console.error('sync-subscriptions: agency lookup failed:', error.message);
+    await alertOwner('Daily subscription sync failed', { error: error.message });
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
@@ -40,5 +41,6 @@ export async function GET(request: NextRequest) {
       console.error('sync-subscriptions failed for', agency.id, err);
     }
   }
+  if (failed) await alertOwner('Daily subscription sync failed for some agencies', { failed, total: agencies?.length });
   return NextResponse.json({ ok: failed === 0, synced: (agencies?.length ?? 0) - failed, failed });
 }

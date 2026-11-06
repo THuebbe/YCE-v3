@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/db/supabase-client';
+import { alertOwner } from '@/lib/alerts';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase.rpc('yce_expire_temporary_holds');
   if (error) {
-    console.error('Expired-hold cleanup failed:', error.message);
+    await alertOwner('Daily expired-hold cleanup failed', { error: error.message });
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 

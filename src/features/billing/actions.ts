@@ -7,6 +7,7 @@ import { createBillingPortalSession, createSubscriptionCheckout } from './stripe
 import { hasLiveSubscription, type BillingInterval } from './subscription';
 import type { Plan } from './entitlements';
 import { DEMO_UNAVAILABLE, isDemoMode } from '@/features/demo/config';
+import { alertOwner } from '@/lib/alerts';
 
 type UrlResult = { success: true; url: string } | { success: false; error: string };
 
@@ -49,7 +50,7 @@ export async function startSubscription(plan: Plan, interval: BillingInterval): 
     });
     return { success: true, url };
   } catch (error) {
-    console.error('startSubscription failed:', error);
+    await alertOwner('Agency subscription checkout failed to start', { error });
     return { success: false, error: error instanceof Error ? error.message : 'Could not start checkout' };
   }
 }

@@ -14,6 +14,7 @@ import { supabase } from '@/lib/db/supabase-client';
 import { sendCustomerConfirmationEmail, sendOrderNotificationEmail } from '@/lib/email';
 import { formatDay } from './booking-rules';
 import { applicationFeeCents, getStripe, requestOrigin, toCents, type StripeAccountType, totalCoversFee } from '@/lib/stripe';
+import { alertOwner } from '@/lib/alerts';
 
 /** Everything needed to create the order later, validated by /api/orders/create. */
 export interface OrderPayload {
@@ -69,7 +70,7 @@ export async function createOrderFromPayload(
     .select('id, order_number')
     .single();
   if (insertError || !orderRecord) {
-    console.error('Order insert failed:', insertError);
+    await alertOwner('Booking order could not be saved', { agency: payload.agency.slug, hold: payload.holdId, error: insertError });
     // Details stay in the log; customers get something they can act on
     return { ok: false, status: 500, error: "We couldn't save your order. Please try again in a moment." };
   }
@@ -223,7 +224,7 @@ export async function startCardCheckout(input: {
     .select('id')
     .single();
   if (checkoutError || !checkout) {
-    console.error('booking_checkouts insert failed:', checkoutError);
+    await alertOwner('Card checkout could not start', { agency: payload.agency.slug, hold: payload.holdId, error: checkoutError });
     return { ok: false, status: 500, error: "We couldn't start your payment. Please try again in a moment." };
   }
 
@@ -359,7 +360,10 @@ export async function finalizeCheckout(checkoutId: string): Promise<OrderOutcome
     return { ...outcome, error: `${outcome.error} Your payment was refunded in full.` };
   } catch (refundError) {
     // Leave it 'finalizing' so it stands out; the agency must refund by hand
-    console.error('REFUND FAILED for paid checkout without order:', checkoutId, refundError);
+    await alertOwner('REFUND FAILED: customer paid, no order saved. Refund by hand in Stripe', {
+      checkout: checkoutId, paymentIntent: claimed.payment_intent_id, connectedAccount: claimed.stripe_account_id,
+      orderError: outcome.error, refundError,
+    });
     await supabase.from('booking_checkouts')
       .update({ error: `order failed (${outcome.error}); refund failed`, updated_at: new Date().toISOString() })
       .eq('id', checkoutId);
@@ -436,7 +440,7 @@ export async function handleChargeRefunded(charge: Stripe.Charge) {
     .eq('id', checkout.order_id)
     .eq('agency_id', checkout.agency_id);
   if (error) {
-    console.error('charge.refunded: order not updated:', checkout.order_id, error.message);
+    await alertOwner('Refund went through but the order was not updated', { order: checkout.order_id, error: error.message });
     return;
   }
   await supabase.from('booking_checkouts')

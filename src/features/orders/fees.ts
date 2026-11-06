@@ -9,6 +9,7 @@ import { effectivePolicies } from '@/features/booking/policies';
 import { resolveTimeZone, todayIn } from '@/features/booking/booking-rules';
 import { sendFeeChargedEmail, sendFeePaymentLinkEmail } from '@/lib/email';
 import { checkFeeAmounts, feeCaps, round2 } from './fee-math';
+import { alertOwner } from '@/lib/alerts';
 
 export interface FeeCharge {
   status: 'charged' | 'link_sent' | 'waived' | 'failed';
@@ -151,7 +152,7 @@ export async function assessFees(input: {
       .from('orders')
       .update({ fee_charge: charge, late_fee: charge.status === 'waived' ? 0 : lateAmount, updated_at: new Date().toISOString() })
       .eq('id', input.orderId).eq('agency_id', input.agencyId);
-    if (error) console.error('fee_charge not saved:', input.orderId, error.message);
+    if (error) await alertOwner('Late/damage fee result not saved on the order', { order: input.orderId, status: charge.status, error: error.message });
     return charge;
   };
 
