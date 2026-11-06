@@ -77,6 +77,14 @@ Entity vs DTO. Don't merge them. What's missing is an explicit adapter.
   from `src/styles/tokens.css`, never raw hex or `bg-purple-600`. The
   logo is `<Logo />`; brand values live in `src/lib/brand.ts`.
 
+## Customer-facing writing
+Anything customer facing (pitches, call scripts, outreach and emails,
+proposals, marketing pages, demo walk-throughs) follows
+`docs/SALES-VOICE.md`. That means consultative Easton-style selling, with
+Hormozi's principles softened: ask before telling, measure the pain, use
+only true stories, and always end with a dated next step. Text inside the app
+follows DESIGN.md "Voice".
+
 ## Working style
 Show the plan before writing code. Challenge decisions rather than
 implementing them silently. Flag scope creep — this project's failure
