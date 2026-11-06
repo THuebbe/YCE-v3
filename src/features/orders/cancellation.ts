@@ -3,6 +3,7 @@ import { supabase } from '@/lib/db/supabase-client';
 import { getStripe, toCents } from '@/lib/stripe';
 import { sendAgencyCancellationNotice, sendCustomerCancellationEmail } from '@/lib/email';
 import { formatDay } from '@/features/booking/booking-rules';
+import { alertOwner } from '@/lib/alerts';
 
 type CancellationResult = { success: true; refunded: boolean } | { success: false; error: string };
 
@@ -48,7 +49,7 @@ export async function performCancellation(input: {
       refunded = true;
     } catch (error) {
       const reason = (error as { message?: string })?.message ?? 'Stripe refused the refund';
-      console.error('Cancel refund failed:', orderId, reason);
+      await alertOwner('Cancel refund failed (order left as is)', { order: orderId, error: reason });
       return { success: false, error: `The refund didn't go through (${reason}). The order was not cancelled.` };
     }
   }
@@ -62,7 +63,7 @@ export async function performCancellation(input: {
   });
   const result = data as { ok?: boolean; reason?: string; status?: string } | null;
   if (error || !result?.ok) {
-    if (refunded) console.error('REFUNDED BUT NOT CANCELLED - cancel it by hand:', orderId, error?.message ?? result);
+    if (refunded) await alertOwner('REFUNDED BUT NOT CANCELLED: cancel the order by hand', { order: orderId, error: error?.message ?? result });
     return {
       success: false,
       error: refunded

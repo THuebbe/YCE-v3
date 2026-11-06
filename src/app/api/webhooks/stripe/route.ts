@@ -5,6 +5,7 @@ import { supabase } from '@/lib/db/supabase-client';
 import { handleChargeRefunded, handleCheckoutPaymentFailed, handleCheckoutPaymentSucceeded } from '@/features/booking/checkout';
 import { subscriptionIdOf, syncSubscription } from '@/features/billing/stripe-billing';
 import { handleFeeCheckoutCompleted } from '@/features/orders/fees';
+import { alertOwner } from '@/lib/alerts';
 
 // Initialize Stripe client only if environment variables are available
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
     try {
       event = verifyEvent(stripe, body, signature);
     } catch (error) {
-      console.error('Webhook signature verification failed:', error);
+      await alertOwner('Stripe webhook signature check failed', { error });
       return new NextResponse('Invalid signature', { status: 400 });
     }
 
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
 
     return new NextResponse('Webhook processed', { status: 200 });
   } catch (error) {
-    console.error('Webhook processing error:', error);
+    await alertOwner('Stripe webhook failed (Stripe will retry)', { error });
     return new NextResponse('Webhook error', { status: 500 });
   }
 }

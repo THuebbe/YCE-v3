@@ -9,6 +9,7 @@ import { effectiveBookingRules, effectivePolicies, policyKey } from "@/features/
 import { isDisplaySnapshotUrl } from "@/features/booking/snapshot";
 import { z } from "zod";
 import { subscriptionAllowsBookings } from "@/features/billing/subscription";
+import { alertOwner } from '@/lib/alerts';
 
 // Relaxed input validation schema - only validate essential fields
 const createOrderInputSchema = z.object({
@@ -332,7 +333,7 @@ export async function POST(
 			error: "This agency can't take online payments right now, so no booking was made. Please contact them directly."
 		}, { status: 409 });
 	} catch (error) {
-		console.error("❌ Unexpected error creating order:", error);
+		await alertOwner("Booking failed with an unexpected error", { error });
 		return NextResponse.json(
 			{
 				success: false,
