@@ -1,5 +1,22 @@
 // Client-safe utility functions for orders (no server-side imports)
 
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  paid: 'Paid', succeeded: 'Paid', partially_refunded: 'Partly refunded', refunded: 'Refunded', pending: 'Not paid yet',
+};
+const PAYMENT_METHOD_LABELS: Record<string, string> = { card: 'Card', venmo: 'Venmo', paypal: 'PayPal' };
+
+/** orders.payment_status as people read it ("Partly refunded", not partially_refunded) */
+export function paymentStatusLabel(status: string | null | undefined): string {
+  if (!status) return 'Not recorded';
+  return PAYMENT_STATUS_LABELS[status] ?? status.replace(/_/g, ' ');
+}
+
+/** orders.payment_method: "card" for Stripe bookings; older orders have none */
+export function paymentMethodLabel(method: string | null | undefined): string {
+  if (!method) return 'Not recorded';
+  return PAYMENT_METHOD_LABELS[method] ?? method;
+}
+
 export function formatOrderNumber(orderNumber: string): string {
   // If it's already formatted, return as-is
   if (orderNumber.includes('-')) {

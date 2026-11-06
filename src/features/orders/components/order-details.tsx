@@ -8,7 +8,7 @@ import { useToast } from '@/shared/components/feedback/toast';
 import { formatDay } from '@/features/booking/booking-rules';
 import { hasFeature, type Plan } from '@/features/billing/entitlements';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { countOrderSigns, formatAddress, formatCurrency, formatDate, formatTimeWindow, getOrderSignLines } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatDate, formatTimeWindow, getOrderSignLines, paymentStatusLabel } from '../client-utils';
 import { generatePickTicket, generateOrderSummary, generatePickupChecklist } from '../actions';
 import { useOrderAction } from './use-order-action';
 import { EditDisplayModal } from './edit-display-modal';
@@ -28,9 +28,6 @@ const GENERATORS: Record<DocType, (id: string) => Promise<{ success: boolean; re
   pickTicket: generatePickTicket,
   orderSummary: generateOrderSummary,
   pickupChecklist: generatePickupChecklist,
-};
-const PAYMENT_LABELS: Record<string, string> = {
-  paid: 'Paid', succeeded: 'Paid', partially_refunded: 'Partly refunded', refunded: 'Refunded', pending: 'Not paid yet',
 };
 
 interface OrderDetailsProps {
@@ -201,7 +198,7 @@ export function OrderDetails({ order, plan, slug, feeQuote, timeZone }: OrderDet
               )}
               <div className="flex justify-between border-t border-line pt-2 text-copy font-bold"><dt>Total</dt><dd>{formatCurrency(order.total)}</dd></div>
               {order.payment_status && (
-                <div className="flex justify-between"><dt className="text-fg-muted">Payment</dt><dd>{PAYMENT_LABELS[order.payment_status] ?? order.payment_status}</dd></div>
+                <div className="flex justify-between"><dt className="text-fg-muted">Payment</dt><dd>{paymentStatusLabel(order.payment_status)}</dd></div>
               )}
               {Number(order.refund_amount) > 0 && (
                 <div className="flex justify-between"><dt className="text-fg-muted">Refunded</dt><dd>{formatCurrency(order.refund_amount)}</dd></div>
