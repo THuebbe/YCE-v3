@@ -113,6 +113,8 @@ None of these, unless there's a specific reason:
 
 ## Voice (approved 2026-10-22)
 
+(For pitches, outreach and sales conversations, see `docs/SALES-VOICE.md`.)
+
 Plain, upbeat, short. A friendly neighbor who runs a tight operation:
 excited about the party, precise about the details.
 
