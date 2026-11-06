@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { createBlobService } from '@/lib/storage/vercel-blob';
 import { getOrderWithDetails } from '../utils';
-import { formatAddress, getOrderSignLines } from '../client-utils';
+import { formatAddress, getOrderSignLines, paymentMethodLabel, paymentStatusLabel } from '../client-utils';
 import { supabase } from '@/lib/db/supabase-client';
 import { generatePickTicket, type PickTicketInput } from './pick-ticket';
 
@@ -22,7 +22,8 @@ export function toDocumentOrder(order: any) {
     extraDayFee,
     basePackage: total - extraDayFee,
     lateFee: Number(order.late_fee) || 0,
-    paymentMethod: order.payment_method || '',
+    paymentMethod: paymentMethodLabel(order.payment_method),
+    paymentStatus: paymentStatusLabel(order.payment_status),
     total,
   };
 }
@@ -289,8 +290,8 @@ export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumen
       doc.fontSize(16).text('Payment Information', { underline: true });
       doc.moveDown(0.5);
       doc.fontSize(12)
-        .text(`Payment Status: ${order.payment_status.toUpperCase()}`)
-        .text(`Payment Method: ${order.paymentMethod || 'Not specified'}`);
+        .text(`Payment Status: ${order.paymentStatus}`)
+        .text(`Payment Method: ${order.paymentMethod}`);
 
       // Special instructions
       if (order.specialInstructions) {
