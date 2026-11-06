@@ -10,6 +10,12 @@
 --        where query ~ '"(extraDays|holdId|timeWindow|delivery[A-Z]|confirmationCode|paymentIntentId)'
 --          and query !~ 'pg_stat_statements';
 --
+-- READY (checked 2026-11-06): the code has no query on these names; since
+-- the stats reset (2026-10-30 22:50 UTC) 64 orders queries ran, the live
+-- booking and refund among them, and none used them; the guard below
+-- matches (0 rows out of date); yce-demo has run this exact schema without
+-- them since 2026-10-31.
+--
 -- Every column below was empty or copied to its snake_case twin (checked
 -- 2026-10-30: 387 orders; only extraDaysBefore/After and holdId held data).
 -- No function, view, trigger or policy references them.
@@ -52,5 +58,10 @@ alter table public.orders
   drop column if exists "billingZipCode",
   drop column if exists "holdId",
   drop column if exists "paymentIntentId";
+
+-- Dropping "holdId" and "paymentIntentId" also dropped the old indexes on
+-- them; give the snake_case indexes their final names (as in yce-demo)
+alter index if exists public.orders_hold_id_snake_idx rename to orders_hold_id_idx;
+alter index if exists public.orders_payment_intent_id_snake_idx rename to orders_payment_intent_id_idx;
 
 commit;

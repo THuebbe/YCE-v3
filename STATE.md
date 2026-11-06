@@ -1,12 +1,54 @@
 # Where This Stands
 
-Last verified: 2026-10-30
+Last verified: 2026-11-06
 
 Condensed 2026-10-10 from 434 lines; the full earlier text (audit details,
-old verification notes) is in `git show aace018:STATE.md`. Back over 400
-lines - due another condense pass.
+old verification notes) is in `git show aace018:STATE.md`. Now ~600 lines,
+4x the target: a condense pass is overdue (most of "Now" below 2026-11-06
+is history).
 
 ## Now
+- **2026-11-06: LIVE for real money; launch waits on the owner's items.**
+  - Stripe Connect questionnaire done (owner's license). The owner's agency
+    `yardcard-elite` (`clzmviqz96s936eon4sgd5`) is connected
+    (`acct_1UXB7cFgA8iXSUkH`, charges + payouts on), subscribed, stocked
+    with test signs (`migrations/20261102_seed_yardcard_elite_test_stock.sql`,
+    APPLIED: gold + red letters/numbers/punctuation, 52 decorations, 4
+    ordinals, x20). **Prices are still the test $10 / $5 extra day** - the
+    owner sets real ones before sharing the link.
+  - Merged since 10-30: #58 wrapup, #59 self-hosted fonts, #60 admin panel,
+    #61 orders casing, #62 demo environment, #63 stock + Stripe fixes (DB
+    defaults for `id`/`updated_at`, `totalCoversFee` $5 minimum on turnkey,
+    honest Stripe setup status), #64 copy-link button, #65 tall modals
+    scroll, #66 ordinal fallback (TH sign -> letters in the name's color ->
+    number only), #67/#69 pick ticket v2 (setup/event/pickup days, display
+    picture, signs by bin), #68 `docs/SALES-VOICE.md` (all customer-facing
+    writing; CLAUDE.md points to it).
+  - Open PRs: #70 readable payment lines on the order PDF; #71 owner
+    alert emails (turn on with `ALERT_EMAIL`, Production only); this
+    branch (STATE, orders DROP readiness, Venmo plan).
+  - Migrations: `20261102_default_ids_and_updated_at.sql` APPLIED (prod +
+    demo; "Add sign" and custom-sign upload failed for every agency before
+    it). **Unapplied: `20261030_orders_drop_camelcase_columns.sql`, ready,
+    the owner runs it** (Next steps 7).
+  - **Demo site** `demo.yardcard-elite.com`: Supabase `yce-demo`
+    (`cllfpexbglmsgtnbsfkg`), Vercel `prj_BrfnqxN7CPaxBU489DAQiMxpX2eE`,
+    deploys from main, loaner agencies (`migrations/demo/`, APPLIED). Owner:
+    5 Stripe terms clicks so demo checkouts say "Lucky Lawn Signs"; then
+    Claude switches loaners 1-2 to the new accounts (notes in
+    `migrations/demo/20261031_demo_loaner_payments.sql`).
+  - Sandbox (preview) Stripe webhooks pointed at production and failed
+    signature checks; both disabled (owner OK'd). Previews get no webhooks.
+  - **Victory Store** (art supplier, wanted for sign art + an in-app store):
+    term sheet https://claude.ai/artifact/NiXWGXYorUCFsipif2YQma, contract
+    draft https://claude.ai/artifact/T1DaJJKC13NpnCQLsbbTyB (its Schedule A
+    has an internal "Furthest we'd go" column - **remove before sending**;
+    attorney questions incl. font licensing). Owner is calling for an
+    appointment. Packages from their manifest: `docs/features/SIGN-PACKAGES.md`.
+  - Owner decisions open: the bulk "add whole set" stocking button
+    (`docs/features/FASTER-STOCKING.md`); Venmo plan
+    (`docs/features/VENMO-PAYPAL.md`, go-live blocker 7).
+  - Owner's outsider walkthrough (signup to first booking): done 2026-11-06.
 - **2026-10-30:** Vercel Pro and Supabase Pro done; RLS now on every
   public table; webhooks fixed (go-live blockers 2, 5, 8, 11, 12 closed).
   Left before launch: Stripe Connect questionnaire (owner's ID) and the
@@ -71,7 +113,7 @@ lines - due another condense pass.
     tobi@tradtechie.com), Elite via TRADTECH-INTERNAL - verified synced
     through the live webhook. West Branch (gmail login) is an idle test
     agency.
-  - **BLOCKED: Stripe Connect platform questionnaire** needs the owner's ID;
+  - (DONE early Nov, owner's plastic license) Stripe Connect platform questionnaire needs the owner's ID;
     a paper temporary license was rejected. Until done, no agency
     (owner or tester) can connect Stripe, so no booking page can open.
     Waiting on the plastic license (or a passport).
@@ -88,7 +130,7 @@ lines - due another condense pass.
     white label read from `agencies.branding` (migration
     `20261022_agency_branding.sql` APPLIED; column added, all empty).
     Whole flow testable without a database at `/lab/booking`.
-  - **Not verified against a real agency**: every booking page is closed
+  - (Since verified on production 2026-11-02, the owner's live booking.) **Not verified against a real agency**: every booking page is closed
     until Stripe Connect works (blocker above), so the redesign was tested
     in the lab with stand-in server calls. Re-test the real flow once an
     agency can take payments.
@@ -132,7 +174,7 @@ lines - due another condense pass.
   (2026-10-08) - real inventory, server-side sign holds, agency booking
   rules. PR #7 merged 2026-10-10: order check-in/cancel, documents,
   real onboarding data, time zone. Crons live and secret-protected (`/api/cron/*` → 401 without
-  `CRON_SECRET`). **Still a demo, not sellable:** checkout never charges.
+  `CRON_SECRET`). (Then "still a demo, checkout never charges"; superseded by milestone 2 and the 2026-11-02 live booking.)
 - PR #8 merged 2026-10-16: booking-flow hardening (payment choice,
   refresh keeps progress, post-order lock, blackout days, server letter
   check, agency-branded confirmation, phone layout) + findable PDFs.
@@ -243,6 +285,14 @@ lines - due another condense pass.
   since the live switch.
 
 ## VERIFIED WORKING (seen running)
+- **2026-11-02, production, live money:** the owner booked their own
+  agency (`yardcard-elite`) with a real card: YCE-2026-408170, $10, paid on
+  `acct_1UXB7cFgA8iXSUkH`; `payment_intent.succeeded` through the live
+  Connect webhook marked it paid. Cancelled from the dashboard: $10 refunded,
+  `charge.refunded` set `refunded` / `refund_amount` 10 (re-checked
+  2026-11-06). Found on the way and fixed: calendar fully gray (no TH
+  ordinal stock -> #66 fallback), "Add sign" failing (DB defaults), the
+  setup screen saying "complete" while payments were off (#63).
 - **2026-10-30, production:** as role `anon`, `vendor_invoice_summary`,
   `vendor_payment_info`, `users`, `agencies`, `orders` all return 0 rows;
   Supabase security advisor shows no errors. `/yardcard-elite-west-branch/booking`
@@ -374,14 +424,19 @@ lines - due another condense pass.
    as `anon`: 0 rows everywhere. Advisor errors left: none.
 6. (done 2026-10-19, PRs #27-#29) Customer self-cancel, late/damage fees,
    agency display edits - milestone 5.
-7. Venmo and PayPal checkout aren't real: Venmo's `processVenmoPayment`
+7. **Plan written 2026-11-06, waiting on the owner** (`docs/features/VENMO-PAYPAL.md`):
+   no PayPal/Braintree credentials exist in production, and the Braintree
+   setup saves the platform's own merchant id on every agency (money would
+   land in Trad Tech's account). Recommended: Venmo + PayPal through
+   PayPal's partner platform, after the owner gets partner approval.
+   Earlier note: Venmo and PayPal checkout aren't real: Venmo's `processVenmoPayment`
    requires a signed-in agency user (customers got "Unauthorized") and
    takes the amount from the browser; PayPal's form is a stub. Both used
    to save unpaid orders. Since #20 customers are only offered Stripe
    cards; the setup tabs still work. Building them = new milestone.
 8. (done) Stripe live 2026-10-21; Vercel Pro 2026-10-30.
-10. **Stripe Connect platform questionnaire** (owner's ID) - blocks every
-    agency's payment setup. See "Now".
+10. (done early Nov 2026) Stripe Connect platform questionnaire; live
+    booking + refund verified 2026-11-02.
 11. (done 2026-10-30) Folded into 5.
 12. (done 2026-10-30) Supabase org "YardCard Elite" on Pro: daily backups.
 9. **Terms and Privacy are drafts** (`/terms`, `/privacy`, 2026-10-20, the
@@ -398,7 +453,10 @@ lines - due another condense pass.
    paid checkout fails to create its order) fixed in #57, Terms effective
    date now Oct 30. Still the owner's: arbitration/class waiver vs Iowa
    courts, and when to get a flat-fee attorney review (lean: before the
-   first non-friend agency pays).
+   first non-friend agency pays). 2026-11-06: the owner re-read both drafts
+   and is happy with them; **still open: the attorney review and the
+   sales-tax question** (whether agencies must collect tax on rentals is per
+   state - the app collects none today).
 
 ## Known gaps (not blockers)
 - Booking (after the m1c branch): the Customize preview is blank after a
@@ -476,8 +534,16 @@ lines - due another condense pass.
    the user's: open the billing portal once; the tester signs up with
    FOUNDINGTESTER.
 5. Milestone 5: customer cancel link, late/damage fee charging, edit signs.
-7. **In progress 2026-10-30 (owner asked, alongside the demo baseline):
-   `orders` column cleanup.** Done: (1) `extra_days_before`/`_after`/`hold_id`
+7. **READY 2026-11-06: the owner runs
+   `migrations/20261030_orders_drop_camelcase_columns.sql` in the Supabase
+   SQL editor** (it aborts by itself if a copy is stale, then renames the
+   two `_snake` indexes). Checked: no code query uses the 22 old names
+   (only JS variables and `display_config` JSON keys share them); no
+   function/view/trigger does; `pg_stat_statements` since the 10-30 reset
+   shows 64 orders queries (the live booking + refund among them) and none
+   on old names; guard mismatches 0; `yce-demo` has run without them since
+   10-31. #61 merged and deployed. History: In progress 2026-10-30 (owner asked, alongside the demo baseline):
+   `orders` column cleanup. Done: (1) `extra_days_before`/`_after`/`hold_id`
    added and copied (`migrations/20261030_orders_snake_case_columns.sql`,
    APPLIED; 387/387 match); (2) code PR `claude/orders-casing-cleanup` reads
    and writes them, drops `timeWindow` reads. Left: re-run that file after
@@ -504,17 +570,23 @@ lines - due another condense pass.
    configurator theming (ARCHITECTURE.md, designed not built).
 
 ## NOT VERIFIED - check before trusting
+- **Owner alert emails (PR #71)**: unit-tested only; no alert has been
+  sent. Check after merge + `ALERT_EMAIL`: `curl -X POST
+  https://www.yardcard-elite.com/api/webhooks/stripe -H 'stripe-signature:
+  t=1,v1=bad' -d '{}'` should email "Stripe webhook signature check failed". Repeats are suppressed per server instance only.
+- **Pick ticket v2 (#69) from production**: rendered locally from real
+  order data (Blob is blocked in Claude's sandbox). Check: Generate Pick
+  Ticket on a real order and open the PDF.
+- **Demo checkouts after the owner's 5 Stripe clicks** (loaner accounts).
 - **PantryPro after the 2026-10-30 RLS change** (its 26 tables + the
   `vendor_invoice_summary` view). Inferred safe: on 2026-10-22 its backend
   used the service-role key and its frontend never queried Supabase. If a
   PantryPro screen comes up empty, that's the cause; undo per table with
   `alter table public.<name> disable row level security` (see the
   migration file). Check: open PantryPro once.
-- **The live Connect webhook (`we_1UT74g...`) since its URL moved to
-  www.** Only the platform endpoint was seen delivering (2026-10-30).
-  Check: Stripe → Webhooks → that endpoint → Event deliveries, or the
-  next real `account.updated`.
-- **The configurator (#47-#50) against a real agency.** Seen running only
+- (Resolved 2026-11-02: the live Connect webhook delivered
+  `payment_intent.succeeded` and `charge.refunded` for YCE-2026-408170.)
+- (Resolved 2026-11-02 by the owner's live booking, which surfaced the gray-calendar bug, fixed in #66.) **The configurator (#47-#50) against a real agency.** Seen running only
   in `/lab/booking` with stand-in stock (`?stock=N`, `?busy=1`,
   `?failhold=1`) at 390px and 1280px: pickers hide colors the first line
   used up, partial then full holds, failure toast, gray days with reasons.
@@ -557,6 +629,17 @@ lines - due another condense pass.
   bypasses the session proxy); it must be a plain environment variable,
   visible only to sessions started after it's saved. Dropped for launch
   focus; the `@tradtechie` packages are not on npm yet.
+
+- Stacked PRs: #67 was merged into its base branch after that base had
+  already merged, so it never reached main; #69 re-landed it. After a base
+  PR merges, retarget its children to main before merging them.
+- Stripe won't let the platform accept terms for accounts where Stripe
+  collects requirements (`requirement_collection=stripe`): the account
+  holder clicks them (the demo's 5 clicks). One loaner account that refused
+  updates was deleted.
+- `pg_stat_statements` on production proved little on 10-30 (almost no
+  orders traffic); the code scan plus the demo DB (already without the
+  columns) were the real evidence.
 
 ## Reference docs
 - `PRODUCT.md` - business rules, authoritative for WHY.
