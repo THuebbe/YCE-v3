@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useWizard } from '../../context/wizard-context';
-import { calculateBookingTotal } from '../../pricing';
+import { calculateBookingAmounts } from '../../pricing';
 import { createPaymentSchema, PaymentFormData } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle, CreditCard, Smartphone, DollarSign, Lock } from 'lucide-react';
-import { ChoiceCard, StepIntro, StepMotion, StepNav, StepSection, money } from '../step-kit';
+import { ChoiceCard, StepIntro, StepMotion, StepNav, StepSection, TaxIncludedNote, TaxMark, TaxRow, money } from '../step-kit';
 
 // Payment method components
 import { CreditCardForm } from '../payment-methods/CreditCardForm';
@@ -204,9 +204,8 @@ export function PaymentStep({ custom }: { custom?: string }) {
     nextStep();
   };
 
-  const calculateTotal = () => {
-    return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
-  };
+  const amounts = calculateBookingAmounts(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
+  const calculateTotal = () => amounts.total;
 
   const selectedMethod = paymentMethods.availablePaymentMethods.find(
     m => m.id === localData.paymentMethod
@@ -404,10 +403,12 @@ export function PaymentStep({ custom }: { custom?: string }) {
                 <span className="tabular-nums">{money(extraDays * pricing.extraDayPrice)}</span>
               </div>
             )}
+            <TaxRow amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
             <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
               <span className="font-bold">Total</span>
-              <span className="font-display text-heading font-semibold tabular-nums">{money(calculateTotal())}</span>
+              <span className="font-display text-heading font-semibold tabular-nums">{money(calculateTotal())}<TaxMark amounts={amounts} included={pricing.taxIncluded} /></span>
             </div>
+            <TaxIncludedNote amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
           </div>
         </StepSection>
       </div>

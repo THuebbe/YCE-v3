@@ -5,6 +5,36 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
 };
 const PAYMENT_METHOD_LABELS: Record<string, string> = { card: 'Card', venmo: 'Venmo', paypal: 'PayPal' };
 
+/** The sales tax charged on an order (orders.tax_amount / tax_rate / tax_included); 0 on older orders */
+export function orderTax(order: { tax_amount?: unknown; tax_rate?: unknown; tax_included?: unknown }): { amount: number; rate: number; included: boolean } {
+  const amount = Number(order.tax_amount) || 0;
+  return { amount, rate: Number(order.tax_rate) || 0, included: amount > 0 && order.tax_included === true };
+}
+
+export { formatTaxRate } from '@/features/booking/pricing';
+
+/**
+ * Base price plus extra days at the agency's own prices: the total less any
+ * tax added on top (prices that include tax already hold it).
+ */
+export function orderRentalCharges(order: { total?: unknown; tax_amount?: unknown; tax_rate?: unknown; tax_included?: unknown }): number {
+  const tax = orderTax(order);
+  return Math.round(((Number(order.total) || 0) - (tax.included ? 0 : tax.amount)) * 100) / 100;
+}
+
+/**
+ * What the agency kept from an order, before sales tax: paid less refunds,
+ * less the tax share (the tax is owed to the state, not revenue). Refunds
+ * are taken as returning tax in proportion.
+ */
+export function keptBeforeTax(order: { total?: unknown; refund_amount?: unknown; tax_amount?: unknown }): number {
+  const total = Number(order.total) || 0;
+  const kept = Math.max(0, total - (Number(order.refund_amount) || 0));
+  const tax = Number(order.tax_amount) || 0;
+  if (!(total > 0) || !(tax > 0)) return kept;
+  return Math.round(kept * ((total - tax) / total) * 100) / 100;
+}
+
 /** orders.payment_status as people read it ("Partly refunded", not partially_refunded) */
 export function paymentStatusLabel(status: string | null | undefined): string {
   if (!status) return 'Not recorded';

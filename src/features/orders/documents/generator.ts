@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit';
 import { createBlobService } from '@/lib/storage/vercel-blob';
 import { getOrderWithDetails } from '../utils';
-import { formatAddress, getOrderSignLines, paymentMethodLabel, paymentStatusLabel } from '../client-utils';
+import { formatAddress, formatTaxRate, getOrderSignLines, orderRentalCharges, orderTax, paymentMethodLabel, paymentStatusLabel } from '../client-utils';
 import { supabase } from '@/lib/db/supabase-client';
 import { generatePickTicket, type PickTicketInput } from './pick-ticket';
 
@@ -14,13 +14,17 @@ import { generatePickTicket, type PickTicketInput } from './pick-ticket';
 export function toDocumentOrder(order: any) {
   const total = Number(order.total) || 0;
   const extraDayFee = Number(order.extra_day_fee) || 0;
+  const tax = orderTax(order);
   return {
     ...order,
     lines: getOrderSignLines(order),
     specialInstructions: order.special_instructions || order.delivery_notes || '',
     extraDays: Number(order.extra_days) || 0,
     extraDayFee,
-    basePackage: total - extraDayFee,
+    basePackage: orderRentalCharges(order) - extraDayFee,
+    taxAmount: tax.amount,
+    taxIncluded: tax.included,
+    taxLabel: tax.amount > 0 ? `Sales Tax (${formatTaxRate(tax.rate)})` : '',
     lateFee: Number(order.late_fee) || 0,
     paymentMethod: paymentMethodLabel(order.payment_method),
     paymentStatus: paymentStatusLabel(order.payment_status),
@@ -267,7 +271,7 @@ export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumen
       });
 
       // Totals
-      yPosition = nextRowY(doc, yPosition + 20, 110);
+      yPosition = nextRowY(doc, yPosition + 20, 130);
       doc.moveTo(400, yPosition).lineTo(550, yPosition).stroke();
       yPosition += 10;
 
@@ -281,8 +285,17 @@ export async function generateOrderSummaryPDF(order: ReturnType<typeof toDocumen
         doc.text(`Late Fee: $${order.lateFee.toFixed(2)}`, 350, yPosition, { width: 200 });
         yPosition += 20;
       }
+      if (order.taxAmount > 0 && !order.taxIncluded) {
+        doc.text(`${order.taxLabel}: $${order.taxAmount.toFixed(2)}`, 350, yPosition, { width: 200 });
+        yPosition += 20;
+      }
 
       doc.fontSize(14).text(`Total: $${(order.total + order.lateFee).toFixed(2)}`, 350, yPosition, { width: 200 });
+      if (order.taxIncluded) {
+        yPosition += 20;
+        doc.fontSize(10).text(`Includes ${order.taxLabel.toLowerCase()}: $${order.taxAmount.toFixed(2)}`, 350, yPosition, { width: 200 });
+        doc.fontSize(12);
+      }
       endTable(doc, yPosition + 25);
 
       // Payment information
@@ -506,7 +519,9 @@ export function generateHTMLFallback(rawOrder: any, type: DocumentType): string 
             <div class="total">
               <p>Base Package: $${order.basePackage.toFixed(2)}</p>
               ${order.extraDayFee > 0 ? `<p>Extra Days (${order.extraDays}): $${order.extraDayFee.toFixed(2)}</p>` : ''}
+              ${order.taxAmount > 0 && !order.taxIncluded ? `<p>${order.taxLabel}: $${order.taxAmount.toFixed(2)}</p>` : ''}
               <p><strong>Total: $${(order.total + order.lateFee).toFixed(2)}</strong></p>
+              ${order.taxIncluded ? `<p>Includes ${order.taxLabel.toLowerCase()}: $${order.taxAmount.toFixed(2)}</p>` : ''}
             </div>
           </body>
         </html>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useWizard, clearSavedWizard } from '../../context/wizard-context';
-import { calculateBookingTotal } from '../../pricing';
+import { calculateBookingAmounts, formatTaxRate } from '../../pricing';
 import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Check, Printer } from 'lucide-react';
@@ -16,9 +16,7 @@ export function ConfirmationStep({ custom }: { custom?: string }) {
   const orderNumber = orderResult?.orderNumber || 'ORDER-NOT-FOUND';
   const confirmationCode = orderResult?.confirmationCode || 'N/A';
 
-  const calculateTotal = () => {
-    return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
-  };
+  const amounts = calculateBookingAmounts(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
 
   // Same delivery/pickup days the sign hold was taken for (setup and
   // teardown days included)
@@ -81,7 +79,10 @@ export function ConfirmationStep({ custom }: { custom?: string }) {
             ['Display', [message, display?.recipientName].filter(Boolean).join(', ')],
             ['Address', formData.event ? `${formData.event.deliveryAddress.street}, ${formData.event.deliveryAddress.city}, ${formData.event.deliveryAddress.state} ${formData.event.deliveryAddress.zipCode}` : ''],
             ['Phone', formData.contact?.phone ?? ''],
-            ['Paid', money(calculateTotal())],
+            ...(amounts.tax > 0 && !pricing.taxIncluded ? [['Sales tax', `${money(amounts.tax)} (${formatTaxRate(pricing.salesTaxRate ?? 0)})`] as const] : []),
+            ['Paid', amounts.tax > 0 && pricing.taxIncluded
+              ? `${money(amounts.total)} (sales tax included)`
+              : money(amounts.total)],
           ] as const).filter(([, v]) => v).map(([label, value]) => (
             <div key={label} className="contents">
               <dt className="text-fg-muted">{label}</dt>

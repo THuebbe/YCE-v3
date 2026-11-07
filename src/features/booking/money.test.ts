@@ -30,8 +30,8 @@ test('pricing: refuses to quote without a real base price', () => {
 });
 
 test('pricing: reads stored values, numbers stored as text included', () => {
-  assert.deepEqual(parseBookingPricing({ basePrice: '95', extraDayPrice: '15', lateFee: '30' }), { basePrice: 95, extraDayPrice: 15, lateFee: 30 });
-  assert.deepEqual(parseBookingPricing({ basePrice: 95 }), { basePrice: 95, extraDayPrice: 0, lateFee: DEFAULT_LATE_FEE });
+  assert.deepEqual(parseBookingPricing({ basePrice: '95', extraDayPrice: '15', lateFee: '30' }), { basePrice: 95, extraDayPrice: 15, lateFee: 30, salesTaxRate: 0, taxIncluded: false });
+  assert.deepEqual(parseBookingPricing({ basePrice: 95 }), { basePrice: 95, extraDayPrice: 0, lateFee: DEFAULT_LATE_FEE, salesTaxRate: 0, taxIncluded: false });
   assert.equal(parseBookingPricing({ basePrice: 95, lateFee: -3 })!.lateFee, DEFAULT_LATE_FEE);
 });
 

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { MAX_SALES_TAX_RATE } from '@/features/booking/pricing'
 
 // Payment method options
 export const paymentMethodSchema = z.enum(['stripe_connect', 'paypal_connect', 'venmo_connect', 'yce_processing'])
@@ -21,6 +22,16 @@ export const pricingConfigSchema = z.object({
     .min(0, 'Late fee cannot be negative')
     .max(1000, 'Late fee cannot exceed $1,000')
     .optional(),
+})
+
+// The agency's sales tax answer. rate 0 = "I don't charge sales tax".
+export const salesTaxSchema = z.object({
+  rate: z
+    .number()
+    .min(0, 'The rate can’t be negative')
+    .max(MAX_SALES_TAX_RATE, `The rate can’t be over ${MAX_SALES_TAX_RATE}%`)
+    .refine(n => Math.abs(n * 1000 - Math.round(n * 1000)) < 1e-6, 'Use at most 3 decimals'),
+  included: z.boolean(),
 })
 
 // YCE Payment Processing configuration

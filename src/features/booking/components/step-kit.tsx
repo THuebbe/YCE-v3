@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { formatTaxRate, type BookingAmounts } from '../pricing';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -167,3 +168,29 @@ export function StepNav({
 }
 
 export const money = (n: number) => `$${n.toFixed(2)}`;
+
+/** Sales tax added on top: its own row above the total. Nothing otherwise. */
+export function TaxRow({ amounts, rate, included }: { amounts: BookingAmounts; rate?: number; included?: boolean }) {
+  if (!(amounts.tax > 0) || included) return null;
+  return (
+    <div className="flex justify-between gap-4">
+      <span>Sales tax ({formatTaxRate(rate ?? 0)})</span>
+      <span className="tabular-nums">{money(amounts.tax)}</span>
+    </div>
+  );
+}
+
+/**
+ * Prices that include sales tax: the customer never sees a tax amount, only
+ * fine print under the total, marked with an asterisk (owner, 2026-11-07).
+ * The amount is still recorded on the order for the agency's filing.
+ */
+export function TaxIncludedNote({ amounts, included }: { amounts: BookingAmounts; rate?: number; included?: boolean }) {
+  if (!(amounts.tax > 0) || !included) return null;
+  return <p className="text-right text-fine text-fg-muted">*Sales tax included in the price</p>;
+}
+
+/** The asterisk after a total that includes sales tax */
+export function TaxMark({ amounts, included }: { amounts: BookingAmounts; included?: boolean }) {
+  return amounts.tax > 0 && included ? <span aria-hidden>*</span> : null;
+}

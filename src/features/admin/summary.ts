@@ -109,7 +109,7 @@ export function overview(rows: AgencyRow[], orders: OrderStub[], now = new Date(
 
   const byPlan: Record<string, number> = {};
   const bySubscription: Record<string, number> = {};
-  const blockerCounts: Record<ReadinessItem, number> = { plan: 0, payments: 0, inventory: 0, pricing: 0 };
+  const blockerCounts: Record<ReadinessItem, number> = { plan: 0, payments: 0, inventory: 0, pricing: 0, tax: 0 };
   const attention: Attention[] = [];
 
   for (const row of rows) {

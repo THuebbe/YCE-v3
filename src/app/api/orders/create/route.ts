@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabase, getAgencyBySlug } from "@/lib/db/supabase-client";
 import { BookingOrderResult } from "@/features/booking/types";
 import { resumeCardCheckout, startCardCheckout, type CheckoutOutcome, type OrderPayload } from "@/features/booking/checkout";
-import { calculateBookingTotal, parseBookingPricing } from "@/features/booking/pricing";
+import { calculateBookingAmounts, parseBookingPricing } from "@/features/booking/pricing";
 import { buildBookingTerms, TERMS_VERSION } from "@/features/booking/terms";
 import { rentalWindow, resolveTimeZone, todayIn, validateBookingDates } from "@/features/booking/booking-rules";
 import { effectiveBookingRules, effectivePolicies, policyKey } from "@/features/booking/policies";
@@ -157,11 +157,13 @@ export async function POST(
 				error: 'This agency has not set up pricing yet'
 			}, { status: 400 });
 		}
-		const serverTotal = calculateBookingTotal(
+		// Sales tax included: added on top, or taken out of prices that include it
+		const amounts = calculateBookingAmounts(
 			pricing,
 			formData.event.extraDaysBefore,
 			formData.event.extraDaysAfter
 		);
+		const serverTotal = amounts.total;
 		if (Math.abs(serverTotal - totalAmount) > 0.005) {
 			console.warn('⚠️ Order total mismatch:', { agencySlug, client: totalAmount, server: serverTotal });
 			return NextResponse.json({
@@ -232,7 +234,10 @@ export async function POST(
 			agency_id: actualAgencyId,
 			status: "pending",
 			total: serverTotal,
-			subtotal: serverTotal,
+			subtotal: amounts.subtotal,
+			tax_amount: amounts.tax,
+			tax_rate: amounts.tax > 0 ? pricing.salesTaxRate : null,
+			tax_included: amounts.tax > 0 && !!pricing.taxIncluded,
 			customer_name: formData.contact.fullName,
 			customer_email: formData.contact.email,
 			customer_phone: formData.contact.phone,

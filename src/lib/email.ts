@@ -118,6 +118,31 @@ async function send(label: string, message: Parameters<Resend['emails']['send']>
 	}
 }
 
+/** Sales tax on a booking, as charged (orders.tax_amount / tax_rate / tax_included) */
+export interface EmailTax {
+	amount: number;
+	rate: number;
+	included: boolean;
+}
+
+const rateLabel = (rate: number) => `${Number(rate.toFixed(3))}%`;
+
+/**
+ * The total, with the tax as its own row (added on top) or noted inside it
+ * (included). Customers never see the amount of included tax; the agency does.
+ */
+function totalRows(label: string, total: number, tax?: EmailTax | null, forAgency = false): [string, string][] {
+	if (!tax || !(tax.amount > 0)) return [[label, money(total)]];
+	if (tax.included && forAgency) {
+		return [[label, `${money(total)}<br><span style="font-weight:400; color:${COLORS.textMuted};">Includes ${money(tax.amount)} sales tax (${rateLabel(tax.rate)})</span>`]];
+	}
+	if (tax.included) {
+		// Prices that include tax: no amount for the customer, just the fine print
+		return [[label, `${money(total)}*<br><span style="font-weight:400; font-size:13px; color:${COLORS.textMuted};">*Sales tax included in the price</span>`]];
+	}
+	return [[`Sales tax (${rateLabel(tax.rate)})`, money(tax.amount)], [label, money(total)]];
+}
+
 // --- Emails ------------------------------------------------------------------
 
 interface OrderNotificationData {
@@ -125,6 +150,7 @@ interface OrderNotificationData {
 	customerName: string;
 	eventDate: string;
 	totalAmount: number;
+	tax?: EmailTax | null;
 	agencyName?: string;
 	agencyEmail: string;
 	/** Link to the order in the dashboard; the button is left out without it */
@@ -145,7 +171,7 @@ export function orderNotificationHtml(data: OrderNotificationData) {
 				['Order', escapeHtml(data.orderNumber)],
 				['Customer', customer],
 				['Event day', escapeHtml(day)],
-				['Total', money(data.totalAmount)],
+				...totalRows('Total', data.totalAmount, data.tax, true),
 			], true),
 			data.orderUrl ? button(data.orderUrl, 'Open the order') : '',
 		].join(''),
@@ -174,6 +200,7 @@ interface CustomerConfirmationData {
 	/** Picture of their display (orders.display_image_url) */
 	displayImageUrl: string | null;
 	totalAmount: number;
+	tax?: EmailTax | null;
 	paidByCard: boolean;
 	agencyName: string;
 	agencyEmail: string | null;
@@ -207,7 +234,7 @@ export function customerConfirmationHtml(data: CustomerConfirmationData) {
 				['Event day', escapeHtml(data.eventDay)],
 				['Address', escapeHtml(data.address)],
 				['Order', `${escapeHtml(data.orderNumber)}<br><span style="font-weight:400; color:${COLORS.textMuted};">Confirmation code ${escapeHtml(data.confirmationCode)}</span>`],
-				[data.paidByCard ? 'Paid' : 'Total', money(data.totalAmount)],
+				...totalRows(data.paidByCard ? 'Paid' : 'Total', data.totalAmount, data.tax),
 			], true),
 			p(contactLine(data.agencyName, data.agencyPhone, data.agencyEmail)),
 			data.cancelUrl

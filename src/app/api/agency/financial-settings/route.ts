@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { supabase, getUserById } from '@/lib/db/supabase-client'
-import { pricingConfigSchema } from '@/app/[agency]/(app)/settings/validation/financialManagement'
+import { pricingConfigSchema, salesTaxSchema } from '@/app/[agency]/(app)/settings/validation/financialManagement'
+import { parseSalesTax } from '@/features/booking/pricing'
 import { MIN_TOTAL_WITH_FEE_DOLLARS, totalCoversFee } from '@/lib/stripe'
 
 // GET handler - Retrieve agency financial settings
@@ -107,6 +108,8 @@ export async function GET(request: NextRequest) {
       basePrice: pricingConfig.basePrice ?? 50,
       extraDayPrice: pricingConfig.extraDayPrice ?? 10,
       lateFee: pricingConfig.lateFee ?? 25,
+      // null until the agency answers the sales tax question
+      salesTax: parseSalesTax(pricingConfig),
       stripeStatus: hasStripeAccount ? {
         accountId: agency.stripe_account_id,
         accountStatus: agency.stripe_account_status,
@@ -224,6 +227,42 @@ export async function PUT(request: NextRequest) {
 
     // Parse and validate request body
     const body = await request.json()
+
+    // The sales tax answer is saved on its own (Settings > Booking page)
+    if (body && typeof body === 'object' && 'salesTax' in body) {
+      const tax = salesTaxSchema.safeParse(body.salesTax)
+      if (!tax.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: tax.error.errors[0]?.message ?? 'Invalid sales tax rate',
+            details: tax.error.errors.map(e => ({ field: `salesTax.${e.path.join('.')}`, message: e.message })),
+          },
+          { status: 400 }
+        )
+      }
+      const { data: current } = await supabase
+        .from('agencies')
+        .select('pricing_config')
+        .eq('id', agencyId)
+        .single()
+      const pricingConfig = {
+        ...((current?.pricing_config as Record<string, unknown> | null) ?? {}),
+        salesTaxRate: tax.data.rate,
+        salesTaxIncluded: tax.data.rate > 0 && tax.data.included,
+      }
+      const { error } = await supabase
+        .from('agencies')
+        .update({ pricing_config: pricingConfig, updated_at: new Date().toISOString() })
+        .eq('id', agencyId)
+        .eq('is_active', true)
+      if (error) {
+        console.error('❌ Financial Settings API: sales tax update error:', error)
+        return NextResponse.json({ success: false, error: 'Failed to save sales tax' }, { status: 500 })
+      }
+      return NextResponse.json({ success: true, message: 'Sales tax saved' })
+    }
+
     const validationResult = pricingConfigSchema.safeParse(body)
     
     if (!validationResult.success) {
