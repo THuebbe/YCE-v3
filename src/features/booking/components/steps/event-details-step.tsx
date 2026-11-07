@@ -13,7 +13,7 @@ import { Input } from '@/shared/components/ui/input';
 import { NumberField } from '@/shared/components/ui/number-field';
 import { cn } from '@/lib/utils';
 import { AvailabilityCalendar, monthOf } from '../availability-calendar';
-import { ChoiceCard, Field, Reveal, StepIntro, StepMotion, StepNav, StepSection, Stepper, TextArea, TaxIncludedNote, TaxRow, money } from '../step-kit';
+import { ChoiceCard, Field, Reveal, StepIntro, StepMotion, StepNav, StepSection, Stepper, TextArea, TaxIncludedNote, TaxMark, TaxRow, money } from '../step-kit';
 
 /** The words on the display: edited here, styled on the design step */
 type DisplayText = Pick<DisplayFormData, 'eventMessage' | 'customMessage' | 'eventNumber' | 'recipientName'>;
@@ -340,7 +340,7 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
                     <TaxRow amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
                     <div className="flex items-baseline justify-between gap-4">
                       <span className="font-bold">Total{extraDays > 0 && <span className="font-normal text-fg-muted"> · includes {extraDays} extra day{extraDays === 1 ? '' : 's'}</span>}</span>
-                      <span className="font-display text-heading font-semibold tabular-nums">{money(amounts.total)}</span>
+                      <span className="font-display text-heading font-semibold tabular-nums">{money(amounts.total)}<TaxMark amounts={amounts} included={pricing.taxIncluded} /></span>
                     </div>
                     <TaxIncludedNote amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
                   </div>

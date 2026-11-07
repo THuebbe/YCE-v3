@@ -73,3 +73,18 @@ test('order money: rental line, tax, and revenue before tax', async () => {
   assert.equal(keptBeforeTax({ total: 95, refund_amount: 20 }), 75);
   assert.equal(orderRentalCharges({ total: 95 }), 95);
 });
+
+test('included tax: the customer email shows fine print, never the amount; the agency email shows it', async () => {
+  const { customerConfirmationHtml, orderNotificationHtml } = await import('../../lib/email');
+  const tax = { amount: 6.48, rate: 8.25, included: true };
+  const customer = customerConfirmationHtml({
+    to: 'c@example.com', customerName: 'Jordan Tester', orderNumber: 'YCE-1', confirmationCode: 'ABC', eventDay: 'Saturday',
+    address: '1 Main St', displayImageUrl: null, totalAmount: 85, tax, paidByCard: true, agencyName: 'Lucky Lawn',
+    agencyEmail: null, agencyPhone: null, terms: [], cancelUrl: null,
+  });
+  assert.match(customer, /\$85\.00\*/);
+  assert.match(customer, /\*Sales tax included in the price/);
+  assert.doesNotMatch(customer, /6\.48/);
+  const agency = orderNotificationHtml({ orderNumber: 'YCE-1', customerName: 'Jordan Tester', eventDate: '2026-11-14', totalAmount: 85, tax, agencyEmail: 'a@example.com' });
+  assert.match(agency, /Includes \$6\.48 sales tax \(8\.25%\)/);
+});

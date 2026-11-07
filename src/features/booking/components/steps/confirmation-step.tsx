@@ -81,7 +81,7 @@ export function ConfirmationStep({ custom }: { custom?: string }) {
             ['Phone', formData.contact?.phone ?? ''],
             ...(amounts.tax > 0 && !pricing.taxIncluded ? [['Sales tax', `${money(amounts.tax)} (${formatTaxRate(pricing.salesTaxRate ?? 0)})`] as const] : []),
             ['Paid', amounts.tax > 0 && pricing.taxIncluded
-              ? `${money(amounts.total)}, including ${money(amounts.tax)} sales tax`
+              ? `${money(amounts.total)} (sales tax included)`
               : money(amounts.total)],
           ] as const).filter(([, v]) => v).map(([label, value]) => (
             <div key={label} className="contents">

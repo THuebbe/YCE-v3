@@ -7,7 +7,7 @@ import { createPaymentSchema, PaymentFormData } from '../../types';
 import { Button } from '@/shared/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw, AlertTriangle, CreditCard, Smartphone, DollarSign, Lock } from 'lucide-react';
-import { ChoiceCard, StepIntro, StepMotion, StepNav, StepSection, TaxIncludedNote, TaxRow, money } from '../step-kit';
+import { ChoiceCard, StepIntro, StepMotion, StepNav, StepSection, TaxIncludedNote, TaxMark, TaxRow, money } from '../step-kit';
 
 // Payment method components
 import { CreditCardForm } from '../payment-methods/CreditCardForm';
@@ -406,7 +406,7 @@ export function PaymentStep({ custom }: { custom?: string }) {
             <TaxRow amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
             <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
               <span className="font-bold">Total</span>
-              <span className="font-display text-heading font-semibold tabular-nums">{money(calculateTotal())}</span>
+              <span className="font-display text-heading font-semibold tabular-nums">{money(calculateTotal())}<TaxMark amounts={amounts} included={pricing.taxIncluded} /></span>
             </div>
             <TaxIncludedNote amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
           </div>

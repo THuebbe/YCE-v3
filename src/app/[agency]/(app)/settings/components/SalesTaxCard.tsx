@@ -133,7 +133,7 @@ export function SalesTaxCard({ agencyId, initial, basePrice, onSaved }: SalesTax
             {example && (
               <p className="rounded-card bg-surface-sunken p-3 text-fine">
                 {included
-                  ? <>A {money(basePrice)} rental costs the customer {money(example.total)}. Of that, {money(example.tax)} is tax ({formatTaxRate(rate)}) and {money(example.subtotal)} is yours.</>
+                  ? <>Customers see {money(example.total)}*, with “*Sales tax included in the price” in small print. You see the split on each order: {money(example.tax)} tax ({formatTaxRate(rate)}) and {money(example.subtotal)} yours.</>
                   : <>A {money(basePrice)} rental costs the customer {money(basePrice)} + {money(example.tax)} tax ({formatTaxRate(rate)}) = {money(example.total)}.</>}
               </p>
             )}

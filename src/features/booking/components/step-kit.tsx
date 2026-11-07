@@ -180,8 +180,17 @@ export function TaxRow({ amounts, rate, included }: { amounts: BookingAmounts; r
   );
 }
 
-/** Prices that include sales tax: a note under the total. Nothing otherwise. */
-export function TaxIncludedNote({ amounts, rate, included }: { amounts: BookingAmounts; rate?: number; included?: boolean }) {
+/**
+ * Prices that include sales tax: the customer never sees a tax amount, only
+ * fine print under the total, marked with an asterisk (owner, 2026-11-07).
+ * The amount is still recorded on the order for the agency's filing.
+ */
+export function TaxIncludedNote({ amounts, included }: { amounts: BookingAmounts; rate?: number; included?: boolean }) {
   if (!(amounts.tax > 0) || !included) return null;
-  return <p className="text-right text-fine text-fg-muted">Includes {money(amounts.tax)} sales tax ({formatTaxRate(rate ?? 0)})</p>;
+  return <p className="text-right text-fine text-fg-muted">*Sales tax included in the price</p>;
+}
+
+/** The asterisk after a total that includes sales tax */
+export function TaxMark({ amounts, included }: { amounts: BookingAmounts; included?: boolean }) {
+  return amounts.tax > 0 && included ? <span aria-hidden>*</span> : null;
 }

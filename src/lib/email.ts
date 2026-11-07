@@ -127,11 +127,18 @@ export interface EmailTax {
 
 const rateLabel = (rate: number) => `${Number(rate.toFixed(3))}%`;
 
-/** The total, with the tax as its own row (added on top) or noted inside it (included) */
-function totalRows(label: string, total: number, tax?: EmailTax | null): [string, string][] {
+/**
+ * The total, with the tax as its own row (added on top) or noted inside it
+ * (included). Customers never see the amount of included tax; the agency does.
+ */
+function totalRows(label: string, total: number, tax?: EmailTax | null, forAgency = false): [string, string][] {
 	if (!tax || !(tax.amount > 0)) return [[label, money(total)]];
-	if (tax.included) {
+	if (tax.included && forAgency) {
 		return [[label, `${money(total)}<br><span style="font-weight:400; color:${COLORS.textMuted};">Includes ${money(tax.amount)} sales tax (${rateLabel(tax.rate)})</span>`]];
+	}
+	if (tax.included) {
+		// Prices that include tax: no amount for the customer, just the fine print
+		return [[label, `${money(total)}*<br><span style="font-weight:400; font-size:13px; color:${COLORS.textMuted};">*Sales tax included in the price</span>`]];
 	}
 	return [[`Sales tax (${rateLabel(tax.rate)})`, money(tax.amount)], [label, money(total)]];
 }
@@ -164,7 +171,7 @@ export function orderNotificationHtml(data: OrderNotificationData) {
 				['Order', escapeHtml(data.orderNumber)],
 				['Customer', customer],
 				['Event day', escapeHtml(day)],
-				...totalRows('Total', data.totalAmount, data.tax),
+				...totalRows('Total', data.totalAmount, data.tax, true),
 			], true),
 			data.orderUrl ? button(data.orderUrl, 'Open the order') : '',
 		].join(''),

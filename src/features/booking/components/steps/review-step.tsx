@@ -7,7 +7,7 @@ import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Edit, AlertCircle } from 'lucide-react';
 import { BookingYardPreview } from '../display/BookingYardPreview';
-import { StepIntro, StepMotion, StepNav, TaxIncludedNote, TaxRow, money } from '../step-kit';
+import { StepIntro, StepMotion, StepNav, TaxIncludedNote, TaxMark, TaxRow, money } from '../step-kit';
 import { STEP } from '../../step-order';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
@@ -297,7 +297,7 @@ export function ReviewStep({ custom }: { custom?: string }) {
           <TaxRow amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
           <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
             <span className="font-bold">Total</span>
-            <span className="font-display text-title font-semibold tabular-nums">{money(total)}</span>
+            <span className="font-display text-title font-semibold tabular-nums">{money(total)}<TaxMark amounts={amounts} included={pricing.taxIncluded} /></span>
           </div>
           <TaxIncludedNote amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
         </div>
