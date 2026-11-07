@@ -90,3 +90,9 @@ Show the plan before writing code. Challenge decisions rather than
 implementing them silently. Flag scope creep — this project's failure
 mode is starting new work, not finishing existing work. Explain by
 analogy where it helps.
+
+**How to report back (owner, 2026-11-07):** an executive summary, not a
+full explanation. Short bullets of the work with the main points, then
+**Need to know** (risks, surprises, anything that changed) and **Action
+items** (what the owner has to do). The owner asks for details when wanted;
+put long detail in the PR, not the reply.
