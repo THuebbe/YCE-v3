@@ -5,10 +5,13 @@
  * refuse on it, and the dashboard checklist shows it.
  */
 import { subscriptionAllowsBookings, type AgencySubscription } from '@/features/billing/subscription';
-import { parseBookingPricing } from '@/features/booking/pricing';
+import { parseBookingPricing, parseSalesTax } from '@/features/booking/pricing';
 import { totalCoversFee, type StripeAccountType } from '@/lib/platform-fee';
 
-export type ReadinessItem = 'plan' | 'payments' | 'inventory' | 'pricing';
+export type ReadinessItem = 'plan' | 'payments' | 'inventory' | 'pricing' | 'tax';
+
+/** Checklist order */
+export const READINESS_ITEMS: ReadinessItem[] = ['plan', 'payments', 'inventory', 'pricing', 'tax'];
 
 export interface ReadinessAgency extends AgencySubscription {
   pricing_config?: unknown;
@@ -35,5 +38,7 @@ export function bookingBlockers(agency: ReadinessAgency, hasInventory: boolean):
   // Prices set, and (turnkey plan) high enough to carry the $3 booking fee
   const pricing = parseBookingPricing(agency.pricing_config);
   if (!pricing || !totalCoversFee(Math.round(pricing.basePrice * 100), agency.stripe_account_type as StripeAccountType | null | undefined)) missing.push('pricing');
+  // An explicit answer, even "I don't charge sales tax" (owner, 2026-11-07)
+  if (!parseSalesTax(agency.pricing_config)) missing.push('tax');
   return missing;
 }

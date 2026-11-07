@@ -11,14 +11,14 @@ function agency(id: string, extra: Partial<AdminAgency> = {}): AdminAgency {
     plan: 'essentials', stripe_account_type: 'express', stripe_customer_id: 'cus_1',
     stripe_account_id: 'acct_1', stripe_charges_enabled: true,
     stripe_subscription_id: 'sub_1', subscription_status: 'active',
-    pricing_config: { basePrice: 85, extraDayPrice: 10 },
+    pricing_config: { basePrice: 85, extraDayPrice: 10, salesTaxRate: 0 },
     ...extra,
   };
 }
 
 const stocked = (...ids: string[]) => new Set(ids);
 
-test('bookable uses the booking page rule: plan, payments, inventory, pricing', () => {
+test('bookable uses the booking page rule: plan, payments, inventory, pricing, tax', () => {
   const rows = agencyRows([
     agency('ready'),
     agency('no-stripe', { stripe_charges_enabled: false }),
@@ -31,12 +31,12 @@ test('bookable uses the booking page rule: plan, payments, inventory, pricing', 
     ready: [],
     'no-stripe': ['payments'],
     'no-sub': ['plan'],
-    'no-price': ['pricing'],
+    'no-price': ['pricing', 'tax'],
     'no-stock': ['inventory'],
   });
   const o = overview(rows, [], NOW);
   assert.equal(o.bookable, 1);
-  assert.deepEqual(o.blockerCounts, { plan: 1, payments: 1, inventory: 1, pricing: 1 });
+  assert.deepEqual(o.blockerCounts, { plan: 1, payments: 1, inventory: 1, pricing: 1, tax: 1 });
 });
 
 test('order counts per agency and overall; DB timestamps without an offset are UTC', () => {

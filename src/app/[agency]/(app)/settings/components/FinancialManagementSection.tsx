@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { PaymentProcessorsCard } from './PaymentProcessorsCard'
+import { SalesTaxCard, type SalesTaxAnswer } from './SalesTaxCard'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { NumberField } from '@/shared/components/ui/number-field'
 import { useToast } from '@/shared/components/feedback/toast'
@@ -56,6 +57,7 @@ export default function FinancialManagementSection({
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
   const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus | null>(null)
   const [braintreeStatus, setBraintreeStatus] = useState<BraintreeConnectStatus | null>(null)
+  const [salesTax, setSalesTax] = useState<SalesTaxAnswer | null>(null)
   const [errors, setErrors] = useState<FinancialValidationErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -84,6 +86,8 @@ export default function FinancialManagementSection({
           lateFee: responseData.lateFee ?? pricingConfig.lateFee,
         })
         
+        setSalesTax(responseData.salesTax ?? null)
+
         // Set payment processor status
         setStripeStatus(responseData.stripeStatus || null)
         setPaypalStatus(responseData.paypalStatus || null)
@@ -249,6 +253,10 @@ export default function FinancialManagementSection({
           </div>
         </CardContent>
       </Card>}
+
+      {show === 'pricing' && (
+        <SalesTaxCard agencyId={agency.id} initial={salesTax} basePrice={pricingConfig.basePrice} onSaved={onSuccess} />
+      )}
     </div>
   )
 }

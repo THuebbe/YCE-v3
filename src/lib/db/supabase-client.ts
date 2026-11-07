@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { clerkClient } from '@clerk/nextjs/server'
-import { countOrderSigns } from '@/features/orders/client-utils'
+import { countOrderSigns, keptBeforeTax } from '@/features/orders/client-utils'
 
 // Create Supabase client with service role key for server-side operations
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
@@ -193,11 +193,11 @@ export async function getDashboardMetrics(agencyId: string): Promise<any> {
       .in('status', ['pending', 'processing', 'deployed'])
     
     // Revenue = money the agency actually kept: what was paid minus
-    // refunds, by booking date. Counts kept cancellation fees, excludes
-    // unpaid orders (old demo checkouts).
+    // refunds and sales tax, by booking date. Counts kept cancellation fees,
+    // excludes unpaid orders (old demo checkouts).
     const { data: paidOrders } = await supabase
       .from('orders')
-      .select('total, refund_amount, created_at')
+      .select('total, refund_amount, tax_amount, created_at')
       .eq('agency_id', agencyId)
       .in('payment_status', ['paid', 'partially_refunded', 'refunded'])
       .gte('created_at', new Date(Math.min(startOfPrevMonth.getTime(), thirtyDaysAgo.getTime())).toISOString())
@@ -210,8 +210,7 @@ export async function getDashboardMetrics(agencyId: string): Promise<any> {
       .eq('status', 'completed')
       .or(`completed_at.gte.${startOfMonth.toISOString()},and(completed_at.is.null,updated_at.gte.${startOfMonth.toISOString()})`)
 
-    const kept = (o: { total: unknown; refund_amount: unknown }) =>
-      Math.max(0, (Number(o.total) || 0) - (Number(o.refund_amount) || 0))
+    const kept = keptBeforeTax
     const sumSince = (from: Date, to?: Date) => (paidOrders ?? [])
       .filter(o => { const t = new Date(o.created_at as string); return t >= from && (!to || t < to) })
       .reduce((sum, o) => sum + kept(o), 0)

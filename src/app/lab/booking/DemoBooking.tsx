@@ -39,14 +39,14 @@ const demoActions = (stock: { perSign: number; busy: boolean; failFirstHold?: bo
   }
 }
 
-export function DemoBooking({ branding, stock = { perSign: 20, busy: false } }: { branding: AgencyBranding; stock?: { perSign: number; busy: boolean; failFirstHold?: boolean } }) {
+export function DemoBooking({ branding, stock = { perSign: 20, busy: false }, tax }: { branding: AgencyBranding; stock?: { perSign: number; busy: boolean; failFirstHold?: boolean }; tax?: { rate: number; included: boolean } }) {
   return (
     <BookingWizard
       agencyId="demo-agency"
       agencySlug="lab-demo"
       agency={{ name: 'Lucky Lawn Signs', email: 'hello@example.com', phone: '(555) 010-0199' }}
       branding={branding}
-      pricing={{ basePrice: 95, extraDayPrice: 15, lateFee: DEFAULT_POLICIES.lateFee }}
+      pricing={{ basePrice: 95, extraDayPrice: 15, lateFee: DEFAULT_POLICIES.lateFee, salesTaxRate: tax?.rate ?? 0, taxIncluded: tax?.included ?? false }}
       policies={DEFAULT_POLICIES}
       bookingRules={DEFAULT_BOOKING_RULES}
       actions={useMemo(() => demoActions(stock), [stock.perSign, stock.busy, stock.failFirstHold])}

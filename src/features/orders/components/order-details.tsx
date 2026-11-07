@@ -8,7 +8,7 @@ import { useToast } from '@/shared/components/feedback/toast';
 import { formatDay } from '@/features/booking/booking-rules';
 import { hasFeature, type Plan } from '@/features/billing/entitlements';
 import { OrderStatus, OrderAction, getAvailableActions, getActionLabel } from '../stateMachine';
-import { countOrderSigns, formatAddress, formatCurrency, formatDate, formatTimeWindow, getOrderSignLines, paymentStatusLabel } from '../client-utils';
+import { countOrderSigns, formatAddress, formatCurrency, formatDate, formatTaxRate, formatTimeWindow, getOrderSignLines, orderRentalCharges, orderTax, paymentStatusLabel } from '../client-utils';
 import { generatePickTicket, generateOrderSummary, generatePickupChecklist } from '../actions';
 import { useOrderAction } from './use-order-action';
 import { EditDisplayModal } from './edit-display-modal';
@@ -59,6 +59,7 @@ export function OrderDetails({ order, plan, slug, feeQuote, timeZone }: OrderDet
   const signs = countOrderSigns(order);
   const address = formatAddress(order.event_address);
   const timeWindow = formatTimeWindow(order);
+  const tax = orderTax(order);
   const notes = order.special_instructions || order.delivery_notes;
 
   // Saved documents (orders.documents) plus any made on this visit; newest of each type wins
@@ -191,12 +192,18 @@ export function OrderDetails({ order, plan, slug, feeQuote, timeZone }: OrderDet
 
           <Section title="Money">
             <dl className="grid gap-2 text-fine">
-              {/* orders.subtotal equals the total (extra days included), so the display line is what's left after extra days */}
-              <div className="flex justify-between"><dt className="text-fg-muted">Display</dt><dd>{formatCurrency(Number(order.total) - (Number(order.extra_day_fee) || 0))}</dd></div>
+              {/* The display line is the rental charges (agency prices) less extra days */}
+              <div className="flex justify-between"><dt className="text-fg-muted">Display</dt><dd>{formatCurrency(orderRentalCharges(order) - (Number(order.extra_day_fee) || 0))}</dd></div>
               {Number(order.extra_day_fee) > 0 && (
                 <div className="flex justify-between"><dt className="text-fg-muted">Extra days{Number(order.extra_days) > 0 ? ` (${order.extra_days})` : ''}</dt><dd>{formatCurrency(order.extra_day_fee)}</dd></div>
               )}
+              {tax.amount > 0 && !tax.included && (
+                <div className="flex justify-between"><dt className="text-fg-muted">Sales tax ({formatTaxRate(tax.rate)})</dt><dd>{formatCurrency(tax.amount)}</dd></div>
+              )}
               <div className="flex justify-between border-t border-line pt-2 text-copy font-bold"><dt>Total</dt><dd>{formatCurrency(order.total)}</dd></div>
+              {tax.included && (
+                <p className="text-right text-fg-muted">Includes {formatCurrency(tax.amount)} sales tax ({formatTaxRate(tax.rate)})</p>
+              )}
               {order.payment_status && (
                 <div className="flex justify-between"><dt className="text-fg-muted">Payment</dt><dd>{paymentStatusLabel(order.payment_status)}</dd></div>
               )}

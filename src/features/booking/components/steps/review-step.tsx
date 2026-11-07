@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useWizard } from '../../context/wizard-context';
-import { calculateBookingTotal } from '../../pricing';
+import { calculateBookingAmounts } from '../../pricing';
 import { formatDay, rentalWindow } from '../../booking-rules';
 import { Button } from '@/shared/components/ui/button';
 import { Edit, AlertCircle } from 'lucide-react';
 import { BookingYardPreview } from '../display/BookingYardPreview';
-import { StepIntro, StepMotion, StepNav, money } from '../step-kit';
+import { StepIntro, StepMotion, StepNav, TaxIncludedNote, TaxRow, money } from '../step-kit';
 import { STEP } from '../../step-order';
 import { LayoutCalculatorService } from '../../services/layout-calculator';
 import { LayoutCalculation, BookingOrderResult } from '../../types';
@@ -101,9 +101,8 @@ export function ReviewStep({ custom }: { custom?: string }) {
     }
   }, [hasValidLayout]);
 
-  const calculateTotal = () => {
-    return calculateBookingTotal(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
-  };
+  const amounts = calculateBookingAmounts(pricing, formData.event?.extraDaysBefore || 0, formData.event?.extraDaysAfter || 0);
+  const calculateTotal = () => amounts.total;
 
   // The preview as the customer sees it, saved with the order for their
   // confirmation email and the agency's Order Summary. Never blocks the order.
@@ -295,10 +294,12 @@ export function ReviewStep({ custom }: { custom?: string }) {
           {(event?.extraDaysAfter ?? 0) > 0 && (
             <div className="flex justify-between gap-4"><span>{event!.extraDaysAfter} extra day{event!.extraDaysAfter === 1 ? '' : 's'} after</span><span className="tabular-nums">{money(event!.extraDaysAfter * pricing.extraDayPrice)}</span></div>
           )}
+          <TaxRow amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
           <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
             <span className="font-bold">Total</span>
             <span className="font-display text-title font-semibold tabular-nums">{money(total)}</span>
           </div>
+          <TaxIncludedNote amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
         </div>
       </ReviewCard>
 

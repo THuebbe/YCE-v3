@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useWizard } from '../../context/wizard-context';
 import { createEventSchema, type DisplayFormData, type EventFormData, type TimeWindow } from '../../types';
 import { earliestEventDay, formatDay, maxExtraDays, rentalWindow, toDayKey, todayIn } from '../../booking-rules';
-import { calculateBookingTotal } from '../../pricing';
+import { calculateBookingAmounts } from '../../pricing';
 import { eventMessages } from '../../display-options';
 import { SIGN_CHARACTERS, unsupportedCharacters } from '../../availability';
 import { dateOf, dayStatus, nearbyOpenDays, type DayCheck } from '../../day-status';
@@ -13,7 +13,7 @@ import { Input } from '@/shared/components/ui/input';
 import { NumberField } from '@/shared/components/ui/number-field';
 import { cn } from '@/lib/utils';
 import { AvailabilityCalendar, monthOf } from '../availability-calendar';
-import { ChoiceCard, Field, Reveal, StepIntro, StepMotion, StepNav, StepSection, Stepper, TextArea, money } from '../step-kit';
+import { ChoiceCard, Field, Reveal, StepIntro, StepMotion, StepNav, StepSection, Stepper, TextArea, TaxIncludedNote, TaxRow, money } from '../step-kit';
 
 /** The words on the display: edited here, styled on the design step */
 type DisplayText = Pick<DisplayFormData, 'eventMessage' | 'customMessage' | 'eventNumber' | 'recipientName'>;
@@ -333,10 +333,19 @@ export function EventDetailsStep({ custom }: { custom?: string }) {
               {day && selectedStatus?.kind === 'closed' && (
                 <p role="alert" className="rounded-control bg-caution-soft p-3 text-fine text-caution">{selectedStatus.reason}</p>
               )}
-              <div className="flex items-baseline justify-between gap-4 border-t border-line pt-3">
-                <span className="font-bold">Total{extraDays > 0 && <span className="font-normal text-fg-muted"> · includes {extraDays} extra day{extraDays === 1 ? '' : 's'}</span>}</span>
-                <span className="font-display text-heading font-semibold tabular-nums">{money(calculateBookingTotal(pricing, extra.extraDaysBefore, extra.extraDaysAfter))}</span>
-              </div>
+              {(() => {
+                const amounts = calculateBookingAmounts(pricing, extra.extraDaysBefore, extra.extraDaysAfter);
+                return (
+                  <div className="grid gap-1 border-t border-line pt-3">
+                    <TaxRow amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className="font-bold">Total{extraDays > 0 && <span className="font-normal text-fg-muted"> · includes {extraDays} extra day{extraDays === 1 ? '' : 's'}</span>}</span>
+                      <span className="font-display text-heading font-semibold tabular-nums">{money(amounts.total)}</span>
+                    </div>
+                    <TaxIncludedNote amounts={amounts} rate={pricing.salesTaxRate} included={pricing.taxIncluded} />
+                  </div>
+                );
+              })()}
             </div>
           </Reveal>
         </StepSection>

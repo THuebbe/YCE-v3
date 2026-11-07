@@ -42,6 +42,7 @@ const BLOCKER_LABELS: Record<ReadinessItem, string> = {
   payments: 'payments not set up',
   inventory: 'no signs in stock',
   pricing: 'no prices',
+  tax: 'sales tax not answered',
 };
 
 export function BookablePill({ blockers }: { blockers: ReadinessItem[] }) {

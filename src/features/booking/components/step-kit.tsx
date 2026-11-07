@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { formatTaxRate, type BookingAmounts } from '../pricing';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { Button } from '@/shared/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -167,3 +168,20 @@ export function StepNav({
 }
 
 export const money = (n: number) => `$${n.toFixed(2)}`;
+
+/** Sales tax added on top: its own row above the total. Nothing otherwise. */
+export function TaxRow({ amounts, rate, included }: { amounts: BookingAmounts; rate?: number; included?: boolean }) {
+  if (!(amounts.tax > 0) || included) return null;
+  return (
+    <div className="flex justify-between gap-4">
+      <span>Sales tax ({formatTaxRate(rate ?? 0)})</span>
+      <span className="tabular-nums">{money(amounts.tax)}</span>
+    </div>
+  );
+}
+
+/** Prices that include sales tax: a note under the total. Nothing otherwise. */
+export function TaxIncludedNote({ amounts, rate, included }: { amounts: BookingAmounts; rate?: number; included?: boolean }) {
+  if (!(amounts.tax > 0) || !included) return null;
+  return <p className="text-right text-fine text-fg-muted">Includes {money(amounts.tax)} sales tax ({formatTaxRate(rate ?? 0)})</p>;
+}

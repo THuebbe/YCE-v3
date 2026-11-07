@@ -14,20 +14,21 @@ export interface NumberFieldProps extends Omit<React.InputHTMLAttributes<HTMLInp
   value: number | string | null | undefined;
   /** The text as typed (cleaned). Parse it where you store it; '' means empty. */
   onValueChange: (text: string) => void;
-  /** Allow cents (money). Whole numbers otherwise. */
-  decimals?: boolean;
+  /** Allow cents (money): true for 2 places, or a number of places (a 7.375% tax rate). Whole numbers otherwise. */
+  decimals?: boolean | number;
   prefix?: React.ReactNode;
   suffix?: React.ReactNode;
   /** Classes for the outer box (width etc.) */
   className?: string;
 }
 
-/** Digits (and one dot with up to 2 decimals), without leading zeros */
-export function cleanNumberText(raw: string, decimals = false): string {
-  let s = raw.replace(decimals ? /[^\d.]/g : /\D/g, '');
-  if (decimals) {
+/** Digits (and one dot with up to 2 decimals, or `decimals` places), without leading zeros */
+export function cleanNumberText(raw: string, decimals: boolean | number = false): string {
+  const places = decimals === true ? 2 : decimals || 0;
+  let s = raw.replace(places ? /[^\d.]/g : /\D/g, '');
+  if (places) {
     const [whole, ...rest] = s.split('.');
-    s = rest.length ? `${whole}.${rest.join('').slice(0, 2)}` : whole;
+    s = rest.length ? `${whole}.${rest.join('').slice(0, places)}` : whole;
   }
   // "0110" -> "110", "00" -> "0", but keep "0" and "0.5"
   return s.replace(/^0+(?=\d)/, '');

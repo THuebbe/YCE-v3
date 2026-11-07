@@ -4,7 +4,7 @@ import { LabShell } from '../lab-shell'
 import { HomeView } from '@/features/dashboard/components/home/home-view'
 import { SetupChecklist } from '@/features/agency/components/setup-checklist'
 import type { Job, JobsOverview } from '@/features/dashboard/jobs'
-import type { ReadinessItem } from '@/features/agency/readiness'
+import { READINESS_ITEMS } from '@/features/agency/readiness'
 
 export const metadata: Metadata = { title: 'Dashboard - lab' }
 
@@ -21,8 +21,8 @@ export const metadata: Metadata = { title: 'Dashboard - lab' }
 export default async function DashboardLabPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const q = await searchParams
   const elite = q.plan !== 'essentials'
-  const left = Math.min(4, Number(q.setup) || 0)
-  const missing = (['plan', 'payments', 'inventory', 'pricing'] as ReadinessItem[]).slice(4 - left)
+  const left = Math.min(READINESS_ITEMS.length, Number(q.setup) || 0)
+  const missing = READINESS_ITEMS.slice(READINESS_ITEMS.length - left)
   const today = todayIn('America/Chicago')
   const slug = 'lab'
 

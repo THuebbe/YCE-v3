@@ -107,6 +107,11 @@ export async function createOrderFromPayload(
     };
   }
 
+  const saved = payload.order as { tax_amount?: number; tax_rate?: number | null; tax_included?: boolean };
+  const tax = saved.tax_amount && saved.tax_amount > 0
+    ? { amount: saved.tax_amount, rate: Number(saved.tax_rate) || 0, included: !!saved.tax_included }
+    : null;
+
   // No address, no email (a made-up recipient would bounce and hurt the
   // sending domain's reputation)
   if (!payload.agency.email) {
@@ -119,6 +124,7 @@ export async function createOrderFromPayload(
         customerName: payload.customerName,
         eventDate: payload.eventDateIso,
         totalAmount: payload.totalDollars,
+        tax,
         agencyName: payload.agency.name,
         agencyEmail: payload.agency.email,
         orderUrl: origin ? `${origin}/${payload.agency.slug}/orders/${orderRecord.id}` : undefined,
@@ -142,6 +148,7 @@ export async function createOrderFromPayload(
         address: order.event_address ?? '',
         displayImageUrl: order.display_image_url ?? null,
         totalAmount: payload.totalDollars,
+        tax,
         paidByCard: payment.status === 'paid',
         agencyName: payload.agency.name,
         agencyEmail: payload.agency.email,

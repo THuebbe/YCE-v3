@@ -11,6 +11,7 @@ export const metadata: Metadata = { title: 'Booking - lab' }
  * Stock: ?stock=2 (units of each sign, default 20), ?busy=1 (most letters
  * booked for the weekend two weeks out, so those days go gray),
  * ?failhold=1 (the first sign hold finds a sign just taken by someone else).
+ * Sales tax: ?tax=8.25 (added on top), plus &included=1 (prices include it).
  * Payment needs the real payment-methods API, so that step shows its
  * error state here.
  */
@@ -22,5 +23,6 @@ export default async function BookingLabPage({ searchParams }: { searchParams: P
     logoUrl: q.logo,
   })
   const perSign = Math.min(50, Math.max(0, Number(q.stock ?? 20) || 0))
-  return <DemoBooking branding={branding} stock={{ perSign, busy: q.busy === '1', failFirstHold: q.failhold === '1' }} />
+  const taxRate = Math.min(20, Math.max(0, Number(q.tax) || 0))
+  return <DemoBooking branding={branding} stock={{ perSign, busy: q.busy === '1', failFirstHold: q.failhold === '1' }} tax={{ rate: taxRate, included: q.included === '1' }} />
 }

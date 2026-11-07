@@ -7,6 +7,7 @@ const ITEMS: { key: ReadinessItem; title: string; detail: string; href: (slug: s
   { key: 'payments', title: 'Set up card payments', detail: 'Connect Stripe so customers pay you online. Money goes straight to you.', href: s => `/${s}/settings?section=payments`, action: 'Set up payments' },
   { key: 'inventory', title: 'Add your signs', detail: 'Tell us which signs you have and how many.', href: s => `/${s}/inventory`, action: 'Add signs' },
   { key: 'pricing', title: 'Set your prices', detail: 'Your rental price and extra-day price (at least $5 with the $3 booking fee).', href: s => `/${s}/settings?section=booking`, action: 'Set prices' },
+  { key: 'tax', title: 'Answer the sales tax question', detail: 'Do you charge sales tax on rentals? Enter your rate, or tell us you don’t.', href: s => `/${s}/settings?section=booking#sales-tax`, action: 'Answer' },
 ];
 
 /**
@@ -22,7 +23,7 @@ export function SetupChecklist({ missing, slug }: { missing: ReadinessItem[]; sl
         <h2 id="setup-title" className="font-display text-heading font-semibold">Get ready to take bookings</h2>
         <p className="text-fine font-semibold text-fg-muted">{done} of {ITEMS.length} done</p>
       </div>
-      <p className="mb-4 text-fine text-fg-muted">Your booking page opens to customers when all four are done.</p>
+      <p className="mb-4 text-fine text-fg-muted">Your booking page opens to customers when all {ITEMS.length} are done.</p>
       <div className="mb-4 h-2 rounded-full bg-surface-sunken" aria-hidden>
         <div className="h-2 rounded-full bg-lawn transition-[width] duration-500" style={{ width: `${(done / ITEMS.length) * 100}%` }} />
       </div>
