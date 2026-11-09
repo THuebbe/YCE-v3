@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ensureWalletDomains } from '@/lib/wallet-domains';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { supabase } from '@/lib/db/supabase-client';
@@ -47,6 +48,8 @@ async function syncAgencyStripeAccount(stripe: Stripe, accountId: string, eventI
       .eq('stripe_account_id', account.id);
     if (error) throw error;
     console.log('✅ Synced Stripe account', account.id, { chargesEnabled: account.charges_enabled, eventId });
+    // Ready to take payments: register our domains for Apple Pay and Google Pay
+    if (account.charges_enabled) await ensureWalletDomains(account.id);
   } catch (error) {
     console.error('Failed to sync agency Stripe account:', accountId, eventId, error);
   }

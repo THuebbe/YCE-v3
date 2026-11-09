@@ -4,6 +4,9 @@ import { resolveTimeZone } from '@/features/booking/booking-rules';
 import { effectiveBookingRules, effectivePolicies } from '@/features/booking/policies';
 import { getAgencyBySlug } from '@/lib/db/supabase-client';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
+import { headers } from 'next/headers';
+import { ensureWalletDomains } from '@/lib/wallet-domains';
 import { getBookingBlockers } from '@/features/agency/readiness-server';
 import { activeBranding } from '@/features/agency/branding';
 import { BookingFrame } from '@/features/booking/components/booking-frame';
@@ -46,6 +49,14 @@ export default async function AgencyBookingPage({ params }: BookingPageProps) {
   }
 
   const policies = effectivePolicies(agency);
+
+  // Apple Pay and Google Pay need this site's domains on the agency's Stripe
+  // account. After the response, so the page never waits on it.
+  if (agency.stripe_account_id) {
+    const h = await headers();
+    const host = h.get('x-forwarded-host') || h.get('host');
+    after(() => ensureWalletDomains(agency.stripe_account_id, host));
+  }
 
   return (
     <>
