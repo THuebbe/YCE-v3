@@ -324,6 +324,7 @@ needs. Add new ideas there and list them here in one line.
 | Sign packages (supplier packs into stock) | Idea: platform-made from the supplier manifest, waiting on it | [SIGN-PACKAGES.md](docs/features/SIGN-PACKAGES.md) |
 | Custom signs on the booking page | Idea | [CUSTOM-SIGNS.md](docs/features/CUSTOM-SIGNS.md) |
 | Faster ways to stock signs | Idea | [FASTER-STOCKING.md](docs/features/FASTER-STOCKING.md) |
+| Booking through AI agents (MCP server, payment link) | Idea, back burner; agent-friendly booking page is in scope now | [AGENT-BOOKING.md](docs/features/AGENT-BOOKING.md) |
 
 ## Deliberate non-goals right now
 Multi-location per agency · advanced analytics ·
