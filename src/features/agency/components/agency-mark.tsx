@@ -12,7 +12,7 @@ export function AgencyMark({ name, logoUrl, className }: { name: string; logoUrl
   return (
     <span
       aria-hidden
-      className={cn('flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-accent font-display text-heading font-semibold text-brand', className)}
+      className={cn('flex size-10 shrink-0 items-center justify-center rounded-control bg-brand-accent font-display text-heading font-bold text-brand', className)}
     >
       {initials(name)}
     </span>

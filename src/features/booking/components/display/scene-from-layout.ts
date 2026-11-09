@@ -43,8 +43,11 @@ function item(sign: ZoneSign, byFile: Map<string, SignAsset>, gapBeforeIn?: numb
   return { id: sign.catalogKey ?? sign.signId, label, ...board, gapBeforeIn }
 }
 
-/** Word gaps for a row: from the text as typed, and around a number */
-function lineItems(signs: ZoneSign[], typed: string, byFile: Map<string, SignAsset>): SceneItem[] {
+/**
+ * Where a row's words break: from the text as typed, and around a number.
+ * One flag per sign, in position order.
+ */
+function wordBreaks(sorted: ZoneSign[], typed: string): boolean[] {
   // Indexes into the typed letters (spaces removed) that start a new word
   const wordStarts = new Set<number>()
   let letterIndex = 0
@@ -58,7 +61,7 @@ function lineItems(signs: ZoneSign[], typed: string, byFile: Map<string, SignAss
 
   let letters = 0
   let prevKind: string | null = null
-  return [...signs].sort((a, b) => a.position - b.position).map(sign => {
+  return sorted.map(sign => {
     // Letters standing in for an ordinal (29TH) stick to the number like the
     // ordinal sign would, and aren't part of the typed words
     const kind = sign.ordinalLetter ? 'number' : sign.type
@@ -67,8 +70,24 @@ function lineItems(signs: ZoneSign[], typed: string, byFile: Map<string, SignAss
     const numberEdge = prevKind !== null && (isLetter ? prevKind !== 'letter' : prevKind === 'letter')
     if (isLetter) letters++
     prevKind = kind
-    return item(sign, byFile, startsWord || numberEdge ? GROUP_GAP_IN : undefined)
+    return startsWord || numberEdge
   })
+}
+
+const byPosition = (signs: ZoneSign[]) => [...signs].sort((a, b) => a.position - b.position)
+
+/** Word gaps for a row */
+function lineItems(signs: ZoneSign[], typed: string, byFile: Map<string, SignAsset>): SceneItem[] {
+  const sorted = byPosition(signs)
+  const breaks = wordBreaks(sorted, typed)
+  return sorted.map((sign, i) => item(sign, byFile, breaks[i] ? GROUP_GAP_IN : undefined))
+}
+
+/** A row's words as they read on the lawn: "HAPPY 29TH BIRTHDAY" */
+function lineText(signs: ZoneSign[], typed: string): string {
+  const sorted = byPosition(signs)
+  const breaks = wordBreaks(sorted, typed)
+  return sorted.map((s, i) => `${breaks[i] ? ' ' : ''}${s.character ?? ''}`).join('').trim()
 }
 
 export function sceneRowsFromLayout(
@@ -101,8 +120,7 @@ export function sceneRowsFromLayout(
   return [back, front]
 }
 
-/** What the display says, for screen readers */
-export function describeLayout(layout: LayoutCalculation): string {
-  const text = (signs: ZoneSign[]) => [...signs].sort((a, b) => a.position - b.position).map(s => s.character ?? '').join('')
-  return `${text(layout.zone1.signs)} ${text(layout.zone2.signs)}`.trim()
+/** What the display says, word by word, for screen readers and browser agents */
+export function describeLayout(layout: LayoutCalculation, typed: { message: string; name: string } = { message: '', name: '' }): string {
+  return `${lineText(layout.zone1.signs, typed.message)} ${lineText(layout.zone2.signs, typed.name)}`.trim()
 }

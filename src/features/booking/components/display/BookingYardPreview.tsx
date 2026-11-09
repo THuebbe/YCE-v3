@@ -35,5 +35,5 @@ export function BookingYardPreview({
     [layout, typed.message, typed.name, byFile],
   );
 
-  return <YardScene rows={rows} description={describeLayout(layout)} className={className} />;
+  return <YardScene rows={rows} description={describeLayout(layout, typed)} className={className} />;
 }
