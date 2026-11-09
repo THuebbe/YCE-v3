@@ -165,6 +165,7 @@ export function PaymentStep({ custom }: { custom?: string }) {
           stripeAccountId,
           cardBrand: card.brand,
           cardLast4: card.last4,
+          cardWallet: card.wallet,
         },
       });
       nextStep();

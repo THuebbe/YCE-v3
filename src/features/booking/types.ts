@@ -88,6 +88,8 @@ export const createPaymentSchema = (availablePaymentMethods: string[] = ['card',
   stripeAccountId: z.string().optional(),
   cardBrand: z.string().optional(),
   cardLast4: z.string().optional(),
+  /** Set when the card came from a phone wallet: 'apple_pay', 'google_pay' */
+  cardWallet: z.string().optional(),
   billingAddress: z.object({
     zipCode: z.string().regex(/^\d{5}(-\d{4})?$/, 'Please enter a valid ZIP code'),
   }).optional(),

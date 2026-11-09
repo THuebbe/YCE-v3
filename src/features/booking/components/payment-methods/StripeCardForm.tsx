@@ -21,7 +21,7 @@ export function stripeForAccount(accountId: string): Promise<StripeJs | null> | 
 }
 
 export type CollectedCard =
-  | { ok: true; confirmationTokenId: string; brand?: string; last4?: string }
+  | { ok: true; confirmationTokenId: string; brand?: string; last4?: string; wallet?: string }
   | { ok: false; error: string };
 
 interface StripeCardFormProps {
@@ -33,9 +33,11 @@ interface StripeCardFormProps {
 }
 
 /**
- * Card entry on the Payment step. Nothing is charged here: "collect" turns
- * the card into a one-time ConfirmationToken, and Place Order (Review step)
- * charges it on the server after the customer has seen the summary.
+ * Card entry on the Payment step, with Apple Pay and Google Pay offered on
+ * devices that have them (they pay with a card, so everything after works
+ * the same). Nothing is charged here: "collect" turns the card into a
+ * one-time ConfirmationToken, and Place Order (Review step) charges it on
+ * the server after the customer has seen the summary.
  */
 /**
  * Stripe's fields live in its own iframe, which can't see our CSS variables,
@@ -120,7 +122,7 @@ function CardFields({ billing, onReady }: Pick<StripeCardFormProps, 'billing' | 
       });
       if (error || !confirmationToken) return { ok: false, error: error?.message ?? 'Your card could not be saved.' };
       const card = confirmationToken.payment_method_preview?.card;
-      return { ok: true, confirmationTokenId: confirmationToken.id, brand: card?.brand, last4: card?.last4 ?? undefined };
+      return { ok: true, confirmationTokenId: confirmationToken.id, brand: card?.brand, last4: card?.last4 ?? undefined, wallet: card?.wallet?.type ?? undefined };
     });
   }, [stripe, elements, billingKey, onReady]);
 

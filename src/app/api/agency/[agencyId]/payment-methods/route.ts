@@ -84,7 +84,7 @@ export async function GET(
       ? [{
           id: 'card',
           name: 'Credit/Debit Card',
-          description: 'Visa, Mastercard, American Express',
+          description: 'Visa, Mastercard, American Express. Apple Pay and Google Pay on devices that have them.',
           icon: 'CreditCard',
           processor: 'stripe',
           processorConfig: { accountId: agency.stripe_account_id, environment: 'production' },

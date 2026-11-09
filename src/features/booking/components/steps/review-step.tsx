@@ -16,6 +16,9 @@ import { buildBookingTerms } from '../../terms';
 import { policyKey } from '../../policies';
 import { COLORS } from '@/lib/brand';
 
+/** Phone wallets Stripe reports on a card (payment_method_preview.card.wallet.type) */
+const WALLET_NAMES: Record<string, string> = { apple_pay: 'Apple Pay', google_pay: 'Google Pay' };
+
 export function ReviewStep({ custom }: { custom?: string }) {
   const { formData, nextStep, prevStep, goToStep, updateFormData, agencyId, agencySlug, agency, pricing, policies, bookingRules, sessionId, timeZone, actions } = useWizard();
   // The agency's booking terms: the customer must agree before Place Order
@@ -221,7 +224,7 @@ export function ReviewStep({ custom }: { custom?: string }) {
   const getPaymentMethodDisplay = (method: string) => {
     const methods = {
       card: 'Card',
-      apple_pay: 'Apple Pay',
+      ...WALLET_NAMES,
       paypal: 'PayPal',
       venmo: 'Venmo'
     };
@@ -284,7 +287,7 @@ export function ReviewStep({ custom }: { custom?: string }) {
 
       <ReviewCard title="Payment" onEdit={() => goToStep(STEP.payment)}>
         <Details rows={[
-          ['Method', `${getPaymentMethodDisplay(formData.payment?.paymentMethod || '')}${formData.payment?.cardLast4 ? ` (${formData.payment.cardBrand ?? 'card'} ending ${formData.payment.cardLast4})` : ''}`],
+          ['Method', `${getPaymentMethodDisplay(WALLET_NAMES[formData.payment?.cardWallet ?? ''] ? formData.payment!.cardWallet! : formData.payment?.paymentMethod || '')}${formData.payment?.cardLast4 ? ` (${formData.payment.cardBrand ?? 'card'} ending ${formData.payment.cardLast4})` : ''}`],
         ]} />
         <div className="grid gap-2 border-t border-line pt-3">
           <div className="flex justify-between gap-4"><span>Event day</span><span className="tabular-nums">{money(pricing.basePrice)}</span></div>
