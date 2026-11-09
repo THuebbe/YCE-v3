@@ -5,22 +5,20 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { CreditCard, CircleDollarSign, Smartphone, Building2, Info } from 'lucide-react'
+import { CreditCard, CircleDollarSign, Building2, Info } from 'lucide-react'
 import type {
   StripeConnectStatus,
   PayPalConnectStatus,
-  BraintreeConnectStatus,
 } from '../validation/financialManagement'
 import type { Agency } from '@/lib/types/agency'
 
-type ProcessorTab = 'stripe' | 'paypal' | 'venmo'
+type ProcessorTab = 'stripe' | 'paypal'
 type Status = 'active' | 'pending' | 'off'
 
 interface PaymentSettingsTabProps {
   agency: Agency
   stripeStatus?: StripeConnectStatus | null
   paypalStatus?: PayPalConnectStatus | null
-  braintreeStatus?: BraintreeConnectStatus | null
   /** Opens a processor's setup tab */
   onOpenTab?: (tab: ProcessorTab) => void
   onSuccess?: () => void
@@ -37,21 +35,18 @@ interface PaymentSettingsTabProps {
 export function PaymentSettingsTab({
   stripeStatus,
   paypalStatus,
-  braintreeStatus,
   onOpenTab,
 }: PaymentSettingsTabProps) {
   const stripe: Status = stripeStatus?.chargesEnabled ? 'active' : stripeStatus?.isConnected ? 'pending' : 'off'
   const paypal: Status = paypalStatus?.isConnected && paypalStatus?.hasCompletedOnboarding
     ? 'active' : paypalStatus?.isConnected ? 'pending' : 'off'
-  const venmo: Status = braintreeStatus?.isConnected && braintreeStatus?.venmoEnabled
-    ? 'active' : braintreeStatus?.isConnected ? 'pending' : 'off'
 
-  // PayPal and Venmo checkout aren't finished, so customers aren't offered
-  // them yet (payment-methods route); their setup tabs still work
+  // PayPal checkout (with Venmo inside it) isn't built yet, so customers
+  // aren't offered it (payment-methods route). Venmo comes through PayPal:
+  // the old Braintree route was removed (owner, 2026-11-09)
   const rows: { tab: ProcessorTab; icon: React.ReactNode; name: string; what: string; status: Status; comingSoon?: boolean }[] = [
     { tab: 'stripe', icon: <CreditCard className="w-5 h-5" />, name: 'Cards (Stripe)', what: 'Credit and debit cards, Apple Pay, Google Pay', status: stripe },
-    { tab: 'paypal', icon: <CircleDollarSign className="w-5 h-5" />, name: 'PayPal', what: 'Coming soon at checkout. You can connect your account now.', status: paypal, comingSoon: true },
-    { tab: 'venmo', icon: <Smartphone className="w-5 h-5" />, name: 'Venmo', what: 'Coming soon at checkout. You can connect your account now.', status: venmo, comingSoon: true },
+    { tab: 'paypal', icon: <CircleDollarSign className="w-5 h-5" />, name: 'PayPal and Venmo', what: 'Coming soon at checkout. Needs a PayPal Business account.', status: paypal, comingSoon: true },
   ]
 
   const badge = (status: Status) =>
@@ -116,7 +111,7 @@ export function PaymentSettingsTab({
             Stripe balance. With &ldquo;Set it up for me&rdquo;, YardCard Elite also keeps $3 per booking.
           </p>
           <p>
-            <strong>PayPal and Venmo:</strong> their standard rates apply.
+            <strong>PayPal and Venmo:</strong> PayPal’s standard rates apply.
           </p>
           <p className="text-fine text-muted-foreground">
             Exact rates depend on your own account (international cards, disputes and instant payouts can cost extra).

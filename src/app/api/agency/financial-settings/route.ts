@@ -147,20 +147,6 @@ export async function GET(request: NextRequest) {
         paymentsReceivable: false,
         emailConfirmed: false,
         detailsSubmitted: false
-      },
-      // Braintree/Venmo status - placeholder for future implementation
-      braintreeStatus: {
-        merchantId: null,
-        isConnected: false,
-        environment: 'sandbox',
-        venmoEnabled: false,
-        accountStatus: 'not_connected',
-        allowDesktop: true,
-        allowWebLogin: true,
-        paymentMethodUsage: 'multi_use',
-        lastSyncAt: null,
-        integrationData: null,
-        publicKey: null
       }
     }
 

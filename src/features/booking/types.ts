@@ -349,14 +349,6 @@ export interface PaymentMethodProcessor {
     accountId: string;
     environment: 'production' | 'development';
   };
-  braintree?: {
-    environment: 'sandbox' | 'production';
-    merchantId: string;
-    publicKey: string;
-    allowDesktop: boolean;
-    allowWebLogin: boolean;
-    paymentMethodUsage: string;
-  };
   paypal?: {
     accountId: string;
     environment: 'production' | 'sandbox';
@@ -371,7 +363,7 @@ export interface AvailablePaymentMethod {
   name: string;
   description: string;
   icon: string;
-  processor: 'stripe' | 'braintree' | 'paypal' | 'platform';
+  processor: 'stripe' | 'paypal' | 'platform';
   processorConfig: PaymentMethodProcessor[keyof PaymentMethodProcessor];
 }
 
@@ -387,11 +379,6 @@ export interface PaymentMethodsResponse {
       stripe: {
         connected: boolean;
         accountId: string | null;
-      };
-      braintree: {
-        connected: boolean;
-        venmoEnabled: boolean;
-        environment: string | null;
       };
       paypal: {
         connected: boolean;

@@ -7,7 +7,7 @@
  */
 import { bookingBlockers, type ReadinessAgency, type ReadinessItem } from '@/features/agency/readiness';
 
-/** The agency columns the admin pages read. Never braintree_private_key and friends. */
+/** The agency columns the admin pages read: never secrets (Stripe ids only, no keys). */
 export const ADMIN_AGENCY_COLUMNS = [
   'id', 'name', 'slug', 'email', 'is_active', 'created_at', 'plan',
   'stripe_account_id', 'stripe_account_type', 'stripe_charges_enabled', 'stripe_customer_id',

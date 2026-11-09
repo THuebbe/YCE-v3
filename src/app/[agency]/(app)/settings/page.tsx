@@ -21,8 +21,6 @@ interface SettingsPageProps {
     section?: string
     success?: string
     refresh?: string
-    braintree_success?: string
-    braintree_refresh?: string
   }>
 }
 
@@ -41,7 +39,7 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
     redirect(`/${agencySlug}/dashboard`)
   }
 
-  const fromProcessor = !!(q.success || q.refresh || q.braintree_success || q.braintree_refresh)
+  const fromProcessor = !!(q.success || q.refresh)
   // Plan & billing is its own page (Stripe Checkout returns there)
   if (q.section === 'plan') redirect(`/${agencySlug}/billing`)
   const section: Section = SECTIONS.includes(q.section as Section) ? (q.section as Section) : fromProcessor ? 'payments' : 'business'
@@ -81,8 +79,6 @@ export default async function SettingsPage({ params, searchParams }: SettingsPag
             show="payments"
             stripeReturnSuccess={q.success === 'true'}
             stripeReturnRefresh={q.refresh === 'true'}
-            braintreeReturnSuccess={q.braintree_success === 'true'}
-            braintreeReturnRefresh={q.braintree_refresh === 'true'}
           />
         )}
 
