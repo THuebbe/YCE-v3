@@ -126,7 +126,7 @@ export function YardScene({ rows, description, className }: YardSceneProps) {
       viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
       className={className}
       role="img"
-      aria-label={`Yard display reading ${description}`}
+      aria-label={description.trim() ? `Yard display reading ${description}` : 'Yard display, empty until a color is picked for each line'}
     >
       <IllustratedYard id={id} />
 
