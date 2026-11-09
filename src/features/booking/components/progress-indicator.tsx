@@ -27,7 +27,8 @@ export function ProgressIndicator({ currentStep, furthestStep, steps, onStepClic
       <p className="text-fine font-bold text-fg-muted tabular-nums">
         Step {index + 1} of {steps.length}
       </p>
-      <p className="font-display text-heading font-semibold text-fg">{current.title}</p>
+      {/* The page's one h1: what this step is, for screen readers and browser agents */}
+      <h1 className="font-display text-heading font-semibold text-fg">{current.title}</h1>
       <ol className="mt-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}>
         {steps.map((step, i) => {
           const reached = step.id <= furthestStep;

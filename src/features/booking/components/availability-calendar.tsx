@@ -34,6 +34,14 @@ const dayLabel = (day: string) =>
  * booking rules) are grayed out but still tappable, so the customer can
  * find out why (`onInspect`).
  */
+/** The month as week rows: blanks (null) before the 1st, then the days, 7 to a row */
+function weeksOf(lead: number, days: string[]): (string | null)[][] {
+  const cells: (string | null)[] = [...Array.from({ length: lead }, () => null), ...days];
+  const weeks: (string | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+  return weeks;
+}
+
 export function AvailabilityCalendar({
   month,
   onMonthChange,
@@ -82,39 +90,48 @@ export function AvailabilityCalendar({
         </button>
       </div>
 
+      {/* An ARIA grid is rows of cells (agents and screen readers walk it that
+          way); the rows use display: contents so the CSS grid still lays out
+          the 7 columns */}
       <div role="grid" aria-label={`Event dates, ${monthLabel(month)}`} className="grid grid-cols-7 gap-1 text-center">
-        {WEEKDAYS.map(d => (
-          <span key={d} role="columnheader" className="pb-1 text-fine font-bold text-fg-muted">{d}</span>
+        <div role="row" className="contents">
+          {WEEKDAYS.map(d => (
+            <span key={d} role="columnheader" className="pb-1 text-fine font-bold text-fg-muted">{d}</span>
+          ))}
+        </div>
+        {weeksOf(lead, days).map((week, w) => (
+          <div key={w} role="row" className="contents">
+            {week.map((day, i) => {
+              if (!day) return <span key={`blank-${w}-${i}`} role="gridcell" />;
+              const status = statusOf(day);
+              const open = status.kind === 'open' || status.kind === 'unknown';
+              const isSelected = day === selected;
+              const why = status.kind === 'full' ? 'not enough signs free' : status.kind === 'closed' ? 'not available' : null;
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  role="gridcell"
+                  aria-selected={isSelected}
+                  aria-label={`${dayLabel(day)}${why ? `, ${why}` : ''}`}
+                  onClick={() => (open ? onSelect(day) : onInspect(day))}
+                  className={cn(
+                    'relative flex h-11 items-center justify-center rounded-control text-copy tabular-nums transition-colors focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
+                    isSelected
+                      ? 'bg-action font-bold text-on-action'
+                      : open
+                        ? 'font-semibold text-fg hover:bg-surface-sunken'
+                        : 'text-fg-muted',
+                    status.kind === 'full' && !isSelected && 'bg-surface-sunken line-through decoration-fg-muted/40',
+                    day === inspected && !isSelected && 'shadow-[inset_0_0_0_2px_var(--color-line-strong)]',
+                  )}
+                >
+                  {Number(day.slice(8))}
+                </button>
+              );
+            })}
+          </div>
         ))}
-        {Array.from({ length: lead }, (_, i) => <span key={`lead-${i}`} aria-hidden />)}
-        {days.map(day => {
-          const status = statusOf(day);
-          const open = status.kind === 'open' || status.kind === 'unknown';
-          const isSelected = day === selected;
-          const why = status.kind === 'full' ? 'not enough signs free' : status.kind === 'closed' ? 'not available' : null;
-          return (
-            <button
-              key={day}
-              type="button"
-              role="gridcell"
-              aria-selected={isSelected}
-              aria-label={`${dayLabel(day)}${why ? `, ${why}` : ''}`}
-              onClick={() => (open ? onSelect(day) : onInspect(day))}
-              className={cn(
-                'relative flex h-11 items-center justify-center rounded-control text-copy tabular-nums transition-colors focus-visible:shadow-(--focus-ring) focus-visible:outline-none',
-                isSelected
-                  ? 'bg-action font-bold text-on-action'
-                  : open
-                    ? 'font-semibold text-fg hover:bg-surface-sunken'
-                    : 'text-fg-muted/50',
-                status.kind === 'full' && !isSelected && 'bg-surface-sunken line-through decoration-fg-muted/40',
-                day === inspected && !isSelected && 'shadow-[inset_0_0_0_2px_var(--color-line-strong)]',
-              )}
-            >
-              {Number(day.slice(8))}
-            </button>
-          );
-        })}
       </div>
 
       <p className="flex flex-wrap gap-x-4 gap-y-1 text-fine text-fg-muted">

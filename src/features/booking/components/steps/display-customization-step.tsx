@@ -309,6 +309,7 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
     const nothing = options && options.styles.length === 0 && options.colorways.length === 0;
     const showStyles = Boolean(input && new Set(input.index.pairs.map(p => p.style)).size > 1);
     const ready = Boolean(words.trim()) && Boolean(options);
+    const lineName = line === 'message' ? 'Message' : 'Name';
     return (
       <StepSection key={line} title={line === 'message' ? 'The message' : 'The name'} hint={words}>
         {!options ? (
@@ -326,10 +327,11 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
             <Button variant="secondary" size="sm" className="justify-self-start" onClick={goBack}>Change the date or words</Button>
           </div>
         ) : (
-          <fieldset disabled={!ready} className="grid gap-4 disabled:opacity-50">
+          // Named per line: "Message color" and "Name color" are otherwise identical button sets to a screen reader or browser agent
+          <fieldset disabled={!ready} aria-label={`${lineName} signs`} className="grid gap-4 disabled:opacity-50">
             {showStyles && (
-              <div className="grid gap-2">
-                <p className="text-fine font-bold">Style</p>
+              <div role="group" aria-label={`${lineName} style`} className="grid gap-2">
+                <p className="text-fine font-bold" aria-hidden>Style</p>
                 <div className="flex flex-wrap gap-2">
                   {options.styles.map(style => (
                     <button key={style} type="button" aria-pressed={picks[line].style === style} onClick={() => choose(line, 'style', style)} className={chip(picks[line].style === style)}>
@@ -339,8 +341,8 @@ export function DisplayCustomizationStep({ custom }: { custom?: string }) {
                 </div>
               </div>
             )}
-            <div className="grid gap-2">
-              <p className="text-fine font-bold">Color</p>
+            <div role="group" aria-label={`${lineName} color`} className="grid gap-2">
+              <p className="text-fine font-bold" aria-hidden>Color</p>
               <div className="flex flex-wrap gap-2">
                 {options.colorways.map(colorway => (
                   <button key={colorway} type="button" aria-pressed={picks[line].colorway === colorway} onClick={() => choose(line, 'colorway', colorway)} className={chip(picks[line].colorway === colorway)}>
