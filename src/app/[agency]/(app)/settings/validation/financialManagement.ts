@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { MAX_SALES_TAX_RATE } from '@/features/booking/pricing'
 
 // Payment method options
-export const paymentMethodSchema = z.enum(['stripe_connect', 'paypal_connect', 'venmo_connect', 'yce_processing'])
+export const paymentMethodSchema = z.enum(['stripe_connect', 'paypal_connect', 'yce_processing'])
 
 // Pricing configuration validation schema
 export const pricingConfigSchema = z.object({
@@ -88,21 +88,6 @@ export const paypalConnectStatusSchema = z.object({
   integrationData: z.record(z.any()).optional(),
 })
 
-// Braintree/Venmo Connect status schema
-export const braintreeConnectStatusSchema = z.object({
-  merchantId: z.string().nullable(),
-  isConnected: z.boolean(),
-  environment: z.enum(['sandbox', 'production']),
-  venmoEnabled: z.boolean(),
-  accountStatus: z.string(),
-  allowDesktop: z.boolean(),
-  allowWebLogin: z.boolean(),
-  paymentMethodUsage: z.enum(['single_use', 'multi_use']),
-  lastSyncAt: z.string().datetime().nullable(),
-  integrationData: z.record(z.any()).optional(),
-  publicKey: z.string().optional(),
-})
-
 // Subscription information schema
 export const subscriptionInfoSchema = z.object({
   status: z.enum(['active', 'trialing', 'past_due', 'canceled', 'unpaid']),
@@ -123,7 +108,6 @@ export const financialManagementSchema = z.object({
   ycePaymentConfig: ycePaymentConfigSchema.optional(),
   stripeConnectStatus: stripeConnectStatusSchema.optional(),
   paypalConnectStatus: paypalConnectStatusSchema.optional(),
-  braintreeStatus: braintreeConnectStatusSchema.optional(),
   subscriptionInfo: subscriptionInfoSchema.optional(),
 })
 
@@ -133,50 +117,12 @@ export type PricingConfig = z.infer<typeof pricingConfigSchema>
 export type YCEPaymentConfig = z.infer<typeof ycePaymentConfigSchema>
 export type StripeConnectStatus = z.infer<typeof stripeConnectStatusSchema>
 export type PayPalConnectStatus = z.infer<typeof paypalConnectStatusSchema>
-export type BraintreeConnectStatus = z.infer<typeof braintreeConnectStatusSchema>
 export type SubscriptionInfo = z.infer<typeof subscriptionInfoSchema>
 export type FinancialManagementData = z.infer<typeof financialManagementSchema>
 export type PayPalPartnerReferralRequest = z.infer<typeof paypalPartnerReferralRequestSchema>
 export type PayPalCallback = z.infer<typeof paypalCallbackSchema>
 export type PayPalPollingConfig = z.infer<typeof paypalPollingConfigSchema>
 
-// Braintree/Venmo configuration validation
-export const braintreeConfigSchema = z.object({
-  environment: z.enum(['sandbox', 'production']),
-  merchantId: z.string().min(1, 'Merchant ID is required'),
-  publicKey: z.string().min(1, 'Public key is required'),
-  venmoEnabled: z.boolean(),
-  allowDesktop: z.boolean(),
-  allowWebLogin: z.boolean(),
-  paymentMethodUsage: z.enum(['single_use', 'multi_use']),
-})
-
-// Venmo settings update validation
-export const venmoSettingsSchema = z.object({
-  venmoEnabled: z.boolean().optional(),
-  allowDesktop: z.boolean().optional(),
-  allowWebLogin: z.boolean().optional(),
-  paymentMethodUsage: z.enum(['single_use', 'multi_use']).optional(),
-})
-
-// Venmo payment processing validation
-export const venmoPaymentSchema = z.object({
-  paymentMethodNonce: z.string().min(1, 'Payment method nonce is required'),
-  amount: z.number().min(0.01, 'Amount must be at least $0.01').max(10000, 'Amount cannot exceed $10,000'),
-  deviceData: z.string().optional(),
-  description: z.string().max(255, 'Description cannot exceed 255 characters').optional(),
-})
-
-// Braintree webhook validation
-export const braintreeWebhookSchema = z.object({
-  bt_signature: z.string().min(1, 'Webhook signature is required'),
-  bt_payload: z.string().min(1, 'Webhook payload is required'),
-})
-
-export type BraintreeConfig = z.infer<typeof braintreeConfigSchema>
-export type VenmoSettings = z.infer<typeof venmoSettingsSchema>
-export type VenmoPayment = z.infer<typeof venmoPaymentSchema>
-export type BraintreeWebhook = z.infer<typeof braintreeWebhookSchema>
 
 // Form data type for internal state management
 export interface FinancialManagementFormData {

@@ -22,8 +22,8 @@ export interface ReadinessAgency extends AgencySubscription {
 
 /**
  * Card payments through Stripe are the only way customers can pay online
- * today. Venmo and PayPal checkout aren't finished (STATE.md), so they
- * don't count until they are.
+ * today. PayPal checkout (with Venmo inside it) counts once it's built
+ * (docs/features/VENMO-PAYPAL.md).
  */
 export function canTakePayments(agency: ReadinessAgency): boolean {
   return !!(agency.stripe_account_id && agency.stripe_charges_enabled);

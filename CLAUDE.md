@@ -8,9 +8,11 @@ booking wizard scoped to the agency.
 - Next.js 15.3.9 (App Router), React 19, TypeScript, Tailwind v4
 - **Auth: Clerk.** Not Supabase Auth. `auth.uid()` is ALWAYS null here.
 - **Data: Supabase (Postgres).** Not Prisma — the README is stale.
-- Payments: Stripe, Braintree/Venmo, PayPal — all three intentional
-  (target users are solo operators; some take Venmo, some PayPal,
-  some have real Stripe accounts). Do not "simplify" this.
+- Payments: Stripe (cards, Apple Pay, Google Pay) and PayPal (PayPal and
+  Venmo) — both intentional (target users are solo operators; some have
+  Stripe, some PayPal, many customers want Venmo). Braintree was retired
+  2026-11-09: it sent every agency's money to the platform's account.
+  Venmo comes through PayPal (docs/features/VENMO-PAYPAL.md).
 - Deploy: Vercel. Package manager: **pnpm** (never npm)
 - Local dev: `pnpm dev`, then `http://localhost:3000/<agency-slug>/booking`
 
@@ -53,7 +55,7 @@ booking wizard scoped to the agency.
    The booking wizard gets it from wizard context (`pricing`) and totals
    with `calculateBookingTotal()` in `features/booking/pricing.ts`.
    Never hardcode a price.
-7. Do not add a fourth payment provider.
+7. Do not add a third payment provider (Braintree stays retired).
 
 ## Two `Sign` types exist. This is deliberate.
 - `src/features/inventory/types.ts` — persistence model, mirrors the

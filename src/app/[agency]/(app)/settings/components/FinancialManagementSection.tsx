@@ -17,7 +17,6 @@ import type {
   PricingConfig,
   StripeConnectStatus,
   PayPalConnectStatus,
-  BraintreeConnectStatus,
   calculateNetPayout
 } from '../validation/financialManagement'
 import type { Agency } from '@/lib/types/agency'
@@ -28,8 +27,6 @@ interface FinancialManagementSectionProps {
   stripeReturnRefresh?: boolean
   paypalReturnSuccess?: boolean
   paypalReturnRefresh?: boolean
-  braintreeReturnSuccess?: boolean
-  braintreeReturnRefresh?: boolean
   onSuccess?: () => void
   onError?: (error: string) => void
   /** Settings shows prices under Booking page and the processors under Payments */
@@ -42,8 +39,6 @@ export default function FinancialManagementSection({
   stripeReturnRefresh = false,
   paypalReturnSuccess = false,
   paypalReturnRefresh = false,
-  braintreeReturnSuccess = false,
-  braintreeReturnRefresh = false,
   onSuccess, 
   onError,
   show,
@@ -56,7 +51,6 @@ export default function FinancialManagementSection({
 
   const [stripeStatus, setStripeStatus] = useState<StripeConnectStatus | null>(null)
   const [paypalStatus, setPaypalStatus] = useState<PayPalConnectStatus | null>(null)
-  const [braintreeStatus, setBraintreeStatus] = useState<BraintreeConnectStatus | null>(null)
   const [salesTax, setSalesTax] = useState<SalesTaxAnswer | null>(null)
   const [errors, setErrors] = useState<FinancialValidationErrors>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -91,7 +85,6 @@ export default function FinancialManagementSection({
         // Set payment processor status
         setStripeStatus(responseData.stripeStatus || null)
         setPaypalStatus(responseData.paypalStatus || null)
-        setBraintreeStatus(responseData.braintreeStatus || null)
       }
     } catch (error) {
       console.error('Error loading financial settings:', error)
@@ -175,13 +168,10 @@ export default function FinancialManagementSection({
         agency={agency}
         stripeStatus={stripeStatus}
         paypalStatus={paypalStatus}
-        braintreeStatus={braintreeStatus}
         stripeReturnSuccess={stripeReturnSuccess}
         stripeReturnRefresh={stripeReturnRefresh}
         paypalReturnSuccess={paypalReturnSuccess}
         paypalReturnRefresh={paypalReturnRefresh}
-        braintreeReturnSuccess={braintreeReturnSuccess}
-        braintreeReturnRefresh={braintreeReturnRefresh}
         onSuccess={onSuccess}
         onError={onError}
       />}

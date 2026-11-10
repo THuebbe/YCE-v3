@@ -14,7 +14,6 @@ import { CreditCardForm } from '../payment-methods/CreditCardForm';
 import { StripeCardForm, type CollectedCard } from '../payment-methods/StripeCardForm';
 import { PayPalForm } from '../payment-methods/PayPalForm';
 import { ApplePayForm } from '../payment-methods/ApplePayForm';
-import { VenmoPaymentForm } from '@/components/payments/VenmoPaymentForm';
 
 // Raw card data must never enter wizard state: everything in formData is
 // POSTed to /api/orders/create. Real card capture belongs in Stripe Elements.
@@ -270,21 +269,6 @@ export function PaymentStep({ custom }: { custom?: string }) {
             paymentMethod={selectedMethod}
             amount={totalAmount}
             onSuccess={handlePaymentSuccess}
-            onError={handlePaymentError}
-          />
-        );
-      
-      case 'venmo':
-        return (
-          <VenmoPaymentForm
-            amount={totalAmount}
-            description="YardCard Elite yard display rental"
-            onSuccess={(transactionId) => handlePaymentSuccess({ 
-              paymentId: transactionId, 
-              paymentMethod: 'venmo',
-              amount: totalAmount,
-              status: 'completed' 
-            })}
             onError={handlePaymentError}
           />
         );

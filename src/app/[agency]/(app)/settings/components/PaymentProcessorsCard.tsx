@@ -8,11 +8,9 @@ import { CreditCard, CircleDollarSign, Building2, Zap } from 'lucide-react'
 import { PaymentSettingsTab } from './PaymentSettingsTab'
 import { StripeSetupTab } from './StripeSetupTab'
 import { PayPalSetupTab } from './PayPalSetupTab'
-import { VenmoSetupTab } from './VenmoSetupTab'
 import type { 
   StripeConnectStatus, 
-  PayPalConnectStatus,
-  BraintreeConnectStatus
+  PayPalConnectStatus
 } from '../validation/financialManagement'
 import type { Agency } from '@/lib/types/agency'
 
@@ -20,13 +18,10 @@ interface PaymentProcessorsCardProps {
   agency: Agency
   stripeStatus?: StripeConnectStatus | null
   paypalStatus?: PayPalConnectStatus | null
-  braintreeStatus?: BraintreeConnectStatus | null
   stripeReturnSuccess?: boolean
   stripeReturnRefresh?: boolean
   paypalReturnSuccess?: boolean
   paypalReturnRefresh?: boolean
-  braintreeReturnSuccess?: boolean
-  braintreeReturnRefresh?: boolean
   onSuccess?: () => void
   onError?: (message: string) => void
 }
@@ -35,13 +30,10 @@ export function PaymentProcessorsCard({
   agency, 
   stripeStatus,
   paypalStatus,
-  braintreeStatus,
   stripeReturnSuccess = false,
   stripeReturnRefresh = false,
   paypalReturnSuccess = false,
   paypalReturnRefresh = false,
-  braintreeReturnSuccess = false,
-  braintreeReturnRefresh = false,
   onSuccess, 
   onError 
 }: PaymentProcessorsCardProps) {
@@ -54,7 +46,6 @@ export function PaymentProcessorsCard({
   // Status indicators for tabs
   const stripeEnabled = !!(stripeStatus?.isConnected && stripeStatus?.hasCompletedOnboarding)
   const paypalEnabled = !!(paypalStatus?.isConnected && paypalStatus?.hasCompletedOnboarding)
-  const venmoEnabled = !!(braintreeStatus?.isConnected && braintreeStatus?.venmoEnabled)
 
   const getTabIcon = (processor: string) => {
     switch (processor) {
@@ -64,8 +55,6 @@ export function PaymentProcessorsCard({
         return <CreditCard className="w-4 h-4" />
       case 'paypal':
         return <CircleDollarSign className="w-4 h-4" />
-      case 'venmo':
-        return <Building2 className="w-4 h-4" />
       default:
         return null
     }
@@ -120,22 +109,10 @@ export function PaymentProcessorsCard({
               className="flex items-center gap-2"
             >
               {getTabIcon('paypal')}
-              PayPal
+              PayPal and Venmo
               {getStatusBadge(
                 paypalEnabled, 
                 paypalStatus?.isConnected && !paypalStatus?.hasCompletedOnboarding
-              )}
-            </TabsTrigger>
-            
-            <TabsTrigger 
-              value="venmo" 
-              className="flex items-center gap-2"
-            >
-              {getTabIcon('venmo')}
-              Venmo
-              {getStatusBadge(
-                venmoEnabled, 
-                braintreeStatus?.isConnected && !braintreeStatus?.venmoEnabled
               )}
             </TabsTrigger>
           </TabsList>
@@ -145,7 +122,6 @@ export function PaymentProcessorsCard({
               agency={agency}
               stripeStatus={stripeStatus}
               paypalStatus={paypalStatus}
-              braintreeStatus={braintreeStatus}
               onOpenTab={setActiveTab}
               onSuccess={onSuccess}
               onError={onError}
@@ -169,16 +145,6 @@ export function PaymentProcessorsCard({
               paypalStatus={paypalStatus}
               paypalReturnSuccess={paypalReturnSuccess}
               paypalReturnRefresh={paypalReturnRefresh}
-              onSuccess={onSuccess}
-              onError={onError}
-            />
-          </TabsContent>
-
-          <TabsContent value="venmo" className="mt-6">
-            <VenmoSetupTab
-              agency={agency}
-              braintreeReturnSuccess={braintreeReturnSuccess}
-              braintreeReturnRefresh={braintreeReturnRefresh}
               onSuccess={onSuccess}
               onError={onError}
             />

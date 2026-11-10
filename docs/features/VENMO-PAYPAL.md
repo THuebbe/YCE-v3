@@ -1,8 +1,11 @@
 # Venmo and PayPal at checkout
 
-Status: **PLAN, waiting on the owner (2026-11-06).** Not built. The owner
-asked to do Venmo while waiting on Victory Store. This page is the plan to
-approve before any code.
+Status: **APPROVED, in progress (2026-11-09).** Route: Venmo and PayPal
+through PayPal's multiparty platform. Braintree retired (owner, 2026-11-09):
+its code is removed and its columns wait in
+`migrations/20261109_agencies_drop_braintree_columns.sql` for the owner.
+Phone wallets (Apple Pay, Google Pay) shipped on Stripe instead of Cash App
+Pay, which the owner skipped.
 
 ## Where it stands (checked 2026-11-06)
 - Customers are only offered Stripe cards (since #20). The Venmo and PayPal
@@ -50,13 +53,16 @@ payments off personal accounts, and a website checkout can't pay an @handle
 anyway. That needs saying plainly in Settings and in sales.
 
 ## What the owner does first (blocks everything)
-1. A PayPal Business account for Trad Tech (the platform) and a REST app,
-   sandbox first. The keys go in Vercel: sandbox in Preview, live in
-   Production.
+1. ~~A PayPal Business account~~ Done: "YardCard Elite", verified
+   2026-11-09. Still to do: a **sandbox** REST app; its keys go in Vercel
+   **Preview** as `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`,
+   `PAYPAL_PARTNER_ID` (the sandbox business account's merchant id). Live
+   keys go in Production later.
 2. Ask PayPal to enable the account as a partner ("PayPal Complete Payments"
    / multiparty, partner fees and seller onboarding). Ask how long that
-   takes; nobody here knows.
-3. Decide: approve retiring Braintree (above)?
+   takes, whether the sandbox needs enabling too, and for the partner
+   attribution id (BN code, `PAYPAL_PARTNER_ATTRIBUTION_ID`).
+3. ~~Decide: retire Braintree?~~ Yes (2026-11-09).
 
 ## Build, once 1-3 are done (each its own PR, tested in PayPal sandbox)
 1. **Connect:** finish the partner-referral onboarding. Store the agency's

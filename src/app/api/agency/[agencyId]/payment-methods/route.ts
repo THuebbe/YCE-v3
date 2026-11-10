@@ -33,14 +33,6 @@ export async function GET(
         stripe_charges_enabled,
         stripe_payouts_enabled,
         stripe_details_submitted,
-        braintree_environment,
-        braintree_merchant_id,
-        braintree_public_key,
-        braintree_account_status,
-        venmo_enabled,
-        venmo_allow_desktop,
-        venmo_allow_web_login,
-        venmo_payment_method_usage,
         paypal_account_id,
         paypal_account_status,
         paypal_details_submitted,
@@ -68,16 +60,14 @@ export async function GET(
     }
 
     // What a customer can actually pay with. Only card via the agency's
-    // Stripe today: Venmo checkout needs a signed-in agency user (customers
-    // got "Unauthorized") and PayPal checkout is a stub that saved unpaid
-    // orders, so neither is offered until it's built (STATE.md). Apple Pay
-    // and Google Pay appear inside Stripe's card form on their own.
+    // Stripe today; Apple Pay and Google Pay appear inside Stripe's card
+    // form on their own. PayPal (with Venmo inside it) is offered once its
+    // checkout is built (docs/features/VENMO-PAYPAL.md).
     const hasStripeConnected = !!(
       agency.stripe_account_id &&
       agency.stripe_details_submitted &&
       agency.stripe_charges_enabled
     )
-    const hasVenmoEnabled = !!(agency.braintree_merchant_id && agency.braintree_account_status === 'active' && agency.venmo_enabled)
     const hasPayPalConnected = !!(agency.paypal_account_id && agency.paypal_details_submitted && agency.paypal_payments_receivable && agency.paypal_email_confirmed)
 
     const availablePaymentMethods = hasStripeConnected
@@ -103,11 +93,6 @@ export async function GET(
           stripe: {
             connected: hasStripeConnected,
             accountId: agency.stripe_account_id || null
-          },
-          braintree: {
-            connected: !!agency.braintree_merchant_id,
-            venmoEnabled: hasVenmoEnabled,
-            environment: agency.braintree_environment || null
           },
           paypal: {
             connected: hasPayPalConnected,
